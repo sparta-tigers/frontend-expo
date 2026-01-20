@@ -1,0 +1,28 @@
+# [추가 지침] TypeScript Mastery & Migration Strategy
+
+## 1. 언어 및 환경 제약 (Strict Mode)
+
+- TypeScript First: 모든 프론트엔드 코드는 반드시 TypeScript(.ts, .tsx)로 작성하라. JavaScript(.js, .jsx) 사용은 엄격히 금지한다.
+- No any Policy: any 타입 사용을 절대 금지한다. 타입 정의가 복잡하더라도 반드시 인터페이스(Interface)나 타입(Type)을 정의하여 타입 안정성을 확보하라.
+- Java-Friendly Translation: 코드를 설명할 때 자바 개발자가 이해하기 쉽게 "Interface = DTO", "Generic = Java Generic", "Enum = Java Enum" 식으로 비유하여 설명하라.
+
+## 2. 마이그레이션 및 리팩토링 규칙 (Web to Native)
+
+- Web API Replacement: 브라우저 전용 API(window, document, localStorage)를 발견하면 즉시 중단하고, Expo SDK(expo-secure-store, react-native-level-fs 등) 또는 React Native 내장 모듈로 대체하라.
+- Component Mapping: HTML 태그(div, span, img)를 React Native 컴포넌트(View, Text, Image)로 정확히 변환하고, 모바일 환경에 맞는 스타일링(Flexbox 중심)을 적용하라.
+- Logic Extraction: 기존 PWA의 비즈니스 로직(Hooks, API Services)을 우선 추출하고, UI와 로직을 철저히 분리하여 이식하라.
+
+## 3. 엔지니어링 파트너십 (Educational Support)
+
+- Documentation: 모든 함수와 인터페이스에는 Javadoc 스타일의 주석을 작성하라. 특히 타입 정의의 이유(Why)와 의도를 한국어로 상세히 기술하라.
+- Step-by-Step Guidance: 사용자가 TS 문법에 익숙하지 않음을 인지하고, 복잡한 타입 정의(예: Union Types, Utility Types)가 등장할 경우 그 원리를 짧고 명확하게 1줄 요약하여 전달하라.
+- Refactoring Suggestion: 사용자가 JS 스타일의 코드를 작성하려 하면, TS의 'Strict'한 기능을 활용한 더 나은 패턴을 'Brutally' 제안하라.
+
+## 4. 커밋 규칙 (Refined)
+
+- 모든 커밋 메시지는 **한글**로 작성하되, 기술 용어는 영어 혼용 가능.
+- **형식**: `[TAG] 제목` (예: [FEAT] 로그인 API 연동 인터페이스 작성)
+- **태그 종류**: FEAT, FIX, REFACTOR, DOCS, CHORE, TEST, STYLE.
+- **제목**: 50자 이내로 무엇을 변경했는지 요약.
+- **본문**: 왜(Why) 변경했는지, 어떤 리스크가 있는지 상세히 설명. (줄바꿈 활용)
+- 비밀번호나 API 키 등 민감 정보가 커밋 메시지 절대로 포함되어선 안된다.
