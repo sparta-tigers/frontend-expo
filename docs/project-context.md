@@ -43,7 +43,7 @@
 
 ---
 
-## 🎯 현재 상태 (2026-01-21 16:57)
+## 🎯 현재 상태 (2026-01-21 20:09)
 
 ### ✅ 완료된 작업
 
@@ -56,11 +56,15 @@
 - **타입 정의 이전**: 5개 도메인 (auth, users, chatrooms, exchanges, items)
 - **AsyncStorage 설치**: 네이티브 스토리지 의존성 추가
 - **인증 훅 구현**: useAuth 훅 작성 (타입 에러 해결 필요)
+- **이슈 분석**: MIGRATION_ISSUES.md 기반 리스크 식별 및 반영
+- **Phase 1 긴급 수정사항 완료**: 프론트엔드 코드 품질 개선
+  - 디버그 코드 제거, Import 경로 통일, 중복 로직 제거
+  - UI/UX 개선 (자동 리다이렉트, 로딩 상태 표시)
+  - 에러 핸들링 강화, 타입 안전성 개선
 
 ### ⏳ 진행 중인 작업
 
-- **Phase 1**: API 클라이언트 타입 에러 해결 중
-- **인증 훅**: ResultType 타입 불일치 문제 해결 필요
+- **Git 커밋 준비**: Phase 1 수정사항 커밋 대기
 
 ### ❌ 미완료 작업
 
@@ -68,6 +72,7 @@
 - **UI 컴포넌트**: 39개 Radix UI → 네이티브 전환
 - **WebSocket 연동**: STOMP.js 호환성 검증
 - **스토리지 전환**: localStorage → AsyncStorage/SecureStore 완전 전환
+- **백엔드 의존성**: Refresh API, CORS 설정 확정
 
 ---
 
@@ -103,35 +108,25 @@
 
 ## 🔧 기술적 의사결정 기록
 
-### 2026-01-21 17:33 (Phase 1 문제 해결 완료)
+### 2026-01-21 20:09 (Phase 1 프론트엔드 수정 완료)
 
-1. **TypeScript 타입 에러 해결**: `ResultType` → `ApiResultType`으로 타입 이름 변경
-   - API 응답 인터페이스 타입 수정 완료
-   - No any Policy 준수 (as any 제거)
+1. **프론트엔드 긴급 수정사항 완료**: 9개 항목 전부 해결
+   - 디버그 코드 제거: auth.ts console.log 정리
+   - Import 경로 통일: `@/src/hooks/useAuth`로 일관성 확보
+   - 중복 인증 로직 제거: 탭 레이아웃에서 불필요한 체크 제거
+   - UI/UX 개선: 자동 리다이렉트, 로딩 인디케이터 추가
+   - 에러 핸들링 강화: catch 블록에 console.error 추가
+   - 타입 안전성: apiClient any 타입을 Record<string, any>로 개선
 
-2. **보안 강화 완료**: AsyncStorage → SecureStore 전환
-   - JWT 토큰 암호화 저장 구현
-   - expo-secure-store 설치 및 적용
+2. **사용자 경험 향상**:
+   - 로그인/회원가입 성공 시 Alert 후 자동 메인 화면 이동
+   - API 호출 중 버튼 비활성화 및 ActivityIndicator 표시
+   - 에러 발생 시 콘솔 로깅으로 디버깅 용이성 확보
 
-3. **토큰 만료 시간 처리**: 실제 만료 시간 저장/로드 구현
-   - new Date() 강제 생성 문제 해결
-   - ISO 문자열로 만료 시간 정확 저장
-
-4. **Silent Refresh 로직 구현**: 401 에러 시 자동 토큰 갱신
-   - Axios 응답 인터셉터 구현
-   - 원래 요청 자동 재시도 로직
-
-5. **WebSocket 호환성 검증**: React Native 환경 준비
-   - WebSocket 유틸리티 생성
-   - useWebSocket 훅 구현
-
-6. **메시징 방식 정리**: HTTP API + WebSocket 하이브리드
-   - 기존 HTTP API 유지 (deprecated 처리)
-   - WebSocket 기반 함수 추가
-
-7. **아키텍처 강화**: 공통 타입 및 훅 추가
-   - src/types/common.ts 생성
-   - useAsyncState 훅 구현
+3. **코드 품질 확보**:
+   - TypeScript 엄격 모드 준수
+   - ESLint 경고 해결 (unused variables)
+   - 중복 코드 제거로 유지보수성 향상
 
 ### 2026-01-21 16:57
 
@@ -174,11 +169,18 @@
 
 ## 🚨 현재 이슈사항
 
-### 해결 필요
+### 🔥 긴급 해결 필요
 
-- **PWA 코드 이전**: 실제 구현 코드가 거의 없음
-- **API 클라이언트**: src/api/index.ts 파일이 비어있음
-- **타입 정의**: PWA의 전체 인터페이스가 이전되지 않음
+- **인증 헤더 필수**: 모든 API 요청에 Authorization: Bearer 토큰 필요
+- **토큰 저장 키 혼재**: accessToken/refreshToken 통일 전략 필요
+- **CORS 설정**: Expo 개발 환경(origin) 허용 필요
+- **Refresh API 부재**: Silent Refresh 구현을 위한 백엔드 엔드포인트 확정
+
+### 📋 중요 이슈
+
+- **WebSocket ChatDomain**: "location" 값 미지원 문제
+- **파일 업로드 계약**: 멀티파트 vs JSON 방식 확정
+- **senderId 하드코딩**: 라이브보드에서 currentUser 기반으로 전환
 
 ### 예상 이슈
 
@@ -190,17 +192,19 @@
 
 ## 📝 다음 작업 계획
 
-### 즉시 실행 (오늘)
+### 🔥 긴급 실행 (오늘)
 
-1. **API 클라이언트 구현**: src/api/index.ts 완성
-2. **타입 정의 이전**: PWA의 전체 인터페이스 복사
-3. **인증 API 구현**: auth.ts 완성 및 테스트
+1. **인증 계약 안정화**: 토큰 저장 키 통일 (accessToken/refreshToken)
+2. **CORS 설정**: 백엔드 WebConfig에 Expo 개발 환경 허용
+3. **Refresh API 확정**: 백엔드에 재발급 엔드포인트 확인/요청
+4. **API 클라이언트 구현**: src/api/index.ts 완성 (Bearer 토큰 필수)
 
 ### 단기 계획 (이번 주)
 
 1. **React Navigation 설정**: 기본 네비게이션 구조
 2. **인증 화면**: 로그인/회원가입 페이지
-3. **API 연동 테스트**: 백엔드와 통신 검증
+3. **WebSocket ChatDomain**: 백엔드 처리 범위 확정
+4. **API 연동 테스트**: 백엔드와 통신 검증
 
 ---
 
@@ -236,5 +240,6 @@
 
 ---
 
-_마지막 업데이트: 2026-01-21 00:35_  
-_담당자: Cascade AI Assistant_
+_마지막 업데이트: 2026-01-21 20:09_  
+_담당자: Cascade AI Assistant_  
+_기반: Phase 1 프론트엔드 수정사항 완료_

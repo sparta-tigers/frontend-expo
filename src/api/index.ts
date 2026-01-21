@@ -162,7 +162,10 @@ class ApiClient {
    * @param params - 쿼리 파라미터
    * @returns 타입화된 응답 데이터
    */
-  async get<T>(url: string, params?: any): Promise<ApiResponse<T>> {
+  async get<T>(
+    url: string,
+    params?: Record<string, any>,
+  ): Promise<ApiResponse<T>> {
     const response = await this.axiosInstance.get(url, { params });
     return response.data;
   }
@@ -173,7 +176,10 @@ class ApiClient {
    * @param data - 요청 바디
    * @returns 타입화된 응답 데이터
    */
-  async post<T>(url: string, data?: any): Promise<ApiResponse<T>> {
+  async post<T>(
+    url: string,
+    data?: Record<string, any>,
+  ): Promise<ApiResponse<T>> {
     const response = await this.axiosInstance.post(url, data);
     return response.data;
   }
@@ -184,7 +190,10 @@ class ApiClient {
    * @param data - 요청 바디
    * @returns 타입화된 응답 데이터
    */
-  async put<T>(url: string, data?: any): Promise<ApiResponse<T>> {
+  async put<T>(
+    url: string,
+    data?: Record<string, any>,
+  ): Promise<ApiResponse<T>> {
     const response = await this.axiosInstance.put(url, data);
     return response.data;
   }
@@ -205,7 +214,10 @@ class ApiClient {
    * @param data - 요청 바디
    * @returns 타입화된 응답 데이터
    */
-  async patch<T>(url: string, data?: any): Promise<ApiResponse<T>> {
+  async patch<T>(
+    url: string,
+    data?: Record<string, any>,
+  ): Promise<ApiResponse<T>> {
     const response = await this.axiosInstance.patch(url, data);
     return response.data;
   }

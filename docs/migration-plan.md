@@ -100,14 +100,14 @@ SockJS + STOMP.js → WebSocket 연결 (/ws)
 
 ### 0.4 호환성 평가
 
-| 구분        | 호환성  | 마이그레이션 방식               | 비고                            |
-| ----------- | ------- | ------------------------------- | ------------------------------- |
-| API 통신    | ✅ 높음 | Axios 그대로 사용               | baseURL, timeout 동일           |
-| WebSocket   | ✅ 높음 | STOMP.js 그대로 사용            | SockJS → React Native WebSocket |
-| 인증 토큰   | ⚠️ 중간 | localStorage → AsyncStorage     | SecureStore로 민감 데이터 이전  |
-| 라우팅      | ❌ 낮음 | React Router → React Navigation | 네이티브 네비게이션 패턴        |
-| UI 컴포넌트 | ❌ 낮음 | 완전 재구현                     | Radix UI → 네이티브 컴포넌트    |
-| 스타일링    | ❌ 낮음 | TailwindCSS → StyleSheet        | Flexbox 중심으로 재설계         |
+| 구분        | 호환성  | 마이그레이션 방식               | 비고                            | 리스크            |
+| ----------- | ------- | ------------------------------- | ------------------------------- | ----------------- |
+| API 통신    | ✅ 높음 | Axios 그대로 사용               | baseURL, timeout 동일           | 인증 헤더 필수    |
+| WebSocket   | ✅ 높음 | STOMP.js 그대로 사용            | SockJS → React Native WebSocket | ChatDomain 불일치 |
+| 인증 토큰   | ⚠️ 중간 | localStorage → AsyncStorage     | SecureStore로 민감 데이터 이전  | 토큰 키 혼재      |
+| 라우팅      | ❌ 낮음 | React Router → React Navigation | 네이티브 네비게이션 패턴        | -                 |
+| UI 컴포넌트 | ❌ 낮음 | 완전 재구현                     | Radix UI → 네이티브 컴포넌트    | -                 |
+| 스타일링    | ❌ 낮음 | TailwindCSS → StyleSheet        | Flexbox 중심으로 재설계         | -                 |
 
 ---
 
@@ -233,11 +233,12 @@ SockJS + STOMP.js → WebSocket 연결 (/ws)
 
 ### 3.2 ⚠️ 수정 필요한 API
 
-| 도메인     | 엔드포인트                    | 수정 사항        | 이유                           |
-| ---------- | ----------------------------- | ---------------- | ------------------------------ |
-| **아이템** | `POST /api/v1/items`          | 파일 업로드 방식 | FormData → multipart/form-data |
-| **프로필** | `PATCH /api/v1/users/profile` | 이미지 처리      | 네이티브 파일 시스템 연동      |
-| **알림**   | `GET /api/v1/alarms`          | 푸시 토큰 전달   | FCM → Expo Push Token          |
+| 도메인     | 엔드포인트                    | 수정 사항        | 이유                           | 우선순위 |
+| ---------- | ----------------------------- | ---------------- | ------------------------------ | -------- |
+| **아이템** | `POST /api/v1/items`          | 파일 업로드 방식 | FormData → multipart/form-data | 높음     |
+| **프로필** | `PATCH /api/v1/users/profile` | 이미지 처리      | 네이티브 파일 시스템 연동      | 중간     |
+| **알림**   | `GET /api/v1/alarms`          | 푸시 토큰 전달   | FCM → Expo Push Token          | 중간     |
+| **인증**   | `POST /api/v1/auth/refresh`   | 재발급 API 확정  | Silent Refresh 구현 필요       | 🔥 긴급  |
 
 ### 3.3 🔧 추가 개발 필요한 API
 
@@ -292,19 +293,25 @@ SockJS + STOMP.js → WebSocket 연결 (/ws)
 
 ### 5.1 높은 리스크
 
-| 리스크          | 영향도 | 대응책                          |
-| --------------- | ------ | ------------------------------- |
-| Radix UI 의존성 | 높음   | 네이티브 컴포넌트로 완전 재구현 |
-| PWA 기능 손실   | 중간   | 네이티브 기능으로 대체          |
-| 성능 저하       | 중간   | FlatList 최적화, 메모리 관리    |
+| 리스크                | 영향도 | 대응책                          | 우선순위 |
+| --------------------- | ------ | ------------------------------- | -------- |
+| Radix UI 의존성       | 높음   | 네이티브 컴포넌트로 완전 재구현 | 중간     |
+| PWA 기능 손실         | 중간   | 네이티브 기능으로 대체          | 낮음     |
+| 성능 저하             | 중간   | FlatList 최적화, 메모리 관리    | 중간     |
+| **인증 헤더 필수**    | 높음   | 모든 API 요청에 Bearer 토큰     | 🔥 긴급  |
+| **토큰 저장 키 혼재** | 높음   | 단일 키 전략으로 통일           | 🔥 긴급  |
+| **CORS 설정**         | 중간   | Expo 개발 환경 origin 허용      | 높음     |
 
 ### 5.2 중간 리스크
 
-| 리스크         | 영향도 | 대응책                        |
-| -------------- | ------ | ----------------------------- |
-| WebSocket 연동 | 중간   | STOMP.js 그대로 사용 가능     |
-| 파일 업로드    | 중간   | Expo FileSystem + FormData    |
-| 푸시 알림      | 중간   | Expo Notifications + FCM 연동 |
+| 리스크                   | 영향도 | 대응책                        | 우선순위 |
+| ------------------------ | ------ | ----------------------------- | -------- |
+| WebSocket 연동           | 중간   | STOMP.js 그대로 사용 가능     | 중간     |
+| 파일 업로드              | 중간   | Expo FileSystem + FormData    | 높음     |
+| 푸시 알림                | 중간   | Expo Notifications + FCM 연동 | 중간     |
+| **ChatDomain 값 불일치** | 중간   | 백엔드 처리 범위 확정         | 높음     |
+| **Refresh API 부재**     | 높음   | 백엔드 재발급 엔드포인트 확정 | 🔥 긴급  |
+| **senderId 하드코딩**    | 중간   | currentUser 기반으로 전환     | 중간     |
 
 ---
 
@@ -351,9 +358,16 @@ SockJS + STOMP.js → WebSocket 연결 (/ws)
 
 본 마이그레이션 계획은 기존 PWA 앱의 비즈니스 로직과 API 연동을 최대한 유지하면서, 네이티브 환경의 이점을 취하는 것을 목표로 합니다. 백엔드 API는 대부분 유지되며, 프론트엔드 컴포넌트와 Web API만 Expo SDK로 전환하면 됩니다.
 
-**예상 개발 기간**: 6-8주  
+### ⚠️ 긴급 선결 과제
+
+1. **인증 계약 안정화**: AuthArgumentResolver NPE 방어, 토큰 저장 키 통일
+2. **CORS 설정**: Expo 개발 환경 지원
+3. **Refresh API 확정**: Silent Refresh 구현을 위한 백엔드 엔드포인트 확인
+4. **WebSocket ChatDomain**: 백엔드 처리 범위와 프론트엔드 사용 값 정합성
+
+**예상 개발 기간**: 6-8주 (긴급 과제 해결 후)  
 **필요 인력**: React Native 개발자 1명 + 백엔드 지원  
-**주요 과제**: UI 컴포넌트 재구현 (67개), 네이티브 기능 연동
+**주요 과제**: UI 컴포넌트 재구현 (67개), 네이티브 기능 연동, 인증 안정화
 
 ---
 
