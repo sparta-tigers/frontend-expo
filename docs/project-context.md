@@ -79,8 +79,11 @@
 - [x] TypeScript 환경 구성
 - [x] API 클라이언트 이전 (Axios + AsyncStorage)
 - [x] 타입 정의 이전 (5개 도메인)
+- [x] 보안 강화 (SecureStore 전환)
+- [x] 인증 훅 완성 (Silent Refresh 포함)
+- [x] WebSocket 호환성 준비
+- [x] 아키텍처 강화 (공통 타입 + 훅)
 - [ ] 네비게이션 구조 설계 (React Navigation)
-- [ ] 인증 훅 타입 에러 해결
 
 ### Phase 2: 핵심 기능 이전 (2-3주 예상)
 
@@ -99,6 +102,36 @@
 ---
 
 ## 🔧 기술적 의사결정 기록
+
+### 2026-01-21 17:33 (Phase 1 문제 해결 완료)
+
+1. **TypeScript 타입 에러 해결**: `ResultType` → `ApiResultType`으로 타입 이름 변경
+   - API 응답 인터페이스 타입 수정 완료
+   - No any Policy 준수 (as any 제거)
+
+2. **보안 강화 완료**: AsyncStorage → SecureStore 전환
+   - JWT 토큰 암호화 저장 구현
+   - expo-secure-store 설치 및 적용
+
+3. **토큰 만료 시간 처리**: 실제 만료 시간 저장/로드 구현
+   - new Date() 강제 생성 문제 해결
+   - ISO 문자열로 만료 시간 정확 저장
+
+4. **Silent Refresh 로직 구현**: 401 에러 시 자동 토큰 갱신
+   - Axios 응답 인터셉터 구현
+   - 원래 요청 자동 재시도 로직
+
+5. **WebSocket 호환성 검증**: React Native 환경 준비
+   - WebSocket 유틸리티 생성
+   - useWebSocket 훅 구현
+
+6. **메시징 방식 정리**: HTTP API + WebSocket 하이브리드
+   - 기존 HTTP API 유지 (deprecated 처리)
+   - WebSocket 기반 함수 추가
+
+7. **아키텍처 강화**: 공통 타입 및 훅 추가
+   - src/types/common.ts 생성
+   - useAsyncState 훅 구현
 
 ### 2026-01-21 16:57
 
@@ -119,7 +152,7 @@
    - 네이티브 환경에서의 토큰 저장 지원
 
 4. **인증 훅 구현**: useAuth 훅 작성 중
-   - 로그인, 회원가입, 로그아웃 기능 구현
+   - 로그인, 회원가입, 토큰 관리 기능 구현
    - 토큰 자동 로드 및 저장 로직
    - **이슈**: ResultType 타입 불일치 에러 해결 필요
 

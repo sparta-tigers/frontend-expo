@@ -1,6 +1,7 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { AxiosInstance } from "axios";
+import type { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import axios from "axios";
+import * as SecureStore from "expo-secure-store";
+import { authRefreshTokenAPI } from "./auth";
 
 /**
  * API 응답 결과 타입 상수
@@ -16,7 +17,7 @@ export const ResultType = {
  * API 응답 결과 타입
  * Java의 Enum과 유사한 역할
  */
-export type ResultType = [keyof typeof ResultType];
+export type ApiResultType = keyof typeof ResultType;
 
 /**
  * API 에러 응답 인터페이스
@@ -35,7 +36,7 @@ export interface ErrorResponse {
  * @template T - 응답 데이터의 타입 (Java Generic과 유사)
  */
 export interface ApiResponse<T> {
-  resultType: ResultType;
+  resultType: ApiResultType;
   data: T | null;
   error: ErrorResponse | null;
   timestamp: string;
@@ -60,11 +61,11 @@ class ApiClient {
       },
     });
 
-    // 요청 인터셉터: AsyncStorage의 accessToken을 자동으로 헤더에 추가
+    // 요청 인터셉터: SecureStore의 accessToken을 자동으로 헤더에 추가
     this.axiosInstance.interceptors.request.use(
       async (config) => {
         try {
-          const accessToken = await AsyncStorage.getItem("accessToken");
+          const accessToken = await SecureStore.getItemAsync("accessToken");
           if (accessToken) {
             config.headers.Authorization = `Bearer ${accessToken}`;
           }
@@ -74,6 +75,82 @@ class ApiClient {
         return config;
       },
       (error) => {
+        return Promise.reject(error);
+      },
+    );
+
+    // 응답 인터셉터: 401 에러 시 자동 토큰 갱신
+    this.axiosInstance.interceptors.response.use(
+      (response) => response,
+      async (error: AxiosError) => {
+        const originalRequest = error.config as AxiosRequestConfig & {
+          _retry?: boolean;
+        };
+
+        if (
+          error.response?.status === 401 &&
+          originalRequest &&
+          !originalRequest._retry
+        ) {
+          originalRequest._retry = true;
+
+          try {
+            const refreshToken = await SecureStore.getItemAsync("refreshToken");
+            if (refreshToken) {
+              const refreshResponse = await authRefreshTokenAPI(refreshToken);
+
+              if (
+                refreshResponse.resultType === ResultType.SUCCESS &&
+                refreshResponse.data
+              ) {
+                const tokenData = refreshResponse.data;
+
+                // 새 토큰 저장
+                await SecureStore.setItemAsync(
+                  "accessToken",
+                  tokenData.accessToken,
+                );
+                await SecureStore.setItemAsync(
+                  "refreshToken",
+                  tokenData.refreshToken,
+                );
+                await SecureStore.setItemAsync(
+                  "accessTokenIssuedAt",
+                  tokenData.accessTokenIssuedAt.toISOString(),
+                );
+                await SecureStore.setItemAsync(
+                  "accessTokenExpiredAt",
+                  tokenData.accessTokenExpiredAt.toISOString(),
+                );
+                await SecureStore.setItemAsync(
+                  "refreshTokenIssuedAt",
+                  tokenData.refreshTokenIssuedAt.toISOString(),
+                );
+                await SecureStore.setItemAsync(
+                  "refreshTokenExpiredAt",
+                  tokenData.refreshTokenExpiredAt.toISOString(),
+                );
+
+                // 원래 요청 재시도
+                if (originalRequest.headers) {
+                  originalRequest.headers.Authorization = `Bearer ${tokenData.accessToken}`;
+                }
+                return this.axiosInstance(originalRequest);
+              }
+            }
+          } catch (refreshError) {
+            console.error("토큰 갱신 실패:", refreshError);
+          }
+
+          // 리프레시 실패 시 토큰 삭제
+          await SecureStore.deleteItemAsync("accessToken");
+          await SecureStore.deleteItemAsync("refreshToken");
+          await SecureStore.deleteItemAsync("accessTokenIssuedAt");
+          await SecureStore.deleteItemAsync("accessTokenExpiredAt");
+          await SecureStore.deleteItemAsync("refreshTokenIssuedAt");
+          await SecureStore.deleteItemAsync("refreshTokenExpiredAt");
+        }
+
         return Promise.reject(error);
       },
     );
