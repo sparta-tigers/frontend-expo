@@ -43,7 +43,7 @@
 
 ---
 
-## 🎯 현재 상태 (2026-01-21 20:09)
+## 🎯 현재 상태 (2026-01-21 20:53)
 
 ### ✅ 완료된 작업
 
@@ -61,10 +61,15 @@
   - 디버그 코드 제거, Import 경로 통일, 중복 로직 제거
   - UI/UX 개선 (자동 리다이렉트, 로딩 상태 표시)
   - 에러 핸들링 강화, 타입 안전성 개선
+- **Phase 1 Fix & Refactor**: 구조적 문제 해결 및 UX 개선
+  - 순환 의존성 제거 (src/api/client.ts 분리)
+  - 로딩 상태 ActivityIndicator 표시로 Flash 현상 방지
+  - fast-text-encoding polyfill 추가 (STOMP.js 대비)
+  - 개발 환경별 API 주소 가이드 확장
 
 ### ⏳ 진행 중인 작업
 
-- **Git 커밋 준비**: Phase 1 수정사항 커밋 대기
+- **Phase 2 준비**: React Navigation 구조 설계 및 구현
 
 ### ❌ 미완료 작업
 
@@ -107,6 +112,27 @@
 ---
 
 ## 🔧 기술적 의사결정 기록
+
+### 2026-01-21 20:53 (Phase 1 Fix & Refactor 완료)
+
+1. **구조적 문제 해결**: 순환 의존성 제거
+   - src/api/client.ts 신규 생성으로 ApiClient 클래스 분리
+   - index.ts와 auth.ts가 client.ts를 참조하도록 리팩토링
+   - 유지보수성 및 코드 재사용성 대폭 향상
+
+2. **UX 개선**: 로딩 상태 시각화
+   - app/\_layout.tsx에서 로딩 중 ActivityIndicator 중앙 표시
+   - 토큰 로딩 시 로그인 화면 Flash 현상 완전 방지
+   - 사용자 경험(UX) 품질 향상
+
+3. **호환성 확보**: Polyfill 추가
+   - fast-text-encoding 라이브러리 설치 및 import
+   - React Native 환경에서 TextEncoder 지원 확보
+   - 향후 STOMP.js WebSocket 연동 기반 마련
+
+4. **개발 가이드 강화**: 환경별 설정 명확화
+   - .env.example에 Android Emulator/실기기 API 주소 가이드 추가
+   - 개발 환경 설정 오류 방지 및 개발 효율성 향상
 
 ### 2026-01-21 20:09 (Phase 1 프론트엔드 수정 완료)
 
@@ -240,6 +266,6 @@
 
 ---
 
-_마지막 업데이트: 2026-01-21 20:09_  
+_마지막 업데이트: 2026-01-21 20:53_  
 _담당자: Cascade AI Assistant_  
-_기반: Phase 1 프론트엔드 수정사항 완료_
+_기반: Phase 1 Fix & Refactor 완료_
