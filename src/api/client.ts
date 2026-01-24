@@ -49,7 +49,8 @@ class ApiClient {
         if (
           error.response?.status === 401 &&
           originalRequest &&
-          !originalRequest._retry
+          !originalRequest._retry &&
+          !originalRequest.url?.includes("/auth/refresh")
         ) {
           originalRequest._retry = true;
 
