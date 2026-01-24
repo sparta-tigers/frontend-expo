@@ -11,39 +11,9 @@
 - **상태 관리**: 현재 프로젝트의 정확한 상태
 - **다음 계획**: AI가 다음에 무엇을 할지 명시
 
-### 👥 팀원 참고 방식
-
-- **참고용도**: AI의 작업 흐름을 이해하기 위함
-- **실시간성**: AI가 작업한 내용을 즉시 반영
-- **의사결정 근거**: 기술 선택의 이유를 파악
-
 ---
 
-## 📖 migration-plan.md와의 차이점
-
-### migration-plan.md (전략 문서)
-
-- **목적**: 전체 마이그레이션의 청사진과 계획
-- **대상**: 팀원 전체, 프로젝트 관리자
-- **내용**: 무엇을, 어떻게, 왜 마이그레이션할지
-- **성격**: 정적 문서, 계획서, 기술 명세서
-
-### project-context.md (실행 기록)
-
-- **대상**: 주로 AI 자신, 팀원은 참고용
-- **내용**: 무엇을 했고, 왜 그렇게 했는지
-- **성격**: 동적 문서, 작업 일지, 실행 기록
-
-### 🔄 두 문서의 관계
-
-- **migration-plan.md**: "무엇을 할 것인가?" (전략)
-- **project-context.md**: "무엇을 했는가?" (실행)
-- **연동**: project-context.md가 migration-plan.md의 실행 기록이 됨
-- **자동 업데이트**: 주요 작업 완료 시마다 AI가 지속적으로 갱신
-
----
-
-## 🎯 현재 상태 (2026-01-24 17:04)
+## 🎯 현재 상태 (2026-01-24 18:15)
 
 ### ✅ 완료된 작업
 
@@ -71,16 +41,21 @@
   - useWebSocket.ts 실제 STOMP.js + SockJS 구현 완성
   - WebSocket 의존성 추가 (sockjs-client, @types/sockjs-client)
   - React Hook 최적화 (useCallback, 타입 안전성)
+- **Andrej Karpathy Brutal Review 완전 해결**: 4단계 리팩토링
+  - **Step 1**: Centralized TokenStore 구현 (src/utils/tokenStore.ts)
+  - **Step 2**: ApiClient Mutex 구현 및 Race Condition 방지
+  - **Step 3**: useAuth TokenStore 연동 및 SecureStore 의존성 제거
+  - **Step 4**: WebSocket Hook State-Driven Architecture 완성
+- **브랜치 정리**: Phase 2 브랜치 재생성 및 main과 동기화 완료
 
 ### ⏳ 진행 중인 작업
 
-- **Phase 2 시작**: 핵심 기능 개발 (인증 UI 연동, 채팅 기능 구현)
+- **Phase 2 핵심 기능 개발 준비**: 인증 UI 연동, 채팅 기능 구현 시작
 
 ### ❌ 미완료 작업
 
 - **React Navigation**: 기본 네비게이션 구조 설계
 - **UI 컴포넌트**: 39개 Radix UI → 네이티브 전환
-- **스토리지 전환**: localStorage → AsyncStorage/SecureStore 완전 전환
 - **백엔드 의존성**: Refresh API, CORS 설정 확정
 
 ---
@@ -97,7 +72,8 @@
 - [x] 인증 훅 완성 (Silent Refresh 포함)
 - [x] WebSocket 호환성 준비
 - [x] 아키텍처 강화 (공통 타입 + 훅)
-- [ ] 네비게이션 구조 설계 (React Navigation)
+- [x] **Andrej Karpathy Brutal Review 해결**: 4단계 리팩토링 완료
+- [x] **브랜치 정리**: Phase 2 브랜치 재생성 및 동기화
 
 ### Phase 2: 핵심 기능 이전 (2-3주 예상)
 
@@ -116,6 +92,38 @@
 ---
 
 ## 🔧 기술적 의사결정 기록
+
+### 2026-01-24 18:15 (Andrej Karpathy Brutal Review 완전 해결)
+
+1. **4단계 리팩토링 완료**: Hidden State, Java-ism, 결정론적 동작 문제 해결
+   - **Step 1**: Centralized TokenStore 구현 (src/utils/tokenStore.ts)
+     - Memory-first 캐싱으로 SecureStore I/O 최소화
+     - Single Source of Truth 패턴 적용
+     - getAccessToken, getRefreshToken, setTokens, clearTokens 메서드 제공
+   - **Step 2**: ApiClient Mutex 구현 및 Race Condition 방지
+     - class ApiClient 제거 및 function-based 단순화
+     - Mutex 패턴으로 동시성 제어 (isRefreshing, failedQueue)
+     - bareAxios 인스턴스로 순환 의존성 방지
+   - **Step 3**: useAuth TokenStore 연동 및 SecureStore 의존성 제거
+     - 모든 토큰 접근/저장/삭제를 TokenStore 메서드로 통일
+     - SimpleToken 인터페이스로 타입 일관성 확보
+     - signin/signup: setTokens() → 상태 업데이트
+   - **Step 4**: WebSocket Hook State-Driven Architecture 완성
+     - useState로 연결 상태 관리 (CONNECTING | CONNECTED | DISCONNECTED | ERROR)
+     - normalizeUrl()로 프로토콜 자동 처리 (http/https → SockJS, ws/wss → 직접)
+     - checkPolyfills() 방어 코드 및 완전한 cleanup 로직
+
+2. **브랜치 정리**: Phase 2 브랜치 재생성 및 동기화
+   - 기존 phase2 브랜치 삭제 후 main에서 새로 생성
+   - main 브랜치와 완전히 동일한 Merge 커밋 기반으로 시작
+   - Phase 2 개발을 위한 깨끗한 기반 마련
+
+3. **기술적 부채 완전 해결**: Andrej Karpathy가 지적한 모든 문제 해결
+   - ✅ Hidden State 제거 (TokenStore 중앙 관리)
+   - ✅ Java-ism 제거 (Class → Function-based)
+   - ✅ 결정론적 동작 (Mutex + State-Driven)
+   - ✅ 순환 의존성 제거 (bareAxios 분리)
+   - ✅ WebSocket 안정성 (Protocol handling + Cleanup)
 
 ### 2026-01-24 17:04 (Phase 1 Final Fix & Phase 2 Start 완료)
 
@@ -225,17 +233,17 @@
 
 ### 🔥 긴급 실행 (오늘)
 
-1. **인증 계약 안정화**: 토큰 저장 키 통일 (accessToken/refreshToken)
-2. **CORS 설정**: 백엔드 WebConfig에 Expo 개발 환경 허용
-3. **Refresh API 확정**: 백엔드에 재발급 엔드포인트 확인/요청
-4. **API 클라이언트 구현**: src/api/index.ts 완성 (Bearer 토큰 필수)
+1. **Phase 2 핵심 기능 개발 시작**: 인증 UI 연동 및 백엔드 통신 검증
+2. **React Navigation 설정**: 기본 네비게이션 구조 설계
+3. **인증 화면 구현**: 로그인/회원가입 페이지 완성
+4. **백엔드 연동 테스트**: TokenStore 기반 API 통신 검증
 
 ### 단기 계획 (이번 주)
 
-1. **React Navigation 설정**: 기본 네비게이션 구조
-2. **인증 화면**: 로그인/회원가입 페이지
-3. **WebSocket ChatDomain**: 백엔드 처리 범위 확정
-4. **API 연동 테스트**: 백엔드와 통신 검증
+1. **채팅 기능 구현**: WebSocket 연동 및 메시지 송수신
+2. **사용자 정보 관리**: 프로필 수정 및 정보 조회
+3. **아이템 목록/상세**: 기본 CRUD 기능 구현
+4. **UI/UX 개선**: 네이티브 컴포넌트 전환 시작
 
 ---
 
@@ -271,6 +279,6 @@
 
 ---
 
-_마지막 업데이트: 2026-01-24 17:04_  
+_마지막 업데이트: 2026-01-24 18:15_  
 _담당자: Cascade AI Assistant_  
-_기반: Phase 1 Final Fix & Phase 2 Start 완료_
+_기반: Andrej Karpathy Brutal Review 완전 해결 및 Phase 2 시작 준비 완료_
