@@ -43,7 +43,7 @@
 
 ---
 
-## 🎯 현재 상태 (2026-01-21 20:53)
+## 🎯 현재 상태 (2026-01-24 17:04)
 
 ### ✅ 완료된 작업
 
@@ -66,16 +66,20 @@
   - 로딩 상태 ActivityIndicator 표시로 Flash 현상 방지
   - fast-text-encoding polyfill 추가 (STOMP.js 대비)
   - 개발 환경별 API 주소 가이드 확장
+- **Phase 1 Final Fix & Phase 2 Start**: WebSocket 실제 구현 및 무한 루프 방지
+  - client.ts 무한 루프 방지 (/auth/refresh 요청 필터링)
+  - useWebSocket.ts 실제 STOMP.js + SockJS 구현 완성
+  - WebSocket 의존성 추가 (sockjs-client, @types/sockjs-client)
+  - React Hook 최적화 (useCallback, 타입 안전성)
 
 ### ⏳ 진행 중인 작업
 
-- **Phase 2 준비**: React Navigation 구조 설계 및 구현
+- **Phase 2 시작**: 핵심 기능 개발 (인증 UI 연동, 채팅 기능 구현)
 
 ### ❌ 미완료 작업
 
 - **React Navigation**: 기본 네비게이션 구조 설계
 - **UI 컴포넌트**: 39개 Radix UI → 네이티브 전환
-- **WebSocket 연동**: STOMP.js 호환성 검증
 - **스토리지 전환**: localStorage → AsyncStorage/SecureStore 완전 전환
 - **백엔드 의존성**: Refresh API, CORS 설정 확정
 
@@ -113,26 +117,27 @@
 
 ## 🔧 기술적 의사결정 기록
 
-### 2026-01-21 20:53 (Phase 1 Fix & Refactor 완료)
+### 2026-01-24 17:04 (Phase 1 Final Fix & Phase 2 Start 완료)
 
-1. **구조적 문제 해결**: 순환 의존성 제거
-   - src/api/client.ts 신규 생성으로 ApiClient 클래스 분리
-   - index.ts와 auth.ts가 client.ts를 참조하도록 리팩토링
-   - 유지보수성 및 코드 재사용성 대폭 향상
+1. **WebSocket 실제 구현**: Mock → STOMP.js 전환
+   - useWebSocket.ts를 완전히 재작성하여 실제 STOMP.js + SockJS 구현
+   - React Native 환경에서 @stomp/stompjs, sockjs-client 연동
+   - JWT 토큰 기반 WebSocket 인증 헤더 자동 추가
+   - 연결 상태 관리 (CONNECTING, CONNECTED, DISCONNECTED, ERROR)
 
-2. **UX 개선**: 로딩 상태 시각화
-   - app/\_layout.tsx에서 로딩 중 ActivityIndicator 중앙 표시
-   - 토큰 로딩 시 로그인 화면 Flash 현상 완전 방지
-   - 사용자 경험(UX) 품질 향상
+2. **무한 루프 방지**: API 클라이언트 안정성 강화
+   - client.ts 응답 인터셉터에 /auth/refresh 요청 필터링 조건 추가
+   - 토큰 갱신 요청 실패 시 재시도 방지로 시스템 안정성 확보
 
-3. **호환성 확보**: Polyfill 추가
-   - fast-text-encoding 라이브러리 설치 및 import
-   - React Native 환경에서 TextEncoder 지원 확보
-   - 향후 STOMP.js WebSocket 연동 기반 마련
+3. **React Hook 최적화**: 성능 및 타입 안전성 개선
+   - useCallback으로 connect, disconnect 함수 최적화
+   - useEffect 의존성 배열 정확하게 관리
+   - async 함수 타입 안전성 확보 (Promise<void>)
 
-4. **개발 가이드 강화**: 환경별 설정 명확화
-   - .env.example에 Android Emulator/실기기 API 주소 가이드 추가
-   - 개발 환경 설정 오류 방지 및 개발 효율성 향상
+4. **의존성 관리**: WebSocket 라이브러리 추가
+   - sockjs-client: ^1.6.1 설치
+   - @types/sockjs-client: ^1.5.4 타입 정의 추가
+   - fast-text-encoding polyfill과의 호환성 확보
 
 ### 2026-01-21 20:09 (Phase 1 프론트엔드 수정 완료)
 
@@ -266,6 +271,6 @@
 
 ---
 
-_마지막 업데이트: 2026-01-21 20:53_  
+_마지막 업데이트: 2026-01-24 17:04_  
 _담당자: Cascade AI Assistant_  
-_기반: Phase 1 Fix & Refactor 완료_
+_기반: Phase 1 Final Fix & Phase 2 Start 완료_
