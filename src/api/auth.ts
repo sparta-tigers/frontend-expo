@@ -38,7 +38,6 @@ export async function authSignupAPI(
  *
  * @param refreshToken - 리프레시 토큰
  * @returns 새로운 JWT 토큰 정보
- console.log("🚀 ~ 정보:", 정보)
  */
 export async function authRefreshTokenAPI(
   refreshToken: string,

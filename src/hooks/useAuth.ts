@@ -1,12 +1,30 @@
-import * as SecureStore from "expo-secure-store";
 import { useEffect, useState } from "react";
 import { authSigninAPI, authSignoutAPI, authSignupAPI } from "../api/auth";
 import { ResultType } from "../api/index";
 import { AuthSigninRequest, AuthSignupRequest, Token } from "../api/types/auth";
+import {
+  getAccessToken,
+  getRefreshToken,
+  setTokens,
+  clearTokens,
+} from "../utils/tokenStore";
+
+/**
+ * 단순화된 토큰 타입
+ * TokenStore는 문자열만 저장하므로 만료시간은 현재 시점 기준으로 설정
+ */
+interface SimpleToken {
+  accessToken: string;
+  refreshToken: string;
+  accessTokenIssuedAt: Date;
+  accessTokenExpiredAt: Date;
+  refreshTokenIssuedAt: Date;
+  refreshTokenExpiredAt: Date;
+}
 
 /**
  * 인증 상태 관리 훅
- * 로그인, 회원가입, 토큰 관리 등 인증 관련 상태와 기능 제공
+ * TokenStore를 통한 중앙 토큰 관리
  *
  * @returns {
  *   user: 현재 로그인된 사용자 토큰 정보
@@ -19,7 +37,7 @@ import { AuthSigninRequest, AuthSignupRequest, Token } from "../api/types/auth";
  * }
  */
 export function useAuth() {
-  const [user, setUser] = useState<Token | null>(null);
+  const [user, setUser] = useState<SimpleToken | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   /**
@@ -29,40 +47,35 @@ export function useAuth() {
   const isLoggedIn = !!user;
 
   /**
-   * SecureStore에서 토큰 로드
+   * TokenStore에서 토큰 로드
    * 앱 시작 시 저장된 인증 정보 복원
    */
   const loadToken = async (): Promise<void> => {
     try {
       setIsLoading(true);
-      const accessToken = await SecureStore.getItemAsync("accessToken");
-      const refreshToken = await SecureStore.getItemAsync("refreshToken");
+      const accessToken = await getAccessToken();
 
-      if (accessToken && refreshToken) {
-        // 토큰 만료 시간 정보 저장 (실제 만료 시간 유지)
-        const issuedAt = await SecureStore.getItemAsync("accessTokenIssuedAt");
-        const expiredAt = await SecureStore.getItemAsync(
-          "accessTokenExpiredAt",
-        );
-        const refreshIssuedAt = await SecureStore.getItemAsync(
-          "refreshTokenIssuedAt",
-        );
-        const refreshExpiredAt = await SecureStore.getItemAsync(
-          "refreshTokenExpiredAt",
-        );
+      if (accessToken) {
+        // TokenStore에는 refreshToken도 있어야 함
+        const refreshToken = await getRefreshToken();
 
-        setUser({
-          accessToken,
-          refreshToken,
-          accessTokenIssuedAt: issuedAt ? new Date(issuedAt) : new Date(),
-          accessTokenExpiredAt: expiredAt ? new Date(expiredAt) : new Date(),
-          refreshTokenIssuedAt: refreshIssuedAt
-            ? new Date(refreshIssuedAt)
-            : new Date(),
-          refreshTokenExpiredAt: refreshExpiredAt
-            ? new Date(refreshExpiredAt)
-            : new Date(),
-        });
+        if (refreshToken) {
+          // 현재 시점 기준으로 만료시간 설정 (1시간 후, 30일 후)
+          const now = new Date();
+          const accessTokenExpiry = new Date(now.getTime() + 60 * 60 * 1000); // 1시간
+          const refreshTokenExpiry = new Date(
+            now.getTime() + 30 * 24 * 60 * 60 * 1000,
+          ); // 30일
+
+          setUser({
+            accessToken,
+            refreshToken,
+            accessTokenIssuedAt: now,
+            accessTokenExpiredAt: accessTokenExpiry,
+            refreshTokenIssuedAt: now,
+            refreshTokenExpiredAt: refreshTokenExpiry,
+          });
+        }
       }
     } catch (error) {
       console.error("토큰 로드 실패:", error);
@@ -86,28 +99,26 @@ export function useAuth() {
       if (response.resultType === ResultType.SUCCESS && response.data) {
         const tokenData = response.data;
 
-        // SecureStore에 토큰 및 만료 시간 저장
-        await SecureStore.setItemAsync("accessToken", tokenData.accessToken);
-        await SecureStore.setItemAsync("refreshToken", tokenData.refreshToken);
-        await SecureStore.setItemAsync(
-          "accessTokenIssuedAt",
-          tokenData.accessTokenIssuedAt.toISOString(),
+        // TokenStore에 토큰 저장
+        const success = await setTokens(
+          tokenData.accessToken,
+          tokenData.refreshToken,
         );
-        await SecureStore.setItemAsync(
-          "accessTokenExpiredAt",
-          tokenData.accessTokenExpiredAt.toISOString(),
-        );
-        await SecureStore.setItemAsync(
-          "refreshTokenIssuedAt",
-          tokenData.refreshTokenIssuedAt.toISOString(),
-        );
-        await SecureStore.setItemAsync(
-          "refreshTokenExpiredAt",
-          tokenData.refreshTokenExpiredAt.toISOString(),
-        );
+        if (!success) {
+          console.error("토큰 저장 실패");
+          return false;
+        }
 
         // 상태 업데이트
-        setUser(tokenData);
+        setUser({
+          accessToken: tokenData.accessToken,
+          refreshToken: tokenData.refreshToken,
+          accessTokenIssuedAt: tokenData.accessTokenIssuedAt,
+          accessTokenExpiredAt: tokenData.accessTokenExpiredAt,
+          refreshTokenIssuedAt: tokenData.refreshTokenIssuedAt,
+          refreshTokenExpiredAt: tokenData.refreshTokenExpiredAt,
+        });
+
         return true;
       } else {
         console.error("로그인 실패:", response.error?.message);
@@ -136,28 +147,26 @@ export function useAuth() {
       if (response.resultType === ResultType.SUCCESS && response.data) {
         const tokenData = response.data;
 
-        // SecureStore에 토큰 및 만료 시간 저장
-        await SecureStore.setItemAsync("accessToken", tokenData.accessToken);
-        await SecureStore.setItemAsync("refreshToken", tokenData.refreshToken);
-        await SecureStore.setItemAsync(
-          "accessTokenIssuedAt",
-          tokenData.accessTokenIssuedAt.toISOString(),
+        // TokenStore에 토큰 저장
+        const success = await setTokens(
+          tokenData.accessToken,
+          tokenData.refreshToken,
         );
-        await SecureStore.setItemAsync(
-          "accessTokenExpiredAt",
-          tokenData.accessTokenExpiredAt.toISOString(),
-        );
-        await SecureStore.setItemAsync(
-          "refreshTokenIssuedAt",
-          tokenData.refreshTokenIssuedAt.toISOString(),
-        );
-        await SecureStore.setItemAsync(
-          "refreshTokenExpiredAt",
-          tokenData.refreshTokenExpiredAt.toISOString(),
-        );
+        if (!success) {
+          console.error("토큰 저장 실패");
+          return false;
+        }
 
         // 상태 업데이트
-        setUser(tokenData);
+        setUser({
+          accessToken: tokenData.accessToken,
+          refreshToken: tokenData.refreshToken,
+          accessTokenIssuedAt: tokenData.accessTokenIssuedAt,
+          accessTokenExpiredAt: tokenData.accessTokenExpiredAt,
+          refreshTokenIssuedAt: tokenData.refreshTokenIssuedAt,
+          refreshTokenExpiredAt: tokenData.refreshTokenExpiredAt,
+        });
+
         return true;
       } else {
         console.error("회원가입 실패:", response.error?.message);
@@ -182,13 +191,10 @@ export function useAuth() {
     } catch (error) {
       console.error("서버 로그아웃 통보 실패:", error);
     } finally {
-      // 로컬 토큰 및 만료 시간 삭제
-      await SecureStore.deleteItemAsync("accessToken");
-      await SecureStore.deleteItemAsync("refreshToken");
-      await SecureStore.deleteItemAsync("accessTokenIssuedAt");
-      await SecureStore.deleteItemAsync("accessTokenExpiredAt");
-      await SecureStore.deleteItemAsync("refreshTokenIssuedAt");
-      await SecureStore.deleteItemAsync("refreshTokenExpiredAt");
+      // TokenStore에서 토큰 삭제
+      await clearTokens();
+
+      // 상태 초기화
       setUser(null);
     }
   };
