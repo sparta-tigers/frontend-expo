@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { authSigninAPI, authSignoutAPI, authSignupAPI } from "../api/auth";
 import { ResultType } from "../api/index";
-import { AuthSigninRequest, AuthSignupRequest, Token } from "../api/types/auth";
+import { AuthSigninRequest, AuthSignupRequest } from "../api/types/auth";
 import {
   getAccessToken,
   getRefreshToken,
@@ -79,6 +79,8 @@ export function useAuth() {
       }
     } catch (error) {
       console.error("토큰 로드 실패:", error);
+      // 에러 발생 시에도 로딩 상태 종료
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -145,29 +147,18 @@ export function useAuth() {
       const response = await authSignupAPI(userData);
 
       if (response.resultType === ResultType.SUCCESS && response.data) {
-        const tokenData = response.data;
-
-        // TokenStore에 토큰 저장
-        const success = await setTokens(
-          tokenData.accessToken,
-          tokenData.refreshToken,
-        );
-        if (!success) {
-          console.error("토큰 저장 실패");
-          return false;
-        }
-
-        // 상태 업데이트
-        setUser({
-          accessToken: tokenData.accessToken,
-          refreshToken: tokenData.refreshToken,
-          accessTokenIssuedAt: tokenData.accessTokenIssuedAt,
-          accessTokenExpiredAt: tokenData.accessTokenExpiredAt,
-          refreshTokenIssuedAt: tokenData.refreshTokenIssuedAt,
-          refreshTokenExpiredAt: tokenData.refreshTokenExpiredAt,
+        // 회원가입 성공 후 자동 로그인
+        const loginSuccess = await signin({
+          email: userData.email,
+          password: userData.password,
         });
 
-        return true;
+        if (loginSuccess) {
+          return true;
+        } else {
+          console.error("회원가입 후 자동 로그인 실패");
+          return false;
+        }
       } else {
         console.error("회원가입 실패:", response.error?.message);
         return false;
