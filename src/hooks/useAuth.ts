@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { authSigninAPI, authSignoutAPI, authSignupAPI } from "../api/auth";
 import { ResultType } from "../api/index";
-import { AuthSigninRequest, AuthSignupRequest, Token } from "../api/types/auth";
+import { AuthSigninRequest, AuthSignupRequest } from "../api/types/auth";
 import {
   getAccessToken,
   getRefreshToken,
@@ -79,6 +79,8 @@ export function useAuth() {
       }
     } catch (error) {
       console.error("토큰 로드 실패:", error);
+      // 에러 발생 시에도 로딩 상태 종료
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
