@@ -21,15 +21,15 @@ export async function authSigninAPI(
 
 /**
  * 사용자 회원가입 API
- * 신규 사용자 생성 및 자동 로그인
+ * 신규 사용자 생성
  *
  * @param request - 회원가입 요청 데이터 (이메일, 닉네임, 비밀번호)
- * @returns JWT 토큰 정보 (회원가입 후 자동 로그인)
+ * @returns 생성된 사용자 정보 (토큰 없음)
  */
 export async function authSignupAPI(
   request: AuthSignupRequest,
-): Promise<ApiResponse<Token>> {
-  return apiClient.post("/api/v1/auth/signup", request);
+): Promise<ApiResponse<any>> {
+  return apiClient.post("/api/v1/users", request);
 }
 
 /**

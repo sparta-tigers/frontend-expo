@@ -1,5 +1,6 @@
 import { Redirect } from "expo-router";
 import { useAuth } from "../../src/hooks/useAuth";
+import { Slot } from "expo-router";
 
 /**
  * 인증 레이아웃
@@ -13,6 +14,6 @@ export default function AuthLayout() {
     return <Redirect href="/(tabs)" />;
   }
 
-  // 로그인되지 않은 경우 자식 페이지들 렌더링
-  return <Redirect href="/(auth)/signin" />;
+  // 로그인되지 않은 경우 현재 페이지 렌더링 (signin, signup 등)
+  return <Slot />;
 }
