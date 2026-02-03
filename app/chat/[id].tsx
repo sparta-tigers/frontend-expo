@@ -56,7 +56,7 @@ export default function ChatRoomScreen() {
           isMyMessage: false, // TODO: 현재 사용자 ID와 비교 필요
         }));
 
-        setMessages(formattedMessages);
+        setMessages(formattedMessages.reverse());
       } else {
         setError(response.error?.message || "메시지를 불러오는데 실패했습니다");
       }
@@ -84,7 +84,7 @@ export default function ChatRoomScreen() {
           isMyMessage: false, // TODO: 현재 사용자 ID와 비교 필요
         };
 
-        setMessages((prev) => [...prev, newMessage]);
+        setMessages((prev) => [newMessage, ...prev]);
       } catch (error) {
         console.error("메시지 파싱 에러:", error);
       }
@@ -120,7 +120,7 @@ export default function ChatRoomScreen() {
         isMyMessage: true,
       };
 
-      setMessages((prev) => [...prev, myMessage]);
+      setMessages((prev) => [myMessage, ...prev]);
       setInputMessage("");
     } catch (error) {
       console.error("메시지 전송 에러:", error);
@@ -206,9 +206,9 @@ export default function ChatRoomScreen() {
         keyExtractor={(item, index) => `${item.sentAt}-${index}`}
         style={styles.messagesList}
         contentContainerStyle={styles.messagesContainer}
-        inverted={false}
+        inverted={true}
         onContentSizeChange={() => {
-          flatListRef.current?.scrollToEnd({ animated: true });
+          flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
         }}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
