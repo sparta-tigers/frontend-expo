@@ -72,6 +72,7 @@ export default function SignupScreen() {
       <TextInput
         style={styles.input}
         placeholder="이메일"
+        placeholderTextColor="#999"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
@@ -81,6 +82,7 @@ export default function SignupScreen() {
       <TextInput
         style={styles.input}
         placeholder="닉네임"
+        placeholderTextColor="#999"
         value={nickname}
         onChangeText={setNickname}
       />
@@ -88,6 +90,7 @@ export default function SignupScreen() {
       <TextInput
         style={styles.input}
         placeholder="비밀번호"
+        placeholderTextColor="#999"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
