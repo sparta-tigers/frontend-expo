@@ -55,34 +55,37 @@ export default function ChatListScreen() {
 
   // 채팅방 아이템 렌더링
   const renderChatRoom = useCallback(
-    ({ item }: { item: DirectRoomResponse }) => (
-      <TouchableOpacity
-        style={styles.chatRoomItem}
-        onPress={() => router.push(`/chat/${item.directRoomId}` as any)}
-      >
-        {/* 아이템 이미지 */}
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>IMG</Text>
-        </View>
+    ({ item }: { item: DirectRoomResponse }) => {
+      const handlePress = () => {
+        router.push(`/chat/${item.directRoomId}` as any);
+      };
 
-        {/* 채팅방 정보 */}
-        <View style={styles.chatInfo}>
-          <Text style={styles.nickname}>{item.opponentNickname}</Text>
-          <Text style={styles.itemTitle}>{item.itemTitle}</Text>
-          <Text style={styles.date}>
-            {new Date(item.createdAt).toLocaleDateString()}
-          </Text>
-        </View>
+      return (
+        <TouchableOpacity style={styles.chatRoomItem} onPress={handlePress}>
+          {/* 아이템 이미지 */}
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>IMG</Text>
+          </View>
 
-        {/* 온라인 상태 */}
-        <View
-          style={[
-            styles.onlineIndicator,
-            { backgroundColor: item.opponentOnline ? "#4CAF50" : "#ccc" },
-          ]}
-        />
-      </TouchableOpacity>
-    ),
+          {/* 채팅방 정보 */}
+          <View style={styles.chatInfo}>
+            <Text style={styles.nickname}>{item.opponentNickname}</Text>
+            <Text style={styles.itemTitle}>{item.itemTitle}</Text>
+            <Text style={styles.date}>
+              {new Date(item.createdAt).toLocaleDateString()}
+            </Text>
+          </View>
+
+          {/* 온라인 상태 */}
+          <View
+            style={[
+              styles.onlineIndicator,
+              { backgroundColor: item.opponentOnline ? "#4CAF50" : "#ccc" },
+            ]}
+          />
+        </TouchableOpacity>
+      );
+    },
     [router],
   );
 
