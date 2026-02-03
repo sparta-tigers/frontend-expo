@@ -104,6 +104,13 @@ export default function SignupScreen() {
           <Text style={styles.buttonText}>회원가입</Text>
         )}
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.linkButton}
+        onPress={() => router.push("/(auth)/signin")}
+      >
+        <Text style={styles.linkText}>이미 계정이 있나요? 로그인하기</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -144,5 +151,14 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  linkButton: {
+    marginTop: 20,
+    alignItems: "center",
+  },
+  linkText: {
+    color: "#007AFF",
+    fontSize: 16,
+    fontWeight: "500",
   },
 });
