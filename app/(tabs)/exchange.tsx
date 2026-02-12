@@ -1,19 +1,130 @@
 import { Button } from "@/components/ui/button";
-import { useThemeColor } from "@/hooks/useThemeColor";
 import { itemsGetListAPI } from "@/src/api/items";
 import { Item } from "@/src/api/types/items";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Image,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
+
+// 기본 색상 팔레트
+const colors = {
+  light: {
+    primary: "#3B82F6",
+    background: "#FFFFFF",
+    card: "#F9FAFB",
+    text: "#111827",
+    border: "#E5E7EB",
+    muted: "#6B7280",
+    accent: "#10B981",
+    destructive: "#EF4444",
+    warning: "#F59E0B",
+    info: "#3B82F6",
+    success: "#10B981",
+  },
+  dark: {
+    primary: "#2563EB",
+    background: "#111827",
+    card: "#1F2937",
+    text: "#F9FAFB",
+    border: "#374151",
+    muted: "#9CA3AF",
+    accent: "#059669",
+    destructive: "#DC2626",
+    warning: "#D97706",
+    info: "#2563EB",
+    success: "#059669",
+  },
+} as const;
+
+// 정적 스타일 정의
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  headerButton: {
+    minWidth: 100,
+  },
+  listContainer: {
+    padding: 8,
+  },
+  itemContainer: {
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  itemImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  itemContent: {
+    flex: 1,
+  },
+  itemTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  itemDescription: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  itemPrice: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  itemDate: {
+    fontSize: 12,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  emptyText: {
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  emptyButton: {
+    minWidth: 120,
+  },
+  loadingContainer: {
+    paddingVertical: 20,
+    alignItems: "center",
+  },
+  loadingText: {
+    fontSize: 16,
+    marginTop: 8,
+  },
+});
 
 /**
  * 아이템 목록 페이지 컴포넌트
@@ -26,15 +137,15 @@ import {
 export default function ExchangeScreen() {
   const router = useRouter();
   const [items, setItems] = useState<Item[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(0);
   const [isLast, setIsLast] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const backgroundColor = useThemeColor({}, "background");
-  const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({}, "border");
-  const primaryColor = useThemeColor({}, "primary");
+  // 테마 색상
+  const textColor = colors.light.text;
+  const primaryColor = colors.light.primary;
+  const cardColor = colors.light.card;
 
   // 아이템 목록 가져오기
   const fetchItems = useCallback(
@@ -71,12 +182,12 @@ export default function ExchangeScreen() {
 
   // 아이템 상세 페이지로 이동
   const navigateToDetail = (itemId: number) => {
-    router.push(`/exchange/${itemId.toString()}`);
+    router.push(`/exchange/[id]?id=${itemId}` as any);
   };
 
   // 아이템 생성 페이지로 이동
   const navigateToCreate = () => {
-    router.push("/exchange/create");
+    router.push("/exchange/create" as any);
   };
 
   // 새로고침 핸들러
@@ -94,10 +205,7 @@ export default function ExchangeScreen() {
   // 아이템 렌더 함수
   const renderItem = ({ item }: { item: Item }) => (
     <TouchableOpacity
-      style={[
-        styles.itemContainer,
-        { backgroundColor: cardColor, borderColor },
-      ]}
+      style={[styles.itemContainer, { backgroundColor: cardColor }]}
       onPress={() => navigateToDetail(item.id)}
       activeOpacity={0.7}
     >
@@ -111,11 +219,8 @@ export default function ExchangeScreen() {
       )}
 
       {/* 아이템 정보 */}
-      <View style={styles.itemInfo}>
-        <Text
-          style={[styles.itemTitle, { color: textColor }]}
-          numberOfLines={2}
-        >
+      <View style={styles.itemContent}>
+        <Text style={[styles.itemTitle, { color: textColor }]}>
           {item.title}
         </Text>
         <Text
@@ -125,36 +230,33 @@ export default function ExchangeScreen() {
           {item.description}
         </Text>
 
-        {/* 아이템 메타데이터 */}
-        <View style={styles.itemMeta}>
-          <Text style={[styles.itemPrice, { color: primaryColor }]}>
-            {item.status === "REGISTERED"
-              ? "등록됨"
-              : item.status === "COMPLETED"
-                ? "교환완료"
-                : "교환실패"}
-          </Text>
-          <Text style={[styles.itemDate, { color: textColor }]}>
-            {new Date(item.createdAt).toLocaleDateString()}
-          </Text>
-        </View>
+        <Text style={[styles.itemPrice, { color: primaryColor }]}>
+          {item.status === "REGISTERED"
+            ? "등록됨"
+            : item.status === "COMPLETED"
+              ? "교환완료"
+              : "교환실패"}
+        </Text>
+        <Text style={[styles.itemDate, { color: textColor }]}>
+          {new Date(item.createdAt).toLocaleDateString()}
+        </Text>
       </View>
     </TouchableOpacity>
   );
 
   // 화면 포커스 시 데이터 로드
-  useFocusEffect(
-    useCallback(() => {
-      fetchItems(0);
-    }, [fetchItems]),
-  );
+  React.useEffect(() => {
+    fetchItems(0);
+  }, [fetchItems]);
 
   // 로딩 상태 표시
   if (loading && items.length === 0) {
     return (
-      <View style={[styles.container, { backgroundColor }]}>
-        <ActivityIndicator size="large" color={primaryColor} />
-        <Text style={[styles.loadingText, { color: textColor }]}>
+      <View
+        style={[styles.container, { backgroundColor: colors.light.background }]}
+      >
+        <ActivityIndicator size="large" color={colors.light.primary} />
+        <Text style={[styles.loadingText, { color: colors.light.text }]}>
           아이템을 불러오는 중...
         </Text>
       </View>
@@ -162,16 +264,19 @@ export default function ExchangeScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor }]}>
+    <View
+      style={[styles.container, { backgroundColor: colors.light.background }]}
+    >
       {/* 헤더 */}
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: textColor }]}>
+        <Text style={[styles.headerTitle, { color: colors.light.text }]}>
           아이템 교환
         </Text>
         <Button
           variant="primary"
+          size="sm"
           onPress={navigateToCreate}
-          style={styles.createButton}
+          style={styles.headerButton}
         >
           아이템 등록
         </Button>
@@ -183,30 +288,15 @@ export default function ExchangeScreen() {
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         numColumns={2}
-        contentContainerStyle={styles.listContainer}
-        columnWrapperStyle={styles.columnWrapper}
         onEndReached={loadMore}
-        onEndReachedThreshold={0.1}
+        onEndReachedThreshold={0.5}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={primaryColor}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        ListFooterComponent={() =>
-          loading && items.length > 0 ? (
-            <View style={styles.footerLoading}>
-              <ActivityIndicator size="small" color={primaryColor} />
-              <Text style={[styles.footerText, { color: textColor }]}>
-                더 불러오는 중...
-              </Text>
-            </View>
-          ) : null
-        }
+        contentContainerStyle={styles.listContainer}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, { color: textColor }]}>
+            <Text style={[styles.emptyText, { color: colors.light.text }]}>
               등록된 아이템이 없습니다.
             </Text>
             <Button
@@ -214,7 +304,7 @@ export default function ExchangeScreen() {
               onPress={navigateToCreate}
               style={styles.emptyButton}
             >
-              첫 아이템 등록하기
+              아이템 등록
             </Button>
           </View>
         )}
@@ -222,96 +312,3 @@ export default function ExchangeScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 20,
-    paddingBottom: 10,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-  createButton: {
-    minWidth: 120,
-  },
-  listContainer: {
-    padding: 10,
-  },
-  columnWrapper: {
-    justifyContent: "space-between",
-  },
-  itemContainer: {
-    width: "48%",
-    marginBottom: 15,
-    borderRadius: 12,
-    borderWidth: 1,
-    overflow: "hidden",
-  },
-  itemImage: {
-    width: "100%",
-    height: 150,
-    backgroundColor: "#f0f0f0",
-  },
-  itemInfo: {
-    padding: 12,
-    flex: 1,
-  },
-  itemTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  itemDescription: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 12,
-    flex: 1,
-  },
-  itemMeta: {
-    gap: 8,
-  },
-  itemPrice: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  itemDate: {
-    fontSize: 12,
-    opacity: 0.7,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-  },
-  footerLoading: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 20,
-    gap: 8,
-  },
-  footerText: {
-    fontSize: 14,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 60,
-    paddingHorizontal: 40,
-  },
-  emptyText: {
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  emptyButton: {
-    minWidth: 180,
-  },
-});

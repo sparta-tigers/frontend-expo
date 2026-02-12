@@ -1,52 +1,49 @@
-import { useState, useCallback } from 'react'
-import { AsyncState, RequestResult } from '../types/common'
+import { useCallback, useState } from "react";
+import { AsyncState, RequestResult } from "../types/common";
 
 /**
  * 비동기 상태 관리 훅
  * API 호출 등 비동기 작업의 상태를 일관되게 관리
  */
 export function useAsyncState<T>(
-  initialData: T | null = null
-): [
-    AsyncState<T>,
-    (promise: Promise<T>) => Promise<void>,
-    () => void
-  ] {
+  initialData: T | null = null,
+): [AsyncState<T>, (promise: Promise<T>) => Promise<void>, () => void] {
   const [state, setState] = useState<AsyncState<T>>({
-    status: 'idle',
+    status: "idle",
     data: initialData,
-    error: null
-  ])
+    error: null,
+  });
 
   const execute = useCallback(async (promise: Promise<T>) => {
-    setState(prev => ({ ...prev, status: 'loading', error: null }))
-    
+    setState((prev) => ({ ...prev, status: "loading", error: null }));
+
     try {
-      const data = await promise
+      const data = await promise;
       setState({
-        status: 'success',
+        status: "success",
         data,
-        error: null
-      })
+        error: null,
+      });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류'
+      const errorMessage =
+        error instanceof Error ? error.message : "알 수 없는 오류";
       setState({
-        status: 'error',
+        status: "error",
         data: null,
-        error: errorMessage
-      })
+        error: errorMessage,
+      });
     }
-  }, [])
+  }, []);
 
   const reset = useCallback(() => {
     setState({
-      status: 'idle',
+      status: "idle",
       data: initialData,
-      error: null
-    })
-  }, [initialData])
+      error: null,
+    });
+  }, [initialData]);
 
-  return [state, execute, reset]
+  return [state, execute, reset];
 }
 
 /**
@@ -56,27 +53,34 @@ export function useAsyncState<T>(
 export function useApiRequest<T>(): [
   RequestResult<T> | null,
   (promise: Promise<T>) => Promise<RequestResult<T>>,
-  () => void
+  () => void,
 ] {
-  const [result, setResult] = useState<RequestResult<T> | null>(null)
+  const [result, setResult] = useState<RequestResult<T> | null>(null);
 
-  const execute = useCallback(async (promise: Promise<T>): Promise<RequestResult<T>> => {
-    try {
-      const data = await promise
-      const successResult: RequestResult<T> = { success: true, data }
-      setResult(successResult)
-      return successResult
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류'
-      const errorResult: RequestResult<T> = { success: false, error: errorMessage }
-      setResult(errorResult)
-      return errorResult
-    }
-  }, [])
+  const execute = useCallback(
+    async (promise: Promise<T>): Promise<RequestResult<T>> => {
+      try {
+        const data = await promise;
+        const successResult: RequestResult<T> = { success: true, data };
+        setResult(successResult);
+        return successResult;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "알 수 없는 오류";
+        const errorResult: RequestResult<T> = {
+          success: false,
+          error: errorMessage,
+        };
+        setResult(errorResult);
+        return errorResult;
+      }
+    },
+    [],
+  );
 
   const reset = useCallback(() => {
-    setResult(null)
-  }, [])
+    setResult(null);
+  }, []);
 
-  return [result, execute, reset]
+  return [result, execute, reset];
 }
