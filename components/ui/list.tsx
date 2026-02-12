@@ -1,15 +1,15 @@
-import { useThemeColor } from "@/hooks/useThemeColor";
 import React from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    ListRenderItem,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-    ViewStyle,
+  ActivityIndicator,
+  FlatList,
+  ListRenderItem,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ViewStyle,
 } from "react-native";
+import { useTheme } from "react-native-paper";
 
 /**
  * 리스트 아이템 속성
@@ -65,21 +65,21 @@ export const List: React.FC<ListProps> = ({
   style,
   showSeparator = true,
 }) => {
-  const backgroundColor = useThemeColor({}, "background");
-  const separatorColor = useThemeColor({}, "border");
-  const textColor = useThemeColor({}, "text");
+  const theme = useTheme();
 
   const renderSeparator = () => {
     if (!showSeparator) return null;
 
     return (
-      <View style={[styles.separator, { backgroundColor: separatorColor }]} />
+      <View
+        style={[styles.separator, { backgroundColor: theme.colors.outline }]}
+      />
     );
   };
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
-      <Text style={[styles.emptyText, { color: textColor }]}>
+      <Text style={[styles.emptyText, { color: theme.colors.onSurface }]}>
         {emptyMessage}
       </Text>
     </View>
@@ -89,8 +89,8 @@ export const List: React.FC<ListProps> = ({
     if (loading) {
       return (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color={textColor} />
-          <Text style={[styles.loadingText, { color: textColor }]}>
+          <ActivityIndicator size="small" color={theme.colors.primary} />
+          <Text style={[styles.loadingText, { color: theme.colors.onSurface }]}>
             더 불러오는 중...
           </Text>
         </View>
@@ -101,10 +101,16 @@ export const List: React.FC<ListProps> = ({
 
   if (loading && data.length === 0) {
     return (
-      <View style={[styles.container, { backgroundColor }, style]}>
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: theme.colors.surface },
+          style,
+        ]}
+      >
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={textColor} />
-          <Text style={[styles.loadingText, { color: textColor }]}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={[styles.loadingText, { color: theme.colors.onSurface }]}>
             로딩 중...
           </Text>
         </View>
@@ -113,7 +119,13 @@ export const List: React.FC<ListProps> = ({
   }
 
   return (
-    <View style={[styles.container, { backgroundColor }, style]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: theme.colors.surface },
+        style,
+      ]}
+    >
       <FlatList
         data={data}
         renderItem={renderItem}
@@ -144,9 +156,11 @@ export const ListItem: React.FC<ListItemProps> = ({
   onPress,
   style,
 }) => {
+  const theme = useTheme();
+
   return (
     <TouchableOpacity
-      style={[styles.item, style]}
+      style={[styles.item, { backgroundColor: theme.colors.surface }, style]}
       onPress={onPress}
       activeOpacity={0.7}
     >
@@ -160,7 +174,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   item: {
-    paddingVertical: 12,
+    paddingVertical: 4,
     paddingHorizontal: 16,
     backgroundColor: "transparent",
   },

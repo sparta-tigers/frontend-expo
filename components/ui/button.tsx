@@ -1,12 +1,6 @@
-import { useThemeColor } from "@/hooks/useThemeColor";
 import React from "react";
-import {
-  ActivityIndicator,
-  Text,
-  TextStyle,
-  TouchableOpacity,
-  ViewStyle,
-} from "react-native";
+import { StyleSheet } from "react-native";
+import { Button as PaperButton, useTheme } from "react-native-paper";
 
 /**
  * Button 컴포넌트 속성
@@ -27,17 +21,17 @@ interface ButtonProps {
   /** 전체 너비 차지 */
   fullWidth?: boolean;
   /** 커스텀 스타일 */
-  style?: ViewStyle;
+  style?: any;
   /** 텍스트 스타일 */
-  textStyle?: TextStyle;
+  textStyle?: any;
 }
 
 /**
  * 기본 Button 컴포넌트
  *
- * PWA의 Radix UI Button을 React Native로 대체
- * - TouchableOpacity 기반 터치 이벤트 처리
- * - 다양한 변형과 크기 지원
+ * PWA의 Radix UI Button을 react-native-paper로 대체
+ * - Paper Button 기반 터치 이벤트 처리
+ * - 다양한 mode 지원 (contained, outlined, text)
  * - 로딩 상태 표시
  */
 export const Button: React.FC<ButtonProps> = ({
@@ -51,97 +45,114 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   textStyle,
 }) => {
-  const backgroundColor = useThemeColor({}, "primary");
-  const textColor = useThemeColor({}, "background");
-  const borderColor = useThemeColor({}, "border");
+  const theme = useTheme();
 
-  const getButtonStyle = (): ViewStyle => {
-    const baseStyle: ViewStyle = {
-      borderRadius: 8,
-      alignItems: "center",
-      justifyContent: "center",
-      flexDirection: "row",
-    };
-
-    // 크기 스타일
-    const sizeStyles = {
-      sm: { paddingHorizontal: 12, paddingVertical: 8, minHeight: 36 },
-      md: { paddingHorizontal: 16, paddingVertical: 12, minHeight: 44 },
-      lg: { paddingHorizontal: 24, paddingVertical: 16, minHeight: 52 },
-    };
-
-    // 변형 스타일
-    const variantStyles = {
-      primary: {
-        backgroundColor,
-      },
-      secondary: {
-        backgroundColor: "#E5E7EB",
-      },
-      outline: {
-        backgroundColor: "transparent",
-        borderWidth: 1,
-        borderColor,
-      },
-      ghost: {
-        backgroundColor: "transparent",
-      },
-    };
-
-    return {
-      ...baseStyle,
-      ...sizeStyles[size],
-      ...variantStyles[variant],
-      opacity: disabled || loading ? 0.6 : 1,
-      width: fullWidth ? "100%" : undefined,
-      ...style,
-    };
+  // variant를 Paper의 mode로 변환
+  const getMode = (): "contained" | "outlined" | "text" => {
+    switch (variant) {
+      case "primary":
+        return "contained";
+      case "outline":
+        return "outlined";
+      case "secondary":
+      case "ghost":
+        return "text";
+      default:
+        return "contained";
+    }
   };
 
-  const getTextStyle = (): TextStyle => {
-    const baseStyle: TextStyle = {
-      fontWeight: "600",
-      textAlign: "center",
-    };
+  // 크기별 스타일
+  const getSizeStyle = () => {
+    switch (size) {
+      case "sm":
+        return { height: 36, paddingHorizontal: 12 };
+      case "md":
+        return { height: 44, paddingHorizontal: 16 };
+      case "lg":
+        return { height: 52, paddingHorizontal: 24 };
+      default:
+        return { height: 44, paddingHorizontal: 16 };
+    }
+  };
 
-    // 크기별 텍스트 스타일
-    const sizeStyles = {
-      sm: { fontSize: 14 },
-      md: { fontSize: 16 },
-      lg: { fontSize: 18 },
-    };
+  // variant별 버튼 색상
+  const getButtonColor = () => {
+    switch (variant) {
+      case "primary":
+        return theme.colors.primary;
+      case "secondary":
+        return theme.colors.surfaceVariant;
+      case "outline":
+        return "transparent";
+      case "ghost":
+        return "transparent";
+      default:
+        return theme.colors.primary;
+    }
+  };
 
-    // 변형별 텍스트 색상
-    const variantColors = {
-      primary: { color: "#FFFFFF" },
-      secondary: { color: "#1F2937" },
-      outline: { color: textColor },
-      ghost: { color: textColor },
-    };
-
-    return {
-      ...baseStyle,
-      ...sizeStyles[size],
-      ...variantColors[variant],
-      ...textStyle,
-    };
+  // variant별 텍스트 색상
+  const getTextColor = () => {
+    switch (variant) {
+      case "primary":
+        return theme.colors.onPrimary;
+      case "secondary":
+        return theme.colors.onSurfaceVariant;
+      case "outline":
+        return theme.colors.primary;
+      case "ghost":
+        return theme.colors.primary;
+      default:
+        return theme.colors.onPrimary;
+    }
   };
 
   return (
-    <TouchableOpacity
-      style={getButtonStyle()}
+    <PaperButton
+      mode={getMode()}
       onPress={onPress}
       disabled={disabled || loading}
-      activeOpacity={0.7}
+      loading={loading}
+      style={[
+        styles.button,
+        getSizeStyle(),
+        { backgroundColor: getButtonColor() },
+        fullWidth && styles.fullWidth,
+        style,
+      ]}
+      contentStyle={[styles.content, fullWidth && styles.fullWidthContent]}
+      labelStyle={[
+        styles.label,
+        { color: getTextColor() },
+        getSizeStyle(),
+        textStyle,
+      ]}
     >
-      {loading && (
-        <ActivityIndicator
-          size="small"
-          color={variant === "primary" ? "#FFFFFF" : textColor}
-          style={{ marginRight: 8 }}
-        />
-      )}
-      <Text style={getTextStyle()}>{children}</Text>
-    </TouchableOpacity>
+      {children}
+    </PaperButton>
   );
 };
+
+const styles = StyleSheet.create({
+  button: {
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  content: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  label: {
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  fullWidth: {
+    width: "100%",
+  },
+  fullWidthContent: {
+    width: "100%",
+  },
+});
