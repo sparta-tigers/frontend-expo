@@ -221,7 +221,10 @@ export default function ChatListScreen() {
   );
 
   // 로딩 상태
-  if (chatRoomsState.status === "loading" && chatRoomsState.data.length === 0) {
+  if (
+    chatRoomsState.status === "loading" &&
+    (!chatRoomsState.data?.length || chatRoomsState.data?.length === 0)
+  ) {
     return (
       <View
         style={[
@@ -240,7 +243,10 @@ export default function ChatListScreen() {
   }
 
   // 에러 상태
-  if (chatRoomsState.status === "error" && chatRoomsState.data.length === 0) {
+  if (
+    chatRoomsState.status === "error" &&
+    (!chatRoomsState.data?.length || chatRoomsState.data?.length === 0)
+  ) {
     return (
       <View
         style={[
@@ -262,7 +268,7 @@ export default function ChatListScreen() {
   }
 
   // 빈 상태
-  if (!chatRoomsState.data || chatRoomsState.data.length === 0) {
+  if (!chatRoomsState.data?.length || chatRoomsState.data.length === 0) {
     return (
       <View
         style={[

@@ -131,7 +131,7 @@ export default function ExchangeScreen() {
         const response = await itemsGetListAPI(pageNum, 10);
 
         if (response.resultType === "SUCCESS" && response.data) {
-          const { content, last } = response.data;
+          const { content } = response.data;
 
           if (pageNum === 0 || isRefresh) {
             return content;

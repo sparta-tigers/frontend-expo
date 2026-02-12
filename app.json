@@ -9,7 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "This app needs access to photo library to select images for item registration.",
+        "NSCameraUsageDescription": "This app needs access to camera to take photos for item registration."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -39,7 +43,20 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Show items available for exchange near you."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#007AFF"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,9 +1,9 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import {
+  clearTokens,
   getAccessToken,
   getRefreshToken,
   setTokens,
-  clearTokens,
 } from "../utils/tokenStore";
 
 /**
@@ -174,7 +174,10 @@ export const apiClient = {
   /**
    * GET 요청
    */
-  get: async <T>(url: string, params?: Record<string, any>) => {
+  get: async <T = any>(
+    url: string,
+    params?: Record<string, any>,
+  ): Promise<T> => {
     const response = await axiosInstance.get(url, { params });
     return response.data;
   },
@@ -182,7 +185,10 @@ export const apiClient = {
   /**
    * POST 요청
    */
-  post: async <T>(url: string, data?: Record<string, any>) => {
+  post: async <T = any>(
+    url: string,
+    data?: Record<string, any>,
+  ): Promise<T> => {
     const response = await axiosInstance.post(url, data);
     return response.data;
   },
@@ -190,7 +196,7 @@ export const apiClient = {
   /**
    * PUT 요청
    */
-  put: async <T>(url: string, data?: Record<string, any>) => {
+  put: async <T = any>(url: string, data?: Record<string, any>): Promise<T> => {
     const response = await axiosInstance.put(url, data);
     return response.data;
   },
@@ -198,7 +204,7 @@ export const apiClient = {
   /**
    * DELETE 요청
    */
-  delete: async <T>(url: string) => {
+  delete: async <T = any>(url: string): Promise<T> => {
     const response = await axiosInstance.delete(url);
     return response.data;
   },
@@ -206,7 +212,10 @@ export const apiClient = {
   /**
    * PATCH 요청
    */
-  patch: async <T>(url: string, data?: Record<string, any>) => {
+  patch: async <T = any>(
+    url: string,
+    data?: Record<string, any>,
+  ): Promise<T> => {
     const response = await axiosInstance.patch(url, data);
     return response.data;
   },

@@ -47,18 +47,21 @@ export const Input: React.FC<InputProps> = ({
   style,
   label,
 }) => {
-  return (
-    <TextInput
-      label={label}
-      value={value}
-      onChangeText={onChangeText}
-      placeholder={placeholder}
-      secureTextEntry={secureTextEntry}
-      disabled={disabled}
-      error={error}
-      mode="outlined"
-      keyboardType={keyboardType}
-      style={fullWidth ? { width: "100%" } : style}
-    />
-  );
+  const inputProps: any = {
+    value,
+    onChangeText,
+    placeholder,
+    secureTextEntry,
+    disabled,
+    error,
+    mode: "outlined" as const,
+    keyboardType,
+    style: fullWidth ? { width: "100%" } : style,
+  };
+
+  if (label) {
+    inputProps.label = label;
+  }
+
+  return <TextInput {...inputProps} />;
 };

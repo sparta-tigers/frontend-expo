@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet } from "react-native";
+import { GestureResponderEvent, StyleSheet } from "react-native";
 import { Button as PaperButton, useTheme } from "react-native-paper";
 
 /**
@@ -9,7 +9,7 @@ interface ButtonProps {
   /** 버튼 텍스트 */
   children: React.ReactNode;
   /** 버튼 클릭 핸들러 */
-  onPress?: () => void;
+  onPress?: (e?: GestureResponderEvent) => void;
   /** 버튼 비활성화 상태 */
   disabled?: boolean;
   /** 로딩 상태 표시 */
@@ -108,30 +108,31 @@ export const Button: React.FC<ButtonProps> = ({
     }
   };
 
-  return (
-    <PaperButton
-      mode={getMode()}
-      onPress={onPress}
-      disabled={disabled || loading}
-      loading={loading}
-      style={[
-        styles.button,
-        getSizeStyle(),
-        { backgroundColor: getButtonColor() },
-        fullWidth && styles.fullWidth,
-        style,
-      ]}
-      contentStyle={[styles.content, fullWidth && styles.fullWidthContent]}
-      labelStyle={[
-        styles.label,
-        { color: getTextColor() },
-        getSizeStyle(),
-        textStyle,
-      ]}
-    >
-      {children}
-    </PaperButton>
-  );
+  const buttonProps: any = {
+    mode: getMode(),
+    disabled: disabled || loading,
+    loading: loading,
+    style: [
+      styles.button,
+      getSizeStyle(),
+      { backgroundColor: getButtonColor() },
+      fullWidth && styles.fullWidth,
+      style,
+    ],
+    contentStyle: [styles.content, fullWidth && styles.fullWidthContent],
+    labelStyle: [
+      styles.label,
+      { color: getTextColor() },
+      getSizeStyle(),
+      textStyle,
+    ],
+  };
+
+  if (onPress) {
+    buttonProps.onPress = (e: GestureResponderEvent) => onPress(e);
+  }
+
+  return <PaperButton {...buttonProps}>{children}</PaperButton>;
 };
 
 const styles = StyleSheet.create({
