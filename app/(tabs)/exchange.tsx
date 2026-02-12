@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { itemsGetListAPI } from "@/src/api/items";
 import { Item } from "@/src/api/types/items";
+import { useAsyncState } from "@/src/hooks/useAsyncState";
 import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
@@ -13,36 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-// 기본 색상 팔레트
-const colors = {
-  light: {
-    primary: "#3B82F6",
-    background: "#FFFFFF",
-    card: "#F9FAFB",
-    text: "#111827",
-    border: "#E5E7EB",
-    muted: "#6B7280",
-    accent: "#10B981",
-    destructive: "#EF4444",
-    warning: "#F59E0B",
-    info: "#3B82F6",
-    success: "#10B981",
-  },
-  dark: {
-    primary: "#2563EB",
-    background: "#111827",
-    card: "#1F2937",
-    text: "#F9FAFB",
-    border: "#374151",
-    muted: "#9CA3AF",
-    accent: "#059669",
-    destructive: "#DC2626",
-    warning: "#D97706",
-    info: "#2563EB",
-    success: "#059669",
-  },
-} as const;
+import { useTheme } from "react-native-paper";
 
 // 정적 스타일 정의
 const styles = StyleSheet.create({
@@ -117,8 +89,10 @@ const styles = StyleSheet.create({
     minWidth: 120,
   },
   loadingContainer: {
-    paddingVertical: 20,
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
+    paddingVertical: 40,
   },
   loadingText: {
     fontSize: 16,
@@ -136,23 +110,21 @@ const styles = StyleSheet.create({
  */
 export default function ExchangeScreen() {
   const router = useRouter();
-  const [items, setItems] = useState<Item[]>([]);
+  const theme = useTheme();
+
+  // useAsyncState 훅으로 기본 상태 관리
+  const [itemsState, fetchItems] = useAsyncState<Item[]>([]);
+
+  // 추가 상태 (페이지네이션용)
   const [page, setPage] = useState(0);
   const [isLast, setIsLast] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // 테마 색상
-  const textColor = colors.light.text;
-  const primaryColor = colors.light.primary;
-  const cardColor = colors.light.card;
-
   // 아이템 목록 가져오기
-  const fetchItems = useCallback(
+  const loadItems = useCallback(
     async (pageNum: number = 0, isRefresh: boolean = false) => {
-      if (loading && !isRefresh) return;
+      if (itemsState.status === "loading" && !isRefresh) return;
 
-      setLoading(true);
       if (isRefresh) setRefreshing(true);
 
       try {
@@ -162,22 +134,22 @@ export default function ExchangeScreen() {
           const { content, last } = response.data;
 
           if (pageNum === 0 || isRefresh) {
-            setItems(content);
+            return content;
           } else {
-            setItems((prev) => [...prev, ...content]);
+            // 기존 데이터에 새 데이터 추가
+            return [...(itemsState.data || []), ...content];
           }
-
-          setIsLast(last);
-          setPage(pageNum);
         }
+
+        return itemsState.data || [];
       } catch (error) {
         console.error("아이템 목록 로딩 실패:", error);
+        throw error;
       } finally {
-        setLoading(false);
         if (isRefresh) setRefreshing(false);
       }
     },
-    [loading],
+    [itemsState.status, itemsState.data],
   );
 
   // 아이템 상세 페이지로 이동
@@ -192,20 +164,30 @@ export default function ExchangeScreen() {
 
   // 새로고침 핸들러
   const onRefresh = () => {
-    fetchItems(0, true);
+    setPage(0);
+    setIsLast(false);
+    fetchItems(loadItems(0, true));
   };
 
   // 다음 페이지 로드
   const loadMore = () => {
-    if (!loading && !isLast) {
-      fetchItems(page + 1);
+    if (itemsState.status !== "loading" && !isLast) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchItems(loadItems(nextPage, false));
     }
   };
 
   // 아이템 렌더 함수
   const renderItem = ({ item }: { item: Item }) => (
     <TouchableOpacity
-      style={[styles.itemContainer, { backgroundColor: cardColor }]}
+      style={[
+        styles.itemContainer,
+        {
+          backgroundColor: theme.colors.surfaceVariant,
+          shadowColor: theme.colors.shadow,
+        },
+      ]}
       onPress={() => navigateToDetail(item.id)}
       activeOpacity={0.7}
     >
@@ -220,24 +202,31 @@ export default function ExchangeScreen() {
 
       {/* 아이템 정보 */}
       <View style={styles.itemContent}>
-        <Text style={[styles.itemTitle, { color: textColor }]}>
+        <Text
+          style={[styles.itemTitle, { color: theme.colors.onSurfaceVariant }]}
+        >
           {item.title}
         </Text>
         <Text
-          style={[styles.itemDescription, { color: textColor }]}
+          style={[
+            styles.itemDescription,
+            { color: theme.colors.onSurfaceVariant },
+          ]}
           numberOfLines={3}
         >
           {item.description}
         </Text>
 
-        <Text style={[styles.itemPrice, { color: primaryColor }]}>
+        <Text style={[styles.itemPrice, { color: theme.colors.primary }]}>
           {item.status === "REGISTERED"
             ? "등록됨"
             : item.status === "COMPLETED"
               ? "교환완료"
               : "교환실패"}
         </Text>
-        <Text style={[styles.itemDate, { color: textColor }]}>
+        <Text
+          style={[styles.itemDate, { color: theme.colors.onSurfaceVariant }]}
+        >
           {new Date(item.createdAt).toLocaleDateString()}
         </Text>
       </View>
@@ -246,17 +235,23 @@ export default function ExchangeScreen() {
 
   // 화면 포커스 시 데이터 로드
   React.useEffect(() => {
-    fetchItems(0);
-  }, [fetchItems]);
+    fetchItems(loadItems(0));
+  }, []);
 
   // 로딩 상태 표시
-  if (loading && items.length === 0) {
+  if (
+    itemsState.status === "loading" &&
+    (!itemsState.data || itemsState.data.length === 0)
+  ) {
     return (
       <View
-        style={[styles.container, { backgroundColor: colors.light.background }]}
+        style={[
+          styles.loadingContainer,
+          { backgroundColor: theme.colors.surface },
+        ]}
       >
-        <ActivityIndicator size="large" color={colors.light.primary} />
-        <Text style={[styles.loadingText, { color: colors.light.text }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={[styles.loadingText, { color: theme.colors.onSurface }]}>
           아이템을 불러오는 중...
         </Text>
       </View>
@@ -264,12 +259,12 @@ export default function ExchangeScreen() {
   }
 
   return (
-    <View
-      style={[styles.container, { backgroundColor: colors.light.background }]}
-    >
+    <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
       {/* 헤더 */}
-      <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.light.text }]}>
+      <View
+        style={[styles.header, { borderBottomColor: theme.colors.outline }]}
+      >
+        <Text style={[styles.headerTitle, { color: theme.colors.onSurface }]}>
           아이템 교환
         </Text>
         <Button
@@ -284,7 +279,7 @@ export default function ExchangeScreen() {
 
       {/* 아이템 목록 */}
       <FlatList
-        data={items}
+        data={itemsState.data || []}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         numColumns={2}
@@ -296,7 +291,7 @@ export default function ExchangeScreen() {
         contentContainerStyle={styles.listContainer}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, { color: colors.light.text }]}>
+            <Text style={[styles.emptyText, { color: theme.colors.onSurface }]}>
               등록된 아이템이 없습니다.
             </Text>
             <Button
