@@ -49,6 +49,13 @@
         {
           "locationWhenInUsePermission": "Show items available for exchange near you."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#007AFF"
+        }
       ]
     ],
     "experiments": {
