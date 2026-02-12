@@ -1,19 +1,20 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { chatroomsGetMessagesAPI } from "@/src/api/chatrooms";
+import { ApiResponse, ResultType } from "@/src/api/index";
+import { ChatMessage, ChatMessageData } from "@/src/api/types/chatrooms";
+import { useAsyncState } from "@/src/hooks/useAsyncState";
+import { useWebSocket } from "@/src/hooks/useWebSocket";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
   FlatList,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
+  Text,
+  View
 } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { useWebSocket } from "@/src/hooks/useWebSocket";
-import { chatroomsGetMessagesAPI } from "@/src/api/chatrooms";
-import { ChatMessage, ChatMessageData } from "@/src/api/types/chatrooms";
-import { ApiResponse, ResultType } from "@/src/api/index";
+import { useTheme } from "react-native-paper";
 
 /**
  * 채팅방 상세 화면
@@ -23,48 +24,40 @@ export default function ChatRoomScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { status, sendMessage, client } = useWebSocket();
+  const theme = useTheme();
 
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
   const flatListRef = useRef<FlatList>(null);
 
+  // useAsyncState 훅으로 메시지 상태 관리
+  const [messagesState, loadMessages] = useAsyncState<ChatMessage[]>([]);
+
   // 초기 메시지 로드
-  const loadInitialMessages = useCallback(async () => {
-    if (!id) return;
+  const fetchInitialMessages = useCallback(async () => {
+    if (!id) throw new Error("채팅방 ID가 없습니다.");
 
-    try {
-      setIsLoading(true);
-      setError(null);
+    const response: ApiResponse<any> = await chatroomsGetMessagesAPI(
+      Number(id),
+      0,
+      50,
+    );
 
-      const response: ApiResponse<any> = await chatroomsGetMessagesAPI(
-        Number(id),
-        0,
-        50,
+    if (response.resultType === ResultType.SUCCESS && response.data) {
+      const messageData: ChatMessageData[] = response.data.content || [];
+
+      // 서버 데이터를 UI 데이터로 변환
+      const formattedMessages: ChatMessage[] = messageData.map((msg) => ({
+        content: msg.message,
+        sentAt: msg.sentAt,
+        senderNickName: msg.senderNickname,
+        isMyMessage: false, // TODO: 현재 사용자 ID와 비교 필요
+      }));
+
+      return formattedMessages.reverse();
+    } else {
+      throw new Error(
+        response.error?.message || "메시지를 불러오는데 실패했습니다",
       );
-
-      if (response.resultType === ResultType.SUCCESS && response.data) {
-        const messageData: ChatMessageData[] = response.data.content || [];
-
-        // 서버 데이터를 UI 데이터로 변환
-        const formattedMessages: ChatMessage[] = messageData.map((msg) => ({
-          content: msg.message,
-          sentAt: msg.sentAt,
-          senderNickName: msg.senderNickname,
-          isMyMessage: false, // TODO: 현재 사용자 ID와 비교 필요
-        }));
-
-        setMessages(formattedMessages.reverse());
-      } else {
-        setError(response.error?.message || "메시지를 불러오는데 실패했습니다");
-      }
-    } catch (err) {
-      console.error("메시지 로드 에러:", err);
-      setError("네트워크 오류가 발생했습니다");
-    } finally {
-      setIsLoading(false);
     }
   }, [id]);
 
@@ -84,7 +77,10 @@ export default function ChatRoomScreen() {
           isMyMessage: false, // TODO: 현재 사용자 ID와 비교 필요
         };
 
-        setMessages((prev) => [newMessage, ...prev]);
+        // 기존 메시지에 새 메시지 추가
+        if (messagesState.data) {
+          loadMessages(Promise.resolve([newMessage, ...messagesState.data]));
+        }
       } catch (error) {
         console.error("메시지 파싱 에러:", error);
       }
@@ -93,12 +89,14 @@ export default function ChatRoomScreen() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [client, id, status]);
+  }, [client, id, status, messagesState.data, loadMessages]);
 
   // 컴포넌트 마운트 시 초기 메시지 로드
   useEffect(() => {
-    loadInitialMessages();
-  }, [loadInitialMessages]);
+    if (id) {
+      loadMessages(fetchInitialMessages());
+    }
+  }, [id, loadMessages, fetchInitialMessages]);
 
   // 메시지 전송
   const handleSendMessage = useCallback(() => {
@@ -120,13 +118,14 @@ export default function ChatRoomScreen() {
         isMyMessage: true,
       };
 
-      setMessages((prev) => [myMessage, ...prev]);
+      if (messagesState.data) {
+        loadMessages(Promise.resolve([myMessage, ...messagesState.data]));
+      }
       setInputMessage("");
     } catch (error) {
       console.error("메시지 전송 에러:", error);
-      setError("메시지 전송에 실패했습니다");
     }
-  }, [inputMessage, id, status, sendMessage]);
+  }, [inputMessage, id, status, sendMessage, messagesState.data, loadMessages]);
 
   // 메시지 아이템 렌더링
   const renderMessage = useCallback(
@@ -179,29 +178,47 @@ export default function ChatRoomScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.colors.surface }]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       {/* 헤더 */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backButton}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>채팅방 #{id}</Text>
-        <Text style={styles.connectionStatus}>{getConnectionStatusText()}</Text>
+      <View
+        style={[styles.header, { borderBottomColor: theme.colors.outline }]}
+      >
+        <Button onPress={() => router.back()} variant="ghost" size="sm">
+          ←
+        </Button>
+        <Text style={[styles.headerTitle, { color: theme.colors.onSurface }]}>
+          채팅방 #{id}
+        </Text>
+        <Text
+          style={[
+            styles.connectionStatus,
+            { color: theme.colors.onSurfaceVariant },
+          ]}
+        >
+          {getConnectionStatusText()}
+        </Text>
       </View>
 
       {/* 에러 상태 */}
-      {error && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
+      {messagesState.status === "error" && (
+        <View
+          style={[
+            styles.errorContainer,
+            { backgroundColor: theme.colors.errorContainer },
+          ]}
+        >
+          <Text style={[styles.errorText, { color: theme.colors.onError }]}>
+            {messagesState.error}
+          </Text>
         </View>
       )}
 
       {/* 메시지 목록 */}
       <FlatList
         ref={flatListRef}
-        data={messages}
+        data={messagesState.data || []}
         renderItem={renderMessage}
         keyExtractor={(item, index) => `${item.sentAt}-${index}`}
         style={styles.messagesList}
@@ -212,74 +229,74 @@ export default function ChatRoomScreen() {
         }}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
-              {isLoading ? "메시지를 불러오는 중..." : "메시지가 없습니다"}
+            <Text
+              style={[
+                styles.emptyText,
+                { color: theme.colors.onSurfaceVariant },
+              ]}
+            >
+              {messagesState.status === "loading"
+                ? "메시지를 불러오는 중..."
+                : "메시지가 없습니다"}
             </Text>
-          </View>
-        }
-      />
 
       {/* 입력창 */}
-      <View style={styles.inputContainer}>
+      <View style={[styles.inputContainer, { borderTopColor: theme.colors.outline }]}>
         <TextInput
-          style={styles.textInput}
+          style={[
+            styles.textInput,
+            { 
+              backgroundColor: theme.colors.surface,
+              borderColor: theme.colors.outline,
+              color: theme.colors.onSurface 
+            }
+          ]}
           value={inputMessage}
           onChangeText={setInputMessage}
           placeholder="메시지를 입력하세요..."
+          placeholderTextColor={theme.colors.onSurfaceVariant}
           multiline
           maxLength={500}
           editable={status === "CONNECTED"}
         />
-        <TouchableOpacity
-          style={[
-            styles.sendButton,
-            (!inputMessage.trim() || status !== "CONNECTED") &&
-              styles.sendButtonDisabled,
-          ]}
+        <Button
           onPress={handleSendMessage}
           disabled={!inputMessage.trim() || status !== "CONNECTED"}
+          size="sm"
+          style={[
+            styles.sendButton,
+            (!inputMessage.trim() || status !== "CONNECTED") && styles.sendButtonDisabled,
+          ]}
         >
-          <Text style={styles.sendButtonText}>전송</Text>
-        </TouchableOpacity>
+          전송
+        </Button>
       </View>
-    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
-    backgroundColor: "white",
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  backButton: {
-    fontSize: 24,
-    marginRight: 12,
-    color: "#007AFF",
   },
   headerTitle: {
     flex: 1,
     fontSize: 18,
     fontWeight: "bold",
-    color: "#333",
+    textAlign: "center",
   },
   connectionStatus: {
     fontSize: 12,
-    color: "#666",
   },
   errorContainer: {
-    backgroundColor: "#FF3B30",
     padding: 12,
   },
   errorText: {
-    color: "white",
     textAlign: "center",
     fontSize: 14,
   },
@@ -308,16 +325,13 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   myMessageText: {
-    backgroundColor: "#007AFF",
     color: "white",
   },
   otherMessageText: {
-    backgroundColor: "white",
-    color: "#333",
+    color: "white",
   },
   messageTime: {
     fontSize: 12,
-    color: "#999",
     marginHorizontal: 12,
   },
   myMessageTime: {
@@ -333,38 +347,22 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: "#999",
   },
   inputContainer: {
     flexDirection: "row",
     padding: 16,
-    backgroundColor: "white",
     borderTopWidth: 1,
-    borderTopColor: "#eee",
     alignItems: "flex-end",
   },
   textInput: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
     marginRight: 12,
     maxHeight: 100,
-    fontSize: 16,
   },
   sendButton: {
-    backgroundColor: "#007AFF",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    minWidth: 60,
   },
   sendButtonDisabled: {
-    backgroundColor: "#ccc",
-  },
-  sendButtonText: {
-    color: "white",
-    fontWeight: "bold",
+    opacity: 0.5,
   },
 });

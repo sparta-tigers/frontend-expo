@@ -1,15 +1,11 @@
-import { useState } from "react";
-import {
-  Alert,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  ActivityIndicator,
-  StyleSheet,
-} from "react-native";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useRouter } from "expo-router";
+import { useState } from "react";
+import { Alert, StyleSheet, Text, View } from "react-native";
+import { useTheme } from "react-native-paper";
 
 /**
  * 회원가입 페이지
@@ -18,6 +14,7 @@ import { useRouter } from "expo-router";
 export default function SignupScreen() {
   const { signup, isLoading } = useAuth();
   const router = useRouter();
+  const theme = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nickname, setNickname] = useState("");
@@ -66,54 +63,53 @@ export default function SignupScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>회원가입</Text>
+    <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
+      <Card style={styles.card}>
+        <Text style={[styles.title, { color: theme.colors.onSurface }]}>
+          회원가입
+        </Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="이메일"
-        placeholderTextColor="#999"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+        <Input
+          value={email}
+          onChangeText={setEmail}
+          placeholder="이메일"
+          keyboardType="email-address"
+          style={styles.input}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="닉네임"
-        placeholderTextColor="#999"
-        value={nickname}
-        onChangeText={setNickname}
-      />
+        <Input
+          value={nickname}
+          onChangeText={setNickname}
+          placeholder="닉네임"
+          style={styles.input}
+        />
 
-      <TextInput
-        style={styles.input}
-        placeholder="비밀번호"
-        placeholderTextColor="#999"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+        <Input
+          value={password}
+          onChangeText={setPassword}
+          placeholder="비밀번호"
+          secureTextEntry
+          style={styles.input}
+        />
 
-      <TouchableOpacity
-        style={[styles.button, isLoading && styles.buttonDisabled]}
-        onPress={handleSignup}
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <Text style={styles.buttonText}>회원가입</Text>
-        )}
-      </TouchableOpacity>
+        <Button
+          onPress={handleSignup}
+          loading={isLoading}
+          disabled={isLoading}
+          fullWidth
+          style={styles.button}
+        >
+          회원가입
+        </Button>
 
-      <TouchableOpacity
-        style={styles.linkButton}
-        onPress={() => router.push("/(auth)/signin")}
-      >
-        <Text style={styles.linkText}>이미 계정이 있나요? 로그인하기</Text>
-      </TouchableOpacity>
+        <Button
+          onPress={() => router.push("/(auth)/signin")}
+          variant="ghost"
+          style={styles.linkButton}
+        >
+          이미 계정이 있나요? 로그인하기
+        </Button>
+      </Card>
     </View>
   );
 }
@@ -123,45 +119,24 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     padding: 20,
-    backgroundColor: "#f5f5f5",
+  },
+  card: {
+    padding: 24,
+    borderRadius: 12,
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: 24,
     textAlign: "center",
-    color: "#333",
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 15,
-    backgroundColor: "white",
-    fontSize: 16,
+    marginBottom: 16,
   },
   button: {
-    backgroundColor: "#007AFF",
-    padding: 15,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  buttonDisabled: {
-    backgroundColor: "#ccc",
-  },
-  buttonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
+    marginTop: 8,
   },
   linkButton: {
-    marginTop: 20,
-    alignItems: "center",
-  },
-  linkText: {
-    color: "#007AFF",
-    fontSize: 16,
-    fontWeight: "500",
+    marginTop: 16,
   },
 });
