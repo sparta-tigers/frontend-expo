@@ -43,7 +43,13 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Show items available for exchange near you."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

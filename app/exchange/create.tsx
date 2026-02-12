@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ItemCategory, ItemDto, LocationDto } from "@/src/api/types/items";
 import { useAsyncState } from "@/src/hooks/useAsyncState";
+import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -10,6 +11,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -33,7 +35,13 @@ export default function CreateItemScreen() {
     description: "",
     price: "",
     imageUrl: "", // 일단 문자열로 관리 (추후 expo-image-picker 연동)
+    region: "", // 거래 희망 장소 (동/면/읍)
+    latitude: 37.5665, // 위도 (기본값: 서울)
+    longitude: 126.978, // 경도 (기본값: 서울)
   });
+
+  // 위치 가져오기 로딩 상태
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
 
   // 입력값 변경 핸들러
   const handleInputChange = (field: string, value: string) => {
@@ -78,6 +86,69 @@ export default function CreateItemScreen() {
     setFormData((prev) => ({ ...prev, imageUrl: "" }));
   };
 
+  // 현재 위치 가져오기 핸들러
+  const handleGetCurrentLocation = async () => {
+    try {
+      setIsGettingLocation(true);
+
+      // 1. 권한 요청
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("권한 필요", "위치 접근 권한이 필요합니다.");
+        return;
+      }
+
+      // 2. 현재 위치 가져오기
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      const { latitude, longitude } = location.coords;
+
+      // 3. 좌표를 주소로 변환
+      const addresses = await Location.reverseGeocodeAsync({
+        latitude,
+        longitude,
+      });
+
+      if (addresses && addresses.length > 0) {
+        const address = addresses[0];
+
+        // 4. 동네 이름 추출 (우선순위: street > district > subdistrict > city)
+        let regionName = "";
+
+        if (address.street) {
+          regionName = address.street;
+        } else if (address.district) {
+          regionName = address.district;
+        } else if (address.subdistrict) {
+          regionName = address.subdistrict;
+        } else if (address.city) {
+          regionName = address.city;
+        } else {
+          regionName = "알 수 없는 위치";
+        }
+
+        // 5. 폼 데이터 업데이트
+        setFormData((prev) => ({
+          ...prev,
+          region: regionName,
+          latitude,
+          longitude,
+        }));
+
+        Alert.alert("위치 확인", `${regionName}으로 설정되었습니다.`);
+      } else {
+        Alert.alert("오류", "주소를 찾을 수 없습니다.");
+      }
+    } catch (error) {
+      console.error("위치 가져오기 에러:", error);
+      Alert.alert("오류", "위치를 가져오는데 실패했습니다.");
+    } finally {
+      setIsGettingLocation(false);
+    }
+  };
+
   // 입력값 검증
   const validateForm = (): boolean => {
     if (!formData.title.trim()) {
@@ -115,8 +186,8 @@ export default function CreateItemScreen() {
       };
 
       const locationDto: LocationDto = {
-        latitude: 37.5665, // 일단 서울 좌표로 고정 (추후 expo-location 연동)
-        longitude: 126.978,
+        latitude: formData.latitude, // 실제 위치 데이터 사용
+        longitude: formData.longitude, // 실제 위치 데이터 사용
       };
 
       // FormData 생성
@@ -350,6 +421,33 @@ export default function CreateItemScreen() {
           />
         </View>
 
+        {/* 거래 희망 장소 */}
+        <View style={styles.section}>
+          <Text
+            style={[styles.sectionTitle, { color: theme.colors.onSurface }]}
+          >
+            거래 희망 장소
+          </Text>
+          <View style={styles.locationContainer}>
+            <Input
+              value={formData.region}
+              onChangeText={(value) => handleInputChange("region", value)}
+              placeholder="동네 이름을 입력하세요"
+              style={[styles.input, styles.locationInput]}
+            />
+            <Button
+              onPress={handleGetCurrentLocation}
+              loading={isGettingLocation}
+              disabled={isGettingLocation}
+              variant="outline"
+              size="sm"
+              style={styles.locationButton}
+            >
+              📍 현재 위치로 찾기
+            </Button>
+          </View>
+        </View>
+
         {/* 등록 버튼 */}
         <View style={styles.buttonContainer}>
           <Button
@@ -477,6 +575,15 @@ const styles = StyleSheet.create({
   },
   textArea: {
     minHeight: 100,
+  },
+  locationContainer: {
+    gap: 12,
+  },
+  locationInput: {
+    marginBottom: 0,
+  },
+  locationButton: {
+    alignSelf: "flex-start",
   },
   buttonContainer: {
     marginTop: 32,
