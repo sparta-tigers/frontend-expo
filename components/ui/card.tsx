@@ -44,13 +44,14 @@ export const Card: React.FC<CardProps> = ({
     }
   };
 
-  return (
-    <PaperCard
-      mode={getCardMode()}
-      onPress={onPress || undefined}
-      style={fullWidth ? { width: "100%" } : style}
-    >
-      {children}
-    </PaperCard>
-  );
+  const cardProps: any = {
+    mode: getCardMode(),
+    style: fullWidth ? { width: "100%" } : style,
+  };
+
+  if (onPress) {
+    cardProps.onPress = onPress;
+  }
+
+  return <PaperCard {...cardProps}>{children}</PaperCard>;
 };

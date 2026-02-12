@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { ItemCategory, ItemDto, LocationDto } from "@/src/api/types/items";
 import { useAsyncState } from "@/src/hooks/useAsyncState";
 import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -26,7 +27,7 @@ export default function CreateItemScreen() {
   const theme = useTheme();
 
   // useAsyncState 훅으로 생성 요청 상태 관리
-  const [createState, createItem] = useAsyncState<any>(null);
+  const [createState, _createItem] = useAsyncState<any>(null);
 
   // 폼 상태
   const [formData, setFormData] = useState({
@@ -114,15 +115,13 @@ export default function CreateItemScreen() {
       if (addresses && addresses.length > 0) {
         const address = addresses[0];
 
-        // 4. 동네 이름 추출 (우선순위: street > district > subdistrict > city)
+        // 4. 동네 이름 추출 (우선순위: street > district > city)
         let regionName = "";
 
         if (address.street) {
           regionName = address.street;
         } else if (address.district) {
           regionName = address.district;
-        } else if (address.subdistrict) {
-          regionName = address.subdistrict;
         } else if (address.city) {
           regionName = address.city;
         } else {

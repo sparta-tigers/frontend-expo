@@ -11,7 +11,7 @@ import { ActivityIndicator, View } from "react-native";
  */
 export default function RootLayout() {
   const { user, isLoading } = useAuth();
-  const { expoPushToken, notification } = usePushNotifications();
+  const { expoPushToken } = usePushNotifications();
   const segments = useSegments();
 
   const inAuthGroup = segments[0] === "(auth)";
@@ -22,6 +22,8 @@ export default function RootLayout() {
       shouldShowAlert: true,
       shouldPlaySound: true,
       shouldSetBadge: false,
+      shouldShowBanner: false,
+      shouldShowList: false,
     }),
   });
 

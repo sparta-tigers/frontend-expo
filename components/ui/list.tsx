@@ -37,8 +37,6 @@ interface ListProps {
   loading?: boolean;
   /** 더 불러오기 핸들러 */
   onEndReached?: () => void;
-  /** 리스트가 마지막인지 여부 */
-  isLast?: boolean;
   /** 빈 상태 메시지 */
   emptyMessage?: string;
   /** 커스텀 스타일 */
@@ -60,7 +58,6 @@ export const List: React.FC<ListProps> = ({
   renderItem,
   loading = false,
   onEndReached,
-  isLast = false,
   emptyMessage = "데이터가 없습니다.",
   style,
   showSeparator = true,
