@@ -13,14 +13,17 @@ export function usePushNotifications() {
     useState<Notifications.Notification | null>(null);
 
   useEffect(() => {
-    // 푸시 알림 설정
-    const setupNotifications = async () => {
+    let notificationListener: Notifications.Subscription | undefined;
+    let responseListener: Notifications.Subscription | undefined;
+
+    // 권한 요청 및 토큰 발급 비동기 함수
+    const registerForPushNotificationsAsync = async () => {
       try {
         // 1. 권한 요청
         const { status } = await Notifications.requestPermissionsAsync();
         if (status !== "granted") {
           console.log("알림 권한이 거부되었습니다.");
-          return;
+          return null;
         }
 
         // 2. 토큰 발급
@@ -31,54 +34,74 @@ export function usePushNotifications() {
             console.warn(
               "EAS Project ID를 찾을 수 없습니다. app.json을 확인하세요.",
             );
-            return;
+            return null;
           }
 
           const token = await Notifications.getExpoPushTokenAsync({
             projectId,
           });
 
-          setExpoPushToken(token.data);
-          console.log("Expo Push Token:", token.data);
+          return token.data;
         } else {
           console.log("실제 기기가 아닙니다.");
+          return null;
         }
+      } catch (error) {
+        console.error("푸시 알림 설정 에러:", error);
+        return null;
+      }
+    };
 
-        // 3. 채널 설정 (Android)
-        if (Device.osName === "Android") {
+    // 비동기 함수 실행 및 토큰 설정
+    registerForPushNotificationsAsync().then((token) => {
+      if (token) {
+        setExpoPushToken(token);
+        console.log("Expo Push Token:", token);
+      }
+    });
+
+    // 채널 설정 (Android)
+    const setupNotificationChannel = async () => {
+      if (Device.osName === "Android") {
+        try {
           await Notifications.setNotificationChannelAsync("default", {
             name: "default",
             importance: Notifications.AndroidImportance.MAX,
             vibrationPattern: [0, 250, 250, 250],
             sound: "default",
           });
+        } catch (error) {
+          console.error("알림 채널 설정 에러:", error);
         }
-
-        // 4. 리스너 등록
-        const subscription1 = Notifications.addNotificationReceivedListener(
-          (notification) => {
-            console.log("알림 수신:", notification);
-            setNotification(notification);
-          },
-        );
-
-        const subscription2 =
-          Notifications.addNotificationResponseReceivedListener((response) => {
-            console.log("알림 응답:", response);
-            // TODO: 알림 클릭 시 처리 로직 추가
-          });
-
-        return () => {
-          subscription1.remove();
-          subscription2.remove();
-        };
-      } catch (error) {
-        console.error("푸시 알림 설정 에러:", error);
       }
     };
 
-    const cleanup = setupNotifications();
-    return cleanup;
+    setupNotificationChannel();
+
+    // 리스너 등록
+    notificationListener = Notifications.addNotificationReceivedListener(
+      (receivedNotification) => {
+        console.log("알림 수신:", receivedNotification);
+        setNotification(receivedNotification);
+      },
+    );
+
+    responseListener = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        console.log("알림 응답:", response);
+        // TODO: 알림 클릭 시 처리 로직 추가
+      },
+    );
+
+    // Cleanup 함수
+    return () => {
+      if (notificationListener) {
+        notificationListener.remove();
+      }
+      if (responseListener) {
+        responseListener.remove();
+      }
+    };
   }, []);
 
   return {

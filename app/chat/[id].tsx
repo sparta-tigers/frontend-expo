@@ -12,7 +12,8 @@ import {
   Platform,
   StyleSheet,
   Text,
-  View
+  TextInput,
+  View,
 } from "react-native";
 import { useTheme } from "react-native-paper";
 
@@ -239,17 +240,25 @@ export default function ChatRoomScreen() {
                 ? "메시지를 불러오는 중..."
                 : "메시지가 없습니다"}
             </Text>
+          </View>
+        }
+      />
 
       {/* 입력창 */}
-      <View style={[styles.inputContainer, { borderTopColor: theme.colors.outline }]}>
+      <View
+        style={[
+          styles.inputContainer,
+          { borderTopColor: theme.colors.outline },
+        ]}
+      >
         <TextInput
           style={[
             styles.textInput,
-            { 
+            {
               backgroundColor: theme.colors.surface,
               borderColor: theme.colors.outline,
-              color: theme.colors.onSurface 
-            }
+              color: theme.colors.onSurface,
+            },
           ]}
           value={inputMessage}
           onChangeText={setInputMessage}
@@ -265,12 +274,14 @@ export default function ChatRoomScreen() {
           size="sm"
           style={[
             styles.sendButton,
-            (!inputMessage.trim() || status !== "CONNECTED") && styles.sendButtonDisabled,
+            (!inputMessage.trim() || status !== "CONNECTED") &&
+              styles.sendButtonDisabled,
           ]}
         >
           전송
         </Button>
       </View>
+    </KeyboardAvoidingView>
   );
 }
 
