@@ -6,7 +6,7 @@ import { useAsyncState } from "@/src/hooks/useAsyncState";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Image,
@@ -18,7 +18,6 @@ import {
   View,
 } from "react-native";
 import { useTheme } from "react-native-paper";
-
 /**
  * 아이템 생성 화면
  * 사용자가 새로운 물물교환 아이템을 등록하는 컴포넌트
@@ -44,6 +43,23 @@ export default function CreateItemScreen() {
 
   // 위치 가져오기 로딩 상태
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+
+  // API 호출 상태 감지
+  useEffect(() => {
+    if (createState.status === "success") {
+      Alert.alert("성공", "아이템이 성공적으로 등록되었습니다.", [
+        {
+          text: "확인",
+          onPress: () => {
+            // 등록 성공 후 목록 새로고침을 위해 이전 화면으로 복귀
+            router.replace("/(tabs)/exchange");
+          },
+        },
+      ]);
+    } else if (createState.status === "error" && createState.error) {
+      Alert.alert("오류", createState.error);
+    }
+  }, [createState.status, createState.error, router]);
 
   // 입력값 변경 핸들러
   const handleInputChange = (field: string, value: string) => {
@@ -190,49 +206,47 @@ export default function CreateItemScreen() {
         longitude: formData.longitude, // 실제 위치 데이터 사용
       };
 
-      // FormData 생성
-      const requestFormData = new FormData();
-      requestFormData.append("item", JSON.stringify(itemDto));
-      requestFormData.append("location", JSON.stringify(locationDto));
+      // JSON 요청 데이터 생성 (임시 테스트)
+      const requestData = {
+        itemDto: {
+          ...itemDto,
+          seatInfo: "", // seatInfo 필드 추가 (필수)
+        },
+        locationDto: locationDto,
+      };
 
-      // 이미지가 있으면 추가
-      if (formData.imageUrl) {
+      // API 호출 (JSON 형식 테스트)
+      console.log("JSON 전송:", requestData);
+
+      // 이미지가 없는 경우 JSON으로 전송 테스트
+      if (!formData.imageUrl) {
+        await _createItem(itemsCreateAPI(requestData));
+      } else {
+        // 이미지가 있는 경우 FormData로 전송
+        const requestFormData = new FormData();
+        requestFormData.append(
+          "item",
+          JSON.stringify({
+            ...itemDto,
+            seatInfo: "", // seatInfo 필드 추가
+          }),
+        );
+        requestFormData.append("location", JSON.stringify(locationDto));
+
         const filename = formData.imageUrl.split("/").pop();
         const match = /\.(\w+)$/.exec(filename || "");
         const type = match ? `image/${match[1]}` : `image`;
 
-        // React Native FormData 스펙 준수
         requestFormData.append("itemImage", {
           uri: formData.imageUrl,
           name: filename || "image.jpg",
           type,
         } as any);
-      }
 
-      // API 호출 (임시로 console.log로 확인)
-      console.log("FormData 전송:", {
-        item: JSON.stringify(itemDto),
-        location: JSON.stringify(locationDto),
-        image: formData.imageUrl ? "이미지 파일 포함됨" : "이미지 없음",
-      });
-
-      // 실제 API 호출
-      await _createItem(itemsCreateAPI(requestFormData as any));
-
-      // API 호출 성공 후 상태 확인
-      if (createState.status === "success") {
-        Alert.alert("성공", "아이템이 성공적으로 등록되었습니다.", [
-          {
-            text: "확인",
-            onPress: () => router.back(),
-          },
-        ]);
-      } else {
-        throw new Error(createState.error || "아이템 등록에 실패했습니다.");
+        await _createItem(itemsCreateAPI(requestFormData as any));
       }
     } catch (error) {
       console.error("아이템 생성 에러:", error);
-      Alert.alert("오류", "아이템 등록에 실패했습니다.");
     }
   };
 
