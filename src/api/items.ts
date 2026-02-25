@@ -31,24 +31,8 @@ export async function itemsGetListAPI(
   if (category) params.category = category;
   if (status) params.status = status;
 
-  try {
-    return await apiClient.get("/api/v1/items", params);
-  } catch (error) {
-    console.error("API 호출 실패:", error);
-    // 임시: 더미 데이터 반환
-    return {
-      resultType: "SUCCESS",
-      data: {
-        content: [],
-        totalElements: 0,
-        totalPages: 0,
-        size: 10,
-        number: 0,
-      },
-      error: null,
-      timestamp: new Date().toISOString(),
-    };
-  }
+  // try-catch 제거하고 바로 리턴
+  return apiClient.get("/api/v1/items", params);
 }
 
 /**

@@ -14,26 +14,34 @@ export function useAsyncState<T>(
     error: null,
   });
 
-  const execute = useCallback(async (promise: Promise<T>) => {
-    setState((prev) => ({ ...prev, status: "loading", error: null }));
+  const execute = useCallback(
+    async (promise: Promise<T>) => {
+      // 이미 로딩 중이면 추가 호출 방지 (무한 루프 방지)
+      if (state.status === "loading") {
+        return;
+      }
 
-    try {
-      const data = await promise;
-      setState({
-        status: "success",
-        data,
-        error: null,
-      });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "알 수 없는 오류";
-      setState({
-        status: "error",
-        data: null,
-        error: errorMessage,
-      });
-    }
-  }, []);
+      setState((prev) => ({ ...prev, status: "loading", error: null }));
+
+      try {
+        const data = await promise;
+        setState({
+          status: "success",
+          data,
+          error: null,
+        });
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "알 수 없는 오류";
+        setState({
+          status: "error",
+          data: null,
+          error: errorMessage,
+        });
+      }
+    },
+    [state.status],
+  ); // state.status 의존성 추가
 
   const reset = useCallback(() => {
     setState({
