@@ -47,3 +47,5 @@ app-example
 docs/problems-*.md
 
 .windsurf/
+
+*.log

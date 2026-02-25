@@ -31,6 +31,7 @@ export async function itemsGetListAPI(
   if (category) params.category = category;
   if (status) params.status = status;
 
+  // try-catch 제거하고 바로 리턴
   return apiClient.get("/api/v1/items", params);
 }
 

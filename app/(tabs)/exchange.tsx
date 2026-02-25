@@ -125,13 +125,17 @@ export default function ExchangeScreen() {
     async (pageNum: number = 0, isRefresh: boolean = false) => {
       if (itemsState.status === "loading" && !isRefresh) return;
 
+      // 에러 상태에서는 재시도하지 않음 (무한반복 방지)
+      if (itemsState.status === "error" && !isRefresh) return;
+
       if (isRefresh) setRefreshing(true);
 
       try {
         const response = await itemsGetListAPI(pageNum, 10);
 
         if (response.resultType === "SUCCESS" && response.data) {
-          const { content } = response.data;
+          const { content, last } = response.data;
+          setIsLast(last); // 다음 페이지 호출 차단 스위치
 
           if (pageNum === 0 || isRefresh) {
             return content;
@@ -149,12 +153,12 @@ export default function ExchangeScreen() {
         if (isRefresh) setRefreshing(false);
       }
     },
-    [itemsState.status, itemsState.data],
+    [itemsState.data, itemsState.status],
   );
 
   // 아이템 상세 페이지로 이동
   const navigateToDetail = (itemId: number) => {
-    router.push(`/exchange/[id]?id=${itemId}` as any);
+    router.push(`/exchange/${itemId}` as any);
   };
 
   // 아이템 생성 페이지로 이동
@@ -171,7 +175,12 @@ export default function ExchangeScreen() {
 
   // 다음 페이지 로드
   const loadMore = () => {
-    if (itemsState.status !== "loading" && !isLast) {
+    // 에러 상태에서는 자동 로드를 차단하여 무한 루프 방지
+    if (
+      itemsState.status !== "loading" &&
+      itemsState.status !== "error" &&
+      !isLast
+    ) {
       const nextPage = page + 1;
       setPage(nextPage);
       fetchItems(loadItems(nextPage, false));
@@ -233,10 +242,38 @@ export default function ExchangeScreen() {
     </TouchableOpacity>
   );
 
-  // 화면 포커스 시 데이터 로드
+  // 화면 포커스 시 데이터 로드 (최초 1번만 실행)
   React.useEffect(() => {
-    fetchItems(loadItems(0));
-  }, []);
+    // 에러 상태가 아닐 때만 로드 시도
+    if (itemsState.status === "idle") {
+      fetchItems(loadItems(0));
+    }
+  }, []); // 빈 의존성 배열로 최초 1번만 실행
+
+  // 에러 상태 표시 (무한 루프 방지)
+  if (
+    itemsState.status === "error" &&
+    (!itemsState.data || itemsState.data.length === 0)
+  ) {
+    return (
+      <View
+        style={[
+          styles.emptyContainer,
+          { backgroundColor: theme.colors.surface },
+        ]}
+      >
+        <Text style={[styles.emptyText, { color: theme.colors.error }]}>
+          {itemsState.error || "데이터를 불러오는데 실패했습니다."}
+        </Text>
+        <Button
+          onPress={() => fetchItems(loadItems(0, true))}
+          style={styles.emptyButton}
+        >
+          다시 시도
+        </Button>
+      </View>
+    );
+  }
 
   // 로딩 상태 표시
   if (
