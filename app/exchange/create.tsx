@@ -206,45 +206,19 @@ export default function CreateItemScreen() {
         longitude: formData.longitude, // 실제 위치 데이터 사용
       };
 
-      // JSON 요청 데이터 생성 (임시 테스트)
+      // JSON 요청 데이터 생성 (항상 JSON 사용)
       const requestData = {
         itemDto: {
           ...itemDto,
-          seatInfo: "", // seatInfo 필드 추가 (필수)
+          seatInfo: "", // seatInfo 필드 추가
         },
         locationDto: locationDto,
       };
 
-      // API 호출 (JSON 형식 테스트)
+      // API 호출 (JSON 형식)
       console.log("JSON 전송:", requestData);
 
-      // 이미지가 없는 경우 JSON으로 전송 테스트
-      if (!formData.imageUrl) {
-        await _createItem(itemsCreateAPI(requestData));
-      } else {
-        // 이미지가 있는 경우 FormData로 전송
-        const requestFormData = new FormData();
-        requestFormData.append(
-          "item",
-          JSON.stringify({
-            ...itemDto,
-            seatInfo: "", // seatInfo 필드 추가
-          }),
-        );
-        requestFormData.append("location", JSON.stringify(locationDto));
-
-        const filename = formData.imageUrl.split("/").pop();
-        const match = /\.(\w+)$/.exec(filename || "");
-        const type = match ? `image/${match[1]}` : `image`;
-
-        requestFormData.append("itemImage", {
-          uri: formData.imageUrl,
-          name: filename || "image.jpg",
-          type,
-        } as any);
-
-        await _createItem(itemsCreateAPI(requestFormData as any));
-      }
+      await _createItem(itemsCreateAPI(requestData));
     } catch (error) {
       console.error("아이템 생성 에러:", error);
     }
