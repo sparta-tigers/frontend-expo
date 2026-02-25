@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { itemsCreateAPI } from "@/src/api/items";
 import { ItemCategory, ItemDto, LocationDto } from "@/src/api/types/items";
 import { useAsyncState } from "@/src/hooks/useAsyncState";
 import * as ImagePicker from "expo-image-picker";
@@ -67,7 +68,7 @@ export default function CreateItemScreen() {
 
       // 이미지 선택
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.5,
@@ -215,15 +216,20 @@ export default function CreateItemScreen() {
         image: formData.imageUrl ? "이미지 파일 포함됨" : "이미지 없음",
       });
 
-      // 실제 API 호출 (주석 처리 - 백엔드 준비 시 해제)
-      // await createItem(itemsCreateAPI(requestFormData as any));
+      // 실제 API 호출
+      await _createItem(itemsCreateAPI(requestFormData as any));
 
-      Alert.alert("성공", "아이템이 성공적으로 등록되었습니다.", [
-        {
-          text: "확인",
-          onPress: () => router.back(),
-        },
-      ]);
+      // API 호출 성공 후 상태 확인
+      if (createState.status === "success") {
+        Alert.alert("성공", "아이템이 성공적으로 등록되었습니다.", [
+          {
+            text: "확인",
+            onPress: () => router.back(),
+          },
+        ]);
+      } else {
+        throw new Error(createState.error || "아이템 등록에 실패했습니다.");
+      }
     } catch (error) {
       console.error("아이템 생성 에러:", error);
       Alert.alert("오류", "아이템 등록에 실패했습니다.");
