@@ -125,6 +125,9 @@ export default function ExchangeScreen() {
     async (pageNum: number = 0, isRefresh: boolean = false) => {
       if (itemsState.status === "loading" && !isRefresh) return;
 
+      // 에러 상태에서는 재시도하지 않음 (무한반복 방지)
+      if (itemsState.status === "error" && !isRefresh) return;
+
       if (isRefresh) setRefreshing(true);
 
       try {
@@ -144,7 +147,8 @@ export default function ExchangeScreen() {
         return itemsState.data || [];
       } catch (error) {
         console.error("아이템 목록 로딩 실패:", error);
-        throw error;
+        // 에러 발생 시 빈 배열 반환으로 상태 유지
+        return itemsState.data || [];
       } finally {
         if (isRefresh) setRefreshing(false);
       }
@@ -235,8 +239,41 @@ export default function ExchangeScreen() {
 
   // 화면 포커스 시 데이터 로드
   React.useEffect(() => {
-    fetchItems(loadItems(0));
-  }, []);
+    // 에러 상태가 아닐 때만 로드 시도
+    if (itemsState.status !== "error") {
+      fetchItems(loadItems(0));
+    }
+  }, [fetchItems, itemsState.status, loadItems]);
+
+  // 에러 상태 표시
+  if (itemsState.status === "error") {
+    return (
+      <View
+        style={[
+          styles.emptyContainer,
+          { backgroundColor: theme.colors.surface },
+        ]}
+      >
+        <Text style={[styles.emptyText, { color: theme.colors.onSurface }]}>
+          아이템을 불러오는데 실패했습니다.
+        </Text>
+        <Text
+          style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}
+        >
+          {itemsState.error}
+        </Text>
+        <Button
+          variant="primary"
+          onPress={() => {
+            fetchItems(loadItems(0, true));
+          }}
+          style={styles.emptyButton}
+        >
+          다시 시도
+        </Button>
+      </View>
+    );
+  }
 
   // 로딩 상태 표시
   if (
