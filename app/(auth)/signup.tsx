@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { SafeLayout } from "@/components/ui/safe-layout";
+import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/constants/layout";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -63,80 +65,82 @@ export default function SignupScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
-      <Card style={styles.card}>
-        <Text style={[styles.title, { color: theme.colors.onSurface }]}>
-          회원가입
-        </Text>
+    <SafeLayout style={{ backgroundColor: theme.colors.surface }}>
+      <View style={styles.contentContainer}>
+        <Card style={styles.card}>
+          <Text style={[styles.title, { color: theme.colors.onSurface }]}>
+            회원가입
+          </Text>
 
-        <Input
-          value={email}
-          onChangeText={setEmail}
-          placeholder="이메일"
-          keyboardType="email-address"
-          style={styles.input}
-        />
+          <Input
+            value={email}
+            onChangeText={setEmail}
+            placeholder="이메일"
+            keyboardType="email-address"
+            style={styles.input}
+          />
 
-        <Input
-          value={nickname}
-          onChangeText={setNickname}
-          placeholder="닉네임"
-          style={styles.input}
-        />
+          <Input
+            value={nickname}
+            onChangeText={setNickname}
+            placeholder="닉네임"
+            style={styles.input}
+          />
 
-        <Input
-          value={password}
-          onChangeText={setPassword}
-          placeholder="비밀번호"
-          secureTextEntry
-          style={styles.input}
-        />
+          <Input
+            value={password}
+            onChangeText={setPassword}
+            placeholder="비밀번호"
+            secureTextEntry
+            style={styles.input}
+          />
 
-        <Button
-          onPress={handleSignup}
-          loading={isLoading}
-          disabled={isLoading}
-          fullWidth
-          style={styles.button}
-        >
-          회원가입
-        </Button>
+          <Button
+            onPress={handleSignup}
+            loading={isLoading}
+            disabled={isLoading}
+            fullWidth
+            style={styles.button}
+          >
+            회원가입
+          </Button>
 
-        <Button
-          onPress={() => router.push("/(auth)/signin")}
-          variant="ghost"
-          style={styles.linkButton}
-        >
-          이미 계정이 있나요? 로그인하기
-        </Button>
-      </Card>
-    </View>
+          <Button
+            onPress={() => router.push("/(auth)/signin")}
+            variant="ghost"
+            style={styles.linkButton}
+          >
+            이미 계정이 있나요? 로그인하기
+          </Button>
+        </Card>
+      </View>
+    </SafeLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  contentContainer: {
     flex: 1,
     justifyContent: "center",
-    padding: 20,
+    padding: SPACING.SCREEN,
   },
   card: {
-    padding: 24,
-    borderRadius: 12,
+    padding: SPACING.SCREEN,
+    borderRadius: BORDER_RADIUS.CARD,
   },
   title: {
-    fontSize: 24,
+    fontSize: FONT_SIZE.TITLE,
     fontWeight: "bold",
-    marginBottom: 24,
+    marginBottom: SPACING.SCREEN,
     textAlign: "center",
   },
   input: {
-    marginBottom: 16,
+    marginBottom: SPACING.COMPONENT,
   },
   button: {
-    marginTop: 8,
+    marginTop: SPACING.SMALL,
   },
   linkButton: {
-    marginTop: 16,
+    marginTop: SPACING.COMPONENT,
   },
 });

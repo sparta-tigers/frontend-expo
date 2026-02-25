@@ -4,6 +4,7 @@ import * as Notifications from "expo-notifications";
 import { Redirect, Slot, useSegments } from "expo-router";
 import "fast-text-encoding";
 import { ActivityIndicator, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 /**
  * 루트 레이아웃
