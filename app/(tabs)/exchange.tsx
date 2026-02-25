@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { SafeLayout } from "@/components/ui/safe-layout";
+import { BORDER_RADIUS, FONT_SIZE, SHADOW, SPACING } from "@/constants/layout";
 import { itemsGetListAPI } from "@/src/api/items";
 import { Item } from "@/src/api/types/items";
 import { useAsyncState } from "@/src/hooks/useAsyncState";
@@ -25,8 +27,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    paddingVertical: SPACING.COMPONENT,
+    paddingHorizontal: SPACING.SCREEN,
     borderBottomWidth: 1,
   },
   headerTitle: {
@@ -37,42 +39,38 @@ const styles = StyleSheet.create({
     minWidth: 100,
   },
   listContainer: {
-    padding: 8,
+    padding: SPACING.SMALL,
   },
   itemContainer: {
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    borderRadius: BORDER_RADIUS.CARD,
+    padding: SPACING.COMPONENT,
+    marginBottom: SPACING.SMALL,
+    ...SHADOW.CARD,
   },
   itemImage: {
     width: 60,
     height: 60,
-    borderRadius: 8,
-    marginRight: 12,
+    borderRadius: BORDER_RADIUS.IMAGE,
+    marginRight: SPACING.COMPONENT,
   },
   itemContent: {
     flex: 1,
   },
   itemTitle: {
-    fontSize: 16,
+    fontSize: FONT_SIZE.BODY,
     fontWeight: "600",
-    marginBottom: 4,
+    marginBottom: SPACING.TINY,
   },
   itemDescription: {
-    fontSize: 14,
+    fontSize: FONT_SIZE.SMALL,
     lineHeight: 20,
   },
   itemPrice: {
-    fontSize: 14,
+    fontSize: FONT_SIZE.SMALL,
     fontWeight: "600",
   },
   itemDate: {
-    fontSize: 12,
+    fontSize: FONT_SIZE.CAPTION,
   },
   emptyContainer: {
     flex: 1,
@@ -81,9 +79,9 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: FONT_SIZE.BODY,
     textAlign: "center",
-    marginBottom: 16,
+    marginBottom: SPACING.COMPONENT,
   },
   emptyButton: {
     minWidth: 120,
@@ -95,8 +93,8 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   loadingText: {
-    fontSize: 16,
-    marginTop: 8,
+    fontSize: FONT_SIZE.BODY,
+    marginTop: SPACING.SMALL,
   },
 });
 
@@ -296,7 +294,7 @@ export default function ExchangeScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
+    <SafeLayout style={{ backgroundColor: theme.colors.surface }}>
       {/* 헤더 */}
       <View
         style={[styles.header, { borderBottomColor: theme.colors.outline }]}
@@ -341,6 +339,6 @@ export default function ExchangeScreen() {
           </View>
         )}
       />
-    </View>
+    </SafeLayout>
   );
 }

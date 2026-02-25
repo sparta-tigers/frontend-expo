@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { SafeLayout } from "@/components/ui/safe-layout";
+import { FONT_SIZE, SPACING } from "@/constants/layout";
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useRouter } from "expo-router";
@@ -57,89 +59,97 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor }]}
-      contentContainerStyle={styles.contentContainer}
-    >
-      <Text style={[styles.title, { color: textColor }]}>프로필</Text>
-
-      {/* 사용자 정보 카드 */}
-      <Card style={styles.card}>
-        <View style={styles.profileHeader}>
-          <View style={[styles.avatar, { backgroundColor: borderColor }]}>
-            <Text style={[styles.avatarText, { color: textColor }]}>
-              {user?.accessToken ? "L" : "G"}
-            </Text>
-          </View>
-          <View style={styles.userInfo}>
-            <Text style={[styles.userName, { color: textColor }]}>
-              {user?.accessToken ? "사용자" : "게스트"}
-            </Text>
-            <Text style={[styles.userEmail, { color: textColor }]}>
-              {user?.accessToken ? "로그인된 사용자" : "로그인이 필요합니다"}
-            </Text>
-          </View>
-        </View>
-      </Card>
-
-      {/* 계정 설정 카드 */}
-      <Card style={styles.card}>
-        <Text style={[styles.sectionTitle, { color: textColor }]}>
-          계정 설정
-        </Text>
-
-        <TouchableOpacity
-          style={[styles.menuItem, { borderColor }]}
-          onPress={handleEditProfile}
-        >
-          <Text style={[styles.menuItemText, { color: textColor }]}>
-            프로필 수정
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.menuItem, { borderColor }]}
-          onPress={handlePasswordChange}
-        >
-          <Text style={[styles.menuItemText, { color: textColor }]}>
-            비밀번호 변경
-          </Text>
-        </TouchableOpacity>
-      </Card>
-
-      {/* 앱 설정 카드 */}
-      <Card style={styles.card}>
-        <Text style={[styles.sectionTitle, { color: textColor }]}>앱 설정</Text>
-
-        <TouchableOpacity
-          style={[styles.menuItem, { borderColor }]}
-          onPress={() => Alert.alert("알림", "알림 설정 기능은 준비 중입니다.")}
-        >
-          <Text style={[styles.menuItemText, { color: textColor }]}>
-            알림 설정
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.menuItem, { borderColor }]}
-          onPress={() => Alert.alert("알림", "테마 설정 기능은 준비 중입니다.")}
-        >
-          <Text style={[styles.menuItemText, { color: textColor }]}>
-            테마 설정
-          </Text>
-        </TouchableOpacity>
-      </Card>
-
-      {/* 로그아웃 버튼 */}
-      <Button
-        variant="outline"
-        fullWidth
-        onPress={handleLogout}
-        style={styles.logoutButton}
+    <SafeLayout style={{ backgroundColor }}>
+      <ScrollView
+        style={[styles.container, { backgroundColor }]}
+        contentContainerStyle={styles.contentContainer}
       >
-        로그아웃
-      </Button>
-    </ScrollView>
+        <Text style={[styles.title, { color: textColor }]}>프로필</Text>
+
+        {/* 사용자 정보 카드 */}
+        <Card style={styles.card}>
+          <View style={styles.profileHeader}>
+            <View style={[styles.avatar, { backgroundColor: borderColor }]}>
+              <Text style={[styles.avatarText, { color: textColor }]}>
+                {user?.accessToken ? "L" : "G"}
+              </Text>
+            </View>
+            <View style={styles.userInfo}>
+              <Text style={[styles.userName, { color: textColor }]}>
+                {user?.accessToken ? "사용자" : "게스트"}
+              </Text>
+              <Text style={[styles.userEmail, { color: textColor }]}>
+                {user?.accessToken ? "로그인된 사용자" : "로그인이 필요합니다"}
+              </Text>
+            </View>
+          </View>
+        </Card>
+
+        {/* 계정 설정 카드 */}
+        <Card style={styles.card}>
+          <Text style={[styles.sectionTitle, { color: textColor }]}>
+            계정 설정
+          </Text>
+
+          <TouchableOpacity
+            style={[styles.menuItem, { borderColor }]}
+            onPress={handleEditProfile}
+          >
+            <Text style={[styles.menuItemText, { color: textColor }]}>
+              프로필 수정
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.menuItem, { borderColor }]}
+            onPress={handlePasswordChange}
+          >
+            <Text style={[styles.menuItemText, { color: textColor }]}>
+              비밀번호 변경
+            </Text>
+          </TouchableOpacity>
+        </Card>
+
+        {/* 앱 설정 카드 */}
+        <Card style={styles.card}>
+          <Text style={[styles.sectionTitle, { color: textColor }]}>
+            앱 설정
+          </Text>
+
+          <TouchableOpacity
+            style={[styles.menuItem, { borderColor }]}
+            onPress={() =>
+              Alert.alert("알림", "알림 설정 기능은 준비 중입니다.")
+            }
+          >
+            <Text style={[styles.menuItemText, { color: textColor }]}>
+              알림 설정
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.menuItem, { borderColor }]}
+            onPress={() =>
+              Alert.alert("알림", "테마 설정 기능은 준비 중입니다.")
+            }
+          >
+            <Text style={[styles.menuItemText, { color: textColor }]}>
+              테마 설정
+            </Text>
+          </TouchableOpacity>
+        </Card>
+
+        {/* 로그아웃 버튼 */}
+        <Button
+          variant="outline"
+          fullWidth
+          onPress={handleLogout}
+          style={styles.logoutButton}
+        >
+          로그아웃
+        </Button>
+      </ScrollView>
+    </SafeLayout>
   );
 }
 
@@ -148,22 +158,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    padding: 20,
-    gap: 20,
+    padding: SPACING.SCREEN,
+    gap: SPACING.SCREEN,
   },
   title: {
-    fontSize: 28,
+    fontSize: FONT_SIZE.TITLE,
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: SPACING.SCREEN,
   },
   card: {
-    padding: 20,
+    padding: SPACING.SCREEN,
   },
   profileHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: SPACING.SCREEN,
   },
   avatar: {
     width: 60,
@@ -171,41 +181,41 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 16,
+    marginRight: SPACING.COMPONENT,
   },
   avatarText: {
-    fontSize: 24,
+    fontSize: FONT_SIZE.BODY,
     fontWeight: "bold",
   },
   userInfo: {
     flex: 1,
   },
   userName: {
-    fontSize: 18,
+    fontSize: FONT_SIZE.BODY,
     fontWeight: "600",
-    marginBottom: 4,
+    marginBottom: SPACING.TINY,
   },
   userEmail: {
-    fontSize: 14,
+    fontSize: FONT_SIZE.SMALL,
     opacity: 0.7,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: FONT_SIZE.SMALL,
     fontWeight: "600",
-    marginBottom: 16,
+    marginBottom: SPACING.COMPONENT,
   },
   menuItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 4,
+    paddingVertical: SPACING.COMPONENT,
+    paddingHorizontal: SPACING.TINY,
     borderBottomWidth: 1,
   },
   menuItemText: {
-    fontSize: 16,
+    fontSize: FONT_SIZE.BODY,
   },
   logoutButton: {
-    marginTop: 20,
+    marginTop: SPACING.SCREEN,
   },
 });

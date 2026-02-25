@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { SafeLayout } from "@/components/ui/safe-layout";
+import { BORDER_RADIUS, FONT_SIZE, SHADOW, SPACING } from "@/constants/layout";
 import { chatroomsGetListAPI } from "@/src/api/chatrooms";
 import { ApiResponse, ResultType } from "@/src/api/index";
 import { DirectRoomResponse } from "@/src/api/types/chatrooms";
@@ -6,12 +8,12 @@ import { useAsyncState } from "@/src/hooks/useAsyncState";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
 import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    FlatList,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { useTheme } from "react-native-paper";
 
@@ -24,8 +26,8 @@ const chatStyles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    paddingVertical: SPACING.COMPONENT,
+    paddingHorizontal: SPACING.SCREEN,
     borderBottomWidth: 1,
   },
   headerTitle: {
@@ -33,15 +35,16 @@ const chatStyles = StyleSheet.create({
     fontWeight: "bold",
   },
   listContainer: {
-    padding: 8,
+    padding: SPACING.SMALL,
   },
   chatRoomItem: {
     flexDirection: "row",
-    padding: 16,
+    padding: SPACING.COMPONENT,
     borderBottomWidth: 1,
-    borderRadius: 8,
-    marginVertical: 4,
-    marginHorizontal: 8,
+    borderRadius: BORDER_RADIUS.CARD,
+    marginVertical: SPACING.TINY,
+    marginHorizontal: SPACING.SMALL,
+    ...SHADOW.CARD,
   },
   avatar: {
     width: 50,
@@ -49,28 +52,28 @@ const chatStyles = StyleSheet.create({
     borderRadius: 25,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    marginRight: SPACING.COMPONENT,
   },
   avatarText: {
-    fontSize: 18,
+    fontSize: FONT_SIZE.BODY,
     fontWeight: "bold",
   },
   chatInfo: {
     flex: 1,
   },
   nickname: {
-    fontSize: 16,
+    fontSize: FONT_SIZE.BODY,
     fontWeight: "bold",
-    marginBottom: 4,
+    marginBottom: SPACING.TINY,
   },
   itemTitle: {
-    fontSize: 14,
+    fontSize: FONT_SIZE.SMALL,
   },
   date: {
-    fontSize: 12,
+    fontSize: FONT_SIZE.CAPTION,
     position: "absolute",
-    top: 16,
-    right: 16,
+    top: SPACING.COMPONENT,
+    right: SPACING.COMPONENT,
   },
   onlineIndicator: {
     width: 12,
@@ -87,12 +90,12 @@ const chatStyles = StyleSheet.create({
     paddingVertical: 40,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: FONT_SIZE.BODY,
     textAlign: "center",
-    marginBottom: 8,
+    marginBottom: SPACING.SMALL,
   },
   emptySubText: {
-    fontSize: 14,
+    fontSize: FONT_SIZE.SMALL,
     textAlign: "center",
   },
   loadingContainer: {
@@ -102,8 +105,8 @@ const chatStyles = StyleSheet.create({
     paddingVertical: 40,
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
+    marginTop: SPACING.SMALL,
+    fontSize: FONT_SIZE.BODY,
     textAlign: "center",
   },
   errorContainer: {
@@ -113,8 +116,8 @@ const chatStyles = StyleSheet.create({
     paddingVertical: 40,
   },
   errorText: {
-    fontSize: 16,
-    marginBottom: 16,
+    fontSize: FONT_SIZE.BODY,
+    marginBottom: SPACING.COMPONENT,
     textAlign: "center",
   },
   retryButton: {
@@ -292,9 +295,7 @@ export default function ChatListScreen() {
   }
 
   return (
-    <View
-      style={[chatStyles.container, { backgroundColor: theme.colors.surface }]}
-    >
+    <SafeLayout style={{ backgroundColor: theme.colors.surface }}>
       <FlatList
         data={chatRoomsState.data || []}
         renderItem={renderChatRoom}
@@ -303,6 +304,6 @@ export default function ChatListScreen() {
         onRefresh={() => loadChatRooms(fetchChatRooms())}
         contentContainerStyle={chatStyles.listContainer}
       />
-    </View>
+    </SafeLayout>
   );
 }

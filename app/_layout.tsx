@@ -52,5 +52,9 @@ export default function RootLayout() {
     return <Redirect href="/(tabs)" />;
   }
 
-  return <Slot />;
+  return (
+    <SafeAreaProvider>
+      <Slot />
+    </SafeAreaProvider>
+  );
 }
