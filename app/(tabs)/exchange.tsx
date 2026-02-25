@@ -158,7 +158,7 @@ export default function ExchangeScreen() {
 
   // 아이템 상세 페이지로 이동
   const navigateToDetail = (itemId: number) => {
-    router.push(`/exchange/[id]?id=${itemId}` as any);
+    router.push(`/exchange/${itemId}` as any);
   };
 
   // 아이템 생성 페이지로 이동
