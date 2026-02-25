@@ -1,3 +1,4 @@
+import { ThemeProvider } from "@/context/ThemeContext";
 import { useAuth } from "@/src/hooks/useAuth";
 import { usePushNotifications } from "@/src/hooks/usePushNotifications";
 import * as Notifications from "expo-notifications";
@@ -54,8 +55,10 @@ export default function RootLayout() {
   }
 
   return (
-    <SafeAreaProvider>
-      <Slot />
-    </SafeAreaProvider>
+    <ThemeProvider>
+      <SafeAreaProvider>
+        <Slot />
+      </SafeAreaProvider>
+    </ThemeProvider>
   );
 }

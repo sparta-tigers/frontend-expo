@@ -3,11 +3,11 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/constants/layout";
+import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
-import { useTheme } from "react-native-paper";
 
 /**
  * 로그인 페이지
@@ -16,7 +16,7 @@ import { useTheme } from "react-native-paper";
 export default function SigninScreen() {
   const { signin, isLoading } = useAuth();
   const router = useRouter();
-  const theme = useTheme();
+  const { colors } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -41,12 +41,13 @@ export default function SigninScreen() {
   };
 
   return (
-    <SafeLayout style={{ backgroundColor: theme.colors.surface }}>
+    <SafeLayout
+      style={{ backgroundColor: colors.background }}
+      edges={["top", "left", "right"]}
+    >
       <View style={styles.contentContainer}>
         <Card style={styles.card}>
-          <Text style={[styles.title, { color: theme.colors.onSurface }]}>
-            로그인
-          </Text>
+          <Text style={[styles.title, { color: colors.text }]}>로그인</Text>
 
           <Input
             value={email}

@@ -1,6 +1,12 @@
+import { useTheme } from "@/hooks/useTheme";
 import React from "react";
-import { GestureResponderEvent, StyleSheet } from "react-native";
-import { Button as PaperButton, useTheme } from "react-native-paper";
+import {
+  GestureResponderEvent,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 /**
  * Button 컴포넌트 속성
@@ -29,10 +35,10 @@ interface ButtonProps {
 /**
  * 기본 Button 컴포넌트
  *
- * PWA의 Radix UI Button을 react-native-paper로 대체
- * - Paper Button 기반 터치 이벤트 처리
- * - 다양한 mode 지원 (contained, outlined, text)
- * - 로딩 상태 표시
+ * PWA의 Radix UI Button을 React Native로 대체
+ * - TouchableOpacity 기반 터치 이벤트 처리
+ * - 다양한 variant 지원 (contained, outlined, text)
+ * - 커스텀 테마 시스템 적용
  */
 export const Button: React.FC<ButtonProps> = ({
   children,
@@ -45,22 +51,7 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   textStyle,
 }) => {
-  const theme = useTheme();
-
-  // variant를 Paper의 mode로 변환
-  const getMode = (): "contained" | "outlined" | "text" => {
-    switch (variant) {
-      case "primary":
-        return "contained";
-      case "outline":
-        return "outlined";
-      case "secondary":
-      case "ghost":
-        return "text";
-      default:
-        return "contained";
-    }
-  };
+  const { colors } = useTheme();
 
   // 크기별 스타일
   const getSizeStyle = () => {
@@ -76,63 +67,100 @@ export const Button: React.FC<ButtonProps> = ({
     }
   };
 
-  // variant별 버튼 색상
-  const getButtonColor = () => {
+  // variant별 버튼 스타일
+  const getButtonStyle = () => {
+    const baseStyle = {
+      ...styles.button,
+      ...getSizeStyle(),
+      ...(fullWidth && styles.fullWidth),
+      ...style,
+    };
+
     switch (variant) {
       case "primary":
-        return theme.colors.primary;
+        return {
+          ...baseStyle,
+          backgroundColor: colors.primary,
+        };
       case "secondary":
-        return theme.colors.surfaceVariant;
+        return {
+          ...baseStyle,
+          backgroundColor: colors.surface,
+          borderWidth: 1,
+          borderColor: colors.border,
+        };
       case "outline":
-        return "transparent";
+        return {
+          ...baseStyle,
+          backgroundColor: "transparent",
+          borderWidth: 1,
+          borderColor: colors.primary,
+        };
       case "ghost":
-        return "transparent";
+        return {
+          ...baseStyle,
+          backgroundColor: "transparent",
+        };
       default:
-        return theme.colors.primary;
+        return {
+          ...baseStyle,
+          backgroundColor: colors.primary,
+        };
     }
   };
 
-  // variant별 텍스트 색상
-  const getTextColor = () => {
+  // variant별 텍스트 스타일
+  const getTextStyle = () => {
+    const baseTextStyle = {
+      ...styles.text,
+      ...getSizeStyle(),
+      ...textStyle,
+    };
+
     switch (variant) {
       case "primary":
-        return theme.colors.onPrimary;
+        return {
+          ...baseTextStyle,
+          color: colors.background,
+        };
       case "secondary":
-        return theme.colors.onSurfaceVariant;
+        return {
+          ...baseTextStyle,
+          color: colors.text,
+        };
       case "outline":
-        return theme.colors.primary;
+        return {
+          ...baseTextStyle,
+          color: colors.primary,
+        };
       case "ghost":
-        return theme.colors.primary;
+        return {
+          ...baseTextStyle,
+          color: colors.primary,
+        };
       default:
-        return theme.colors.onPrimary;
+        return {
+          ...baseTextStyle,
+          color: colors.background,
+        };
     }
   };
 
-  const buttonProps: any = {
-    mode: getMode(),
-    disabled: disabled || loading,
-    loading: loading,
-    style: [
-      styles.button,
-      getSizeStyle(),
-      { backgroundColor: getButtonColor() },
-      fullWidth && styles.fullWidth,
-      style,
-    ],
-    contentStyle: [styles.content, fullWidth && styles.fullWidthContent],
-    labelStyle: [
-      styles.label,
-      { color: getTextColor() },
-      getSizeStyle(),
-      textStyle,
-    ],
-  };
-
-  if (onPress) {
-    buttonProps.onPress = (e: GestureResponderEvent) => onPress(e);
-  }
-
-  return <PaperButton {...buttonProps}>{children}</PaperButton>;
+  return (
+    <TouchableOpacity
+      style={getButtonStyle()}
+      onPress={onPress}
+      disabled={disabled || loading}
+      activeOpacity={0.7}
+    >
+      <View style={styles.content}>
+        {loading && (
+          <Text style={[styles.loadingText, getTextStyle()]}>...</Text>
+        )}
+        <Text style={getTextStyle()}>{children}</Text>
+      </View>
+    </TouchableOpacity>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -146,14 +174,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  label: {
+  text: {
     fontWeight: "600",
     textAlign: "center",
   },
-  fullWidth: {
-    width: "100%",
+  loadingText: {
+    marginRight: 4,
   },
-  fullWidthContent: {
+  fullWidth: {
     width: "100%",
   },
 });

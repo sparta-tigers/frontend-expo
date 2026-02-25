@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { BORDER_RADIUS, FONT_SIZE, SHADOW, SPACING } from "@/constants/layout";
+import { useTheme } from "@/hooks/useTheme";
 import { itemsGetListAPI } from "@/src/api/items";
 import { Item } from "@/src/api/types/items";
 import { useAsyncState } from "@/src/hooks/useAsyncState";
@@ -16,7 +17,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useTheme } from "react-native-paper";
 
 // 정적 스타일 정의
 const styles = StyleSheet.create({
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
  */
 export default function ExchangeScreen() {
   const router = useRouter();
-  const theme = useTheme();
+  const { colors } = useTheme();
 
   // useAsyncState 훅으로 기본 상태 관리
   const [itemsState, fetchItems] = useAsyncState<Item[]>([]);
@@ -191,8 +191,8 @@ export default function ExchangeScreen() {
       style={[
         styles.itemContainer,
         {
-          backgroundColor: theme.colors.surfaceVariant,
-          shadowColor: theme.colors.shadow,
+          backgroundColor: colors.surface,
+          shadowColor: colors.border,
         },
       ]}
       onPress={() => navigateToDetail(item.id)}
@@ -209,31 +209,24 @@ export default function ExchangeScreen() {
 
       {/* 아이템 정보 */}
       <View style={styles.itemContent}>
-        <Text
-          style={[styles.itemTitle, { color: theme.colors.onSurfaceVariant }]}
-        >
+        <Text style={[styles.itemTitle, { color: colors.muted }]}>
           {item.title}
         </Text>
         <Text
-          style={[
-            styles.itemDescription,
-            { color: theme.colors.onSurfaceVariant },
-          ]}
+          style={[styles.itemDescription, { color: colors.muted }]}
           numberOfLines={3}
         >
           {item.description}
         </Text>
 
-        <Text style={[styles.itemPrice, { color: theme.colors.primary }]}>
+        <Text style={[styles.itemPrice, { color: colors.primary }]}>
           {item.status === "REGISTERED"
             ? "등록됨"
             : item.status === "COMPLETED"
               ? "교환완료"
               : "교환실패"}
         </Text>
-        <Text
-          style={[styles.itemDate, { color: theme.colors.onSurfaceVariant }]}
-        >
+        <Text style={[styles.itemDate, { color: colors.muted }]}>
           {new Date(item.createdAt).toLocaleDateString()}
         </Text>
       </View>
@@ -246,7 +239,7 @@ export default function ExchangeScreen() {
     if (itemsState.status === "idle") {
       fetchItems(loadItems(0));
     }
-  }, []); // 빈 의존성 배열로 최초 1번만 실행
+  }, [itemsState.status, fetchItems, loadItems]); // 의존성 배열 추가
 
   // 에러 상태 표시 (무한 루프 방지)
   if (
@@ -255,12 +248,9 @@ export default function ExchangeScreen() {
   ) {
     return (
       <View
-        style={[
-          styles.emptyContainer,
-          { backgroundColor: theme.colors.surface },
-        ]}
+        style={[styles.emptyContainer, { backgroundColor: colors.surface }]}
       >
-        <Text style={[styles.emptyText, { color: theme.colors.error }]}>
+        <Text style={[styles.emptyText, { color: colors.destructive }]}>
           {itemsState.error || "데이터를 불러오는데 실패했습니다."}
         </Text>
         <Button
@@ -280,13 +270,10 @@ export default function ExchangeScreen() {
   ) {
     return (
       <View
-        style={[
-          styles.loadingContainer,
-          { backgroundColor: theme.colors.surface },
-        ]}
+        style={[styles.loadingContainer, { backgroundColor: colors.surface }]}
       >
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={[styles.loadingText, { color: theme.colors.onSurface }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.text }]}>
           아이템을 불러오는 중...
         </Text>
       </View>
@@ -294,14 +281,13 @@ export default function ExchangeScreen() {
   }
 
   return (
-    <SafeLayout style={{ backgroundColor: theme.colors.surface }}>
+    <SafeLayout
+      style={{ backgroundColor: colors.surface }}
+      edges={["top", "left", "right"]}
+    >
       {/* 헤더 */}
-      <View
-        style={[styles.header, { borderBottomColor: theme.colors.outline }]}
-      >
-        <Text style={[styles.headerTitle, { color: theme.colors.onSurface }]}>
-          아이템 교환
-        </Text>
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>교환</Text>
         <Button
           variant="primary"
           size="sm"
@@ -326,7 +312,7 @@ export default function ExchangeScreen() {
         contentContainerStyle={styles.listContainer}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, { color: theme.colors.onSurface }]}>
+            <Text style={[styles.emptyText, { color: colors.text }]}>
               등록된 아이템이 없습니다.
             </Text>
             <Button

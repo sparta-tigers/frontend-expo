@@ -4,17 +4,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
-import { Colors } from "@/constants/theme";
-import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useTheme } from "@/hooks/useTheme";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const { colors } = useTheme();
 
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
+    <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
       <Tabs
         screenOptions={{
-          tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+          tabBarActiveTintColor: colors.tint,
           headerShown: false,
           tabBarButton: HapticTab,
         }}
@@ -22,36 +21,49 @@ export default function TabLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: "홈",
+            title: "라이브보드",
             tabBarIcon: ({ color }) => (
-              <IconSymbol size={28} name="house.fill" color={color} />
+              <IconSymbol size={28} name="chart.bar.fill" color={color} />
             ),
           }}
         />
         <Tabs.Screen
-          name="explore"
+          name="exchange"
           options={{
-            title: "탐색",
+            title: "교환",
             tabBarIcon: ({ color }) => (
-              <IconSymbol size={28} name="paperplane.fill" color={color} />
+              <IconSymbol
+                size={28}
+                name="arrow.left.arrow.right"
+                color={color}
+              />
             ),
           }}
         />
         <Tabs.Screen
-          name="chat"
+          name="stadium"
           options={{
-            title: "채팅",
+            title: "구장정보",
             tabBarIcon: ({ color }) => (
-              <IconSymbol size={28} name="message.fill" color={color} />
+              <IconSymbol size={28} name="location.fill" color={color} />
             ),
           }}
         />
         <Tabs.Screen
-          name="profile"
+          name="notification"
           options={{
-            title: "프로필",
+            title: "예매알림",
             tabBarIcon: ({ color }) => (
-              <IconSymbol size={28} name="person.fill" color={color} />
+              <IconSymbol size={28} name="bell.fill" color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="history"
+          options={{
+            title: "직관기록",
+            tabBarIcon: ({ color }) => (
+              <IconSymbol size={28} name="list.bullet" color={color} />
             ),
           }}
         />

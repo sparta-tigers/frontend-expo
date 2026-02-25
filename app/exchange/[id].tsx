@@ -1,11 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { SafeLayout } from "@/components/ui/safe-layout";
-import { FONT_SIZE, SPACING } from "@/constants/layout";
+import { Card } from "@/components/ui/card";
 import { itemsGetDetailAPI } from "@/src/api/items";
 import { Item } from "@/src/api/types/items";
-import { useAsyncState } from "@/src/hooks/useAsyncState";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect } from "react";
+import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -13,208 +11,238 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
-import { useTheme } from "react-native-paper";
+
+// 기본 색상 팔레트
+const colors = {
+  light: {
+    primary: "#3B82F6",
+    background: "#FFFFFF",
+    card: "#F9FAFB",
+    text: "#111827",
+    border: "#E5E7EB",
+    muted: "#6B7280",
+    accent: "#10B981",
+    destructive: "#EF4444",
+    warning: "#F59E0B",
+    info: "#3B82F6",
+    success: "#10B981",
+  },
+  dark: {
+    primary: "#2563EB",
+    background: "#111827",
+    card: "#1F2937",
+    text: "#F9FAFB",
+    border: "#374151",
+    muted: "#9CA3AF",
+    accent: "#059669",
+    destructive: "#DC2626",
+    warning: "#D97706",
+    info: "#2563EB",
+    success: "#059669",
+  },
+} as const;
 
 /**
- * 아이템 상세 화면
- * 특정 아이템의 상세 정보를 표시
+ * 아이템 상세 페이지 컴포넌트
+ *
+ * PWA의 ItemDetailPage를 React Native로 구현
+ * - 아이템 상세 정보 표시
+ * - 교환 신청 기능
  */
 export default function ItemDetailScreen() {
   const router = useRouter();
-  const theme = useTheme();
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const itemId = parseInt(id || "0");
+  const { id } = useLocalSearchParams();
+  const [item, setItem] = useState<Item | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [exchangeLoading] = useState(false);
 
-  // useAsyncState 훅으로 상세 정보 상태 관리
-  const [detailState, fetchDetail] = useAsyncState<Item | null>(null);
+  // 테마 색상
+  const textColor = colors.light.text;
+  const primaryColor = colors.light.primary;
 
-  // 아이템 상세 정보 조회
-  const loadItemDetail = useCallback(async () => {
+  // 아이템 상세 정보 가져오기
+  const fetchItemDetail = useCallback(async () => {
+    if (!id) return;
+
     try {
-      const response = await itemsGetDetailAPI(itemId);
-      return response.data;
+      const response = await itemsGetDetailAPI(Number(id));
+      if (response.resultType === "SUCCESS" && response.data) {
+        setItem(response.data);
+      }
     } catch (error) {
       console.error("아이템 상세 로딩 실패:", error);
-      throw error;
+      Alert.alert("오류", "아이템 정보를 불러올 수 없습니다.");
+    } finally {
+      setLoading(false);
     }
-  }, [itemId]);
+  }, [id]);
 
-  // 컴포넌트 마운트 시 아이템 상세 정보 조회
-  useEffect(() => {
-    if (itemId > 0) {
-      fetchDetail(loadItemDetail());
-    }
-  }, [itemId, fetchDetail, loadItemDetail]);
+  // 교환 신청
+  const handleExchangeRequest = () => {
+    if (!item) return;
 
-  // 상태 변화에 따른 처리
-  useEffect(() => {
-    if (detailState.status === "error" && detailState.error) {
-      Alert.alert("오류", "아이템 정보를 불러오는데 실패했습니다.", [
-        {
-          text: "확인",
-          onPress: () => router.back(),
+    Alert.alert("교환 신청", `${item.title} 아이템을 교환하시겠습니까?`, [
+      {
+        text: "취소",
+        style: "cancel",
+      },
+      {
+        text: "교환 신청",
+        style: "default",
+        onPress: () => {
+          // TODO: 교환 신청 API 연동
+          Alert.alert("알림", "교환 신청 기능은 준비 중입니다.");
         },
-      ]);
-    }
-  }, [detailState.status, detailState.error, router]);
+      },
+    ]);
+  };
+
+  // 채팅방으로 이동
+  const handleChatRequest = () => {
+    if (!item) return;
+
+    // TODO: 채팅방 생성 API 연동
+    Alert.alert("알림", "채팅 기능은 준비 중입니다.");
+  };
+
+  // 화면 포커스 시 데이터 로드
+  React.useEffect(() => {
+    fetchItemDetail();
+  }, [fetchItemDetail]);
 
   // 로딩 상태
-  if (detailState.status === "loading") {
+  if (loading) {
     return (
       <View
-        style={[
-          styles.loadingContainer,
-          { backgroundColor: theme.colors.surface },
-        ]}
+        style={[styles.container, { backgroundColor: colors.light.background }]}
       >
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={[styles.loadingText, { color: theme.colors.onSurface }]}>
+        <ActivityIndicator size="large" color={primaryColor} />
+        <Text style={[styles.loadingText, { color: textColor }]}>
           아이템 정보를 불러오는 중...
         </Text>
       </View>
     );
   }
 
-  // 에러 상태
-  if (detailState.status === "error" || !detailState.data) {
+  // 아이템 정보가 없는 경우
+  if (!item) {
     return (
       <View
-        style={[
-          styles.errorContainer,
-          { backgroundColor: theme.colors.surface },
-        ]}
+        style={[styles.container, { backgroundColor: colors.light.background }]}
       >
-        <Text style={[styles.errorText, { color: theme.colors.error }]}>
-          아이템 정보를 불러올 수 없습니다.
+        <Text style={[styles.errorText, { color: textColor }]}>
+          아이템 정보를 찾을 수 없습니다.
         </Text>
-        <Button onPress={() => router.back()} variant="outline">
-          뒤로 가기
+        <Button
+          variant="outline"
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
+          돌아가기
         </Button>
       </View>
     );
   }
 
-  const item = detailState.data;
-
   return (
-    <SafeLayout style={{ backgroundColor: theme.colors.surface }}>
-      <ScrollView
-        style={[styles.container, { backgroundColor: theme.colors.surface }]}
-        contentContainerStyle={styles.contentContainer}
-      >
-        {/* 헤더 */}
-        <View
-          style={[styles.header, { borderBottomColor: theme.colors.outline }]}
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.light.background }]}
+    >
+      {/* 헤더 */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={[styles.backText, { color: primaryColor }]}>
+            ← 돌아가기
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* 아이템 이미지 */}
+      {item.imageUrl && (
+        <Card style={styles.imageCard}>
+          <Image
+            source={{ uri: item.imageUrl }}
+            style={styles.itemImage}
+            resizeMode="cover"
+          />
+        </Card>
+      )}
+
+      {/* 아이템 정보 */}
+      <Card style={styles.infoCard}>
+        <Text style={[styles.itemTitle, { color: textColor }]}>
+          {item.title}
+        </Text>
+
+        <Text style={[styles.itemCategory, { color: textColor }]}>
+          카테고리: {item.category === "TICKET" ? "경기 티켓" : "굿즈/상품"}
+        </Text>
+
+        <Text
+          style={[
+            styles.itemStatus,
+            {
+              color:
+                item.status === "REGISTERED"
+                  ? primaryColor
+                  : item.status === "COMPLETED"
+                    ? "#10B981"
+                    : "#EF4444",
+            },
+          ]}
         >
-          <Button onPress={() => router.back()} variant="ghost" size="sm">
-            ←
-          </Button>
-          <Text style={[styles.headerTitle, { color: theme.colors.onSurface }]}>
-            아이템 상세
-          </Text>
-          <View style={styles.headerSpacer} />
-        </View>
+          상태:{" "}
+          {item.status === "REGISTERED"
+            ? "등록됨"
+            : item.status === "COMPLETED"
+              ? "교환완료"
+              : "교환실패"}
+        </Text>
 
-        {/* 이미지 */}
-        {item.image && (
-          <View style={styles.imageContainer}>
-            <Image source={{ uri: item.image }} style={styles.image} />
-          </View>
-        )}
+        <Text style={[styles.itemDescription, { color: textColor }]}>
+          {item.description}
+        </Text>
 
-        {/* 기본 정보 */}
-        <View style={styles.section}>
-          <Text style={[styles.category, { color: theme.colors.primary }]}>
-            {item.category === "TICKET" ? "티켓" : "굿즈"}
-          </Text>
-          <Text style={[styles.title, { color: theme.colors.onSurface }]}>
-            {item.title}
-          </Text>
-          <Text
-            style={[
-              styles.description,
-              { color: theme.colors.onSurfaceVariant },
-            ]}
-          >
-            {item.description}
-          </Text>
-        </View>
+        <Text style={[styles.itemDate, { color: textColor }]}>
+          등록일: {new Date(item.createdAt).toLocaleDateString()}
+        </Text>
+      </Card>
 
-        {/* 등록자 정보 */}
-        <View style={styles.section}>
-          <Text
-            style={[styles.sectionTitle, { color: theme.colors.onSurface }]}
-          >
-            등록자 정보
-          </Text>
-          <Text
-            style={[styles.userInfo, { color: theme.colors.onSurfaceVariant }]}
-          >
-            {item.user.userNickname || `사용자 ${item.user.userId}`}
-          </Text>
-        </View>
+      {/* 등록자 정보 */}
+      <Card style={styles.userCard}>
+        <Text style={[styles.sectionTitle, { color: textColor }]}>
+          등록자 정보
+        </Text>
+        <Text style={[styles.userName, { color: textColor }]}>
+          {item.user.userNickname || item.user.nickname}
+        </Text>
+      </Card>
 
-        {/* 상태 정보 */}
-        <View style={styles.section}>
-          <Text
-            style={[styles.sectionTitle, { color: theme.colors.onSurface }]}
-          >
-            교환 상태
-          </Text>
-          <Text
-            style={[
-              styles.status,
-              {
-                color:
-                  item.status === "REGISTERED"
-                    ? theme.colors.primary
-                    : item.status === "COMPLETED"
-                      ? theme.colors.tertiary
-                      : theme.colors.error,
-              },
-            ]}
-          >
-            {item.status === "REGISTERED"
-              ? "등록됨"
-              : item.status === "COMPLETED"
-                ? "교환 완료"
-                : "교환 실패"}
-          </Text>
-        </View>
+      {/* 액션 버튼 */}
+      <View style={styles.actionContainer}>
+        <Button
+          variant="primary"
+          onPress={handleExchangeRequest}
+          loading={exchangeLoading}
+          fullWidth
+          style={styles.actionButton}
+        >
+          교환 신청
+        </Button>
 
-        {/* 위치 정보 */}
-        {item.location && (
-          <View style={styles.section}>
-            <Text
-              style={[styles.sectionTitle, { color: theme.colors.onSurface }]}
-            >
-              위치 정보
-            </Text>
-            <Text
-              style={[
-                styles.locationInfo,
-                { color: theme.colors.onSurfaceVariant },
-              ]}
-            >
-              위도: {item.location.latitude.toFixed(6)}
-              {"\n"}
-              경도: {item.location.longitude.toFixed(6)}
-            </Text>
-          </View>
-        )}
-
-        {/* 교환 요청 버튼 */}
-        {item.status === "REGISTERED" && (
-          <View style={styles.buttonContainer}>
-            <Button fullWidth style={styles.exchangeButton}>
-              교환 요청하기
-            </Button>
-          </View>
-        )}
-      </ScrollView>
-    </SafeLayout>
+        <Button
+          variant="outline"
+          onPress={handleChatRequest}
+          fullWidth
+          style={styles.actionButton}
+        >
+          채팅하기
+        </Button>
+      </View>
+    </ScrollView>
   );
 }
 
@@ -222,93 +250,83 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  contentContainer: {
-    paddingBottom: SPACING.SCREEN * 2,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    marginTop: SPACING.COMPONENT,
-    fontSize: FONT_SIZE.BODY,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  errorText: {
-    fontSize: FONT_SIZE.BODY,
-    marginBottom: SPACING.COMPONENT,
-    textAlign: "center",
-  },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    padding: SPACING.COMPONENT,
-    borderBottomWidth: 1,
+    padding: 20,
+    paddingBottom: 10,
   },
-  headerTitle: {
-    flex: 1,
-    fontSize: FONT_SIZE.CARD_TITLE,
-    fontWeight: "bold",
+  backText: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
     textAlign: "center",
   },
-  headerSpacer: {
-    width: 60,
+  errorText: {
+    fontSize: 16,
+    textAlign: "center",
+    marginTop: 100,
   },
-  imageContainer: {
+  backButton: {
+    marginTop: 20,
+    maxWidth: 200,
+  },
+  imageCard: {
+    marginBottom: 20,
+  },
+  itemImage: {
     width: "100%",
     height: 300,
-    backgroundColor: "#f5f5f5",
+    borderRadius: 12,
   },
-  image: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
+  infoCard: {
+    marginBottom: 20,
+    padding: 20,
   },
-  section: {
-    padding: SPACING.SCREEN,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  category: {
-    fontSize: FONT_SIZE.SMALL,
-    fontWeight: "600",
-    marginBottom: SPACING.SMALL,
-  },
-  title: {
-    fontSize: FONT_SIZE.TITLE,
+  itemTitle: {
+    fontSize: 24,
     fontWeight: "bold",
-    marginBottom: SPACING.COMPONENT,
+    marginBottom: 12,
   },
-  description: {
-    fontSize: FONT_SIZE.BODY,
+  itemCategory: {
+    fontSize: 16,
+    marginBottom: 8,
+    opacity: 0.8,
+  },
+  itemStatus: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 12,
+  },
+  itemDescription: {
+    fontSize: 16,
     lineHeight: 24,
+    marginBottom: 16,
+  },
+  itemDate: {
+    fontSize: 14,
+    opacity: 0.7,
+  },
+  userCard: {
+    marginBottom: 20,
+    padding: 20,
   },
   sectionTitle: {
-    fontSize: FONT_SIZE.BODY,
+    fontSize: 18,
     fontWeight: "600",
-    marginBottom: SPACING.SMALL,
+    marginBottom: 12,
   },
-  userInfo: {
-    fontSize: FONT_SIZE.BODY,
+  userName: {
+    fontSize: 16,
   },
-  status: {
-    fontSize: FONT_SIZE.BODY,
-    fontWeight: "500",
+  actionContainer: {
+    gap: 12,
+    marginBottom: 40,
   },
-  locationInfo: {
-    fontSize: FONT_SIZE.SMALL,
-    lineHeight: 20,
-  },
-  buttonContainer: {
-    padding: SPACING.SCREEN,
-  },
-  exchangeButton: {
-    marginBottom: SPACING.COMPONENT,
+  actionButton: {
+    minHeight: 50,
   },
 });

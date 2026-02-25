@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { BORDER_RADIUS, FONT_SIZE, SHADOW, SPACING } from "@/constants/layout";
+import { useTheme } from "@/hooks/useTheme";
 import { chatroomsGetListAPI } from "@/src/api/chatrooms";
 import { ApiResponse, ResultType } from "@/src/api/index";
 import { DirectRoomResponse } from "@/src/api/types/chatrooms";
@@ -8,14 +9,13 @@ import { useAsyncState } from "@/src/hooks/useAsyncState";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { useTheme } from "react-native-paper";
 
 // 정적 스타일 정의
 const chatStyles = StyleSheet.create({
@@ -131,7 +131,7 @@ const chatStyles = StyleSheet.create({
  */
 export default function ChatListScreen() {
   const router = useRouter();
-  const theme = useTheme();
+  const { colors } = useTheme();
 
   // useAsyncState 훅으로 상태 관리 통일
   const [chatRoomsState, loadChatRooms] = useAsyncState<DirectRoomResponse[]>(
@@ -165,33 +165,23 @@ export default function ChatListScreen() {
         style={[
           chatStyles.chatRoomItem,
           {
-            backgroundColor: theme.colors.surface,
-            borderBottomColor: theme.colors.outline,
+            backgroundColor: colors.surface,
+            borderBottomColor: colors.border,
           },
         ]}
         onPress={() => router.push(`/chat/${item.directRoomId}`)}
         activeOpacity={0.7}
       >
         {/* 아바타 */}
-        <View
-          style={[
-            chatStyles.avatar,
-            { backgroundColor: theme.colors.surfaceVariant },
-          ]}
-        >
-          <Text
-            style={[
-              chatStyles.avatarText,
-              { color: theme.colors.onSurfaceVariant },
-            ]}
-          >
+        <View style={[chatStyles.avatar, { backgroundColor: colors.card }]}>
+          <Text style={[chatStyles.avatarText, { color: colors.muted }]}>
             {item.opponentNickname.charAt(0).toUpperCase()}
           </Text>
           {item.opponentOnline && (
             <View
               style={[
                 chatStyles.onlineIndicator,
-                { backgroundColor: theme.colors.primary },
+                { backgroundColor: colors.primary },
               ]}
             />
           )}
@@ -199,28 +189,21 @@ export default function ChatListScreen() {
 
         {/* 채팅 정보 */}
         <View style={chatStyles.chatInfo}>
-          <Text
-            style={[chatStyles.nickname, { color: theme.colors.onSurface }]}
-          >
+          <Text style={[chatStyles.nickname, { color: colors.text }]}>
             {item.opponentNickname}
           </Text>
-          <Text
-            style={[
-              chatStyles.itemTitle,
-              { color: theme.colors.onSurfaceVariant },
-            ]}
-          >
+          <Text style={[chatStyles.itemTitle, { color: colors.muted }]}>
             {item.itemTitle}
           </Text>
         </View>
 
         {/* 시간 */}
-        <Text style={[chatStyles.date, { color: theme.colors.outline }]}>
+        <Text style={[chatStyles.date, { color: colors.muted }]}>
           {new Date(item.createdAt).toLocaleDateString()}
         </Text>
       </TouchableOpacity>
     ),
-    [router, theme],
+    [router, colors],
   );
 
   // 로딩 상태
@@ -232,13 +215,11 @@ export default function ChatListScreen() {
       <View
         style={[
           chatStyles.loadingContainer,
-          { backgroundColor: theme.colors.surface },
+          { backgroundColor: colors.surface },
         ]}
       >
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text
-          style={[chatStyles.loadingText, { color: theme.colors.onSurface }]}
-        >
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[chatStyles.loadingText, { color: colors.text }]}>
           채팅방 목록을 불러오는 중...
         </Text>
       </View>
@@ -252,12 +233,9 @@ export default function ChatListScreen() {
   ) {
     return (
       <View
-        style={[
-          chatStyles.errorContainer,
-          { backgroundColor: theme.colors.surface },
-        ]}
+        style={[chatStyles.errorContainer, { backgroundColor: colors.surface }]}
       >
-        <Text style={[chatStyles.errorText, { color: theme.colors.error }]}>
+        <Text style={[chatStyles.errorText, { color: colors.destructive }]}>
           {chatRoomsState.error}
         </Text>
         <Button
@@ -274,20 +252,12 @@ export default function ChatListScreen() {
   if (!chatRoomsState.data?.length || chatRoomsState.data.length === 0) {
     return (
       <View
-        style={[
-          chatStyles.emptyContainer,
-          { backgroundColor: theme.colors.surface },
-        ]}
+        style={[chatStyles.emptyContainer, { backgroundColor: colors.surface }]}
       >
-        <Text style={[chatStyles.emptyText, { color: theme.colors.onSurface }]}>
+        <Text style={[chatStyles.emptyText, { color: colors.text }]}>
           채팅방이 없습니다
         </Text>
-        <Text
-          style={[
-            chatStyles.emptySubText,
-            { color: theme.colors.onSurfaceVariant },
-          ]}
-        >
+        <Text style={[chatStyles.emptySubText, { color: colors.muted }]}>
           아이템 교환을 시작해보세요
         </Text>
       </View>
@@ -295,7 +265,10 @@ export default function ChatListScreen() {
   }
 
   return (
-    <SafeLayout style={{ backgroundColor: theme.colors.surface }}>
+    <SafeLayout
+      style={{ backgroundColor: colors.surface }}
+      edges={["top", "left", "right"]}
+    >
       <FlatList
         data={chatRoomsState.data || []}
         renderItem={renderChatRoom}
