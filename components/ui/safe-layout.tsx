@@ -75,9 +75,11 @@ export function SafeLayout({
   return (
     <SafeAreaView style={[styles.container, style]} edges={edges}>
       <View
-        style={
-          withPadding ? [styles.content, responsiveStyles.content] : undefined
-        }
+        style={[
+          { flex: 1 }, // 🔥 핵심: 항상 화면을 꽉 채우도록 보장
+          withPadding && styles.content,
+          withPadding && responsiveStyles.content,
+        ]}
       >
         {children}
       </View>
