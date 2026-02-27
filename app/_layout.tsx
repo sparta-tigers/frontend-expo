@@ -1,5 +1,5 @@
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
-import { useAuth } from "@/src/hooks/useAuth";
 import { usePushNotifications } from "@/src/hooks/usePushNotifications";
 import * as Notifications from "expo-notifications";
 import { Redirect, Slot, useSegments } from "expo-router";
@@ -12,6 +12,18 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
  * 전체 앱의 진입점
  */
 export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <RootLayoutInner />
+    </AuthProvider>
+  );
+}
+
+/**
+ * 내부 레이아웃 컴포넌트
+ * AuthProvider 내부에서 useAuth 훅을 사용하기 위한 분리
+ */
+function RootLayoutInner() {
   const { user, isLoading } = useAuth();
   const { expoPushToken } = usePushNotifications();
   const segments = useSegments();
