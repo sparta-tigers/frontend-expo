@@ -3,19 +3,24 @@ import { Card } from "@/components/ui/card";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
-import { itemsGetDetailAPI } from "@/src/features/exchange/api";
-import { Item } from "@/src/features/exchange/types";
+import {
+  exchangeCreateAPI,
+  itemsDeleteAPI,
+  itemsGetDetailAPI
+} from "@/src/features/exchange/api";
+import { CreateExchangeDto, Item } from "@/src/features/exchange/types";
+import { useAuth } from "@/src/hooks/useAuth";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 /**
@@ -29,9 +34,11 @@ export default function ItemDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const { colors } = useTheme();
+  const { user } = useAuth();
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
-  const [exchangeLoading] = useState(false);
+  const [exchangeLoading, setExchangeLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // 아이템 상세 정보 가져오기
   const fetchItemDetail = useCallback(async () => {
@@ -51,8 +58,17 @@ export default function ItemDetailScreen() {
   }, [id]);
 
   // 교환 신청
-  const handleExchangeRequest = () => {
-    if (!item) return;
+  const handleExchangeRequest = useCallback(async () => {
+    if (!item || !user?.accessToken) {
+      Alert.alert("오류", "로그인이 필요하거나 아이템 정보가 없습니다.");
+      return;
+    }
+
+    // 내 아이템인지 확인
+    if (item.userId === user.userId) {
+      Alert.alert("알림", "내 아이템은 교환 신청할 수 없습니다.");
+      return;
+    }
 
     Alert.alert("교환 신청", `${item.title} 아이템을 교환하시겠습니까?`, [
       {
@@ -62,13 +78,46 @@ export default function ItemDetailScreen() {
       {
         text: "교환 신청",
         style: "default",
-        onPress: () => {
-          // TODO: 교환 신청 API 연동
-          Alert.alert("알림", "교환 신청 기능은 준비 중입니다.");
+        onPress: async () => {
+          setExchangeLoading(true);
+          try {
+            const request: CreateExchangeDto = {
+              itemId: item.id,
+              message: `${item.title} 아이템에 교환을 신청합니다.`,
+            };
+
+            const response = await exchangeCreateAPI(request);
+
+            if (response.resultType === "SUCCESS") {
+              Alert.alert(
+                "교환 신청 완료",
+                "교환 요청이 성공적으로 전송되었습니다. 상대방의 응답을 기다려주세요.",
+                [
+                  {
+                    text: "확인",
+                    onPress: () => router.back(),
+                  },
+                ],
+              );
+            } else {
+              Alert.alert(
+                "오류",
+                "교환 신청에 실패했습니다. 다시 시도해주세요.",
+              );
+            }
+          } catch (error) {
+            console.error("교환 신청 실패:", error);
+            Alert.alert(
+              "오류",
+              "네트워크 에러가 발생했습니다. 다시 시도해주세요.",
+            );
+          } finally {
+            setExchangeLoading(false);
+          }
         },
       },
     ]);
-  };
+  }, [item, user, router]);
 
   // 채팅방으로 이동
   const handleChatRequest = () => {
@@ -77,6 +126,52 @@ export default function ItemDetailScreen() {
     // TODO: 채팅방 생성 API 연동
     Alert.alert("알림", "채팅 기능은 준비 중입니다.");
   };
+
+  // 아이템 삭제 핸들러
+  const handleDeleteItem = useCallback(async () => {
+    if (!item) return;
+
+    Alert.alert(
+      "아이템 삭제",
+      "정말로 이 아이템을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+      [
+        {
+          text: "취소",
+          style: "cancel",
+        },
+        {
+          text: "삭제",
+          style: "destructive",
+          onPress: async () => {
+            setDeleteLoading(true);
+            try {
+              const response = await itemsDeleteAPI(item.id);
+
+              if (response.resultType === "SUCCESS") {
+                Alert.alert(
+                  "삭제 완료",
+                  "아이템이 성공적으로 삭제되었습니다.",
+                  [
+                    {
+                      text: "확인",
+                      onPress: () => router.replace("/(tabs)/exchange"),
+                    },
+                  ],
+                );
+              } else {
+                Alert.alert("오류", "아이템 삭제에 실패했습니다.");
+              }
+            } catch (error) {
+              console.error("아이템 삭제 실패:", error);
+              Alert.alert("오류", "네트워크 에러가 발생했습니다.");
+            } finally {
+              setDeleteLoading(false);
+            }
+          },
+        },
+      ],
+    );
+  }, [item, router]);
 
   // 화면 포커스 시 데이터 로드
   React.useEffect(() => {
@@ -204,24 +299,60 @@ export default function ItemDetailScreen() {
 
         {/* 액션 버튼 */}
         <View style={styles.actionContainer}>
-          <Button
-            variant="primary"
-            onPress={handleExchangeRequest}
-            loading={exchangeLoading}
-            style={styles.exchangeButton}
-            fullWidth
-          >
-            교환 신청
-          </Button>
+          {/* 본인 아이템일 경우 수정/삭제 버튼 표시 */}
+          {item.userId === user?.userId ? (
+            <View style={styles.ownerActions}>
+              <Button
+                variant="outline"
+                onPress={() => router.push(`/exchange/edit/${item.id}`)}
+                style={styles.editButton}
+                fullWidth
+              >
+                수정
+              </Button>
+              <Button
+                variant="ghost"
+                onPress={handleDeleteItem}
+                loading={deleteLoading}
+                style={[
+                  styles.deleteButton,
+                  { borderColor: colors.destructive },
+                ]}
+                fullWidth
+              >
+                <Text
+                  style={[
+                    styles.deleteButtonText,
+                    { color: colors.destructive },
+                  ]}
+                >
+                  삭제
+                </Text>
+              </Button>
+            </View>
+          ) : (
+            /* 다른 사람 아이템일 경우 교환 신청/채팅 버튼 표시 */
+            <View style={styles.guestActions}>
+              <Button
+                variant="primary"
+                onPress={handleExchangeRequest}
+                loading={exchangeLoading}
+                style={styles.exchangeButton}
+                fullWidth
+              >
+                교환 신청
+              </Button>
 
-          <Button
-            variant="outline"
-            onPress={handleChatRequest}
-            style={styles.chatButton}
-            fullWidth
-          >
-            채팅하기
-          </Button>
+              <Button
+                variant="outline"
+                onPress={handleChatRequest}
+                style={styles.chatButton}
+                fullWidth
+              >
+                채팅하기
+              </Button>
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeLayout>
@@ -342,4 +473,19 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.SMALL,
   },
   chatButton: {},
+  ownerActions: {
+    gap: SPACING.SMALL,
+  },
+  guestActions: {
+    gap: SPACING.SMALL,
+  },
+  editButton: {},
+  deleteButton: {
+    borderWidth: 1,
+    borderRadius: 8,
+  },
+  deleteButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
 });

@@ -44,7 +44,7 @@ app-example
 /android
 
 # 문서 파일 (Git 추적 제외)
-docs/problems-*.md
+docs/context/*.md
 
 .windsurf/
 

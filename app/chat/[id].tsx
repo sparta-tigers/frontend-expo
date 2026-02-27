@@ -2,8 +2,8 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
 import { chatroomsGetMessagesAPI } from "@/src/features/chat/api";
 import { ChatMessage } from "@/src/features/chat/types";
-import { useAsyncState } from "@/src/hooks/useAsyncState";
 import { useWebSocket } from "@/src/hooks/useWebSocket";
+import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import { ApiResponse } from "@/src/shared/types/common";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -74,34 +74,37 @@ export default function ChatRoomScreen() {
   useEffect(() => {
     if (!client || !id || status !== "CONNECTED") return;
 
-    const subscription = client.subscribe(`/sub/chat/room/${id}`, (message) => {
-      try {
-        const receivedMessage = JSON.parse(message.body);
+    const subscription = client.subscribe(
+      `/topic/directRoom/${id}`,
+      (message) => {
+        try {
+          const receivedMessage = JSON.parse(message.body);
 
-        // 수신된 메시지를 UI 형식으로 변환
-        const newMessage: ChatMessage = {
-          id: receivedMessage.id || Date.now(),
-          directRoomId: Number(id),
-          senderId: receivedMessage.senderId || 0,
-          content: receivedMessage.message,
-          createdAt: receivedMessage.sentAt || new Date().toISOString(),
-          sentAt: receivedMessage.sentAt || new Date().toISOString(),
-          sender: {
-            id: receivedMessage.senderId || 0,
-            nickname: receivedMessage.senderNickname,
-          },
-          senderNickName: receivedMessage.senderNickname,
-          isMyMessage: false, // TODO: 현재 사용자 ID와 비교 필요
-        };
+          // 수신된 메시지를 UI 형식으로 변환
+          const newMessage: ChatMessage = {
+            id: receivedMessage.id || Date.now(),
+            directRoomId: Number(id),
+            senderId: receivedMessage.senderId || 0,
+            content: receivedMessage.message,
+            createdAt: receivedMessage.sentAt || new Date().toISOString(),
+            sentAt: receivedMessage.sentAt || new Date().toISOString(),
+            sender: {
+              id: receivedMessage.senderId || 0,
+              nickname: receivedMessage.senderNickname,
+            },
+            senderNickName: receivedMessage.senderNickname,
+            isMyMessage: false, // TODO: 현재 사용자 ID와 비교 필요
+          };
 
-        // 기존 메시지에 새 메시지 추가
-        if (messagesState.data) {
-          loadMessages(Promise.resolve([newMessage, ...messagesState.data]));
+          // 기존 메시지에 새 메시지 추가
+          if (messagesState.data) {
+            loadMessages(Promise.resolve([newMessage, ...messagesState.data]));
+          }
+        } catch (error) {
+          console.error("메시지 파싱 에러:", error);
         }
-      } catch (error) {
-        console.error("메시지 파싱 에러:", error);
-      }
-    });
+      },
+    );
 
     return () => {
       subscription.unsubscribe();
@@ -121,7 +124,7 @@ export default function ChatRoomScreen() {
 
     try {
       // WebSocket으로 메시지 전송
-      sendMessage("/pub/chat/send", {
+      sendMessage("/client/directRoom/send", {
         roomId: id,
         message: inputMessage.trim(),
         senderId: 1, // TODO: 현재 사용자 ID 가져오기

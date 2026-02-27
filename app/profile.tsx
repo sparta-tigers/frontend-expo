@@ -2,15 +2,172 @@ import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
+import {
+  usersDeleteAccountAPI,
+  usersUpdateProfileAPI,
+} from "@/src/features/auth/api";
+import { UserProfileUpdateRequest } from "@/src/features/auth/types";
+import { FavoriteTeam, KBO_TEAMS } from "@/src/features/user/favorite-team";
+import {
+  favoriteTeamAddAPI,
+  favoriteTeamDeleteAPI,
+  favoriteTeamGetListAPI,
+} from "@/src/features/user/favorite-team-api";
 import { useAuth } from "@/src/hooks/useAuth";
 import { router } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function ProfileScreen() {
   const { colors } = useTheme();
   const { user, signout } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [favoriteTeams, setFavoriteTeams] = useState<FavoriteTeam[]>([]);
 
+  // 즐겨찾기 팀 목록 로드
+  const loadFavoriteTeams = React.useCallback(async () => {
+    if (!user?.accessToken) return;
+
+    try {
+      const response = await favoriteTeamGetListAPI();
+      if (response.resultType === "SUCCESS" && response.data) {
+        setFavoriteTeams(response.data);
+      }
+    } catch (error) {
+      console.error("즐겨찾기 팀 목록 로딩 실패:", error);
+    }
+  }, [user?.accessToken]);
+
+  React.useEffect(() => {
+    loadFavoriteTeams();
+  }, [loadFavoriteTeams]);
+
+  // 프로필 수정 핸들러
+  const handleEditProfile = () => {
+    Alert.prompt(
+      "프로필 수정",
+      "새로운 닉네임을 입력하세요",
+      [
+        {
+          text: "취소",
+          style: "cancel",
+        },
+        {
+          text: "수정",
+          onPress: async (newNickname?: string) => {
+            if (!newNickname || newNickname.trim().length === 0) {
+              Alert.alert("오류", "닉네임을 입력해주세요.");
+              return;
+            }
+
+            // 임시로 사용자 이메일을 닉네임 대신 사용 (SimpleToken 타입에는 nickname이 없음)
+            const currentNickname = user?.email.split("@")[0] || "";
+            if (newNickname.trim() === currentNickname) {
+              Alert.alert("알림", "동일한 닉네임입니다.");
+              return;
+            }
+
+            setLoading(true);
+            try {
+              const request: UserProfileUpdateRequest = {
+                nickname: newNickname.trim(),
+              };
+
+              const response = await usersUpdateProfileAPI(request);
+
+              if (response.resultType === "SUCCESS") {
+                Alert.alert("성공", "프로필이 성공적으로 수정되었습니다.", [
+                  {
+                    text: "확인",
+                    onPress: () => {
+                      // 프로필 정보 새로고침을 위해 로그아웃 후 재로그인 유도
+                      // 또는 useAuth 훅에서 사용자 정보 업데이트 로직 추가
+                      router.replace("/(auth)/signin");
+                    },
+                  },
+                ]);
+              } else {
+                Alert.alert("오류", "프로필 수정에 실패했습니다.");
+              }
+            } catch (error) {
+              console.error("프로필 수정 실패:", error);
+              Alert.alert("오류", "네트워크 에러가 발생했습니다.");
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ],
+      "plain-text",
+      user?.email.split("@")[0] || "",
+    );
+  };
+
+  // 회원 탈퇴 핸들러
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      "회원 탈퇴",
+      "⚠️ 경고: 회원 탈퇴 시 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.\n\n정말 탈퇴하시겠습니까?",
+      [
+        {
+          text: "취소",
+          style: "cancel",
+        },
+        {
+          text: "탈퇴",
+          style: "destructive",
+          onPress: async () => {
+            // 최종 확인
+            Alert.alert(
+              "최종 확인",
+              "정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+              [
+                {
+                  text: "취소",
+                  style: "cancel",
+                },
+                {
+                  text: "영구 탈퇴",
+                  style: "destructive",
+                  onPress: async () => {
+                    setLoading(true);
+                    try {
+                      const response = await usersDeleteAccountAPI();
+
+                      if (response.resultType === "SUCCESS") {
+                        Alert.alert(
+                          "탈퇴 완료",
+                          "회원 탈퇴가 완료되었습니다. 그동안 이용해주셔서 감사합니다.",
+                          [
+                            {
+                              text: "확인",
+                              onPress: async () => {
+                                await signout();
+                                router.replace("/(auth)/signin");
+                              },
+                            },
+                          ],
+                        );
+                      } else {
+                        Alert.alert("오류", "회원 탈퇴에 실패했습니다.");
+                      }
+                    } catch (error) {
+                      console.error("회원 탈퇴 실패:", error);
+                      Alert.alert("오류", "네트워크 에러가 발생했습니다.");
+                    } finally {
+                      setLoading(false);
+                    }
+                  },
+                },
+              ],
+            );
+          },
+        },
+      ],
+    );
+  };
+
+  // 로그아웃 핸들러
   const handleLogout = () => {
     Alert.alert("로그아웃", "정말 로그아웃하시겠습니까?", [
       {
@@ -26,6 +183,72 @@ export default function ProfileScreen() {
         },
       },
     ]);
+  };
+
+  // 즐겨찾기 팀 추가 핸들러
+  const handleAddFavoriteTeam = () => {
+    const teamOptions = KBO_TEAMS.map((team) => ({
+      text: team.name,
+      onPress: async () => {
+        try {
+          const response = await favoriteTeamAddAPI({
+            teamName: team.name,
+            teamCode: team.code,
+          });
+
+          if (response.resultType === "SUCCESS") {
+            Alert.alert("성공", `${team.name}을 즐겨찾기에 추가했습니다.`);
+            loadFavoriteTeams(); // 목록 새로고침
+          } else {
+            Alert.alert("오류", "즐겨찾기 추가에 실패했습니다.");
+          }
+        } catch (error) {
+          console.error("즐겨찾기 팀 추가 실패:", error);
+          Alert.alert("오류", "네트워크 에러가 발생했습니다.");
+        }
+      },
+    }));
+
+    Alert.alert("즐겨찾기 팀 추가", "추가할 팀을 선택하세요", [
+      ...teamOptions,
+      { text: "취소", style: "cancel" },
+    ]);
+  };
+
+  // 즐겨찾기 팀 삭제 핸들러
+  const handleDeleteFavoriteTeam = (team: FavoriteTeam) => {
+    Alert.alert(
+      "즐겨찾기 팀 삭제",
+      `${team.teamName}을 즐겨찾기에서 삭제하시겠습니까?`,
+      [
+        {
+          text: "취소",
+          style: "cancel",
+        },
+        {
+          text: "삭제",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const response = await favoriteTeamDeleteAPI(team.id);
+
+              if (response.resultType === "SUCCESS") {
+                Alert.alert(
+                  "성공",
+                  `${team.teamName}을 즐겨찾기에서 삭제했습니다.`,
+                );
+                loadFavoriteTeams(); // 목록 새로고침
+              } else {
+                Alert.alert("오류", "즐겨찾기 삭제에 실패했습니다.");
+              }
+            } catch (error) {
+              console.error("즐겨찾기 팀 삭제 실패:", error);
+              Alert.alert("오류", "네트워크 에러가 발생했습니다.");
+            }
+          },
+        },
+      ],
+    );
   };
 
   // 로그인되지 않은 상태
@@ -167,6 +390,114 @@ export default function ProfileScreen() {
                   ›
                 </Text>
               </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.menuGroup}>
+            <Text style={[styles.menuGroupTitle, { color: colors.text }]}>
+              계정 관리
+            </Text>
+            <View style={[styles.menuCard, { backgroundColor: colors.card }]}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={handleEditProfile}
+                disabled={loading}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.menuItemText, { color: colors.text }]}>
+                  프로필 수정
+                </Text>
+                <Text style={[styles.menuItemArrow, { color: colors.muted }]}>
+                  ›
+                </Text>
+              </TouchableOpacity>
+              <View
+                style={[styles.menuDivider, { backgroundColor: colors.border }]}
+              />
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={handleDeleteAccount}
+                disabled={loading}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[styles.menuItemText, { color: colors.destructive }]}
+                >
+                  회원 탈퇴
+                </Text>
+                <Text
+                  style={[styles.menuItemArrow, { color: colors.destructive }]}
+                >
+                  ›
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.menuGroup}>
+            <Text style={[styles.menuGroupTitle, { color: colors.text }]}>
+              즐겨찾기 팀
+            </Text>
+            <View style={[styles.menuCard, { backgroundColor: colors.card }]}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={handleAddFavoriteTeam}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.menuItemText, { color: colors.text }]}>
+                  팀 추가하기
+                </Text>
+                <Text style={[styles.menuItemArrow, { color: colors.muted }]}>
+                  ›
+                </Text>
+              </TouchableOpacity>
+
+              {favoriteTeams.length > 0 && (
+                <>
+                  <View
+                    style={[
+                      styles.menuDivider,
+                      { backgroundColor: colors.border },
+                    ]}
+                  />
+                  {favoriteTeams.map((team) => (
+                    <View key={team.id}>
+                      <TouchableOpacity
+                        style={styles.menuItem}
+                        activeOpacity={0.7}
+                      >
+                        <Text
+                          style={[styles.menuItemText, { color: colors.text }]}
+                        >
+                          {team.teamName}
+                        </Text>
+                        <TouchableOpacity
+                          onPress={() => handleDeleteFavoriteTeam(team)}
+                          style={styles.teamDeleteButton}
+                        >
+                          <Text
+                            style={[
+                              styles.teamDeleteText,
+                              { color: colors.destructive },
+                            ]}
+                          >
+                            삭제
+                          </Text>
+                        </TouchableOpacity>
+                      </TouchableOpacity>
+                      {favoriteTeams[favoriteTeams.length - 1].id !==
+                        team.id && (
+                        <View
+                          style={[
+                            styles.menuDivider,
+                            { backgroundColor: colors.border },
+                          ]}
+                        />
+                      )}
+                    </View>
+                  ))}
+                </>
+              )}
             </View>
           </View>
 
@@ -352,6 +683,14 @@ const styles = StyleSheet.create({
   },
   logoutButtonText: {
     fontSize: 16,
+    fontWeight: "600",
+  },
+  teamDeleteButton: {
+    paddingHorizontal: SPACING.SMALL,
+    paddingVertical: SPACING.SMALL / 2,
+  },
+  teamDeleteText: {
+    fontSize: 12,
     fontWeight: "600",
   },
 });
