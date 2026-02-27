@@ -1,22 +1,26 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "@/hooks/useTheme";
-import { itemsCreateAPI } from "@/src/api/items";
-import { ItemCategory, ItemDto, LocationDto } from "@/src/api/types/items";
+import { itemsCreateAPI } from "@/src/features/exchange/api";
+import {
+    CreateItemRequest,
+    ItemCategory,
+    LocationDto
+} from "@/src/features/exchange/types";
 import { useAsyncState } from "@/src/hooks/useAsyncState";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  Alert,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 /**
  * 아이템 생성 화면
@@ -195,24 +199,18 @@ export default function CreateItemScreen() {
     if (!validateForm()) return;
 
     try {
-      const itemDto: ItemDto = {
-        category: formData.category,
-        title: formData.title.trim(),
-        description: formData.description.trim(),
-      };
-
       const locationDto: LocationDto = {
         latitude: formData.latitude, // 실제 위치 데이터 사용
         longitude: formData.longitude, // 실제 위치 데이터 사용
+        address: "위치 정보", // TODO: 실제 주소로 변환
       };
 
-      // JSON 요청 데이터 생성 (항상 JSON 사용)
-      const requestData = {
-        itemDto: {
-          ...itemDto,
-          seatInfo: "", // seatInfo 필드 추가
-        },
-        locationDto: locationDto,
+      // CreateItemRequest 형식으로 데이터 생성
+      const requestData: CreateItemRequest = {
+        category: formData.category,
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        location: locationDto,
       };
 
       // API 호출 (JSON 형식)

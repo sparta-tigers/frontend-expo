@@ -1,6 +1,54 @@
 import { apiClient } from "../../core/client";
 import { ApiResponse } from "../../shared/types/common";
-import { User, UserProfileUpdateRequest } from "./types";
+import {
+  AuthSigninRequest,
+  AuthSigninResponse,
+  AuthSignupRequest,
+  AuthSignupResponse,
+  User,
+  UserProfileUpdateRequest,
+} from "./types";
+
+/**
+ * 인증 관련 API 함수 모음
+ * 로그인, 회원가입, 로그아웃 등 인증 기능
+ */
+
+/**
+ * 로그인 API
+ * 이메일과 비밀번호로 JWT 토큰 발급
+ *
+ * @param request - 로그인 요청 데이터
+ * @returns JWT 토큰과 사용자 정보
+ */
+export async function authSigninAPI(
+  request: AuthSigninRequest,
+): Promise<ApiResponse<AuthSigninResponse>> {
+  return apiClient.post("/api/v1/auth/login", request);
+}
+
+/**
+ * 회원가입 API
+ * 신규 사용자 생성 및 JWT 토큰 발급
+ *
+ * @param request - 회원가입 요청 데이터
+ * @returns JWT 토큰과 생성된 사용자 정보
+ */
+export async function authSignupAPI(
+  request: AuthSignupRequest,
+): Promise<ApiResponse<AuthSignupResponse>> {
+  return apiClient.post("/api/v1/users", request);
+}
+
+/**
+ * 로그아웃 API
+ * 현재 사용자 세션 종료
+ *
+ * @returns 로그아웃 성공 응답
+ */
+export async function authSignoutAPI(): Promise<ApiResponse<null>> {
+  return apiClient.post("/api/v1/auth/logout");
+}
 
 /**
  * 사용자 관련 API 함수 모음

@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { AsyncState, RequestResult } from "../types/common";
+import { AsyncState, RequestResult } from "../shared/types/common";
 
 /**
  * 비동기 상태 관리 훅
@@ -73,11 +73,10 @@ export function useApiRequest<T>(): [
         setResult(successResult);
         return successResult;
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "알 수 없는 오류";
         const errorResult: RequestResult<T> = {
           success: false,
-          error: errorMessage,
+          data: result as T,
+          error: error instanceof Error ? error.message : "알 수 없는 오류",
         };
         setResult(errorResult);
         return errorResult;

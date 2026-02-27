@@ -3,19 +3,19 @@ import { Card } from "@/components/ui/card";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { SPACING } from "@/constants/layout";
 import { useTheme } from "@/hooks/useTheme";
-import { itemsGetDetailAPI } from "@/src/api/items";
-import { Item } from "@/src/api/types/items";
+import { itemsGetDetailAPI } from "@/src/features/exchange/api";
+import { Item } from "@/src/features/exchange/types";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 /**
@@ -157,7 +157,7 @@ export default function ItemDetailScreen() {
                 color:
                   item.status === "REGISTERED"
                     ? colors.primary
-                    : item.status === "COMPLETED"
+                    : item.status === "EXCHANGE_COMPLETED"
                       ? colors.success
                       : colors.destructive,
               },
@@ -166,7 +166,7 @@ export default function ItemDetailScreen() {
             상태:{" "}
             {item.status === "REGISTERED"
               ? "등록됨"
-              : item.status === "COMPLETED"
+              : item.status === "EXCHANGE_COMPLETED"
                 ? "교환완료"
                 : "교환실패"}
           </Text>
@@ -188,15 +188,15 @@ export default function ItemDetailScreen() {
           <View style={styles.sellerInfo}>
             <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
               <Text style={[styles.avatarText, { color: colors.background }]}>
-                {item.user?.userNickname?.[0] || "U"}
+                {item.user?.nickname?.[0] || "U"}
               </Text>
             </View>
             <View style={styles.sellerDetails}>
               <Text style={[styles.sellerName, { color: colors.text }]}>
-                {item.user?.userNickname || "알 수 없음"}
+                {item.user?.nickname || "알 수 없음"}
               </Text>
               <Text style={[styles.sellerEmail, { color: colors.muted }]}>
-                사용자 ID: {item.user?.userId || "정보 없음"}
+                사용자 ID: {item.user?.id || "정보 없음"}
               </Text>
             </View>
           </View>

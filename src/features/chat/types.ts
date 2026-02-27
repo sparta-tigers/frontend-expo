@@ -15,6 +15,9 @@ export interface DirectRoomResponse {
     id: number;
     nickname: string;
   };
+  opponentNickname: string;
+  opponentOnline: boolean;
+  itemTitle: string;
   lastMessage?: {
     id: number;
     content: string;
@@ -34,10 +37,13 @@ export interface ChatMessage {
   senderId: number;
   content: string;
   createdAt: string;
+  sentAt: string;
   sender: {
     id: number;
     nickname: string;
   };
+  senderNickName: string;
+  isMyMessage: boolean;
 }
 
 export interface ChatMessageListResponse {

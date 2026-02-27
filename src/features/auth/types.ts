@@ -45,3 +45,9 @@ export interface User {
 export interface UserProfileUpdateRequest {
   nickname: string;
 }
+
+export interface UserRegisterRequest {
+  email: string;
+  nickname: string;
+  password: string;
+}

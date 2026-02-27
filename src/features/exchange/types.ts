@@ -15,6 +15,7 @@ export interface LocationDto {
 export interface UserLocation {
   latitude: number;
   longitude: number;
+  address: string;
 }
 
 export interface CreateItemRequest extends ItemDto {
