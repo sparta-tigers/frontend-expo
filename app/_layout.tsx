@@ -1,6 +1,6 @@
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { useTheme } from "@/hooks/useTheme";
-import { useAuth } from "@/src/hooks/useAuth";
 import { usePushNotifications } from "@/src/hooks/usePushNotifications";
 import * as Notifications from "expo-notifications";
 import { Redirect, Slot, useSegments } from "expo-router";
@@ -14,15 +14,17 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
  */
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <RootLayoutInner />
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        <RootLayoutInner />
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 
 /**
  * 내부 레이아웃 컴포넌트
- * ThemeProvider 내부에서 useTheme 훅을 사용하기 위한 분리
+ * AuthProvider와 ThemeProvider 내부에서 훅들을 사용하기 위한 분리
  */
 function RootLayoutInner() {
   const { user, isLoading } = useAuth();
