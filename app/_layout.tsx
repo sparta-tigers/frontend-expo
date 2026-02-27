@@ -1,9 +1,6 @@
 import { ThemeProvider } from "@/context/ThemeContext";
-<<<<<<< Updated upstream
-import { useAuth } from "@/src/hooks/useAuth";
-=======
 import { useTheme } from "@/hooks/useTheme";
->>>>>>> Stashed changes
+import { useAuth } from "@/src/hooks/useAuth";
 import { usePushNotifications } from "@/src/hooks/usePushNotifications";
 import * as Notifications from "expo-notifications";
 import { Redirect, Slot, useSegments } from "expo-router";
