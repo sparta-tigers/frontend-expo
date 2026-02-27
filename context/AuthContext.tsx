@@ -28,10 +28,7 @@ import {
 interface SimpleToken {
   accessToken: string;
   refreshToken: string;
-  accessTokenIssuedAt: Date;
-  accessTokenExpiredAt: Date;
-  refreshTokenIssuedAt: Date;
-  refreshTokenExpiredAt: Date;
+  email: string; // 이메일 정보 추가
 }
 
 /**
@@ -97,30 +94,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       const accessToken = await getAccessToken();
 
       if (accessToken) {
-        // TokenStore에는 refreshToken도 있어야 함
         const refreshToken = await getRefreshToken();
 
         if (refreshToken) {
-          // 현재 시점 기준으로 만료시간 설정 (1시간 후, 30일 후)
-          const now = new Date();
-          const accessTokenExpiry = new Date(now.getTime() + 60 * 60 * 1000); // 1시간
-          const refreshTokenExpiry = new Date(
-            now.getTime() + 30 * 24 * 60 * 60 * 1000,
-          ); // 30일
-
           setUser({
             accessToken,
             refreshToken,
-            accessTokenIssuedAt: now,
-            accessTokenExpiredAt: accessTokenExpiry,
-            refreshTokenIssuedAt: now,
-            refreshTokenExpiredAt: refreshTokenExpiry,
+            email: "",
           });
         }
       }
     } catch (error) {
       console.error("토큰 로드 실패:", error);
-      // 에러 발생 시에도 로딩 상태 종료
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -156,10 +141,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         setUser({
           accessToken: tokenData.accessToken,
           refreshToken: tokenData.refreshToken,
-          accessTokenIssuedAt: tokenData.accessTokenIssuedAt,
-          accessTokenExpiredAt: tokenData.accessTokenExpiredAt,
-          refreshTokenIssuedAt: tokenData.refreshTokenIssuedAt,
-          refreshTokenExpiredAt: tokenData.refreshTokenExpiredAt,
+          email: credentials.email, // 이메일 정보 추가
         });
 
         return true;

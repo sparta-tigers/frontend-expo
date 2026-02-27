@@ -7,13 +7,19 @@ import {
     SPACING,
 } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
-import { itemsGetListAPI } from "@/src/features/exchange/api";
-import { Item } from "@/src/features/exchange/types";
-import { useAsyncState } from "@/src/hooks/useAsyncState";
+import {
+    exchangeGetReceivedAPI,
+    exchangeUpdateStatusAPI, itemsGetListAPI
+} from "@/src/features/exchange/api";
+import {
+    ExchangeRequest,
+    ExchangeRequestStatus
+} from "@/src/features/exchange/types";
 import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
     ActivityIndicator,
+    Alert,
     FlatList,
     Image,
     RefreshControl,
