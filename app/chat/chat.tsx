@@ -9,12 +9,12 @@ import { useAsyncState } from "@/src/hooks/useAsyncState";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
 import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    FlatList,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 // 정적 스타일 정의
@@ -265,10 +265,7 @@ export default function ChatListScreen() {
   }
 
   return (
-    <SafeLayout
-      style={{ backgroundColor: colors.surface }}
-      edges={["top", "left", "right"]}
-    >
+    <SafeLayout style={{ backgroundColor: colors.surface }}>
       <FlatList
         data={chatRoomsState.data || []}
         renderItem={renderChatRoom}

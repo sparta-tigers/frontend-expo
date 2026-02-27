@@ -10,10 +10,7 @@ export default function LiveboardScreen() {
   const { colors } = useTheme();
 
   return (
-    <SafeLayout
-      style={{ backgroundColor: colors.background }}
-      edges={["top", "left", "right"]}
-    >
+    <SafeLayout style={{ backgroundColor: colors.background }}>
       {/* 프로필 버튼 */}
       <View style={styles.profileButtonContainer}>
         <Button variant="outline" onPress={() => router.push("/profile")}>

@@ -31,3 +31,4 @@
 
 - 사용자가 명시적으로 언급하지 않는 이상, 절대로 임의 커밋을 생성하지 않는다.
 - `project-context.md`와 `migration-plan.md` 문서는 AI가 주요 작업이 완료되면 주기적으로 자동 업데이트한다.
+- Type Check Rule: Run 'npx tsc --noEmit' ONLY after completing a full feature or modifying core types (not after minor UI tweaks), and fix any errors before reporting completion.

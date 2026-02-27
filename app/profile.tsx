@@ -31,10 +31,7 @@ export default function ProfileScreen() {
   // 로그인되지 않은 상태
   if (!user?.accessToken) {
     return (
-      <SafeLayout
-        style={{ backgroundColor: colors.background }}
-        edges={["top", "left", "right"]}
-      >
+      <SafeLayout style={{ backgroundColor: colors.background }}>
         <View style={styles.container}>
           {/* 상단 네비게이션 */}
           <View style={[styles.topNav, { borderBottomColor: colors.border }]}>
@@ -89,10 +86,7 @@ export default function ProfileScreen() {
 
   // 로그인된 상태
   return (
-    <SafeLayout
-      style={{ backgroundColor: colors.background }}
-      edges={["top", "left", "right"]}
-    >
+    <SafeLayout style={{ backgroundColor: colors.background }}>
       <View style={styles.container}>
         {/* 상단 네비게이션 */}
         <View style={[styles.topNav, { borderBottomColor: colors.border }]}>
