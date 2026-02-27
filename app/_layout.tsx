@@ -1,9 +1,11 @@
+import { ThemeProvider } from "@/context/ThemeContext";
 import { useAuth } from "@/src/hooks/useAuth";
 import { usePushNotifications } from "@/src/hooks/usePushNotifications";
 import * as Notifications from "expo-notifications";
 import { Redirect, Slot, useSegments } from "expo-router";
 import "fast-text-encoding";
 import { ActivityIndicator, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 /**
  * 루트 레이아웃
@@ -52,5 +54,11 @@ export default function RootLayout() {
     return <Redirect href="/(tabs)" />;
   }
 
-  return <Slot />;
+  return (
+    <ThemeProvider>
+      <SafeAreaProvider>
+        <Slot />
+      </SafeAreaProvider>
+    </ThemeProvider>
+  );
 }

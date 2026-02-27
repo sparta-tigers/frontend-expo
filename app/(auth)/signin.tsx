@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/constants/layout";
+import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
-import { useTheme } from "react-native-paper";
 
 /**
  * 로그인 페이지
@@ -14,7 +15,7 @@ import { useTheme } from "react-native-paper";
 export default function SigninScreen() {
   const { signin, isLoading } = useAuth();
   const router = useRouter();
-  const theme = useTheme();
+  const { colors } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -39,11 +40,13 @@ export default function SigninScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
+    // <SafeLayout
+    //   style={{ backgroundColor: colors.background }}
+    //   edges={["top", "left", "right"]}
+    // >
+    <View style={styles.contentContainer}>
       <Card style={styles.card}>
-        <Text style={[styles.title, { color: theme.colors.onSurface }]}>
-          로그인
-        </Text>
+        <Text style={[styles.title, { color: colors.text }]}>로그인</Text>
 
         <Input
           value={email}
@@ -80,32 +83,33 @@ export default function SigninScreen() {
         </Button>
       </Card>
     </View>
+    // </SafeLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  contentContainer: {
     flex: 1,
     justifyContent: "center",
-    padding: 20,
+    padding: SPACING.SCREEN,
   },
   card: {
-    padding: 24,
-    borderRadius: 12,
+    padding: SPACING.SCREEN,
+    borderRadius: BORDER_RADIUS.CARD,
   },
   title: {
-    fontSize: 24,
+    fontSize: FONT_SIZE.TITLE,
     fontWeight: "bold",
-    marginBottom: 24,
+    marginBottom: SPACING.SCREEN,
     textAlign: "center",
   },
   input: {
-    marginBottom: 16,
+    marginBottom: SPACING.COMPONENT,
   },
   button: {
-    marginTop: 8,
+    marginTop: SPACING.SMALL,
   },
   linkButton: {
-    marginTop: 16,
+    marginTop: SPACING.COMPONENT,
   },
 });

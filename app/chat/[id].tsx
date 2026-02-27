@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useTheme } from "@/hooks/useTheme";
 import { chatroomsGetMessagesAPI } from "@/src/api/chatrooms";
 import { ApiResponse, ResultType } from "@/src/api/index";
 import { ChatMessage, ChatMessageData } from "@/src/api/types/chatrooms";
@@ -15,7 +16,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useTheme } from "react-native-paper";
 
 /**
  * 채팅방 상세 화면
@@ -25,7 +25,7 @@ export default function ChatRoomScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { status, sendMessage, client } = useWebSocket();
-  const theme = useTheme();
+  const { colors } = useTheme();
 
   const [inputMessage, setInputMessage] = useState("");
   const flatListRef = useRef<FlatList>(null);
@@ -179,25 +179,18 @@ export default function ChatRoomScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: theme.colors.surface }]}
+      style={[styles.container, { backgroundColor: colors.surface }]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       {/* 헤더 */}
-      <View
-        style={[styles.header, { borderBottomColor: theme.colors.outline }]}
-      >
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <Button onPress={() => router.back()} variant="ghost" size="sm">
           ←
         </Button>
-        <Text style={[styles.headerTitle, { color: theme.colors.onSurface }]}>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>
           채팅방 #{id}
         </Text>
-        <Text
-          style={[
-            styles.connectionStatus,
-            { color: theme.colors.onSurfaceVariant },
-          ]}
-        >
+        <Text style={[styles.connectionStatus, { color: colors.muted }]}>
           {getConnectionStatusText()}
         </Text>
       </View>
@@ -205,12 +198,9 @@ export default function ChatRoomScreen() {
       {/* 에러 상태 */}
       {messagesState.status === "error" && (
         <View
-          style={[
-            styles.errorContainer,
-            { backgroundColor: theme.colors.errorContainer },
-          ]}
+          style={[styles.errorContainer, { backgroundColor: colors.surface }]}
         >
-          <Text style={[styles.errorText, { color: theme.colors.onError }]}>
+          <Text style={[styles.errorText, { color: colors.text }]}>
             {messagesState.error}
           </Text>
         </View>
@@ -230,12 +220,7 @@ export default function ChatRoomScreen() {
         }}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text
-              style={[
-                styles.emptyText,
-                { color: theme.colors.onSurfaceVariant },
-              ]}
-            >
+            <Text style={[styles.emptyText, { color: colors.muted }]}>
               {messagesState.status === "loading"
                 ? "메시지를 불러오는 중..."
                 : "메시지가 없습니다"}
@@ -245,25 +230,20 @@ export default function ChatRoomScreen() {
       />
 
       {/* 입력창 */}
-      <View
-        style={[
-          styles.inputContainer,
-          { borderTopColor: theme.colors.outline },
-        ]}
-      >
+      <View style={[styles.inputContainer, { borderTopColor: colors.border }]}>
         <TextInput
           style={[
             styles.textInput,
             {
-              backgroundColor: theme.colors.surface,
-              borderColor: theme.colors.outline,
-              color: theme.colors.onSurface,
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              color: colors.text,
             },
           ]}
           value={inputMessage}
           onChangeText={setInputMessage}
           placeholder="메시지를 입력하세요..."
-          placeholderTextColor={theme.colors.onSurfaceVariant}
+          placeholderTextColor={colors.muted}
           multiline
           maxLength={500}
           editable={status === "CONNECTED"}

@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useTheme } from "@/hooks/useTheme";
 import { itemsCreateAPI } from "@/src/api/items";
 import { ItemCategory, ItemDto, LocationDto } from "@/src/api/types/items";
 import { useAsyncState } from "@/src/hooks/useAsyncState";
@@ -17,14 +18,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useTheme } from "react-native-paper";
 /**
  * 아이템 생성 화면
  * 사용자가 새로운 물물교환 아이템을 등록하는 컴포넌트
  */
 export default function CreateItemScreen() {
   const router = useRouter();
-  const theme = useTheme();
+  const { colors } = useTheme();
 
   // useAsyncState 훅으로 생성 요청 상태 관리
   const [createState, _createItem] = useAsyncState<any>(null);
@@ -226,17 +226,15 @@ export default function CreateItemScreen() {
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: theme.colors.surface }]}
+      style={[styles.container, { backgroundColor: colors.surface }]}
       contentContainerStyle={styles.contentContainer}
     >
       {/* 헤더 */}
-      <View
-        style={[styles.header, { borderBottomColor: theme.colors.outline }]}
-      >
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <Button onPress={() => router.back()} variant="ghost" size="sm">
           ←
         </Button>
-        <Text style={[styles.headerTitle, { color: theme.colors.onSurface }]}>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>
           아이템 등록
         </Text>
         <View style={styles.headerSpacer} />
@@ -246,15 +244,13 @@ export default function CreateItemScreen() {
       <View style={styles.formContainer}>
         {/* 이미지 업로드 */}
         <View style={styles.section}>
-          <Text
-            style={[styles.sectionTitle, { color: theme.colors.onSurface }]}
-          >
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
             이미지
           </Text>
           <TouchableOpacity
             style={[
               styles.imageUploadContainer,
-              { borderColor: theme.colors.outline },
+              { borderColor: colors.border },
             ]}
             onPress={handleImageSelect}
           >
@@ -267,14 +263,14 @@ export default function CreateItemScreen() {
                 <TouchableOpacity
                   style={[
                     styles.imageRemoveButton,
-                    { backgroundColor: theme.colors.error },
+                    { backgroundColor: colors.destructive },
                   ]}
                   onPress={handleImageRemove}
                 >
                   <Text
                     style={[
                       styles.imageRemoveButtonText,
-                      { color: theme.colors.onError },
+                      { color: colors.background },
                     ]}
                   >
                     ✕
@@ -284,17 +280,14 @@ export default function CreateItemScreen() {
             ) : (
               <View style={styles.imagePlaceholder}>
                 <Text
-                  style={[
-                    styles.imagePlaceholderText,
-                    { color: theme.colors.onSurfaceVariant },
-                  ]}
+                  style={[styles.imagePlaceholderText, { color: colors.muted }]}
                 >
                   📷 이미지 추가
                 </Text>
                 <Text
                   style={[
                     styles.imagePlaceholderSubText,
-                    { color: theme.colors.onSurfaceVariant },
+                    { color: colors.muted },
                   ]}
                 >
                   갤러리에서 선택
@@ -306,9 +299,7 @@ export default function CreateItemScreen() {
 
         {/* 카테고리 선택 */}
         <View style={styles.section}>
-          <Text
-            style={[styles.sectionTitle, { color: theme.colors.onSurface }]}
-          >
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
             카테고리
           </Text>
           <View style={styles.categoryContainer}>
@@ -317,7 +308,7 @@ export default function CreateItemScreen() {
                 styles.categoryButton,
                 formData.category === "TICKET" && [
                   styles.categoryButtonActive,
-                  { backgroundColor: theme.colors.primary },
+                  { backgroundColor: colors.primary },
                 ],
               ]}
               onPress={() => handleCategoryChange("TICKET")}
@@ -326,8 +317,8 @@ export default function CreateItemScreen() {
                 style={[
                   styles.categoryButtonText,
                   formData.category === "TICKET"
-                    ? { color: theme.colors.onPrimary }
-                    : { color: theme.colors.onSurfaceVariant },
+                    ? { color: colors.background }
+                    : { color: colors.muted },
                 ]}
               >
                 티켓
@@ -338,7 +329,7 @@ export default function CreateItemScreen() {
                 styles.categoryButton,
                 formData.category === "GOODS" && [
                   styles.categoryButtonActive,
-                  { backgroundColor: theme.colors.primary },
+                  { backgroundColor: colors.primary },
                 ],
               ]}
               onPress={() => handleCategoryChange("GOODS")}
@@ -347,8 +338,8 @@ export default function CreateItemScreen() {
                 style={[
                   styles.categoryButtonText,
                   formData.category === "GOODS"
-                    ? { color: theme.colors.onPrimary }
-                    : { color: theme.colors.onSurfaceVariant },
+                    ? { color: colors.background }
+                    : { color: colors.muted },
                 ]}
               >
                 굿즈
@@ -359,9 +350,7 @@ export default function CreateItemScreen() {
 
         {/* 제목 */}
         <View style={styles.section}>
-          <Text
-            style={[styles.sectionTitle, { color: theme.colors.onSurface }]}
-          >
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
             제목 *
           </Text>
           <Input
@@ -374,9 +363,7 @@ export default function CreateItemScreen() {
 
         {/* 설명 */}
         <View style={styles.section}>
-          <Text
-            style={[styles.sectionTitle, { color: theme.colors.onSurface }]}
-          >
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
             설명 *
           </Text>
           <TextInput
@@ -384,15 +371,15 @@ export default function CreateItemScreen() {
               styles.textInput,
               styles.textArea,
               {
-                backgroundColor: theme.colors.surface,
-                borderColor: theme.colors.outline,
-                color: theme.colors.onSurface,
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                color: colors.text,
               },
             ]}
             value={formData.description}
             onChangeText={(value) => handleInputChange("description", value)}
             placeholder="아이템 상세 설명을 입력하세요"
-            placeholderTextColor={theme.colors.onSurfaceVariant}
+            placeholderTextColor={colors.muted}
             multiline
             textAlignVertical="top"
           />
@@ -400,9 +387,7 @@ export default function CreateItemScreen() {
 
         {/* 가격/가치 */}
         <View style={styles.section}>
-          <Text
-            style={[styles.sectionTitle, { color: theme.colors.onSurface }]}
-          >
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
             가격/가치 *
           </Text>
           <Input
@@ -416,9 +401,7 @@ export default function CreateItemScreen() {
 
         {/* 거래 희망 장소 */}
         <View style={styles.section}>
-          <Text
-            style={[styles.sectionTitle, { color: theme.colors.onSurface }]}
-          >
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
             거래 희망 장소
           </Text>
           <View style={styles.locationContainer}>
