@@ -48,7 +48,7 @@ interface SafeLayoutProps {
 export function SafeLayout({
   children,
   style,
-  edges = ["top", "left", "right", "bottom"],
+  edges = ["left", "right", "bottom"],
   withPadding = false,
   responsive = false,
   platform = "both",
