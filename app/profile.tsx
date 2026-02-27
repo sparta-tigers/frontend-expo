@@ -74,7 +74,7 @@ export default function ProfileScreen() {
         },
       ],
       "plain-text",
-      user?.nickname || "",
+      user?.email.split("@")[0] || "",
     );
   };
 

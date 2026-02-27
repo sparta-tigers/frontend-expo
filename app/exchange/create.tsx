@@ -5,9 +5,9 @@ import { itemsCreateAPI } from "@/src/features/exchange/api";
 import {
     CreateItemRequest,
     ItemCategory,
-    LocationDto
+    LocationDto,
 } from "@/src/features/exchange/types";
-import { useAsyncState } from "@/src/hooks/useAsyncState";
+import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
