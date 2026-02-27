@@ -29,6 +29,7 @@ interface SimpleToken {
   accessToken: string;
   refreshToken: string;
   email: string; // 이메일 정보 추가
+  userId?: number; // 사용자 ID 추가 (선택적)
 }
 
 /**

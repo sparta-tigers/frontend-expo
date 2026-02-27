@@ -3,10 +3,16 @@ import { SafeLayout } from "@/components/ui/safe-layout";
 import { SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import {
-    usersDeleteAccountAPI,
-    usersUpdateProfileAPI,
+  usersDeleteAccountAPI,
+  usersUpdateProfileAPI,
 } from "@/src/features/auth/api";
 import { UserProfileUpdateRequest } from "@/src/features/auth/types";
+import { FavoriteTeam, KBO_TEAMS } from "@/src/features/user/favorite-team";
+import {
+  favoriteTeamAddAPI,
+  favoriteTeamDeleteAPI,
+  favoriteTeamGetListAPI,
+} from "@/src/features/user/favorite-team-api";
 import { useAuth } from "@/src/hooks/useAuth";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -16,6 +22,25 @@ export default function ProfileScreen() {
   const { colors } = useTheme();
   const { user, signout } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [favoriteTeams, setFavoriteTeams] = useState<FavoriteTeam[]>([]);
+
+  // 즐겨찾기 팀 목록 로드
+  const loadFavoriteTeams = React.useCallback(async () => {
+    if (!user?.accessToken) return;
+
+    try {
+      const response = await favoriteTeamGetListAPI();
+      if (response.resultType === "SUCCESS" && response.data) {
+        setFavoriteTeams(response.data);
+      }
+    } catch (error) {
+      console.error("즐겨찾기 팀 목록 로딩 실패:", error);
+    }
+  }, [user?.accessToken]);
+
+  React.useEffect(() => {
+    loadFavoriteTeams();
+  }, [loadFavoriteTeams]);
 
   // 프로필 수정 핸들러
   const handleEditProfile = () => {
@@ -142,6 +167,7 @@ export default function ProfileScreen() {
     );
   };
 
+  // 로그아웃 핸들러
   const handleLogout = () => {
     Alert.alert("로그아웃", "정말 로그아웃하시겠습니까?", [
       {
@@ -157,6 +183,72 @@ export default function ProfileScreen() {
         },
       },
     ]);
+  };
+
+  // 즐겨찾기 팀 추가 핸들러
+  const handleAddFavoriteTeam = () => {
+    const teamOptions = KBO_TEAMS.map((team) => ({
+      text: team.name,
+      onPress: async () => {
+        try {
+          const response = await favoriteTeamAddAPI({
+            teamName: team.name,
+            teamCode: team.code,
+          });
+
+          if (response.resultType === "SUCCESS") {
+            Alert.alert("성공", `${team.name}을 즐겨찾기에 추가했습니다.`);
+            loadFavoriteTeams(); // 목록 새로고침
+          } else {
+            Alert.alert("오류", "즐겨찾기 추가에 실패했습니다.");
+          }
+        } catch (error) {
+          console.error("즐겨찾기 팀 추가 실패:", error);
+          Alert.alert("오류", "네트워크 에러가 발생했습니다.");
+        }
+      },
+    }));
+
+    Alert.alert("즐겨찾기 팀 추가", "추가할 팀을 선택하세요", [
+      ...teamOptions,
+      { text: "취소", style: "cancel" },
+    ]);
+  };
+
+  // 즐겨찾기 팀 삭제 핸들러
+  const handleDeleteFavoriteTeam = (team: FavoriteTeam) => {
+    Alert.alert(
+      "즐겨찾기 팀 삭제",
+      `${team.teamName}을 즐겨찾기에서 삭제하시겠습니까?`,
+      [
+        {
+          text: "취소",
+          style: "cancel",
+        },
+        {
+          text: "삭제",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const response = await favoriteTeamDeleteAPI(team.id);
+
+              if (response.resultType === "SUCCESS") {
+                Alert.alert(
+                  "성공",
+                  `${team.teamName}을 즐겨찾기에서 삭제했습니다.`,
+                );
+                loadFavoriteTeams(); // 목록 새로고침
+              } else {
+                Alert.alert("오류", "즐겨찾기 삭제에 실패했습니다.");
+              }
+            } catch (error) {
+              console.error("즐겨찾기 팀 삭제 실패:", error);
+              Alert.alert("오류", "네트워크 에러가 발생했습니다.");
+            }
+          },
+        },
+      ],
+    );
   };
 
   // 로그인되지 않은 상태
@@ -344,6 +436,73 @@ export default function ProfileScreen() {
 
           <View style={styles.menuGroup}>
             <Text style={[styles.menuGroupTitle, { color: colors.text }]}>
+              즐겨찾기 팀
+            </Text>
+            <View style={[styles.menuCard, { backgroundColor: colors.card }]}>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={handleAddFavoriteTeam}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.menuItemText, { color: colors.text }]}>
+                  팀 추가하기
+                </Text>
+                <Text style={[styles.menuItemArrow, { color: colors.muted }]}>
+                  ›
+                </Text>
+              </TouchableOpacity>
+
+              {favoriteTeams.length > 0 && (
+                <>
+                  <View
+                    style={[
+                      styles.menuDivider,
+                      { backgroundColor: colors.border },
+                    ]}
+                  />
+                  {favoriteTeams.map((team) => (
+                    <View key={team.id}>
+                      <TouchableOpacity
+                        style={styles.menuItem}
+                        activeOpacity={0.7}
+                      >
+                        <Text
+                          style={[styles.menuItemText, { color: colors.text }]}
+                        >
+                          {team.teamName}
+                        </Text>
+                        <TouchableOpacity
+                          onPress={() => handleDeleteFavoriteTeam(team)}
+                          style={styles.teamDeleteButton}
+                        >
+                          <Text
+                            style={[
+                              styles.teamDeleteText,
+                              { color: colors.destructive },
+                            ]}
+                          >
+                            삭제
+                          </Text>
+                        </TouchableOpacity>
+                      </TouchableOpacity>
+                      {favoriteTeams[favoriteTeams.length - 1].id !==
+                        team.id && (
+                        <View
+                          style={[
+                            styles.menuDivider,
+                            { backgroundColor: colors.border },
+                          ]}
+                        />
+                      )}
+                    </View>
+                  ))}
+                </>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.menuGroup}>
+            <Text style={[styles.menuGroupTitle, { color: colors.text }]}>
               설정
             </Text>
             <View style={[styles.menuCard, { backgroundColor: colors.card }]}>
@@ -524,6 +683,14 @@ const styles = StyleSheet.create({
   },
   logoutButtonText: {
     fontSize: 16,
+    fontWeight: "600",
+  },
+  teamDeleteButton: {
+    paddingHorizontal: SPACING.SMALL,
+    paddingVertical: SPACING.SMALL / 2,
+  },
+  teamDeleteText: {
+    fontSize: 12,
     fontWeight: "600",
   },
 });
