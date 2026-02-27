@@ -1,6 +1,5 @@
-import { Redirect } from "expo-router";
-import { useAuth } from "../../src/hooks/useAuth";
-import { Slot } from "expo-router";
+import { useAuth } from "@/src/hooks/useAuth";
+import { Redirect, Slot } from "expo-router";
 
 /**
  * 인증 레이아웃
