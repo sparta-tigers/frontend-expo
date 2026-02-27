@@ -13,6 +13,18 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
  * 전체 앱의 진입점
  */
 export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <RootLayoutInner />
+    </ThemeProvider>
+  );
+}
+
+/**
+ * 내부 레이아웃 컴포넌트
+ * ThemeProvider 내부에서 useTheme 훅을 사용하기 위한 분리
+ */
+function RootLayoutInner() {
   const { user, isLoading } = useAuth();
   const { expoPushToken } = usePushNotifications();
   const segments = useSegments();
@@ -57,39 +69,37 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider>
-      <SafeAreaProvider>
-        {/* 1. 전역 고정 로고 레이아웃 (상단 안전 영역만 차지) */}
-        <SafeAreaView
-          edges={["top"]}
-          style={{ backgroundColor: colors.background }}
+    <SafeAreaProvider>
+      {/* 1. 전역 고정 로고 레이아웃 (상단 안전 영역만 차지) */}
+      <SafeAreaView
+        edges={["top"]}
+        style={{ backgroundColor: colors.background }}
+      >
+        <View
+          style={{
+            paddingVertical: 12,
+            alignItems: "center",
+            justifyContent: "center",
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+          }}
         >
-          <View
+          <Text
             style={{
-              paddingVertical: 12,
-              alignItems: "center",
-              justifyContent: "center",
-              borderBottomWidth: 1,
-              borderBottomColor: colors.border,
+              fontSize: 20,
+              fontWeight: "bold",
+              color: colors.primary,
             }}
           >
-            <Text
-              style={{
-                fontSize: 20,
-                fontWeight: "bold",
-                color: colors.primary,
-              }}
-            >
-              YAGUNIV
-            </Text>
-          </View>
-        </SafeAreaView>
-
-        {/* 2. 하위 라우팅 화면 */}
-        <View style={{ flex: 1, backgroundColor: colors.background }}>
-          <Slot />
+            YAGUNIV
+          </Text>
         </View>
-      </SafeAreaProvider>
-    </ThemeProvider>
+      </SafeAreaView>
+
+      {/* 2. 하위 라우팅 화면 */}
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
+        <Slot />
+      </View>
+    </SafeAreaProvider>
   );
 }
