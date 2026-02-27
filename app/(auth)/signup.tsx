@@ -65,10 +65,7 @@ export default function SignupScreen() {
   };
 
   return (
-    <SafeLayout
-      style={{ backgroundColor: colors.background }}
-      edges={["top", "left", "right"]}
-    >
+    <SafeLayout style={{ backgroundColor: colors.background }}>
       <View style={styles.contentContainer}>
         <Card style={styles.card}>
           <Text style={[styles.title, { color: colors.text }]}>회원가입</Text>

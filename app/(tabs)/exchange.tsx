@@ -8,14 +8,14 @@ import { useAsyncState } from "@/src/hooks/useAsyncState";
 import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    FlatList,
+    Image,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 // 정적 스타일 정의
@@ -281,10 +281,7 @@ export default function ExchangeScreen() {
   }
 
   return (
-    <SafeLayout
-      style={{ backgroundColor: colors.surface }}
-      edges={["top", "left", "right"]}
-    >
+    <SafeLayout style={{ backgroundColor: colors.surface }}>
       {/* 헤더 */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>교환</Text>

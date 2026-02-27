@@ -8,10 +8,7 @@ export default function NotificationScreen() {
   const { colors } = useTheme();
 
   return (
-    <SafeLayout
-      style={{ backgroundColor: colors.background }}
-      edges={["top", "left", "right"]}
-    >
+    <SafeLayout style={{ backgroundColor: colors.background }}>
       <View style={[styles.container, { borderColor: colors.border }]}>
         <Text style={[styles.title, { color: colors.text }]}>예매알림</Text>
         <Text style={[styles.description, { color: colors.muted }]}>

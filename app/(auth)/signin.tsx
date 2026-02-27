@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { SafeLayout } from "@/components/ui/safe-layout";
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/constants/layout";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/src/hooks/useAuth";
@@ -40,50 +41,47 @@ export default function SigninScreen() {
   };
 
   return (
-    // <SafeLayout
-    //   style={{ backgroundColor: colors.background }}
-    //   edges={["top", "left", "right"]}
-    // >
-    <View style={styles.contentContainer}>
-      <Card style={styles.card}>
-        <Text style={[styles.title, { color: colors.text }]}>로그인</Text>
+    <SafeLayout style={{ backgroundColor: colors.background }}>
+      <View style={styles.contentContainer}>
+        <Card style={styles.card}>
+          <Text style={[styles.title, { color: colors.text }]}>로그인</Text>
 
-        <Input
-          value={email}
-          onChangeText={setEmail}
-          placeholder="이메일"
-          keyboardType="email-address"
-          style={styles.input}
-        />
+          <Input
+            value={email}
+            onChangeText={setEmail}
+            placeholder="이메일"
+            keyboardType="email-address"
+            style={styles.input}
+          />
 
-        <Input
-          value={password}
-          onChangeText={setPassword}
-          placeholder="비밀번호"
-          secureTextEntry
-          style={styles.input}
-        />
+          <Input
+            value={password}
+            onChangeText={setPassword}
+            placeholder="비밀번호"
+            secureTextEntry
+            style={styles.input}
+          />
 
-        <Button
-          onPress={handleSignin}
-          loading={isLoading}
-          disabled={isLoading}
-          fullWidth
-          style={styles.button}
-        >
-          로그인
-        </Button>
+          <Button
+            onPress={handleSignin}
+            loading={isLoading}
+            disabled={isLoading}
+            fullWidth
+            style={styles.button}
+          >
+            로그인
+          </Button>
 
-        <Button
-          onPress={() => router.push("/(auth)/signup")}
-          variant="ghost"
-          style={styles.linkButton}
-        >
-          회원가입하기
-        </Button>
-      </Card>
-    </View>
-    // </SafeLayout>
+          <Button
+            onPress={() => router.push("/(auth)/signup")}
+            variant="ghost"
+            style={styles.linkButton}
+          >
+            회원가입하기
+          </Button>
+        </Card>
+      </View>
+    </SafeLayout>
   );
 }
 
