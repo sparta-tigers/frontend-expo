@@ -69,7 +69,7 @@ export async function itemsUpdateAPI(
   itemId: number,
   request: Partial<CreateItemRequest>,
 ): Promise<ApiResponse<Item>> {
-  return apiClient.put(`/api/v1/items/${itemId}`, request);
+  return apiClient.patch(`/api/v1/items/${itemId}`, request);
 }
 
 /**

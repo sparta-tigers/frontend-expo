@@ -64,12 +64,13 @@ export async function chatroomsGetMessagesAPI(
  * @param request - 메시지 전송 요청 데이터
  * @returns 메시지 전송 결과
  * @deprecated WebSocket 연동 후에는 useWebSocket 훅 사용 권장
+ * @note 백엔드에는 해당 HTTP 엔드포인트가 없으므로 사용 중단
  */
-export async function chatroomsSendMessageAPI(
-  request: SendMessageRequest,
-): Promise<ApiResponse<void>> {
-  return apiClient.post("/api/chat/send", request);
-}
+// export async function chatroomsSendMessageAPI(
+//   request: SendMessageRequest,
+// ): Promise<ApiResponse<void>> {
+//   return apiClient.post("/api/chat/send", request);
+// }
 
 /**
  * 채팅 메시지 전송 (WebSocket 기반)
@@ -83,9 +84,9 @@ export async function sendChatMessageWebSocket(
 ): Promise<boolean> {
   try {
     // TODO: 실제 WebSocket 연동 구현
-    // 현재는 HTTP API로 대체
-    const response = await chatroomsSendMessageAPI(request);
-    return response.resultType === "SUCCESS";
+    // 현재는 임시로 true 반환
+    console.log("WebSocket 메시지 전송 (임시):", request);
+    return true;
   } catch (error) {
     console.error("WebSocket 메시지 전송 실패:", error);
     return false;
