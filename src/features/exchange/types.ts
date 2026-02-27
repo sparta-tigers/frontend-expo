@@ -18,7 +18,10 @@ export interface UserLocation {
   address: string;
 }
 
-export interface CreateItemRequest extends ItemDto {
+export interface CreateItemRequest {
+  itemCategory: ItemCategory;
+  title: string;
+  description: string;
   location: LocationDto;
 }
 

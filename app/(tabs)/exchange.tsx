@@ -572,6 +572,7 @@ export default function ExchangeScreen() {
           data={itemsState.data || []}
           renderItem={renderItem}
           keyExtractor={(item) => item.id.toString()}
+          key="items-grid" // numColumns 변경 시 강제 리렌더링을 위한 key prop
           numColumns={2}
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}
@@ -599,6 +600,7 @@ export default function ExchangeScreen() {
           data={requestsState.data || []}
           renderItem={renderExchangeRequest}
           keyExtractor={(item) => item.id.toString()}
+          key="requests-list" // numColumns 변경 시 강제 리렌더링을 위한 key prop
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }

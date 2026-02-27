@@ -3,9 +3,9 @@ import { Input } from "@/components/ui/input";
 import { useTheme } from "@/hooks/useTheme";
 import { itemsCreateAPI } from "@/src/features/exchange/api";
 import {
-    CreateItemRequest,
-    ItemCategory,
-    LocationDto,
+  CreateItemRequest,
+  ItemCategory,
+  LocationDto,
 } from "@/src/features/exchange/types";
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import * as ImagePicker from "expo-image-picker";
@@ -13,14 +13,14 @@ import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 /**
  * 아이템 생성 화면
@@ -207,7 +207,7 @@ export default function CreateItemScreen() {
 
       // CreateItemRequest 형식으로 데이터 생성
       const requestData: CreateItemRequest = {
-        category: formData.category,
+        itemCategory: formData.category, // 백엔드 DTO 필드명에 맞춤
         title: formData.title.trim(),
         description: formData.description.trim(),
         location: locationDto,
