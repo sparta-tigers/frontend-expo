@@ -1,0 +1,99 @@
+import { renderHook, act } from '@testing-library/react-hooks';
+import { useAuth } from '../hooks';
+import { AuthProvider } from '@/context/AuthContext';
+
+// Mock AuthContext
+const mockAuthContext = {
+  user: null,
+  isLoading: false,
+  signin: jest.fn(),
+  signup: jest.fn(),
+  signout: jest.fn(),
+};
+
+jest.mock('@/context/AuthContext', () => ({
+  AuthProvider: ({ children }: { children: React.ReactNode }) => children,
+  useAuth: () => mockAuthContext,
+}));
+
+describe('useAuth Hook', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('초기 상태가 올바르게 설정되어야 함', () => {
+    mockAuthContext.user = null;
+    mockAuthContext.isLoading = false;
+
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: AuthProvider,
+    });
+
+    expect(result.current.user).toBeNull();
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('로그인 상태가 올바르게 반환되어야 함', () => {
+    const mockUser = {
+      id: 1,
+      email: 'test@example.com',
+      nickname: 'testuser',
+    };
+
+    mockAuthContext.user = mockUser;
+    mockAuthContext.isLoading = false;
+
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: AuthProvider,
+    });
+
+    expect(result.current.user).toEqual(mockUser);
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('로딩 상태가 올바르게 처리되어야 함', () => {
+    mockAuthContext.user = null;
+    mockAuthContext.isLoading = true;
+
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: AuthProvider,
+    });
+
+    expect(result.current.isLoading).toBe(true);
+  });
+
+  it('로그인 함수가 호출되어야 함', async () => {
+    const mockSignin = jest.fn().mockResolvedValue({
+      user: { id: 1, email: 'test@example.com', nickname: 'testuser' },
+      token: { accessToken: 'mock-token' },
+    });
+
+    mockAuthContext.signin = mockSignin;
+
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: AuthProvider,
+    });
+
+    await act(async () => {
+      await result.current.signin('test@example.com', 'password');
+    });
+
+    expect(mockSignin).toHaveBeenCalledWith('test@example.com', 'password');
+  });
+
+  it('로그아웃 함수가 호출되어야 함', async () => {
+    const mockSignout = jest.fn().mockResolvedValue(undefined);
+
+    mockAuthContext.signout = mockSignout;
+
+    const { result } = renderHook(() => useAuth(), {
+      wrapper: AuthProvider,
+    });
+
+    await act(async () => {
+      await result.current.signout();
+    });
+
+    expect(mockSignout).toHaveBeenCalled();
+  });
+});
