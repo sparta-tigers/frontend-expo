@@ -1,18 +1,24 @@
-import React, {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { authSigninAPI, authSignoutAPI, authSignupAPI } from "../src/api/auth";
-import { ResultType } from "../src/api/index";
-import { AuthSigninRequest, AuthSignupRequest } from "../src/api/types/auth";
 import {
-  clearTokens,
-  getAccessToken,
-  getRefreshToken,
-  setTokens,
+    authSigninAPI,
+    authSignoutAPI,
+    authSignupAPI,
+} from "@/src/features/auth/api";
+import {
+    AuthSigninRequest,
+    AuthSignupRequest,
+} from "@/src/features/auth/types";
+import React, {
+    createContext,
+    ReactNode,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
+import {
+    clearTokens,
+    getAccessToken,
+    getRefreshToken,
+    setTokens,
 } from "../src/utils/tokenStore";
 
 /**
@@ -133,8 +139,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setIsLoading(true);
       const response = await authSigninAPI(credentials);
 
-      if (response.resultType === ResultType.SUCCESS && response.data) {
-        const tokenData = response.data;
+      if (response.resultType === "SUCCESS" && response.data) {
+        const tokenData = response.data.token;
 
         // TokenStore에 토큰 저장
         const success = await setTokens(
@@ -181,7 +187,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setIsLoading(true);
       const response = await authSignupAPI(userData);
 
-      if (response.resultType === ResultType.SUCCESS && response.data) {
+      if (response.resultType === "SUCCESS" && response.data) {
         // 회원가입 성공 후 자동 로그인
         const loginSuccess = await signin({
           email: userData.email,

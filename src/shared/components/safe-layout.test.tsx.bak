@@ -1,0 +1,175 @@
+import React from 'react';
+import { render, screen } from '@testing-library/react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeLayout } from './safe-layout';
+
+// Mock react-native-safe-area-context
+jest.mock('react-native-safe-area-context', () => ({
+  SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
+  SafeAreaView: ({ children, style }: { children: React.ReactNode; style?: any }) => 
+    React.createElement('View', { style, testID: 'safe-area-view' }, children),
+}));
+
+// Mock unified-design hook
+jest.mock('@/constants/unified-design', () => ({
+  SPACING: {
+    SCREEN: 20,
+    SECTION: 20,
+    CARD: 16,
+    COMPONENT: 12,
+    SMALL: 8,
+    TINY: 4,
+  },
+  useUnifiedDesign: () => ({
+    deviceInfo: {
+      width: 390,
+      height: 844,
+      multiplier: 1,
+      isSmallPhone: false,
+      isRegularPhone: true,
+      isLargePhone: false,
+      isTablet: false,
+      isIOS: true,
+      isAndroid: false,
+    },
+    SPACING: {
+      SCREEN: 20,
+      SECTION: 20,
+      CARD: 16,
+      COMPONENT: 12,
+      SMALL: 8,
+      TINY: 4,
+    },
+    FONT_SIZE: {
+      TITLE: 28,
+      SECTION_TITLE: 20,
+      CARD_TITLE: 18,
+      BODY: 16,
+      SMALL: 14,
+      CAPTION: 12,
+    },
+    BORDER_RADIUS: {
+      CARD: 8,
+      BUTTON: 6,
+      INPUT: 8,
+      IMAGE: 8,
+    },
+    SHADOW: {
+      CARD: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+      },
+      BUTTON: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 3,
+        elevation: 3,
+      },
+    },
+  }),
+}));
+
+describe('SafeLayout Component', () => {
+  const renderWithSafeArea = (component: React.ReactElement) => {
+    return render(
+      <SafeAreaProvider>
+        {component}
+      </SafeAreaProvider>
+    );
+  };
+
+  it('기본적으로 자식 컴포넌트를 렌더링해야 함', () => {
+    renderWithSafeArea(
+      <SafeLayout>
+        <div testID="child-content">Test Content</div>
+      </SafeLayout>
+    );
+
+    expect(screen.getByTestId('child-content')).toBeTruthy();
+  });
+
+  it('SafeAreaView를 렌더링해야 함', () => {
+    renderWithSafeArea(
+      <SafeLayout>
+        <div testID="child-content">Test Content</div>
+      </SafeLayout>
+    );
+
+    expect(screen.getByTestId('safe-area-view')).toBeTruthy();
+  });
+
+  it('withPadding이 true일 때 패딩 스타일이 적용되어야 함', () => {
+    renderWithSafeArea(
+      <SafeLayout withPadding>
+        <div testID="child-content">Test Content</div>
+      </SafeLayout>
+    );
+
+    const safeAreaView = screen.getByTestId('safe-area-view');
+    expect(safeAreaView.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ flex: 1 }),
+        expect.objectContaining({ paddingHorizontal: 20 }),
+      ])
+    );
+  });
+
+  it('responsive가 true일 때 반응형 패딩이 적용되어야 함', () => {
+    renderWithSafeArea(
+      <SafeLayout withPadding responsive>
+        <div testID="child-content">Test Content</div>
+      </SafeLayout>
+    );
+
+    const safeAreaView = screen.getByTestId('safe-area-view');
+    expect(safeAreaView.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ flex: 1 }),
+        expect.objectContaining({ paddingHorizontal: 20 }),
+      ])
+    );
+  });
+
+  it('추가 스타일이 적용되어야 함', () => {
+    const customStyle = { backgroundColor: 'red' };
+
+    renderWithSafeArea(
+      <SafeLayout style={customStyle}>
+        <div testID="child-content">Test Content</div>
+      </SafeLayout>
+    );
+
+    const safeAreaView = screen.getByTestId('safe-area-view');
+    expect(safeAreaView.props.style).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ backgroundColor: 'red' }),
+      ])
+    );
+  });
+
+  it('edges prop이 SafeAreaView에 전달되어야 함', () => {
+    renderWithSafeArea(
+      <SafeLayout edges={['top', 'left', 'right']}>
+        <div testID="child-content">Test Content</div>
+      </SafeLayout>
+    );
+
+    // edges prop은 SafeAreaView로 전달되어야 함
+    expect(screen.getByTestId('safe-area-view')).toBeTruthy();
+  });
+
+  it('platform 필터링이 동작해야 함', () => {
+    renderWithSafeArea(
+      <SafeLayout platform="ios">
+        <div testID="child-content">Test Content</div>
+      </SafeLayout>
+    );
+
+    // iOS 플랫폼에서는 SafeAreaView가 렌더링되어야 함
+    expect(screen.getByTestId('safe-area-view')).toBeTruthy();
+  });
+});

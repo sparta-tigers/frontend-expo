@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { BORDER_RADIUS, FONT_SIZE, SHADOW, SPACING } from "@/constants/layout";
+import { BORDER_RADIUS, FONT_SIZE, SHADOW, SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
-import { chatroomsGetListAPI } from "@/src/api/chatrooms";
-import { ApiResponse, ResultType } from "@/src/api/index";
-import { DirectRoomResponse } from "@/src/api/types/chatrooms";
+import { chatroomsGetListAPI } from "@/src/features/chat/api";
+import { DirectRoomResponse } from "@/src/features/chat/types";
 import { useAsyncState } from "@/src/hooks/useAsyncState";
+import { ApiResponse } from "@/src/shared/types/common";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
 import {
@@ -142,7 +142,7 @@ export default function ChatListScreen() {
   const fetchChatRooms = useCallback(async () => {
     const response: ApiResponse<any> = await chatroomsGetListAPI(0, 20);
 
-    if (response.resultType === ResultType.SUCCESS && response.data) {
+    if (response.resultType === "SUCCESS" && response.data) {
       return response.data.content || [];
     } else {
       throw new Error(

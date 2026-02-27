@@ -1,10 +1,6 @@
-import { apiClient, ApiResponse } from "./index";
-import {
-  CreateItemRequest,
-  Item,
-  ItemCategory,
-  UserLocation,
-} from "./types/items";
+import { apiClient } from "@/src/core/client";
+import { ApiResponse } from "@/src/shared/types/common";
+import { CreateItemRequest, Item, ItemCategory, UserLocation } from "./types";
 
 /**
  * 아이템 관련 API 함수 모음

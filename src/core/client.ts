@@ -1,10 +1,10 @@
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import {
   clearTokens,
   getAccessToken,
   getRefreshToken,
   setTokens,
-} from "../utils/tokenStore";
+} from "@/src/utils/tokenStore";
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 
 /**
  * Mutex 상태 변수 (Race Condition 방지)

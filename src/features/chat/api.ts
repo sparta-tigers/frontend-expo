@@ -1,10 +1,11 @@
-import { apiClient, ApiResponse } from "./index";
+import { apiClient } from "@/src/core/client";
+import { ApiResponse } from "@/src/shared/types/common";
 import {
   ChatMessageListResponse,
   CreateDirectRoomRequest,
   DirectRoomListResponse,
   SendMessageRequest,
-} from "./types/chatrooms";
+} from "./types";
 
 /**
  * 채팅방 관련 API 함수 모음

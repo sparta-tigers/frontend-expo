@@ -1,5 +1,5 @@
-import { AuthProvider, useAuth } from "@/context/AuthContext";
-import { ThemeProvider } from "@/context/ThemeContext";
+import { CombinedProvider } from "@/components/providers/combined-provider";
+import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/hooks/useTheme";
 import { usePushNotifications } from "@/src/hooks/usePushNotifications";
 import * as Notifications from "expo-notifications";
@@ -14,11 +14,9 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
  */
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <ThemeProvider>
-        <RootLayoutInner />
-      </ThemeProvider>
-    </AuthProvider>
+    <CombinedProvider>
+      <RootLayoutInner />
+    </CombinedProvider>
   );
 }
 

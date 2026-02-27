@@ -21,7 +21,11 @@ export function useAsyncState<T>(
         return;
       }
 
-      setState((prev) => ({ ...prev, status: "loading", error: null }));
+      setState((prev: AsyncState<T>) => ({
+        ...prev,
+        status: "loading",
+        error: null,
+      }));
 
       try {
         const data = await promise;
@@ -41,7 +45,7 @@ export function useAsyncState<T>(
       }
     },
     [state.status],
-  ); // state.status 의존성 추가
+  );
 
   const reset = useCallback(() => {
     setState({
@@ -82,7 +86,7 @@ export function useApiRequest<T>(): [
         return errorResult;
       }
     },
-    [],
+    [result],
   );
 
   const reset = useCallback(() => {

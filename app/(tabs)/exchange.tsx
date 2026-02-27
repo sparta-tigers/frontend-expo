@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { BORDER_RADIUS, FONT_SIZE, SHADOW, SPACING } from "@/constants/layout";
+import { BORDER_RADIUS, FONT_SIZE, SHADOW, SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
-import { itemsGetListAPI } from "@/src/api/items";
-import { Item } from "@/src/api/types/items";
+import { itemsGetListAPI } from "@/src/features/exchange/api";
+import { Item } from "@/src/features/exchange/types";
 import { useAsyncState } from "@/src/hooks/useAsyncState";
 import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
@@ -222,7 +222,7 @@ export default function ExchangeScreen() {
         <Text style={[styles.itemPrice, { color: colors.primary }]}>
           {item.status === "REGISTERED"
             ? "등록됨"
-            : item.status === "COMPLETED"
+            : item.status === "EXCHANGE_COMPLETED"
               ? "교환완료"
               : "교환실패"}
         </Text>

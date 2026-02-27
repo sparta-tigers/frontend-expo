@@ -1,20 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
-import { chatroomsGetMessagesAPI } from "@/src/api/chatrooms";
-import { ApiResponse, ResultType } from "@/src/api/index";
-import { ChatMessage, ChatMessageData } from "@/src/api/types/chatrooms";
+import { chatroomsGetMessagesAPI } from "@/src/features/chat/api";
+import { ChatMessage } from "@/src/features/chat/types";
 import { useAsyncState } from "@/src/hooks/useAsyncState";
 import { useWebSocket } from "@/src/hooks/useWebSocket";
+import { ApiResponse } from "@/src/shared/types/common";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
+    FlatList,
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 
 /**
@@ -43,13 +43,21 @@ export default function ChatRoomScreen() {
       50,
     );
 
-    if (response.resultType === ResultType.SUCCESS && response.data) {
-      const messageData: ChatMessageData[] = response.data.content || [];
+    if (response.resultType === "SUCCESS" && response.data) {
+      const messageData: any[] = response.data.content || [];
 
       // 서버 데이터를 UI 데이터로 변환
       const formattedMessages: ChatMessage[] = messageData.map((msg) => ({
+        id: msg.id || 0,
+        directRoomId: Number(id),
+        senderId: msg.senderId || 0,
         content: msg.message,
+        createdAt: msg.sentAt,
         sentAt: msg.sentAt,
+        sender: {
+          id: msg.senderId || 0,
+          nickname: msg.senderNickname,
+        },
         senderNickName: msg.senderNickname,
         isMyMessage: false, // TODO: 현재 사용자 ID와 비교 필요
       }));
@@ -72,8 +80,16 @@ export default function ChatRoomScreen() {
 
         // 수신된 메시지를 UI 형식으로 변환
         const newMessage: ChatMessage = {
+          id: receivedMessage.id || Date.now(),
+          directRoomId: Number(id),
+          senderId: receivedMessage.senderId || 0,
           content: receivedMessage.message,
+          createdAt: receivedMessage.sentAt || new Date().toISOString(),
           sentAt: receivedMessage.sentAt || new Date().toISOString(),
+          sender: {
+            id: receivedMessage.senderId || 0,
+            nickname: receivedMessage.senderNickname,
+          },
           senderNickName: receivedMessage.senderNickname,
           isMyMessage: false, // TODO: 현재 사용자 ID와 비교 필요
         };
@@ -113,8 +129,16 @@ export default function ChatRoomScreen() {
 
       // 전송한 메시지를 즉시 UI에 추가 (내 메시지)
       const myMessage: ChatMessage = {
+        id: Date.now(),
+        directRoomId: Number(id),
+        senderId: 1, // TODO: 현재 사용자 ID 가져오기
         content: inputMessage.trim(),
+        createdAt: new Date().toISOString(),
         sentAt: new Date().toISOString(),
+        sender: {
+          id: 1, // TODO: 현재 사용자 ID 가져오기
+          nickname: "나", // TODO: 현재 사용자 닉네임 가져오기
+        },
         senderNickName: "나", // TODO: 현재 사용자 닉네임 가져오기
         isMyMessage: true,
       };
