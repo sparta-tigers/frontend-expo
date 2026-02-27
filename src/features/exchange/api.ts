@@ -1,5 +1,5 @@
-import { apiClient } from "../../core/client";
-import { ApiResponse } from "../../shared/types/common";
+import { apiClient } from "@/src/core/client";
+import { ApiResponse } from "@/src/shared/types/common";
 import { CreateItemRequest, Item, ItemCategory, UserLocation } from "./types";
 
 /**

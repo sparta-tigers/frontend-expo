@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { getAccessToken } from "@/src/utils/tokenStore";
 import { Client } from "@stomp/stompjs";
+import { useCallback, useEffect, useRef, useState } from "react";
 import SockJS from "sockjs-client";
-import { getAccessToken } from "../utils/tokenStore";
 
 /**
  * WebSocket 연결 상태 (State-Driven)

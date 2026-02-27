@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { BORDER_RADIUS, FONT_SIZE, SHADOW, SPACING } from "@/constants/layout";
+import { BORDER_RADIUS, FONT_SIZE, SHADOW, SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import { chatroomsGetListAPI } from "@/src/features/chat/api";
 import { DirectRoomResponse } from "@/src/features/chat/types";

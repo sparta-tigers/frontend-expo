@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { SPACING } from "@/constants/layout";
+import { SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import { itemsGetDetailAPI } from "@/src/features/exchange/api";
 import { Item } from "@/src/features/exchange/types";

@@ -1,5 +1,5 @@
+import { AsyncState, RequestResult } from "@/src/shared/types/common";
 import { useCallback, useState } from "react";
-import { AsyncState, RequestResult } from "../types/common";
 
 /**
  * 비동기 상태 관리 훅
