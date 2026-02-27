@@ -129,3 +129,64 @@ export async function itemsUpdateLocationAPI(
 ): Promise<ApiResponse<void>> {
   return apiClient.post("/api/v1/items/location", location);
 }
+
+/**
+ * 교환 요청 관련 API 함수 모음
+ * 교환 요청 생성, 조회, 상태 변경 등 교환 관리 기능
+ */
+
+/**
+ * 교환 요청 생성 API
+ * 특정 아이템에 대한 교환 요청 생성
+ *
+ * @param request - 교환 요청 생성 데이터
+ * @returns 생성된 교환 요청 정보
+ */
+export async function exchangeCreateAPI(
+  request: CreateExchangeDto,
+): Promise<ApiResponse<void>> {
+  return apiClient.post("/api/v1/exchanges", request);
+}
+
+/**
+ * 받은 교환 요청 목록 조회 API
+ * 현재 사용자가 받은 모든 교환 요청 목록 반환
+ *
+ * @param page - 페이지 번호 (기본값: 0)
+ * @param size - 페이지당 데이터 크기 (기본값: 20)
+ * @returns 페이징 처리된 받은 교환 요청 목록
+ */
+export async function exchangeGetReceivedAPI(
+  page: number = 0,
+  size: number = 20,
+): Promise<ApiResponse<ExchangeRequestListResponse>> {
+  return apiClient.get("/api/v1/exchanges/receive", { page, size });
+}
+
+/**
+ * 교환 요청 상태 업데이트 API
+ * 교환 요청을 수락 또는 거절 처리
+ *
+ * @param exchangeRequestId - 교환 요청 고유 ID
+ * @param request - 상태 변경 요청 데이터
+ * @returns 상태 변경 처리 결과
+ */
+export async function exchangeUpdateStatusAPI(
+  exchangeRequestId: number,
+  request: UpdateExchangeStatusDto,
+): Promise<ApiResponse<void>> {
+  return apiClient.patch(`/api/v1/exchanges/${exchangeRequestId}`, request);
+}
+
+/**
+ * 교환 완료 처리 API
+ * 교환이 성공적으로 완료되었음을 표시
+ *
+ * @param exchangeRequestId - 교환 요청 고유 ID
+ * @returns 교환 완료 처리 결과
+ */
+export async function exchangeCompleteAPI(
+  exchangeRequestId: number,
+): Promise<ApiResponse<void>> {
+  return apiClient.patch(`/api/v1/exchanges/${exchangeRequestId}/complete`);
+}

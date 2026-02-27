@@ -4,8 +4,7 @@ import { SafeLayout } from "@/components/ui/safe-layout";
 import { SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import { itemsGetDetailAPI } from "@/src/features/exchange/api";
-import { Item } from "@/src/features/exchange/types";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
     ActivityIndicator,
@@ -29,9 +28,10 @@ export default function ItemDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const { colors } = useTheme();
+  const { user } = useAuth();
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
-  const [exchangeLoading] = useState(false);
+  const [exchangeLoading, setExchangeLoading] = useState(false);
 
   // 아이템 상세 정보 가져오기
   const fetchItemDetail = useCallback(async () => {
@@ -51,8 +51,17 @@ export default function ItemDetailScreen() {
   }, [id]);
 
   // 교환 신청
-  const handleExchangeRequest = () => {
-    if (!item) return;
+  const handleExchangeRequest = useCallback(async () => {
+    if (!item || !user?.accessToken) {
+      Alert.alert("오류", "로그인이 필요하거나 아이템 정보가 없습니다.");
+      return;
+    }
+
+    // 내 아이템인지 확인
+    if (item.userId === user.userId) {
+      Alert.alert("알림", "내 아이템은 교환 신청할 수 없습니다.");
+      return;
+    }
 
     Alert.alert("교환 신청", `${item.title} 아이템을 교환하시겠습니까?`, [
       {
@@ -62,13 +71,46 @@ export default function ItemDetailScreen() {
       {
         text: "교환 신청",
         style: "default",
-        onPress: () => {
-          // TODO: 교환 신청 API 연동
-          Alert.alert("알림", "교환 신청 기능은 준비 중입니다.");
+        onPress: async () => {
+          setExchangeLoading(true);
+          try {
+            const request: CreateExchangeDto = {
+              itemId: item.id,
+              message: `${item.title} 아이템에 교환을 신청합니다.`,
+            };
+
+            const response = await exchangeCreateAPI(request);
+
+            if (response.resultType === "SUCCESS") {
+              Alert.alert(
+                "교환 신청 완료",
+                "교환 요청이 성공적으로 전송되었습니다. 상대방의 응답을 기다려주세요.",
+                [
+                  {
+                    text: "확인",
+                    onPress: () => router.back(),
+                  },
+                ],
+              );
+            } else {
+              Alert.alert(
+                "오류",
+                "교환 신청에 실패했습니다. 다시 시도해주세요.",
+              );
+            }
+          } catch (error) {
+            console.error("교환 신청 실패:", error);
+            Alert.alert(
+              "오류",
+              "네트워크 에러가 발생했습니다. 다시 시도해주세요.",
+            );
+          } finally {
+            setExchangeLoading(false);
+          }
         },
       },
     ]);
-  };
+  }, [item, user, router]);
 
   // 채팅방으로 이동
   const handleChatRequest = () => {

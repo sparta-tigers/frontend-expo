@@ -1,6 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { BORDER_RADIUS, FONT_SIZE, SHADOW, SPACING } from "@/constants/unified-design";
+import {
+    BORDER_RADIUS,
+    FONT_SIZE,
+    SHADOW,
+    SPACING,
+} from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import { itemsGetListAPI } from "@/src/features/exchange/api";
 import { Item } from "@/src/features/exchange/types";
@@ -96,6 +101,52 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.BODY,
     marginTop: SPACING.SMALL,
   },
+  // 교환 요청 관련 스타일
+  requestContainer: {
+    borderRadius: BORDER_RADIUS.CARD,
+    padding: SPACING.COMPONENT,
+    marginBottom: SPACING.SMALL,
+    ...SHADOW.CARD,
+  },
+  requestContent: {
+    flex: 1,
+  },
+  requestTitle: {
+    fontSize: FONT_SIZE.BODY,
+    fontWeight: "600",
+    marginBottom: SPACING.SMALL,
+  },
+  requester: {
+    fontSize: FONT_SIZE.SMALL,
+    marginBottom: SPACING.SMALL,
+  },
+  requestDate: {
+    fontSize: FONT_SIZE.SMALL,
+    marginBottom: SPACING.SMALL,
+  },
+  statusBadge: {
+    paddingHorizontal: SPACING.SMALL,
+    paddingVertical: SPACING.SMALL,
+    borderRadius: 4,
+    alignSelf: "flex-start",
+    marginBottom: SPACING.SMALL,
+  },
+  statusText: {
+    fontSize: FONT_SIZE.SMALL,
+    fontWeight: "600",
+  },
+  requestActions: {
+    flexDirection: "row",
+    gap: SPACING.SMALL,
+    marginTop: SPACING.SMALL,
+  },
+  actionButton: {
+    flex: 1,
+  },
+  actionButtonText: {
+    fontSize: FONT_SIZE.SMALL,
+    fontWeight: "600",
+  },
 });
 
 /**
@@ -110,15 +161,74 @@ export default function ExchangeScreen() {
   const router = useRouter();
   const { colors } = useTheme();
 
+  // 탭 상태 관리
+  const [activeTab, setActiveTab] = useState<"items" | "requests">("items");
+
   // useAsyncState 훅으로 기본 상태 관리
   const [itemsState, fetchItems] = useAsyncState<Item[]>([]);
+  const [requestsState, fetchRequests] = useAsyncState<ExchangeRequest[]>([]);
 
   // 추가 상태 (페이지네이션용)
   const [page, setPage] = useState(0);
   const [isLast, setIsLast] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // 아이템 목록 가져오기
+  // 받은 교환 요청 목록 가져오기
+  const loadExchangeRequests = useCallback(
+    async (pageNum: number = 0, isRefresh: boolean = false) => {
+      if (requestsState.status === "loading" && !isRefresh) return;
+
+      try {
+        const response = await exchangeGetReceivedAPI(pageNum, 10);
+
+        if (response.resultType === "SUCCESS" && response.data) {
+          const newRequests = response.data.content || [];
+
+          if (isRefresh || pageNum === 0) {
+            fetchRequests(() => newRequests);
+          } else {
+            fetchRequests((prev) => [...prev, ...newRequests]);
+          }
+
+          setIsLast(response.data.last || false);
+        }
+      } catch (error) {
+        console.error("교환 요청 목록 로딩 실패:", error);
+        Alert.alert("오류", "교환 요청 목록을 불러올 수 없습니다.");
+      }
+    },
+    [requestsState.status, fetchRequests],
+  );
+
+  // 교환 요청 상태 변경 (수락/거절)
+  const handleUpdateRequestStatus = useCallback(
+    async (requestId: number, status: ExchangeRequestStatus) => {
+      try {
+        const response = await exchangeUpdateStatusAPI(requestId, { status });
+
+        if (response.resultType === "SUCCESS") {
+          Alert.alert(
+            "성공",
+            status === ExchangeRequestStatus.ACCEPTED
+              ? "교환 요청을 수락했습니다."
+              : "교환 요청을 거절했습니다.",
+            [
+              {
+                text: "확인",
+                onPress: () => loadExchangeRequests(0, true), // 목록 새로고침
+              },
+            ],
+          );
+        } else {
+          Alert.alert("오류", "상태 변경에 실패했습니다.");
+        }
+      } catch (error) {
+        console.error("교환 요청 상태 변경 실패:", error);
+        Alert.alert("오류", "네트워크 에러가 발생했습니다.");
+      }
+    },
+    [loadExchangeRequests],
+  );
   const loadItems = useCallback(
     async (pageNum: number = 0, isRefresh: boolean = false) => {
       if (itemsState.status === "loading" && !isRefresh) return;
@@ -185,7 +295,92 @@ export default function ExchangeScreen() {
     }
   };
 
-  // 아이템 렌더 함수
+  // 교환 요청 렌더 함수
+  const renderExchangeRequest = ({ item }: { item: ExchangeRequest }) => (
+    <View
+      style={[
+        styles.requestContainer,
+        {
+          backgroundColor: colors.surface,
+          shadowColor: colors.border,
+        },
+      ]}
+    >
+      {/* 요청 정보 */}
+      <View style={styles.requestContent}>
+        <Text style={[styles.requestTitle, { color: colors.text }]}>
+          {item.item?.title || "아이템 정보 없음"}
+        </Text>
+        <Text style={[styles.requester, { color: colors.muted }]}>
+          요청자: {item.requester?.nickname || "알 수 없음"}
+        </Text>
+        <Text style={[styles.requestDate, { color: colors.muted }]}>
+          {new Date(item.createdAt).toLocaleDateString()}
+        </Text>
+
+        {/* 상태 배지 */}
+        <View
+          style={[
+            styles.statusBadge,
+            {
+              backgroundColor:
+                item.status === ExchangeRequestStatus.PENDING
+                  ? colors.warning
+                  : item.status === ExchangeRequestStatus.ACCEPTED
+                    ? colors.success
+                    : item.status === ExchangeRequestStatus.REJECTED
+                      ? colors.destructive
+                      : colors.muted,
+            },
+          ]}
+        >
+          <Text style={[styles.statusText, { color: colors.background }]}>
+            {item.status === ExchangeRequestStatus.PENDING
+              ? "대기 중"
+              : item.status === ExchangeRequestStatus.ACCEPTED
+                ? "수락됨"
+                : item.status === ExchangeRequestStatus.REJECTED
+                  ? "거절됨"
+                  : item.status}
+          </Text>
+        </View>
+      </View>
+
+      {/* 액션 버튼 */}
+      {item.status === ExchangeRequestStatus.PENDING && (
+        <View style={styles.requestActions}>
+          <Button
+            variant="outline"
+            size="sm"
+            onPress={() =>
+              handleUpdateRequestStatus(item.id, ExchangeRequestStatus.REJECTED)
+            }
+            style={[styles.actionButton, { borderColor: colors.destructive }]}
+          >
+            <Text
+              style={[styles.actionButtonText, { color: colors.destructive }]}
+            >
+              거절
+            </Text>
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            onPress={() =>
+              handleUpdateRequestStatus(item.id, ExchangeRequestStatus.ACCEPTED)
+            }
+            style={styles.actionButton}
+          >
+            <Text
+              style={[styles.actionButtonText, { color: colors.background }]}
+            >
+              수락
+            </Text>
+          </Button>
+        </View>
+      )}
+    </View>
+  );
   const renderItem = ({ item }: { item: Item }) => (
     <TouchableOpacity
       style={[
