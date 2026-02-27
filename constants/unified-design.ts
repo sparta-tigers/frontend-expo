@@ -121,25 +121,18 @@ export function useUnifiedDesign() {
 /**
  * 간편한 접근을 위한 유틸리티 함수
  */
-export const getUnifiedDesign = () => {
+export const getUnifiedDesign = async () => {
   // 서버사이드 렌더링이나 훅 외부에서 사용할 경우
-  const { width } = require("react-native").Dimensions.get("window");
+  const { Dimensions } = await import("react-native");
+  const { width } = Dimensions.get("window");
   const multiplier = getDeviceMultiplier(width);
 
   return {
-    ...BASE_DESIGN_TOKENS,
-    SPACING: Object.fromEntries(
-      Object.entries(BASE_DESIGN_TOKENS.SPACING).map(([key, value]) => [
-        key,
-        Math.round(value * multiplier),
-      ]),
-    ),
-    FONT_SIZE: Object.fromEntries(
-      Object.entries(BASE_DESIGN_TOKENS.FONT_SIZE).map(([key, value]) => [
-        key,
-        Math.round(value * multiplier),
-      ]),
-    ),
+    SPACING: BASE_DESIGN_TOKENS.SPACING,
+    BORDER_RADIUS: BASE_DESIGN_TOKENS.BORDER_RADIUS,
+    FONT_SIZE: BASE_DESIGN_TOKENS.FONT_SIZE,
+    SHADOW: BASE_DESIGN_TOKENS.SHADOW,
+    DEVICE_MULTIPLIER: multiplier,
   };
 };
 

@@ -10,10 +10,10 @@ import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
  * Mutex 상태 변수 (Race Condition 방지)
  */
 let isRefreshing = false;
-let failedQueue: Array<{
+let failedQueue: {
   resolve: (value?: any) => void;
   reject: (error: any) => void;
-}> = [];
+}[] = [];
 
 /**
  * 대기 중인 요청들 처리
