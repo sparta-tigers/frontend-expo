@@ -5,6 +5,7 @@ import {
   setTokens,
 } from "@/src/utils/tokenStore";
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
+import { Platform } from "react-native";
 
 /**
  * Mutex 상태 변수 (Race Condition 방지)
@@ -33,11 +34,27 @@ const processQueue = (token?: string, error?: any) => {
 };
 
 /**
+ * 동적 API Base URL 설정
+ * 개발 환경의 안드로이드 에뮬레이터에서는 10.0.2.2로 강제 설정
+ */
+const getDynamicBaseURL = (): string => {
+  // 기본값: 환경변수 또는 localhost
+  let baseURL = process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:8080";
+
+  // 개발 환경의 안드로이드 에뮬레이터용 핫픽스
+  if (__DEV__ && Platform.OS === "android") {
+    baseURL = "http://10.0.2.2:8080";
+  }
+
+  return baseURL;
+};
+
+/**
  * 순환 의존성 방지를 위한 bare axios 인스턴스
  * 토큰 갱신 요청에만 사용 (인터셉터 없음)
  */
 const bareAxios = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:8080",
+  baseURL: getDynamicBaseURL(),
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
@@ -49,7 +66,7 @@ const bareAxios = axios.create({
  * 토큰 자동 관리 및 갱신 로직 포함
  */
 const axiosInstance: AxiosInstance = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:8080",
+  baseURL: getDynamicBaseURL(),
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
@@ -178,8 +195,14 @@ export const apiClient = {
     url: string,
     params?: Record<string, any>,
   ): Promise<T> => {
-    const response = await axiosInstance.get(url, { params });
-    return response.data;
+    try {
+      const response = await axiosInstance.get(url, { params });
+      return response.data;
+    } catch (error) {
+      console.error(`GET ${url} 요청 실패:`, error);
+      // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
+      throw error;
+    }
   },
 
   /**
@@ -189,24 +212,42 @@ export const apiClient = {
     url: string,
     data?: Record<string, any>,
   ): Promise<T> => {
-    const response = await axiosInstance.post(url, data);
-    return response.data;
+    try {
+      const response = await axiosInstance.post(url, data);
+      return response.data;
+    } catch (error) {
+      console.error(`POST ${url} 요청 실패:`, error);
+      // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
+      throw error;
+    }
   },
 
   /**
    * PUT 요청
    */
   put: async <T = any>(url: string, data?: Record<string, any>): Promise<T> => {
-    const response = await axiosInstance.put(url, data);
-    return response.data;
+    try {
+      const response = await axiosInstance.put(url, data);
+      return response.data;
+    } catch (error) {
+      console.error(`PUT ${url} 요청 실패:`, error);
+      // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
+      throw error;
+    }
   },
 
   /**
    * DELETE 요청
    */
   delete: async <T = any>(url: string): Promise<T> => {
-    const response = await axiosInstance.delete(url);
-    return response.data;
+    try {
+      const response = await axiosInstance.delete(url);
+      return response.data;
+    } catch (error) {
+      console.error(`DELETE ${url} 요청 실패:`, error);
+      // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
+      throw error;
+    }
   },
 
   /**
@@ -216,8 +257,14 @@ export const apiClient = {
     url: string,
     data?: Record<string, any>,
   ): Promise<T> => {
-    const response = await axiosInstance.patch(url, data);
-    return response.data;
+    try {
+      const response = await axiosInstance.patch(url, data);
+      return response.data;
+    } catch (error) {
+      console.error(`PATCH ${url} 요청 실패:`, error);
+      // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
+      throw error;
+    }
   },
 
   /**

@@ -125,8 +125,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setIsLoading(true);
       const response = await authSigninAPI(credentials);
 
+      // 🚨 방어 로직 추가: 통신 실패나 네트워크 에러로 undefined가 들어왔을 때 크래시 방지
+      if (!response) {
+        console.error(
+          "API 통신 실패: response가 반환되지 않았습니다. 네트워크 연결을 확인하세요.",
+        );
+        return false;
+      }
+
       if (response.resultType === "SUCCESS" && response.data) {
         const tokenData = response.data.token;
+
+        // 🚨 추가 방어 로직: tokenData가 undefined인 경우 확인
+        if (!tokenData) {
+          console.error(
+            "API 응답 오류: tokenData가 없습니다. 서버 응답을 확인하세요.",
+          );
+          return false;
+        }
 
         // TokenStore에 토큰 저장
         const success = await setTokens(
@@ -169,6 +185,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     try {
       setIsLoading(true);
       const response = await authSignupAPI(userData);
+
+      // 🚨 방어 로직 추가: 통신 실패나 네트워크 에러로 undefined가 들어왔을 때 크래시 방지
+      if (!response) {
+        console.error(
+          "API 통신 실패: response가 반환되지 않았습니다. 네트워크 연결을 확인하세요.",
+        );
+        return false;
+      }
 
       if (response.resultType === "SUCCESS" && response.data) {
         // 회원가입 성공 후 자동 로그인
