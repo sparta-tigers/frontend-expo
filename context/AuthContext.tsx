@@ -1,24 +1,24 @@
 import {
-    authSigninAPI,
-    authSignoutAPI,
-    authSignupAPI,
+  authSigninAPI,
+  authSignoutAPI,
+  authSignupAPI,
 } from "@/src/features/auth/api";
 import {
-    AuthSigninRequest,
-    AuthSignupRequest,
+  AuthSigninRequest,
+  AuthSignupRequest,
 } from "@/src/features/auth/types";
 import React, {
-    createContext,
-    ReactNode,
-    useContext,
-    useEffect,
-    useState,
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
 } from "react";
 import {
-    clearTokens,
-    getAccessToken,
-    getRefreshToken,
-    setTokens,
+  clearTokens,
+  getAccessToken,
+  getRefreshToken,
+  setTokens,
 } from "../src/utils/tokenStore";
 
 /**
@@ -123,23 +123,36 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const signin = async (credentials: AuthSigninRequest): Promise<boolean> => {
     try {
       setIsLoading(true);
-      const response = await authSigninAPI(credentials);
+
+      // 🚨 3단계: 로그인 페이로드 정제 (trim 처리)
+      const trimmedCredentials = {
+        email: credentials.email.trim(),
+        password: credentials.password.trim(),
+      };
+
+      const response = await authSigninAPI(trimmedCredentials);
 
       // 🚨 방어 로직 추가: 통신 실패나 네트워크 에러로 undefined가 들어왔을 때 크래시 방지
       if (!response) {
         console.error(
-          "API 통신 실패: response가 반환되지 않았습니다. 네트워크 연결을 확인하세요.",
+          "로그인 실패: 서버로부터 응답을 받지 못했습니다 (API 에러 로그 확인).",
         );
         return false;
       }
 
       if (response.resultType === "SUCCESS" && response.data) {
-        const tokenData = response.data.token;
+        // 🚨 1단계: 응답 구조 유연성 확보
+        // 1. 응답 데이터 구조가 { data: { token: { accessToken... } } } 인 경우
+        // 2. 응답 데이터 구조가 { data: { accessToken... } } 인 경우
+        // 3. 응답 데이터 구조가 바로 { accessToken... } } 인 경우
+        const rawData =
+          (response.data as any)?.data || response.data || response;
+        const tokenData = rawData.token || rawData;
 
-        // 🚨 추가 방어 로직: tokenData가 undefined인 경우 확인
-        if (!tokenData) {
+        if (!tokenData || !tokenData.accessToken || !tokenData.refreshToken) {
           console.error(
-            "API 응답 오류: tokenData가 없습니다. 서버 응답을 확인하세요.",
+            "🚨 [파싱 실패] 토큰 정보가 불완전합니다. 현재 구조:",
+            JSON.stringify(response, null, 2),
           );
           return false;
         }
@@ -158,7 +171,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         setUser({
           accessToken: tokenData.accessToken,
           refreshToken: tokenData.refreshToken,
-          email: credentials.email, // 이메일 정보 추가
+          email: trimmedCredentials.email, // 정제된 이메일 정보 추가
         });
 
         return true;
