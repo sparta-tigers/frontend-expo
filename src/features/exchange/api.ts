@@ -8,6 +8,7 @@ import {
   Item,
   ItemCategory,
   UpdateExchangeStatusDto,
+  UpdateItemRequest,
   UserLocation,
 } from "./types";
 
@@ -103,7 +104,7 @@ export async function itemsCreateAPI(
  */
 export async function itemsUpdateAPI(
   itemId: number,
-  request: Partial<CreateItemRequest>,
+  request: UpdateItemRequest,
 ): Promise<ApiResponse<Item>> {
   return apiClient.patch(`/api/v1/items/${itemId}`, request);
 }

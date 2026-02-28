@@ -29,6 +29,16 @@ export interface CreateItemRequest {
   location: LocationDto;
 }
 
+/**
+ * 아이템 수정 요청 타입
+ * 백엔드 UpdateItemRequestDto 스펙에 맞춰 정의
+ */
+export interface UpdateItemRequest {
+  category: ItemCategory; // 백엔드는 category 필드명 사용
+  title?: string; // 수정 시 선택적 필드
+  description?: string; // 수정 시 선택적 필드
+}
+
 export interface Item {
   id: number;
   category: ItemCategory;

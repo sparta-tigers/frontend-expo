@@ -3,11 +3,8 @@ import { Card } from "@/components/ui/card";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
-import {
-  itemsGetDetailAPI,
-  itemsUpdateAPI
-} from "@/src/features/exchange/api";
-import { Item, CreateItemRequest } from "@/src/features/exchange/types";
+import { itemsGetDetailAPI, itemsUpdateAPI } from "@/src/features/exchange/api";
+import { Item, UpdateItemRequest } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
@@ -39,7 +36,7 @@ export default function EditItemScreen() {
   const [item, setItem] = useState<Item | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  
+
   // 폼 상태
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -54,7 +51,7 @@ export default function EditItemScreen() {
       if (response.resultType === "SUCCESS" && response.data) {
         const itemData = response.data;
         setItem(itemData);
-        
+
         // 폼 초기화
         setTitle(itemData.title);
         setDescription(itemData.description);
@@ -103,25 +100,21 @@ export default function EditItemScreen() {
         onPress: async () => {
           setSaving(true);
           try {
-            const request: Partial<CreateItemRequest> = {
+            const request: UpdateItemRequest = {
+              category: category, // 백엔드 UpdateItemRequestDto 스펙에 맞는 필드명
               title: title.trim(),
               description: description.trim(),
-              itemCategory: category,
             };
 
             const response = await itemsUpdateAPI(item.id, request);
 
             if (response.resultType === "SUCCESS") {
-              Alert.alert(
-                "수정 완료",
-                "아이템이 성공적으로 수정되었습니다.",
-                [
-                  {
-                    text: "확인",
-                    onPress: () => router.back(),
-                  },
-                ],
-              );
+              Alert.alert("수정 완료", "아이템이 성공적으로 수정되었습니다.", [
+                {
+                  text: "확인",
+                  onPress: () => router.back(),
+                },
+              ]);
             } else {
               Alert.alert("오류", "아이템 수정에 실패했습니다.");
             }
@@ -244,9 +237,7 @@ export default function EditItemScreen() {
                     styles.categoryText,
                     {
                       color:
-                        category === "TICKET"
-                          ? colors.background
-                          : colors.text,
+                        category === "TICKET" ? colors.background : colors.text,
                     },
                   ]}
                 >
@@ -269,9 +260,7 @@ export default function EditItemScreen() {
                     styles.categoryText,
                     {
                       color:
-                        category === "GOODS"
-                          ? colors.background
-                          : colors.text,
+                        category === "GOODS" ? colors.background : colors.text,
                     },
                   ]}
                 >
