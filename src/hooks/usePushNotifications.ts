@@ -1,7 +1,26 @@
 import Constants from "expo-constants";
 import * as Device from "expo-device";
-import * as Notifications from "expo-notifications";
 import { useEffect, useState } from "react";
+import { Platform } from "react-native";
+
+// 타입 정의
+interface NotificationType {
+  request: {
+    content: {
+      title: string;
+      body: string;
+      data?: any;
+    };
+  };
+}
+
+// 안드로이드 Expo Go 환경에서 푸시 알림 임포트 방어
+let Notifications: any = null;
+try {
+  Notifications = require("expo-notifications");
+} catch (error) {
+  console.warn("expo-notifications를 임포트할 수 없습니다:", error);
+}
 
 /**
  * 푸시 알림 훅
@@ -9,16 +28,28 @@ import { useEffect, useState } from "react";
  */
 export function usePushNotifications() {
   const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
-  const [notification, setNotification] =
-    useState<Notifications.Notification | null>(null);
+  const [notification, setNotification] = useState<NotificationType | null>(
+    null,
+  );
 
   useEffect(() => {
-    let notificationListener: Notifications.Subscription | undefined;
-    let responseListener: Notifications.Subscription | undefined;
+    // 안드로이드 Expo Go 환경에서는 푸시 알림 기능 스킵
+    if (Platform.OS === "android" && __DEV__ && !Notifications) {
+      console.log("안드로이드 Expo Go 환경: 푸시 알림 기능이 제한됩니다.");
+      return;
+    }
+
+    let notificationListener: any = undefined;
+    let responseListener: any = undefined;
 
     // 권한 요청 및 토큰 발급 비동기 함수
     const registerForPushNotificationsAsync = async () => {
       try {
+        if (!Notifications) {
+          console.log("푸시 알림 모듈을 사용할 수 없습니다.");
+          return null;
+        }
+
         // 1. 권한 요청
         const { status } = await Notifications.requestPermissionsAsync();
         if (status !== "granted") {
@@ -62,7 +93,7 @@ export function usePushNotifications() {
 
     // 채널 설정 (Android)
     const setupNotificationChannel = async () => {
-      if (Device.osName === "Android") {
+      if (Device.osName === "Android" && Notifications) {
         try {
           await Notifications.setNotificationChannelAsync("default", {
             name: "default",
@@ -79,19 +110,24 @@ export function usePushNotifications() {
     setupNotificationChannel();
 
     // 리스너 등록
-    notificationListener = Notifications.addNotificationReceivedListener(
-      (receivedNotification) => {
-        console.log("알림 수신:", receivedNotification);
-        setNotification(receivedNotification);
-      },
-    );
+    if (Notifications) {
+      notificationListener = Notifications.addNotificationReceivedListener(
+        (receivedNotification: NotificationType) => {
+          console.log("알림 수신:", receivedNotification);
+          setNotification(receivedNotification);
+        },
+      );
 
-    responseListener = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
-        console.log("알림 응답:", response);
-        // TODO: 알림 클릭 시 처리 로직 추가
-      },
-    );
+      responseListener = Notifications.addNotificationResponseReceivedListener(
+        (response: {
+          notification: NotificationType;
+          actionIdentifier?: string;
+        }) => {
+          console.log("알림 응답:", response);
+          // TODO: 알림 클릭 시 처리 로직 추가
+        },
+      );
+    }
 
     // Cleanup 함수
     return () => {
