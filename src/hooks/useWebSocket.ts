@@ -1,6 +1,7 @@
 import { getAccessToken } from "@/src/utils/tokenStore";
 import { Client } from "@stomp/stompjs";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Platform } from "react-native";
 import SockJS from "sockjs-client";
 
 /**
@@ -39,26 +40,48 @@ const checkPolyfills = () => {
 };
 
 /**
- * URL 프로토콜 처리
- * http/https -> SockJS 호환, ws/wss -> 직접 연결
+ * 동적 WebSocket URL 설정
+ * 개발 환경의 안드로이드 에뮬레이터에서는 10.0.2.2로 강제 설정
  */
-const normalizeUrl = (url?: string): string => {
+const getDynamicWebSocketURL = (url?: string): string => {
   const defaultUrl = "ws://localhost:8080/ws";
 
-  if (!url) return defaultUrl;
+  if (!url) {
+    // 개발 환경의 안드로이드 에뮬레이터용 핫픽스
+    if (__DEV__ && Platform.OS === "android") {
+      return "http://10.0.2.2:8080/ws";
+    }
+    return defaultUrl;
+  }
 
   // http/https로 시작하면 SockJS 사용 (백엔드 핸드셰이크 호환)
   if (url.startsWith("http://") || url.startsWith("https://")) {
+    // 개발 환경의 안드로이드 에뮬레이터용 핫픽스
+    if (__DEV__ && Platform.OS === "android") {
+      return url.replace(/:\/\/[^:]+:\d+/, "://10.0.2.2:8080");
+    }
     return url;
   }
 
   // ws/wss로 시작하면 그대로 사용 (직접 WebSocket)
   if (url.startsWith("ws://") || url.startsWith("wss://")) {
+    // 개발 환경의 안드로이드 에뮬레이터용 핫픽스
+    if (__DEV__ && Platform.OS === "android") {
+      return url.replace(/:\/\/[^:]+:\d+/, "://10.0.2.2:8080");
+    }
     return url;
   }
 
   // 그 외의 경우 기본값 사용
   return defaultUrl;
+};
+
+/**
+ * URL 프로토콜 처리
+ * http/https -> SockJS 호환, ws/wss -> 직접 연결
+ */
+const normalizeUrl = (url?: string): string => {
+  return getDynamicWebSocketURL(url);
 };
 
 /**
