@@ -131,9 +131,33 @@ export async function initializeTokenCache(): Promise<void> {
   _accessToken = null;
   _refreshToken = null;
 
-  // 비동기로 미리 로드 (await 하지 않음)
-  getAccessToken().catch(console.error);
-  getRefreshToken().catch(console.error);
+  // 🚨 디버깅 로그: 초기화 상태 확인
+  if (__DEV__) {
+    console.log("🔍 [Token Cache] 메모리 캐시 초기화 완료");
+  }
+
+  // SecureStore에서 토큰 미리 로드
+  try {
+    const accessToken = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+    const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+
+    if (accessToken && refreshToken) {
+      _accessToken = accessToken;
+      _refreshToken = refreshToken;
+
+      if (__DEV__) {
+        console.log("🔍 [Token Cache] SecureStore에서 토큰 로드 완료");
+        console.log("- Access Token:", accessToken.substring(0, 20) + "...");
+        console.log("- Refresh Token:", refreshToken.substring(0, 20) + "...");
+      }
+    } else {
+      if (__DEV__) {
+        console.log("🔍 [Token Cache] SecureStore에 토큰이 없습니다");
+      }
+    }
+  } catch (error) {
+    console.error("토큰 캐시 초기화 실패:", error);
+  }
 }
 
 /**

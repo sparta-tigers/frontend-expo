@@ -3,20 +3,27 @@ import { SafeLayout } from "@/components/ui/safe-layout";
 import { SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import {
-  usersDeleteAccountAPI,
-  usersUpdateProfileAPI,
+    usersDeleteAccountAPI,
+    usersUpdateProfileAPI,
 } from "@/src/features/auth/api";
 import { UserProfileUpdateRequest } from "@/src/features/auth/types";
 import { FavoriteTeam, KBO_TEAMS } from "@/src/features/user/favorite-team";
 import {
-  favoriteTeamAddAPI,
-  favoriteTeamDeleteAPI,
-  favoriteTeamGetListAPI,
+    favoriteTeamAddAPI,
+    favoriteTeamDeleteAPI,
+    favoriteTeamGetListAPI,
 } from "@/src/features/user/favorite-team-api";
 import { useAuth } from "@/src/hooks/useAuth";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+    Alert,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 export default function ProfileScreen() {
   const { colors } = useTheme();
@@ -268,7 +275,11 @@ export default function ProfileScreen() {
           </View>
 
           {/* 게스트 상태 콘텐츠 */}
-          <View style={styles.content}>
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
             <View style={[styles.guestCard, { backgroundColor: colors.card }]}>
               <View
                 style={[styles.guestAvatar, { backgroundColor: colors.muted }]}
@@ -301,7 +312,7 @@ export default function ProfileScreen() {
                 회원가입
               </Button>
             </View>
-          </View>
+          </ScrollView>
         </View>
       </SafeLayout>
     );
@@ -320,8 +331,13 @@ export default function ProfileScreen() {
           <View style={styles.navSpacer} />
         </View>
 
-        {/* 사용자 정보 */}
-        <View style={styles.content}>
+        {/* 스크롤 가능한 콘텐츠 */}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* 사용자 정보 */}
           <View style={[styles.profileCard, { backgroundColor: colors.card }]}>
             <View style={styles.profileHeader}>
               <View
@@ -548,7 +564,7 @@ export default function ProfileScreen() {
               로그아웃
             </Text>
           </Button>
-        </View>
+        </ScrollView>
       </View>
     </SafeLayout>
   );
@@ -557,6 +573,14 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  // 스크롤뷰 스타일
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: SPACING.SCREEN,
+    paddingBottom: SPACING.SCREEN * 2, // 하단 여백 추가
   },
   // 상단 네비게이션
   topNav: {
@@ -573,11 +597,7 @@ const styles = StyleSheet.create({
   navSpacer: {
     width: 40, // 버튼과 동일한 너비로 정렬 맞춤
   },
-  // 콘텐츠 영역
-  content: {
-    flex: 1,
-    padding: SPACING.SCREEN,
-  },
+  // 콘텐츠 영역 (기존 content 스타일 제거됨)
   // 게스트 상태
   guestCard: {
     borderRadius: 16,

@@ -1,24 +1,24 @@
 import {
-  authSigninAPI,
-  authSignoutAPI,
-  authSignupAPI,
+    authSigninAPI,
+    authSignoutAPI,
+    authSignupAPI,
 } from "@/src/features/auth/api";
 import {
-  AuthSigninRequest,
-  AuthSignupRequest,
+    AuthSigninRequest,
+    AuthSignupRequest,
 } from "@/src/features/auth/types";
 import React, {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
+    createContext,
+    ReactNode,
+    useContext,
+    useEffect,
+    useState,
 } from "react";
 import {
-  clearTokens,
-  getAccessToken,
-  getRefreshToken,
-  setTokens,
+    clearTokens,
+    getAccessToken,
+    getRefreshToken,
+    setTokens,
 } from "../src/utils/tokenStore";
 
 /**
@@ -94,8 +94,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setIsLoading(true);
       const accessToken = await getAccessToken();
 
+      if (__DEV__) {
+        console.log("🔍 [AuthContext] 토큰 로드 시도");
+        console.log("- Access Token 존재 여부:", !!accessToken);
+      }
+
       if (accessToken) {
         const refreshToken = await getRefreshToken();
+
+        if (__DEV__) {
+          console.log("- Refresh Token 존재 여부:", !!refreshToken);
+        }
 
         if (refreshToken) {
           setUser({
@@ -103,6 +112,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
             refreshToken,
             email: "",
           });
+
+          if (__DEV__) {
+            console.log(
+              "✅ [AuthContext] 토큰 로드 성공 - 사용자 상태 설정 완료",
+            );
+          }
+        } else {
+          if (__DEV__) {
+            console.warn(
+              "⚠️ [AuthContext] Access Token은 있지만 Refresh Token이 없습니다",
+            );
+          }
+        }
+      } else {
+        if (__DEV__) {
+          console.log("🔍 [AuthContext] 저장된 토큰이 없습니다 (로그인 필요)");
         }
       }
     } catch (error) {
@@ -167,12 +192,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           return false;
         }
 
+        // 🚨 디버깅 로그: 토큰 저장 상태 확인
+        if (__DEV__) {
+          console.log("✅ [AuthContext] 토큰 저장 성공");
+          console.log("- Access Token 길이:", tokenData.accessToken.length);
+          console.log("- Refresh Token 길이:", tokenData.refreshToken.length);
+        }
+
         // 상태 업데이트
         setUser({
           accessToken: tokenData.accessToken,
           refreshToken: tokenData.refreshToken,
           email: trimmedCredentials.email, // 정제된 이메일 정보 추가
         });
+
+        if (__DEV__) {
+          console.log(
+            "✅ [AuthContext] 사용자 상태 업데이트 완료 - 로그인 성공",
+          );
+        }
 
         return true;
       } else {
