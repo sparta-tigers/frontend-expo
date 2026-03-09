@@ -1,11 +1,15 @@
 import { CombinedProvider } from "@/components/providers/combined-provider";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/hooks/useThemeColor";
+import { ErrorBoundaryFallback } from "@/src/components/shared/ErrorBoundaryFallback";
+import { OfflineBanner } from "@/src/components/shared/OfflineBanner";
 import { usePushNotifications } from "@/src/hooks/usePushNotifications";
+import { useNetInfo } from "@react-native-community/netinfo";
 import * as Notifications from "expo-notifications";
 import { router, Slot, useSegments } from "expo-router";
 import "fast-text-encoding";
 import { useEffect, useRef } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import { ActivityIndicator, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
@@ -30,6 +34,9 @@ function RootLayoutInner() {
   const { expoPushToken } = usePushNotifications();
   const colors = useTheme();
   const segments = useSegments();
+
+  // 🚨 앙드레 카파시: 네트워크 상태 감지
+  const netInfo = useNetInfo();
 
   // 🚨 앙드레 카파시: 네비게이터 준비 상태 추적
   const navigationReady = useRef(false);
@@ -116,41 +123,46 @@ function RootLayoutInner() {
     );
   }
 
-  // 🚨 앙드레 카파시: 기본 렌더링 (Redirect는 useEffect에서 처리)
+  // 🚨 앙드레 카파시: Error Boundary로 전체 앱 감싸기
   return (
-    <SafeAreaProvider>
-      <SafeAreaView
-        style={{ flex: 1, backgroundColor: colors.background }}
-        edges={["top", "left", "right"]}
-      >
-        {/* 1. 고정 헤더 (SafeArea 보호) */}
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            paddingHorizontal: 20,
-            paddingVertical: 15,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.border,
-          }}
+    <ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
+      <SafeAreaProvider>
+        <SafeAreaView
+          style={{ flex: 1, backgroundColor: colors.background }}
+          edges={["top", "left", "right"]}
         >
-          <Text
+          {/* 🚨 앙드레 카파시: 오프라인 배너 */}
+          {!netInfo.isConnected && <OfflineBanner />}
+
+          {/* 1. 고정 헤더 (SafeArea 보호) */}
+          <View
             style={{
-              fontSize: 20,
-              fontWeight: "bold",
-              color: colors.primary,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              paddingHorizontal: 20,
+              paddingVertical: 15,
+              borderBottomWidth: 1,
+              borderBottomColor: colors.border,
             }}
           >
-            YAGUNIV
-          </Text>
-        </View>
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: "bold",
+                color: colors.primary,
+              }}
+            >
+              YAGUNIV
+            </Text>
+          </View>
 
-        {/* 2. 하위 라우팅 화면 */}
-        <View style={{ flex: 1, backgroundColor: colors.background }}>
-          <Slot />
-        </View>
-      </SafeAreaView>
-    </SafeAreaProvider>
+          {/* 2. 하위 라우팅 화면 */}
+          <View style={{ flex: 1, backgroundColor: colors.background }}>
+            <Slot />
+          </View>
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }

@@ -1,5 +1,6 @@
 import Constants from "expo-constants";
 import * as Device from "expo-device";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Platform } from "react-native";
 
@@ -12,6 +13,11 @@ interface NotificationType {
       data?: any;
     };
   };
+}
+
+interface NotificationResponse {
+  notification: NotificationType;
+  actionIdentifier?: string;
 }
 
 // 안드로이드 Expo Go 환경에서 푸시 알림 임포트 방어
@@ -31,6 +37,7 @@ export function usePushNotifications() {
   const [notification, setNotification] = useState<NotificationType | null>(
     null,
   );
+  const router = useRouter();
 
   useEffect(() => {
     // 안드로이드 Expo Go 환경에서는 푸시 알림 기능 스킵
@@ -88,6 +95,7 @@ export function usePushNotifications() {
       if (token) {
         setExpoPushToken(token);
         console.log("Expo Push Token:", token);
+        // TODO: 백엔드로 토큰 전송 API 연동
       }
     });
 
@@ -118,13 +126,20 @@ export function usePushNotifications() {
         },
       );
 
+      // 🚨 앙드레 카파시: 알림 응답 리스너 (딥링킹)
       responseListener = Notifications.addNotificationResponseReceivedListener(
-        (response: {
-          notification: NotificationType;
-          actionIdentifier?: string;
-        }) => {
+        (response: NotificationResponse) => {
           console.log("알림 응답:", response);
-          // TODO: 알림 클릭 시 처리 로직 추가
+
+          // 🚨 앙드레 카파시: 딥링킹 처리
+          const { roomId } = response.notification.request.content.data || {};
+          if (roomId) {
+            console.log("🔗 [Deep Link] 채팅방으로 이동:", roomId);
+            router.push(`/exchange/chat/${roomId}`);
+          } else {
+            console.log("🔗 [Deep Link] roomId가 없어 기본 화면으로 이동");
+            router.push("/(tabs)");
+          }
         },
       );
     }
@@ -138,7 +153,7 @@ export function usePushNotifications() {
         responseListener.remove();
       }
     };
-  }, []);
+  }, [router]);
 
   return {
     expoPushToken,
