@@ -3,7 +3,6 @@ import {
   getAccessToken,
   getRefreshToken,
   setTokens,
-  validateTokenFormat,
 } from "@/src/utils/tokenStore";
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import { Platform } from "react-native";
@@ -77,13 +76,86 @@ const axiosInstance: AxiosInstance = axios.create({
 /**
  * 요청 인터셉터: TokenStore에서 accessToken 가져와 헤더에 추가
  */
+// 🚨 앙드레 카파시: 토큰 검증 캐싱 시스템
+const tokenValidationCache = new Map<string, boolean>();
+const TOKEN_CACHE_MAX_SIZE = 100;
+
+/**
+ * JWT 토큰 형식 검증
+ * @param token - 검증할 JWT 토큰
+ * @returns 형식 유효 여부
+ */
+export const validateTokenFormat = (token: string): boolean => {
+  if (!token || typeof token !== "string") return false;
+
+  try {
+    // JWT 기본 구조 검증 (header.payload.signature)
+    const parts = token.split(".");
+    if (parts.length !== 3) return false;
+
+    // 각 부분이 base64url 인코딩되었는지 검증
+    parts.forEach((part) => {
+      // base64url 패딩 추가
+      const padded = part + "=".repeat((4 - (part.length % 4)) % 4);
+      // base64url -> base64 변환 후 디코딩 테스트
+      const base64 = padded.replace(/-/g, "+").replace(/_/g, "/");
+      atob(base64);
+    });
+
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * 캐싱된 토큰 검증
+ * 동일한 토큰의 반복 검증을 방지하여 성능 최적화
+ */
+const validateTokenFormatCached = (token: string): boolean => {
+  // 캐시에서 결과 확인
+  if (tokenValidationCache.has(token)) {
+    return tokenValidationCache.get(token)!;
+  }
+
+  // 캐시 크기 제한 (LRU 방식)
+  if (tokenValidationCache.size >= TOKEN_CACHE_MAX_SIZE) {
+    const firstKey = tokenValidationCache.keys().next().value;
+    if (firstKey) {
+      tokenValidationCache.delete(firstKey);
+    }
+  }
+
+  // 토큰 검증 및 캐싱
+  const isValid = validateTokenFormat(token);
+  tokenValidationCache.set(token, isValid);
+
+  return isValid;
+};
+
+/**
+ * 중요 API 엔드포인트 여부 확인
+ * 중요한 API 호출 시에만 상세 로그 출력
+ */
+const shouldLogTokenValidation = (url?: string): boolean => {
+  if (!url) return false;
+
+  const criticalEndpoints = [
+    "/api/v1/auth/",
+    "/api/v1/items",
+    "/api/v1/users/me",
+  ];
+
+  return criticalEndpoints.some((endpoint) => url.includes(endpoint));
+};
+
 axiosInstance.interceptors.request.use(
   async (config) => {
     try {
       const accessToken = await getAccessToken();
       if (accessToken) {
-        // 토큰 형식 사전 검증
-        const isTokenValid = validateTokenFormat(accessToken);
+        // 🚨 앙드레 카파시: 캐싱된 토큰 검증
+        const isTokenValid = validateTokenFormatCached(accessToken);
 
         if (!isTokenValid) {
           console.error(
@@ -97,8 +169,8 @@ axiosInstance.interceptors.request.use(
 
         config.headers.Authorization = `Bearer ${accessToken}`;
 
-        // 🚨 디버깅 로그: Authorization 헤더 형식 확인
-        if (__DEV__) {
+        // 🚨 앙드레 카파시: 조건부 디버깅 로그
+        if (__DEV__ && shouldLogTokenValidation(config.url)) {
           console.log(
             "🔍 [Authorization Header]",
             config.headers.Authorization,
@@ -114,8 +186,8 @@ axiosInstance.interceptors.request.use(
           );
         }
       } else {
-        // 🚨 토큰 없음 경고
-        if (__DEV__) {
+        // 🚨 토큰 없음 경고 (중요 API 호출 시만)
+        if (__DEV__ && shouldLogTokenValidation(config.url)) {
           console.warn("⚠️ [Token Missing] 액세스 토큰이 없습니다.");
         }
       }

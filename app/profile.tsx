@@ -3,26 +3,26 @@ import { SafeLayout } from "@/components/ui/safe-layout";
 import { SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import {
-    usersDeleteAccountAPI,
-    usersUpdateProfileAPI,
+  usersDeleteAccountAPI,
+  usersUpdateProfileAPI,
 } from "@/src/features/auth/api";
 import { UserProfileUpdateRequest } from "@/src/features/auth/types";
 import { FavoriteTeam, KBO_TEAMS } from "@/src/features/user/favorite-team";
 import {
-    favoriteTeamAddAPI,
-    favoriteTeamDeleteAPI,
-    favoriteTeamGetListAPI,
+  favoriteTeamAddAPI,
+  favoriteTeamDeleteAPI,
+  favoriteTeamGetListAPI,
 } from "@/src/features/user/favorite-team-api";
 import { useAuth } from "@/src/hooks/useAuth";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function ProfileScreen() {
@@ -68,7 +68,7 @@ export default function ProfileScreen() {
             }
 
             // 임시로 사용자 이메일을 닉네임 대신 사용 (SimpleToken 타입에는 nickname이 없음)
-            const currentNickname = user?.email.split("@")[0] || "";
+            const currentNickname = user?.email?.split("@")[0] || "";
             if (newNickname.trim() === currentNickname) {
               Alert.alert("알림", "동일한 닉네임입니다.");
               return;
@@ -106,7 +106,7 @@ export default function ProfileScreen() {
         },
       ],
       "plain-text",
-      user?.email.split("@")[0] || "",
+      user?.email?.split("@")[0] || "",
     );
   };
 
