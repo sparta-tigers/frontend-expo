@@ -48,7 +48,7 @@ export default function SigninScreen() {
         if (__DEV__) {
           console.log("🔍 [Signin] 지연된 리디렉션 실행:", href);
         }
-        router.replace(href);
+        router.replace(href as any);
       }, 200);
       return;
     }
@@ -56,7 +56,7 @@ export default function SigninScreen() {
     if (__DEV__) {
       console.log("🔍 [Signin] 즉시 리디렉션 실행:", href);
     }
-    router.replace(href);
+    router.replace(href as any);
   };
 
   const handleSignin = async () => {

@@ -25,6 +25,10 @@ interface InputProps {
   style?: any;
   /** 라벨 텍스트 */
   label?: string;
+  /** 여러 줄 입력 */
+  multiline?: boolean;
+  /** 줄 수 */
+  numberOfLines?: number;
 }
 
 /**
@@ -46,6 +50,8 @@ export const Input: React.FC<InputProps> = ({
   fullWidth = false,
   style,
   label,
+  multiline = false,
+  numberOfLines,
 }) => {
   const inputProps: any = {
     value,
@@ -56,6 +62,8 @@ export const Input: React.FC<InputProps> = ({
     error,
     mode: "outlined" as const,
     keyboardType,
+    multiline,
+    numberOfLines,
     style: fullWidth ? { width: "100%" } : style,
   };
 

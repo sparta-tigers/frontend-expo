@@ -27,6 +27,8 @@ export interface CreateItemRequest {
   title: string;
   description: string;
   location: LocationDto;
+  images?: string[]; // 이미지 배열 추가
+  desiredItem?: string; // 희망 교환 물품 추가
 }
 
 /**
@@ -46,6 +48,8 @@ export interface Item {
   description: string;
   location: LocationDto;
   imageUrl?: string;
+  images?: string[]; // 이미지 배열 추가
+  desiredItem?: string; // 희망 교환 물품 추가
   status: "REGISTERED" | "EXCHANGE_COMPLETED" | "EXCHANGE_FAILED";
   createdAt: string;
   updatedAt: string;
@@ -53,6 +57,7 @@ export interface Item {
   user: {
     id: number;
     nickname: string;
+    profileImage?: string; // 프로필 이미지 추가
   };
 }
 
