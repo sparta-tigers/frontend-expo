@@ -1,35 +1,35 @@
 import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import {
-  BORDER_RADIUS,
-  FONT_SIZE,
-  SHADOW,
-  SPACING,
+    BORDER_RADIUS,
+    FONT_SIZE,
+    SHADOW,
+    SPACING,
 } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import {
-  exchangeGetReceivedAPI,
-  exchangeUpdateStatusAPI,
-  itemsGetListAPI,
+    exchangeGetReceivedAPI,
+    exchangeUpdateStatusAPI,
+    itemsGetListAPI,
 } from "@/src/features/exchange/api";
 import {
-  ExchangeRequest,
-  ExchangeRequestStatus,
-  Item,
+    ExchangeRequest,
+    ExchangeRequestStatus,
+    Item,
 } from "@/src/features/exchange/types";
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Image,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Image,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 // 정적 스타일 정의
@@ -463,7 +463,8 @@ export default function ExchangeScreen() {
     if (itemsState.status === "idle") {
       fetchItems(loadItems(0));
     }
-  }, [itemsState.status, fetchItems, loadItems]); // 의존성 배열 추가
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 의존성 배열에서 loadItems 제거로 무한 리렌더링 방지
 
   // 에러 상태 표시 (무한 루프 방지)
   if (

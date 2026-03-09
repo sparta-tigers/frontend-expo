@@ -145,8 +145,53 @@ export function getDebugTokenState(): {
   accessToken: string | null;
   refreshToken: string | null;
 } {
+  if (__DEV__) {
+    console.log("🔍 [Token Cache State]");
+    console.log(
+      "- Access Token:",
+      _accessToken ? `${_accessToken.substring(0, 20)}...` : "null",
+    );
+    console.log(
+      "- Refresh Token:",
+      _refreshToken ? `${_refreshToken.substring(0, 20)}...` : "null",
+    );
+    console.log(
+      "- Access Token Format:",
+      _accessToken?.startsWith("eyJ") ? "JWT" : "Invalid",
+    );
+    console.log(
+      "- Refresh Token Format:",
+      _refreshToken?.startsWith("eyJ") ? "JWT" : "Invalid",
+    );
+  }
+
   return {
     accessToken: _accessToken,
     refreshToken: _refreshToken,
   };
+}
+
+/**
+ * 토큰 형식 검증 함수
+ * @param token - 검증할 토큰
+ * @returns 형식 유효성 여부
+ */
+export function validateTokenFormat(token: string | null): boolean {
+  if (!token) return false;
+
+  // JWT 토큰은 보통 3부분으로 구성 (header.payload.signature)
+  const parts = token.split(".");
+  if (parts.length !== 3) return false;
+
+  // 각 부분이 base64url 형식인지 기본 검증
+  try {
+    parts.forEach((part) => {
+      // base64url 디코딩 시도 (실패하면 에러 발생)
+      const padded = part + "=".repeat((4 - (part.length % 4)) % 4);
+      atob(padded.replace(/-/g, "+").replace(/_/g, "/"));
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }

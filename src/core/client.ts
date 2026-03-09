@@ -3,6 +3,7 @@ import {
   getAccessToken,
   getRefreshToken,
   setTokens,
+  validateTokenFormat,
 } from "@/src/utils/tokenStore";
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import { Platform } from "react-native";
@@ -81,10 +82,46 @@ axiosInstance.interceptors.request.use(
     try {
       const accessToken = await getAccessToken();
       if (accessToken) {
+        // 토큰 형식 사전 검증
+        const isTokenValid = validateTokenFormat(accessToken);
+
+        if (!isTokenValid) {
+          console.error(
+            "🚨 [Invalid Token Format] 비정상 형식의 토큰:",
+            accessToken.substring(0, 50),
+          );
+          // 토큰 형식이 비정상이면 요청 중단 및 토큰 클리어
+          await clearTokens();
+          return Promise.reject(new Error("Invalid token format"));
+        }
+
         config.headers.Authorization = `Bearer ${accessToken}`;
+
+        // 🚨 디버깅 로그: Authorization 헤더 형식 확인
+        if (__DEV__) {
+          console.log(
+            "🔍 [Authorization Header]",
+            config.headers.Authorization,
+          );
+          console.log("🔍 [Token Length]", accessToken.length);
+          console.log(
+            "🔍 [Token Format]",
+            accessToken.startsWith("eyJ") ? "JWT 형식" : "비정상 형식",
+          );
+          console.log(
+            "🔍 [Token Validation]",
+            isTokenValid ? "✅ 유효" : "❌ 무효",
+          );
+        }
+      } else {
+        // 🚨 토큰 없음 경고
+        if (__DEV__) {
+          console.warn("⚠️ [Token Missing] 액세스 토큰이 없습니다.");
+        }
       }
     } catch (error) {
       console.error("토큰 조회 실패:", error);
+      return Promise.reject(error);
     }
     return config;
   },
