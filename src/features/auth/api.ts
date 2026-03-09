@@ -24,7 +24,7 @@ import {
 export async function authSigninAPI(
   request: AuthSigninRequest,
 ): Promise<ApiResponse<AuthSigninResponse>> {
-  return apiClient.post("/api/v1/auth/login", request);
+  return apiClient.post("/api/auth/login", request);
 }
 
 /**
@@ -37,7 +37,7 @@ export async function authSigninAPI(
 export async function authSignupAPI(
   request: AuthSignupRequest,
 ): Promise<ApiResponse<AuthSignupResponse>> {
-  return apiClient.post("/api/v1/users", request);
+  return apiClient.post("/api/users", request);
 }
 
 /**
@@ -47,7 +47,7 @@ export async function authSignupAPI(
  * @returns 로그아웃 성공 응답
  */
 export async function authSignoutAPI(): Promise<ApiResponse<null>> {
-  return apiClient.post("/api/v1/auth/logout");
+  return apiClient.post("/api/auth/logout");
 }
 
 /**
@@ -62,7 +62,7 @@ export async function authSignoutAPI(): Promise<ApiResponse<null>> {
  * @returns 현재 사용자 정보
  */
 export async function usersGetMeAPI(): Promise<ApiResponse<User>> {
-  return apiClient.get("/api/v1/users/me");
+  return apiClient.get("/api/users/me");
 }
 
 /**
@@ -75,7 +75,7 @@ export async function usersGetMeAPI(): Promise<ApiResponse<User>> {
 export async function usersUpdateProfileAPI(
   request: UserProfileUpdateRequest,
 ): Promise<ApiResponse<User>> {
-  return apiClient.patch("/api/v1/users/profile", request);
+  return apiClient.patch("/api/users/profile", request);
 }
 
 /**
@@ -85,5 +85,5 @@ export async function usersUpdateProfileAPI(
  * @returns 탈퇴 처리 결과
  */
 export async function usersDeleteAccountAPI(): Promise<ApiResponse<void>> {
-  return apiClient.delete("/api/v1/users/account");
+  return apiClient.delete("/api/users/account");
 }

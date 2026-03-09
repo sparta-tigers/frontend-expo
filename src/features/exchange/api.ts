@@ -38,7 +38,7 @@ export async function itemsGetListAPI(
   if (status) params.status = status;
 
   // try-catch 제거하고 바로 리턴
-  return apiClient.get("/api/v1/items", params);
+  return apiClient.get("/api/items", params);
 }
 
 /**
@@ -51,7 +51,7 @@ export async function itemsGetListAPI(
 export async function itemsGetDetailAPI(
   itemId: number,
 ): Promise<ApiResponse<Item>> {
-  return apiClient.get(`/api/v1/items/${itemId}`);
+  return apiClient.get(`/api/items/${itemId}`);
 }
 
 /**
@@ -79,7 +79,7 @@ export async function itemsCreateAPI(
       },
     };
 
-    const response = await apiClient.post("/api/v1/items", payload);
+    const response = await apiClient.post("/api/items", payload);
     return response.data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
@@ -106,7 +106,7 @@ export async function itemsUpdateAPI(
   itemId: number,
   request: UpdateItemRequest,
 ): Promise<ApiResponse<Item>> {
-  return apiClient.patch(`/api/v1/items/${itemId}`, request);
+  return apiClient.patch(`/api/items/${itemId}`, request);
 }
 
 /**
@@ -119,7 +119,7 @@ export async function itemsUpdateAPI(
 export async function itemsDeleteAPI(
   itemId: number,
 ): Promise<ApiResponse<void>> {
-  return apiClient.delete(`/api/v1/items/${itemId}`);
+  return apiClient.delete(`/api/items/${itemId}`);
 }
 
 /**
@@ -134,7 +134,7 @@ export async function itemsGetMyItemsAPI(
   page: number = 0,
   size: number = 20,
 ): Promise<ApiResponse<any>> {
-  return apiClient.get("/api/v1/items/my", { page, size });
+  return apiClient.get("/api/items/my", { page, size });
 }
 
 /**
@@ -151,7 +151,7 @@ export async function itemsSearchAPI(
   page: number = 0,
   size: number = 20,
 ): Promise<ApiResponse<any>> {
-  return apiClient.get("/api/v1/items/search", { keyword, page, size });
+  return apiClient.get("/api/items/search", { keyword, page, size });
 }
 
 /**
@@ -164,7 +164,7 @@ export async function itemsSearchAPI(
 export async function itemsUpdateLocationAPI(
   location: UserLocation,
 ): Promise<ApiResponse<void>> {
-  return apiClient.post("/api/v1/items/location", location);
+  return apiClient.post("/api/items/location", location);
 }
 
 /**
@@ -182,7 +182,7 @@ export async function itemsUpdateLocationAPI(
 export async function exchangeCreateAPI(
   request: CreateExchangeDto,
 ): Promise<ApiResponse<void>> {
-  return apiClient.post("/api/v1/exchanges", request);
+  return apiClient.post("/api/exchanges", request);
 }
 
 /**
@@ -197,7 +197,7 @@ export async function exchangeGetReceivedAPI(
   page: number = 0,
   size: number = 20,
 ): Promise<ApiResponse<ExchangeRequestListResponse>> {
-  return apiClient.get("/api/v1/exchanges/receive", { page, size });
+  return apiClient.get("/api/exchanges/receive", { page, size });
 }
 
 /**
@@ -212,7 +212,7 @@ export async function exchangeUpdateStatusAPI(
   exchangeRequestId: number,
   request: UpdateExchangeStatusDto,
 ): Promise<ApiResponse<void>> {
-  return apiClient.patch(`/api/v1/exchanges/${exchangeRequestId}`, request);
+  return apiClient.patch(`/api/exchanges/${exchangeRequestId}`, request);
 }
 
 /**
@@ -225,5 +225,5 @@ export async function exchangeUpdateStatusAPI(
 export async function exchangeCompleteAPI(
   exchangeRequestId: number,
 ): Promise<ApiResponse<void>> {
-  return apiClient.patch(`/api/v1/exchanges/${exchangeRequestId}/complete`);
+  return apiClient.patch(`/api/exchanges/${exchangeRequestId}/complete`);
 }

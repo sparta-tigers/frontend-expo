@@ -140,11 +140,7 @@ const validateTokenFormatCached = (token: string): boolean => {
 const shouldLogTokenValidation = (url?: string): boolean => {
   if (!url) return false;
 
-  const criticalEndpoints = [
-    "/api/v1/auth/",
-    "/api/v1/items",
-    "/api/v1/users/me",
-  ];
+  const criticalEndpoints = ["/api/auth/", "/api/items", "/api/users/me"];
 
   return criticalEndpoints.some((endpoint) => url.includes(endpoint));
 };
@@ -244,7 +240,7 @@ axiosInstance.interceptors.response.use(
         }
 
         // bare axios로 갱신 요청 (순환 의존성 방지)
-        const refreshResponse = await bareAxios.post("/api/v1/auth/refresh", {
+        const refreshResponse = await bareAxios.post("/api/auth/refresh", {
           refreshToken,
         });
 

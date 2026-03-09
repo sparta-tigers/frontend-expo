@@ -6,14 +6,14 @@
 import { apiClient } from "@/src/core/client";
 import type { ApiResponse } from "@/src/shared/types/common";
 import {
-  FavoriteTeam,
   AddFavoriteTeamRequest,
+  FavoriteTeam,
   UpdateFavoriteTeamRequest,
 } from "./favorite-team";
 
 /**
  * 즐겨찾기 팀 추가 API
- * POST /api/v1/favorite-teams
+ * POST /api/favorite-teams
  *
  * @param request - 즐겨찾기 팀 추가 요청 데이터
  * @returns 추가된 즐겨찾기 팀 정보
@@ -21,24 +21,24 @@ import {
 export async function favoriteTeamAddAPI(
   request: AddFavoriteTeamRequest,
 ): Promise<ApiResponse<FavoriteTeam>> {
-  return apiClient.post("/api/v1/favorite-teams", request);
+  return apiClient.post("/api/favorite-teams", request);
 }
 
 /**
  * 내 즐겨찾기 팀 목록 조회 API
- * GET /api/v1/favorite-teams
+ * GET /api/favorite-teams
  *
  * @returns 내 즐겨찾기 팀 목록
  */
 export async function favoriteTeamGetListAPI(): Promise<
   ApiResponse<FavoriteTeam[]>
 > {
-  return apiClient.get("/api/v1/favorite-teams");
+  return apiClient.get("/api/favorite-teams");
 }
 
 /**
  * 즐겨찾기 팀 수정 API
- * PATCH /api/v1/favorite-teams/{teamId}
+ * PATCH /api/favorite-teams/{teamId}
  *
  * @param teamId - 즐겨찾기 팀 고유 ID
  * @param request - 즐겨찾기 팀 수정 요청 데이터
@@ -48,12 +48,12 @@ export async function favoriteTeamUpdateAPI(
   teamId: number,
   request: UpdateFavoriteTeamRequest,
 ): Promise<ApiResponse<FavoriteTeam>> {
-  return apiClient.patch(`/api/v1/favorite-teams/${teamId}`, request);
+  return apiClient.patch(`/api/favorite-teams/${teamId}`, request);
 }
 
 /**
  * 즐겨찾기 팀 삭제 API
- * DELETE /api/v1/favorite-teams/{teamId}
+ * DELETE /api/favorite-teams/{teamId}
  *
  * @param teamId - 즐겨찾기 팀 고유 ID
  * @returns 삭제 처리 결과
@@ -61,5 +61,5 @@ export async function favoriteTeamUpdateAPI(
 export async function favoriteTeamDeleteAPI(
   teamId: number,
 ): Promise<ApiResponse<void>> {
-  return apiClient.delete(`/api/v1/favorite-teams/${teamId}`);
+  return apiClient.delete(`/api/favorite-teams/${teamId}`);
 }
