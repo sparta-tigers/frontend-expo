@@ -9,15 +9,15 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 /**
@@ -72,9 +72,20 @@ export default function EditItemScreen() {
       return;
     }
 
-    // 본인 아이템인지 확인
-    if (item.user?.id !== user.userId) {
+    // 본인 아이템인지 확인 - 강화된 권한 검증
+    if (!user?.userId || !item?.userId) {
+      Alert.alert("오류", "사용자 정보가 없습니다. 다시 로그인해주세요.");
+      return;
+    }
+
+    if (item.userId !== user.userId) {
       Alert.alert("오류", "본인의 아이템만 수정할 수 있습니다.");
+      console.log("🚨 [권한 오류] 아이템 소유자 불일치:", {
+        itemUserId: item.userId,
+        currentUserId: user.userId,
+        itemUserNickname: item.user?.nickname,
+        currentUserEmail: user?.email,
+      });
       return;
     }
 

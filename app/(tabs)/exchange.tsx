@@ -1,35 +1,35 @@
 import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import {
-    BORDER_RADIUS,
-    FONT_SIZE,
-    SHADOW,
-    SPACING,
+  BORDER_RADIUS,
+  FONT_SIZE,
+  SHADOW,
+  SPACING,
 } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import {
-    exchangeGetReceivedAPI,
-    exchangeUpdateStatusAPI,
-    itemsGetListAPI,
+  exchangeGetReceivedAPI,
+  exchangeUpdateStatusAPI,
+  itemsGetListAPI,
 } from "@/src/features/exchange/api";
 import {
-    ExchangeRequest,
-    ExchangeRequestStatus,
-    Item,
+  ExchangeRequest,
+  ExchangeRequestStatus,
+  Item,
 } from "@/src/features/exchange/types";
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    Image,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Image,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 // 정적 스타일 정의
@@ -49,12 +49,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
   },
-  headerButton: {
-    minWidth: 100,
-  },
-  // 탭 스타일
   tabContainer: {
     flexDirection: "row",
+    paddingHorizontal: SPACING.SCREEN,
     borderBottomWidth: 1,
   },
   tabButton: {
@@ -63,24 +60,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   activeTab: {
-    borderRadius: BORDER_RADIUS.BUTTON,
+    borderBottomWidth: 2,
   },
   tabText: {
     fontSize: FONT_SIZE.BODY,
-    fontWeight: "500",
+    fontWeight: "600",
   },
   listContainer: {
-    padding: SPACING.SMALL,
+    flex: 1,
+    paddingHorizontal: SPACING.SCREEN,
   },
   itemContainer: {
-    borderRadius: BORDER_RADIUS.CARD,
+    flexDirection: "row",
     padding: SPACING.COMPONENT,
     marginBottom: SPACING.SMALL,
+    borderRadius: BORDER_RADIUS.CARD,
     ...SHADOW.CARD,
   },
   itemImage: {
-    width: 60,
-    height: 60,
+    width: 80,
+    height: 80,
     borderRadius: BORDER_RADIUS.IMAGE,
     marginRight: SPACING.COMPONENT,
   },
@@ -90,13 +89,19 @@ const styles = StyleSheet.create({
   itemTitle: {
     fontSize: FONT_SIZE.BODY,
     fontWeight: "600",
-    marginBottom: SPACING.TINY,
+    marginBottom: SPACING.SMALL / 2,
   },
   itemDescription: {
     fontSize: FONT_SIZE.SMALL,
-    lineHeight: 20,
+    color: "#666",
+    marginBottom: SPACING.SMALL / 2,
   },
-  itemPrice: {
+  itemMeta: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  itemCategory: {
     fontSize: FONT_SIZE.SMALL,
     fontWeight: "600",
   },
@@ -147,7 +152,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.SMALL,
   },
   requestDate: {
-    fontSize: FONT_SIZE.SMALL,
+    fontSize: FONT_SIZE.CAPTION,
     marginBottom: SPACING.SMALL,
   },
   statusBadge: {
@@ -229,6 +234,50 @@ export default function ExchangeScreen() {
     [requestsState.status, fetchRequests, requestsState.data],
   );
 
+  // 아이템 목록 가져오기 (교환 완료된 아이템 필터링)
+  const loadItems = useCallback(
+    async (
+      pageNum: number = 0,
+      isRefresh: boolean = false,
+    ): Promise<Item[]> => {
+      if (itemsState.status === "loading" && !isRefresh) return [];
+
+      // 에러 상태에서는 재시도하지 않음 (무한반복 방지)
+      if (itemsState.status === "error" && !isRefresh) return [];
+
+      if (isRefresh) setRefreshing(true);
+
+      try {
+        const response = await itemsGetListAPI(pageNum, 10);
+
+        if (response.resultType === "SUCCESS" && response.data) {
+          const { content, last } = response.data;
+          setIsLast(last); // 다음 페이지 호출 차단 스위치
+
+          // 교환 완료된 아이템 필터링
+          const filteredContent = content.filter(
+            (item: Item) => item.status !== "EXCHANGE_COMPLETED",
+          );
+
+          if (pageNum === 0 || isRefresh) {
+            return filteredContent;
+          } else {
+            // 기존 데이터에 새 데이터 추가
+            return [...(itemsState.data || []), ...filteredContent];
+          }
+        }
+
+        return itemsState.data || [];
+      } catch (error) {
+        console.error("아이템 목록 로딩 실패:", error);
+        throw error;
+      } finally {
+        if (isRefresh) setRefreshing(false);
+      }
+    },
+    [itemsState.data, itemsState.status],
+  );
+
   // 교환 요청 상태 변경 (수락/거절)
   const handleUpdateRequestStatus = useCallback(
     async (requestId: number, status: ExchangeRequestStatus) => {
@@ -257,40 +306,6 @@ export default function ExchangeScreen() {
       }
     },
     [loadExchangeRequests],
-  );
-  const loadItems = useCallback(
-    async (pageNum: number = 0, isRefresh: boolean = false) => {
-      if (itemsState.status === "loading" && !isRefresh) return;
-
-      // 에러 상태에서는 재시도하지 않음 (무한반복 방지)
-      if (itemsState.status === "error" && !isRefresh) return;
-
-      if (isRefresh) setRefreshing(true);
-
-      try {
-        const response = await itemsGetListAPI(pageNum, 10);
-
-        if (response.resultType === "SUCCESS" && response.data) {
-          const { content, last } = response.data;
-          setIsLast(last); // 다음 페이지 호출 차단 스위치
-
-          if (pageNum === 0 || isRefresh) {
-            return content;
-          } else {
-            // 기존 데이터에 새 데이터 추가
-            return [...(itemsState.data || []), ...content];
-          }
-        }
-
-        return itemsState.data || [];
-      } catch (error) {
-        console.error("아이템 목록 로딩 실패:", error);
-        throw error;
-      } finally {
-        if (isRefresh) setRefreshing(false);
-      }
-    },
-    [itemsState.data, itemsState.status],
   );
 
   // 아이템 상세 페이지로 이동
@@ -354,23 +369,31 @@ export default function ExchangeScreen() {
             {
               backgroundColor:
                 item.status === ExchangeRequestStatus.PENDING
-                  ? colors.warning
+                  ? colors.warning + "20"
                   : item.status === ExchangeRequestStatus.ACCEPTED
-                    ? colors.success
-                    : item.status === ExchangeRequestStatus.REJECTED
-                      ? colors.destructive
-                      : colors.muted,
+                    ? colors.success + "20"
+                    : colors.destructive + "20",
             },
           ]}
         >
-          <Text style={[styles.statusText, { color: colors.background }]}>
+          <Text
+            style={[
+              styles.statusText,
+              {
+                color:
+                  item.status === ExchangeRequestStatus.PENDING
+                    ? colors.warning
+                    : item.status === ExchangeRequestStatus.ACCEPTED
+                      ? colors.success
+                      : colors.destructive,
+              },
+            ]}
+          >
             {item.status === ExchangeRequestStatus.PENDING
               ? "대기 중"
               : item.status === ExchangeRequestStatus.ACCEPTED
                 ? "수락됨"
-                : item.status === ExchangeRequestStatus.REJECTED
-                  ? "거절됨"
-                  : item.status}
+                : "거절됨"}
           </Text>
         </View>
       </View>
@@ -379,26 +402,10 @@ export default function ExchangeScreen() {
       {item.status === ExchangeRequestStatus.PENDING && (
         <View style={styles.requestActions}>
           <Button
-            variant="outline"
-            size="sm"
-            onPress={() =>
-              handleUpdateRequestStatus(item.id, ExchangeRequestStatus.REJECTED)
-            }
-            style={[styles.actionButton, { borderColor: colors.destructive }]}
-          >
-            <Text
-              style={[styles.actionButtonText, { color: colors.destructive }]}
-            >
-              거절
-            </Text>
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
+            style={[styles.actionButton, { backgroundColor: colors.success }]}
             onPress={() =>
               handleUpdateRequestStatus(item.id, ExchangeRequestStatus.ACCEPTED)
             }
-            style={styles.actionButton}
           >
             <Text
               style={[styles.actionButtonText, { color: colors.background }]}
@@ -406,10 +413,28 @@ export default function ExchangeScreen() {
               수락
             </Text>
           </Button>
+          <Button
+            style={[
+              styles.actionButton,
+              { backgroundColor: colors.destructive },
+            ]}
+            variant="outline"
+            onPress={() =>
+              handleUpdateRequestStatus(item.id, ExchangeRequestStatus.REJECTED)
+            }
+          >
+            <Text
+              style={[styles.actionButtonText, { color: colors.destructive }]}
+            >
+              거절
+            </Text>
+          </Button>
         </View>
       )}
     </View>
   );
+
+  // 아이템 렌더 함수
   const renderItem = ({ item }: { item: Item }) => (
     <TouchableOpacity
       style={[
@@ -420,114 +445,107 @@ export default function ExchangeScreen() {
         },
       ]}
       onPress={() => navigateToDetail(item.id)}
-      activeOpacity={0.7}
     >
       {/* 아이템 이미지 */}
-      {item.imageUrl && (
-        <Image
-          source={{ uri: item.imageUrl }}
-          style={styles.itemImage}
-          resizeMode="cover"
-        />
+      {item.imageUrl ? (
+        <Image source={{ uri: item.imageUrl }} style={styles.itemImage} />
+      ) : (
+        <View
+          style={[
+            styles.itemImage,
+            {
+              backgroundColor: colors.border,
+              justifyContent: "center",
+              alignItems: "center",
+            },
+          ]}
+        >
+          <Text style={{ color: colors.muted, fontSize: 12 }}>이미지 없음</Text>
+        </View>
       )}
 
       {/* 아이템 정보 */}
       <View style={styles.itemContent}>
-        <Text style={[styles.itemTitle, { color: colors.muted }]}>
+        <Text
+          style={[styles.itemTitle, { color: colors.text }]}
+          numberOfLines={2}
+        >
           {item.title}
         </Text>
         <Text
           style={[styles.itemDescription, { color: colors.muted }]}
-          numberOfLines={3}
+          numberOfLines={2}
         >
           {item.description}
         </Text>
-
-        <Text style={[styles.itemPrice, { color: colors.primary }]}>
-          {item.status === "REGISTERED"
-            ? "등록됨"
-            : item.status === "EXCHANGE_COMPLETED"
-              ? "교환완료"
-              : "교환실패"}
-        </Text>
-        <Text style={[styles.itemDate, { color: colors.muted }]}>
-          {new Date(item.createdAt).toLocaleDateString()}
-        </Text>
+        <View style={styles.itemMeta}>
+          <Text style={[styles.itemCategory, { color: colors.primary }]}>
+            {item.category === "TICKET" ? "티켓" : "굿즈"}
+          </Text>
+          <Text style={[styles.itemDate, { color: colors.muted }]}>
+            {new Date(item.createdAt).toLocaleDateString()}
+          </Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
 
-  // 화면 포커스 시 데이터 로드 (최초 1번만 실행)
+  // 초기 데이터 로드 - 무한 리렌더링 방지
   React.useEffect(() => {
-    // 에러 상태가 아닐 때만 로드 시도
-    if (itemsState.status === "idle") {
-      fetchItems(loadItems(0));
-    }
+    let isMounted = true;
+
+    const loadData = async () => {
+      if (!isMounted) return;
+
+      if (activeTab === "items") {
+        fetchItems(loadItems(0, true));
+      } else {
+        loadExchangeRequests(0, true);
+      }
+    };
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 의존성 배열에서 loadItems 제거로 무한 리렌더링 방지
-
-  // 에러 상태 표시 (무한 루프 방지)
-  if (
-    itemsState.status === "error" &&
-    (!itemsState.data || itemsState.data.length === 0)
-  ) {
-    return (
-      <View
-        style={[styles.emptyContainer, { backgroundColor: colors.surface }]}
-      >
-        <Text style={[styles.emptyText, { color: colors.destructive }]}>
-          {itemsState.error || "데이터를 불러오는데 실패했습니다."}
-        </Text>
-        <Button
-          onPress={() => fetchItems(loadItems(0, true))}
-          style={styles.emptyButton}
-        >
-          다시 시도
-        </Button>
-      </View>
-    );
-  }
-
-  // 로딩 상태 표시
-  if (
-    itemsState.status === "loading" &&
-    (!itemsState.data || itemsState.data.length === 0)
-  ) {
-    return (
-      <View
-        style={[styles.loadingContainer, { backgroundColor: colors.surface }]}
-      >
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[styles.loadingText, { color: colors.text }]}>
-          아이템을 불러오는 중...
-        </Text>
-      </View>
-    );
-  }
+  }, [activeTab]); // activeTab만 의존성으로 설정
 
   return (
-    <SafeLayout style={{ backgroundColor: colors.surface }}>
+    <SafeLayout style={{ backgroundColor: colors.background }}>
       {/* 헤더 */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View
+        style={[
+          styles.header,
+          {
+            borderBottomColor: colors.border,
+            backgroundColor: colors.background,
+          },
+        ]}
+      >
         <Text style={[styles.headerTitle, { color: colors.text }]}>교환</Text>
-        <Button
-          variant="primary"
-          size="sm"
-          onPress={navigateToCreate}
-          style={styles.headerButton}
-        >
-          아이템 등록
+        <Button onPress={navigateToCreate} size="sm">
+          + 등록
         </Button>
       </View>
 
-      {/* 탭 스위치 */}
-      <View style={[styles.tabContainer, { borderBottomColor: colors.border }]}>
+      {/* 탭 전환 */}
+      <View
+        style={[
+          styles.tabContainer,
+          {
+            borderBottomColor: colors.border,
+            backgroundColor: colors.background,
+          },
+        ]}
+      >
         <TouchableOpacity
           style={[
             styles.tabButton,
             activeTab === "items" && [
               styles.activeTab,
-              { backgroundColor: colors.primary },
+              { borderBottomColor: colors.primary },
             ],
           ]}
           onPress={() => setActiveTab("items")}
@@ -536,7 +554,7 @@ export default function ExchangeScreen() {
             style={[
               styles.tabText,
               {
-                color: activeTab === "items" ? colors.background : colors.text,
+                color: activeTab === "items" ? colors.primary : colors.muted,
               },
             ]}
           >
@@ -548,7 +566,7 @@ export default function ExchangeScreen() {
             styles.tabButton,
             activeTab === "requests" && [
               styles.activeTab,
-              { backgroundColor: colors.primary },
+              { borderBottomColor: colors.primary },
             ],
           ]}
           onPress={() => setActiveTab("requests")}
@@ -557,64 +575,129 @@ export default function ExchangeScreen() {
             style={[
               styles.tabText,
               {
-                color:
-                  activeTab === "requests" ? colors.background : colors.text,
+                color: activeTab === "requests" ? colors.primary : colors.muted,
               },
             ]}
           >
-            교환 요청
+            받은 요청
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* 탭 내용 */}
-      {activeTab === "items" ? (
-        <FlatList
-          data={itemsState.data || []}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id.toString()}
-          key="items-grid" // numColumns 변경 시 강제 리렌더링을 위한 key prop
-          numColumns={2}
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.5}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          contentContainerStyle={styles.listContainer}
-          ListEmptyComponent={() => (
-            <View style={styles.emptyContainer}>
-              <Text style={[styles.emptyText, { color: colors.text }]}>
-                등록된 아이템이 없습니다.
-              </Text>
-              <Button
-                variant="outline"
-                onPress={navigateToCreate}
-                style={styles.emptyButton}
-              >
-                아이템 등록
-              </Button>
-            </View>
-          )}
-        />
-      ) : (
-        <FlatList
-          data={requestsState.data || []}
-          renderItem={renderExchangeRequest}
-          keyExtractor={(item) => item.id.toString()}
-          key="requests-list" // numColumns 변경 시 강제 리렌더링을 위한 key prop
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          contentContainerStyle={styles.listContainer}
-          ListEmptyComponent={() => (
-            <View style={styles.emptyContainer}>
-              <Text style={[styles.emptyText, { color: colors.text }]}>
-                받은 교환 요청이 없습니다.
-              </Text>
-            </View>
-          )}
-        />
-      )}
+      {/* 콘텐츠 영역 */}
+      <View style={styles.listContainer}>
+        {activeTab === "items" ? (
+          // 아이템 목록
+          <>
+            {itemsState.status === "loading" && page === 0 ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={[styles.loadingText, { color: colors.text }]}>
+                  아이템 목록 로딩 중...
+                </Text>
+              </View>
+            ) : itemsState.status === "error" && page === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Text style={[styles.emptyText, { color: colors.text }]}>
+                  {itemsState.error || "아이템 목록을 불러올 수 없습니다."}
+                </Text>
+                <Button
+                  onPress={() => fetchItems(loadItems(0, true))}
+                  style={styles.emptyButton}
+                >
+                  다시 시도
+                </Button>
+              </View>
+            ) : (
+              <FlatList
+                data={itemsState.data}
+                renderItem={renderItem}
+                keyExtractor={(item) => item.id.toString()}
+                numColumns={2}
+                key="items-flatlist" // numColumns 변경 시 강제 리렌더링을 위한 키 추가
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                  />
+                }
+                onEndReached={loadMore}
+                onEndReachedThreshold={0.1}
+                ListEmptyComponent={
+                  <View style={styles.emptyContainer}>
+                    <Text style={[styles.emptyText, { color: colors.text }]}>
+                      등록된 아이템이 없습니다.
+                    </Text>
+                    <Button
+                      onPress={navigateToCreate}
+                      style={styles.emptyButton}
+                    >
+                      첫 아이템 등록
+                    </Button>
+                  </View>
+                }
+                ListFooterComponent={
+                  itemsState.status === "loading" && page > 0 ? (
+                    <View style={styles.loadingContainer}>
+                      <ActivityIndicator size="small" color={colors.primary} />
+                      <Text
+                        style={[styles.loadingText, { color: colors.text }]}
+                      >
+                        더 불러오는 중...
+                      </Text>
+                    </View>
+                  ) : null
+                }
+              />
+            )}
+          </>
+        ) : (
+          // 교환 요청 목록
+          <>
+            {requestsState.status === "loading" ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={[styles.loadingText, { color: colors.text }]}>
+                  교환 요청 목록 로딩 중...
+                </Text>
+              </View>
+            ) : requestsState.status === "error" ? (
+              <View style={styles.emptyContainer}>
+                <Text style={[styles.emptyText, { color: colors.text }]}>
+                  {requestsState.error ||
+                    "교환 요청 목록을 불러올 수 없습니다."}
+                </Text>
+                <Button
+                  onPress={() => loadExchangeRequests(0, true)}
+                  style={styles.emptyButton}
+                >
+                  다시 시도
+                </Button>
+              </View>
+            ) : (
+              <FlatList
+                data={requestsState.data}
+                renderItem={renderExchangeRequest}
+                keyExtractor={(item) => item.id.toString()}
+                key="requests-flatlist" // 교환 요청 FlatList에 고유 키 추가
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={() => loadExchangeRequests(0, true)}
+                  />
+                }
+                ListEmptyComponent={
+                  <View style={styles.emptyContainer}>
+                    <Text style={[styles.emptyText, { color: colors.text }]}>
+                      받은 교환 요청이 없습니다.
+                    </Text>
+                  </View>
+                }
+              />
+            )}
+          </>
+        )}
+      </View>
     </SafeLayout>
   );
 }
