@@ -18,8 +18,25 @@ export interface UserLocation {
   address: string;
 }
 
-export interface CreateItemRequest extends ItemDto {
+/**
+ * 아이템 생성 요청 타입
+ * 백엔드 CreateItemWithLocationRequestDto 스펙에 맞춰 재정의
+ */
+export interface CreateItemRequest {
+  itemCategory: ItemCategory; // 백엔드 ItemCategory enum과 매핑
+  title: string;
+  description: string;
   location: LocationDto;
+}
+
+/**
+ * 아이템 수정 요청 타입
+ * 백엔드 UpdateItemRequestDto 스펙에 맞춰 정의
+ */
+export interface UpdateItemRequest {
+  category: ItemCategory; // 백엔드는 category 필드명 사용
+  title?: string; // 수정 시 선택적 필드
+  description?: string; // 수정 시 선택적 필드
 }
 
 export interface Item {

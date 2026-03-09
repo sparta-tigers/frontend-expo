@@ -8,6 +8,7 @@ import { ApiResponse } from "@/src/shared/types/common";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+    Alert,
     FlatList,
     KeyboardAvoidingView,
     Platform,
@@ -24,7 +25,7 @@ import {
 export default function ChatRoomScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { status, sendMessage, client } = useWebSocket();
+  const { status, sendMessage } = useWebSocket();
   const { colors } = useTheme();
 
   const [inputMessage, setInputMessage] = useState("");
@@ -48,112 +49,104 @@ export default function ChatRoomScreen() {
 
       // 서버 데이터를 UI 데이터로 변환
       const formattedMessages: ChatMessage[] = messageData.map((msg) => ({
-        id: msg.id || 0,
-        directRoomId: Number(id),
-        senderId: msg.senderId || 0,
-        content: msg.message,
-        createdAt: msg.sentAt,
+        id: msg.id,
+        directRoomId: msg.directRoomId,
+        senderId: msg.senderId,
+        content: msg.content,
+        createdAt: msg.createdAt,
         sentAt: msg.sentAt,
-        sender: {
-          id: msg.senderId || 0,
-          nickname: msg.senderNickname,
-        },
-        senderNickName: msg.senderNickname,
-        isMyMessage: false, // TODO: 현재 사용자 ID와 비교 필요
+        sender: msg.sender,
+        senderNickName: msg.senderNickName,
+        isMyMessage: msg.senderId === 1, // TODO: 실제 사용자 ID로 변경
       }));
 
-      return formattedMessages.reverse();
-    } else {
-      throw new Error(
-        response.error?.message || "메시지를 불러오는데 실패했습니다",
-      );
+      return formattedMessages;
     }
+
+    throw new Error("메시지를 불러올 수 없습니다.");
   }, [id]);
 
-  // WebSocket 구독 설정
+  // 초기 데이터 로드
   useEffect(() => {
-    if (!client || !id || status !== "CONNECTED") return;
-
-    const subscription = client.subscribe(
-      `/topic/directRoom/${id}`,
-      (message) => {
-        try {
-          const receivedMessage = JSON.parse(message.body);
-
-          // 수신된 메시지를 UI 형식으로 변환
-          const newMessage: ChatMessage = {
-            id: receivedMessage.id || Date.now(),
-            directRoomId: Number(id),
-            senderId: receivedMessage.senderId || 0,
-            content: receivedMessage.message,
-            createdAt: receivedMessage.sentAt || new Date().toISOString(),
-            sentAt: receivedMessage.sentAt || new Date().toISOString(),
-            sender: {
-              id: receivedMessage.senderId || 0,
-              nickname: receivedMessage.senderNickname,
-            },
-            senderNickName: receivedMessage.senderNickname,
-            isMyMessage: false, // TODO: 현재 사용자 ID와 비교 필요
-          };
-
-          // 기존 메시지에 새 메시지 추가
-          if (messagesState.data) {
-            loadMessages(Promise.resolve([newMessage, ...messagesState.data]));
-          }
-        } catch (error) {
-          console.error("메시지 파싱 에러:", error);
-        }
-      },
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [client, id, status, messagesState.data, loadMessages]);
-
-  // 컴포넌트 마운트 시 초기 메시지 로드
-  useEffect(() => {
-    if (id) {
-      loadMessages(fetchInitialMessages());
-    }
-  }, [id, loadMessages, fetchInitialMessages]);
+    loadMessages(fetchInitialMessages());
+  }, [loadMessages, fetchInitialMessages]);
 
   // 메시지 전송
-  const handleSendMessage = useCallback(() => {
+  const handleSendMessage = useCallback(async () => {
     if (!inputMessage.trim() || !id || status !== "CONNECTED") return;
 
     try {
-      // WebSocket으로 메시지 전송
-      sendMessage("/client/directRoom/send", {
-        roomId: id,
-        message: inputMessage.trim(),
-        senderId: 1, // TODO: 현재 사용자 ID 가져오기
-      });
-
-      // 전송한 메시지를 즉시 UI에 추가 (내 메시지)
+      const messageContent = inputMessage.trim();
       const myMessage: ChatMessage = {
         id: Date.now(),
         directRoomId: Number(id),
-        senderId: 1, // TODO: 현재 사용자 ID 가져오기
-        content: inputMessage.trim(),
+        senderId: 1, // TODO: 실제 사용자 ID로 변경
+        content: messageContent,
         createdAt: new Date().toISOString(),
         sentAt: new Date().toISOString(),
         sender: {
-          id: 1, // TODO: 현재 사용자 ID 가져오기
-          nickname: "나", // TODO: 현재 사용자 닉네임 가져오기
+          id: 1,
+          nickname: "나", // TODO: 실제 사용자 닉네임으로 변경
         },
-        senderNickName: "나", // TODO: 현재 사용자 닉네임 가져오기
+        senderNickName: "나", // TODO: 실제 사용자 닉네임으로 변경
         isMyMessage: true,
       };
 
-      if (messagesState.data) {
-        loadMessages(Promise.resolve([myMessage, ...messagesState.data]));
-      }
+      // 메시지 전송
+      sendMessage(`/app/chat/${id}`, messageContent);
+
+      // UI에 즉시 반영
+      loadMessages(Promise.resolve([myMessage, ...(messagesState.data || [])]));
       setInputMessage("");
     } catch (error) {
       console.error("메시지 전송 에러:", error);
     }
   }, [inputMessage, id, status, sendMessage, messagesState.data, loadMessages]);
+
+  // 채팅 중 교환 거절 처리
+  const handleRejectExchange = useCallback(async () => {
+    Alert.alert(
+      "교환 거절",
+      "정말로 교환을 거절하시겠습니까? 거절하면 채팅이 종료됩니다.",
+      [
+        {
+          text: "취소",
+          style: "cancel",
+        },
+        {
+          text: "거절",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              // TODO: 실제 교환 요청 ID를 파라미터로 받아와야 함
+              // 현재는 채팅방 ID만 있음, 교환 요청 ID가 필요
+              Alert.alert("알림", "교환 거절 기능은 곧 구현됩니다.");
+
+              // 임시 구현 (교환 요청 ID가 필요)
+              /*
+              const updateData: UpdateExchangeStatusDto = {
+                status: ExchangeRequestStatus.REJECTED,
+                message: "채팅 중 교환을 거절했습니다.",
+              };
+
+              const response = await exchangeUpdateStatusAPI(exchangeRequestId, updateData);
+
+              if (response.resultType === "SUCCESS") {
+                Alert.alert("거절 완료", "교환을 거절했습니다. 채팅을 종료합니다.");
+                router.back();
+              } else {
+                Alert.alert("오류", "교환 거절에 실패했습니다.");
+              }
+              */
+            } catch (error) {
+              console.error("교환 거절 실패:", error);
+              Alert.alert("오류", "네트워크 에러가 발생했습니다.");
+            }
+          },
+        },
+      ],
+    );
+  }, []);
 
   // 메시지 아이템 렌더링
   const renderMessage = useCallback(
@@ -288,6 +281,26 @@ export default function ChatRoomScreen() {
           전송
         </Button>
       </View>
+
+      {/* 교환 거절 버튼 */}
+      <View
+        style={[
+          styles.exchangeActionsContainer,
+          { borderTopColor: colors.border },
+        ]}
+      >
+        <Button
+          onPress={handleRejectExchange}
+          variant="outline"
+          style={[styles.rejectButton, { borderColor: colors.destructive }]}
+        >
+          <Text
+            style={[styles.rejectButtonText, { color: colors.destructive }]}
+          >
+            교환 거절
+          </Text>
+        </Button>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -382,5 +395,16 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     opacity: 0.5,
+  },
+  exchangeActionsContainer: {
+    padding: 16,
+    borderTopWidth: 1,
+  },
+  rejectButton: {
+    minWidth: 100,
+    borderColor: "red",
+  },
+  rejectButtonText: {
+    color: "red",
   },
 });

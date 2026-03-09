@@ -6,7 +6,7 @@ import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 
 /**
@@ -20,6 +20,45 @@ export default function SigninScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // 🚨 앙드레 카파시: 네비게이터 준비 상태 추적
+  const navigationReady = useRef(false);
+  const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 🚨 앙드레 카파시: 네비게이터 준비 상태 관리
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigationReady.current = true;
+      if (__DEV__) {
+        console.log("🔍 [Signin] 네비게이터 준비 완료");
+      }
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // 🚨 앙드레 카파시: 안전한 리디렉션 로직
+  const safeRedirect = (href: string) => {
+    if (!navigationReady.current) {
+      redirectTimeoutRef.current = setTimeout(() => {
+        if (__DEV__) {
+          console.log("🔍 [Signin] 지연된 리디렉션 실행:", href);
+        }
+        router.replace(href);
+      }, 200);
+      return;
+    }
+
+    if (__DEV__) {
+      console.log("🔍 [Signin] 즉시 리디렉션 실행:", href);
+    }
+    router.replace(href);
+  };
+
   const handleSignin = async () => {
     if (!email.trim() || !password.trim()) {
       Alert.alert("오류", "이메일과 비밀번호를 입력해주세요");
@@ -30,7 +69,8 @@ export default function SigninScreen() {
       const success = await signin({ email, password });
       if (success) {
         Alert.alert("성공", "로그인되었습니다");
-        router.replace("/(tabs)");
+        // 🚨 앙드레 카파시: 안전한 리디렉션 사용
+        safeRedirect("/(tabs)");
       } else {
         Alert.alert("실패", "로그인에 실패했습니다");
       }

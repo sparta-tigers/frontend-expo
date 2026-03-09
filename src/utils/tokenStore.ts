@@ -131,9 +131,33 @@ export async function initializeTokenCache(): Promise<void> {
   _accessToken = null;
   _refreshToken = null;
 
-  // 비동기로 미리 로드 (await 하지 않음)
-  getAccessToken().catch(console.error);
-  getRefreshToken().catch(console.error);
+  // 🚨 디버깅 로그: 초기화 상태 확인
+  if (__DEV__) {
+    console.log("🔍 [Token Cache] 메모리 캐시 초기화 완료");
+  }
+
+  // SecureStore에서 토큰 미리 로드
+  try {
+    const accessToken = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+    const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+
+    if (accessToken && refreshToken) {
+      _accessToken = accessToken;
+      _refreshToken = refreshToken;
+
+      if (__DEV__) {
+        console.log("🔍 [Token Cache] SecureStore에서 토큰 로드 완료");
+        console.log("- Access Token:", accessToken.substring(0, 20) + "...");
+        console.log("- Refresh Token:", refreshToken.substring(0, 20) + "...");
+      }
+    } else {
+      if (__DEV__) {
+        console.log("🔍 [Token Cache] SecureStore에 토큰이 없습니다");
+      }
+    }
+  } catch (error) {
+    console.error("토큰 캐시 초기화 실패:", error);
+  }
 }
 
 /**
@@ -145,8 +169,53 @@ export function getDebugTokenState(): {
   accessToken: string | null;
   refreshToken: string | null;
 } {
+  if (__DEV__) {
+    console.log("🔍 [Token Cache State]");
+    console.log(
+      "- Access Token:",
+      _accessToken ? `${_accessToken.substring(0, 20)}...` : "null",
+    );
+    console.log(
+      "- Refresh Token:",
+      _refreshToken ? `${_refreshToken.substring(0, 20)}...` : "null",
+    );
+    console.log(
+      "- Access Token Format:",
+      _accessToken?.startsWith("eyJ") ? "JWT" : "Invalid",
+    );
+    console.log(
+      "- Refresh Token Format:",
+      _refreshToken?.startsWith("eyJ") ? "JWT" : "Invalid",
+    );
+  }
+
   return {
     accessToken: _accessToken,
     refreshToken: _refreshToken,
   };
+}
+
+/**
+ * 토큰 형식 검증 함수
+ * @param token - 검증할 토큰
+ * @returns 형식 유효성 여부
+ */
+export function validateTokenFormat(token: string | null): boolean {
+  if (!token) return false;
+
+  // JWT 토큰은 보통 3부분으로 구성 (header.payload.signature)
+  const parts = token.split(".");
+  if (parts.length !== 3) return false;
+
+  // 각 부분이 base64url 형식인지 기본 검증
+  try {
+    parts.forEach((part) => {
+      // base64url 디코딩 시도 (실패하면 에러 발생)
+      const padded = part + "=".repeat((4 - (part.length % 4)) % 4);
+      atob(padded.replace(/-/g, "+").replace(/_/g, "/"));
+    });
+    return true;
+  } catch {
+    return false;
+  }
 }

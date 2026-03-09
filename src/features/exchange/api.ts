@@ -1,5 +1,6 @@
 import { apiClient } from "@/src/core/client";
 import type { ApiResponse } from "@/src/shared/types/common";
+import axios from "axios";
 import {
   CreateExchangeDto,
   CreateItemRequest,
@@ -7,6 +8,7 @@ import {
   Item,
   ItemCategory,
   UpdateExchangeStatusDto,
+  UpdateItemRequest,
   UserLocation,
 } from "./types";
 
@@ -62,7 +64,34 @@ export async function itemsGetDetailAPI(
 export async function itemsCreateAPI(
   request: CreateItemRequest,
 ): Promise<ApiResponse<Item>> {
-  return apiClient.post("/api/v1/items", request);
+  try {
+    // 백엔드 CreateItemWithLocationRequestDto 스펙에 맞게 페이로드 재구성
+    const payload = {
+      itemDto: {
+        category: request.itemCategory, // ItemCategory enum (GOODS, TICKET)
+        title: request.title,
+        seatInfo: null, // 선택적 필드, 현재는 null로 전송
+        description: request.description,
+      },
+      locationDto: {
+        latitude: Number(request.location.latitude), // double 타입 명시적 변환
+        longitude: Number(request.location.longitude), // double 타입 명시적 변환
+      },
+    };
+
+    const response = await apiClient.post("/api/v1/items", payload);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      console.error("🚨 [아이템 등록 400 에러 RAW DATA] 🚨");
+      console.error("- Status:", error.response?.status);
+      // 백엔드가 어떤 필드에서 유효성 검사가 실패했는지 알려주는 errors 배열 출력
+      console.error("- Data:", JSON.stringify(error.response?.data, null, 2));
+    } else {
+      console.error("🚨 [알 수 없는 에러]:", error);
+    }
+    throw error;
+  }
 }
 
 /**
@@ -75,7 +104,7 @@ export async function itemsCreateAPI(
  */
 export async function itemsUpdateAPI(
   itemId: number,
-  request: Partial<CreateItemRequest>,
+  request: UpdateItemRequest,
 ): Promise<ApiResponse<Item>> {
   return apiClient.patch(`/api/v1/items/${itemId}`, request);
 }

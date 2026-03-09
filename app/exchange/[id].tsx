@@ -4,23 +4,23 @@ import { SafeLayout } from "@/components/ui/safe-layout";
 import { SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import {
-  exchangeCreateAPI,
-  itemsDeleteAPI,
-  itemsGetDetailAPI
+    exchangeCreateAPI,
+    itemsDeleteAPI,
+    itemsGetDetailAPI,
 } from "@/src/features/exchange/api";
 import { CreateExchangeDto, Item } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 /**
@@ -64,9 +64,20 @@ export default function ItemDetailScreen() {
       return;
     }
 
-    // 내 아이템인지 확인
+    // 내 아이템인지 확인 - 강화된 권한 검증
+    if (!user?.userId || !item?.userId) {
+      Alert.alert("오류", "사용자 정보가 없습니다. 다시 로그인해주세요.");
+      return;
+    }
+
     if (item.userId === user.userId) {
       Alert.alert("알림", "내 아이템은 교환 신청할 수 없습니다.");
+      console.log("🚨 [권한 오류] 자기 아이템에 교환 신청 시도:", {
+        itemUserId: item.userId,
+        currentUserId: user.userId,
+        itemUserNickname: item.user?.nickname,
+        currentUserEmail: user?.email,
+      });
       return;
     }
 
@@ -300,7 +311,7 @@ export default function ItemDetailScreen() {
         {/* 액션 버튼 */}
         <View style={styles.actionContainer}>
           {/* 본인 아이템일 경우 수정/삭제 버튼 표시 */}
-          {item.userId === user?.userId ? (
+          {item.user?.id === user?.userId ? (
             <View style={styles.ownerActions}>
               <Button
                 variant="outline"

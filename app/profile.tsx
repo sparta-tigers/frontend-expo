@@ -16,7 +16,14 @@ import {
 import { useAuth } from "@/src/hooks/useAuth";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function ProfileScreen() {
   const { colors } = useTheme();
@@ -61,7 +68,7 @@ export default function ProfileScreen() {
             }
 
             // 임시로 사용자 이메일을 닉네임 대신 사용 (SimpleToken 타입에는 nickname이 없음)
-            const currentNickname = user?.email.split("@")[0] || "";
+            const currentNickname = user?.email?.split("@")[0] || "";
             if (newNickname.trim() === currentNickname) {
               Alert.alert("알림", "동일한 닉네임입니다.");
               return;
@@ -99,7 +106,7 @@ export default function ProfileScreen() {
         },
       ],
       "plain-text",
-      user?.email.split("@")[0] || "",
+      user?.email?.split("@")[0] || "",
     );
   };
 
@@ -268,7 +275,11 @@ export default function ProfileScreen() {
           </View>
 
           {/* 게스트 상태 콘텐츠 */}
-          <View style={styles.content}>
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
             <View style={[styles.guestCard, { backgroundColor: colors.card }]}>
               <View
                 style={[styles.guestAvatar, { backgroundColor: colors.muted }]}
@@ -301,7 +312,7 @@ export default function ProfileScreen() {
                 회원가입
               </Button>
             </View>
-          </View>
+          </ScrollView>
         </View>
       </SafeLayout>
     );
@@ -320,8 +331,13 @@ export default function ProfileScreen() {
           <View style={styles.navSpacer} />
         </View>
 
-        {/* 사용자 정보 */}
-        <View style={styles.content}>
+        {/* 스크롤 가능한 콘텐츠 */}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* 사용자 정보 */}
           <View style={[styles.profileCard, { backgroundColor: colors.card }]}>
             <View style={styles.profileHeader}>
               <View
@@ -548,7 +564,7 @@ export default function ProfileScreen() {
               로그아웃
             </Text>
           </Button>
-        </View>
+        </ScrollView>
       </View>
     </SafeLayout>
   );
@@ -557,6 +573,14 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  // 스크롤뷰 스타일
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: SPACING.SCREEN,
+    paddingBottom: SPACING.SCREEN * 2, // 하단 여백 추가
   },
   // 상단 네비게이션
   topNav: {
@@ -573,11 +597,7 @@ const styles = StyleSheet.create({
   navSpacer: {
     width: 40, // 버튼과 동일한 너비로 정렬 맞춤
   },
-  // 콘텐츠 영역
-  content: {
-    flex: 1,
-    padding: SPACING.SCREEN,
-  },
+  // 콘텐츠 영역 (기존 content 스타일 제거됨)
   // 게스트 상태
   guestCard: {
     borderRadius: 16,
