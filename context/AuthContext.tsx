@@ -30,6 +30,7 @@ interface SimpleToken {
   refreshToken: string;
   email?: string; // 이메일 정보 (선택적)
   userId?: number; // 사용자 ID (선택적)
+  nickname?: string; // 사용자 닉네임 (선택적)
 }
 
 /**
