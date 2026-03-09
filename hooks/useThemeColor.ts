@@ -22,6 +22,15 @@ export const useThemeColor = (
 };
 
 /**
+ * 전체 테마 색상 훅
+ * 모든 색상을 객체로 반환
+ */
+export const useTheme = () => {
+  const theme = useColorScheme() ?? "light";
+  return colors[theme];
+};
+
+/**
  * 기본 색상 팔레트
  */
 const colors = {
