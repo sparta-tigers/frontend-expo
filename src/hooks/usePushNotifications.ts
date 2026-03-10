@@ -23,6 +23,7 @@ interface NotificationResponse {
 // 안드로이드 Expo Go 환경에서 푸시 알림 임포트 방어
 let Notifications: any = null;
 try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   Notifications = require("expo-notifications");
 } catch (error) {
   console.warn("expo-notifications를 임포트할 수 없습니다:", error);
