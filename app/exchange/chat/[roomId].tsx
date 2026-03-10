@@ -1,9 +1,17 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useLocalSearchParams } from "expo-router";
-import React, { useCallback, useEffect } from "react";
 import {
+  InfiniteData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { useLocalSearchParams } from "expo-router";
+import React, { useCallback, useEffect, useMemo } from "react";
+import {
+  ActivityIndicator,
   Alert,
   AppState,
+  FlatList,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -13,6 +21,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
+import { chatroomsGetMessagesAPI } from "@/src/features/chat/api";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useWebSocket } from "@/src/hooks/useWebSocket";
 import { theme } from "@/src/styles/theme";
@@ -38,6 +47,11 @@ interface ChatMessage {
   type?: "CHAT" | "SYSTEM"; // Target 15: 시스템 메시지 타입 추가
 }
 
+interface ChatMessagesPage {
+  content: ChatMessage[];
+  hasNext: boolean;
+}
+
 interface ExchangeItem {
   id: number;
   title: string;
@@ -55,6 +69,8 @@ export default function ChatRoomScreen() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { colors } = useTheme();
+
+  const roomIdNumber = Number(roomId);
 
   // 상태 관리 (TODO: 메시지 입력 기능 구현 시 사용)
 
@@ -85,45 +101,112 @@ export default function ChatRoomScreen() {
   });
 
   // 🚨 앙드레 카파시: 과거 메시지 조회
-  useQuery({
-    queryKey: ["chatMessages", roomId],
-    queryFn: async () => {
-      // TODO: 과거 메시지 API 호출
-      /*
-      const response = await chatGetMessagesAPI(Number(roomId));
-      return response.data;
-      */
+  const {
+    data: messagesData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<ChatMessagesPage>({
+    queryKey: ["chatMessages", roomIdNumber],
+    queryFn: async ({ pageParam = 0 }) => {
+      const response = await chatroomsGetMessagesAPI(
+        roomIdNumber,
+        pageParam as number,
+      );
+      const messages = response.data?.messages ?? [];
 
-      // Mock 데이터 (실제 API 연동 전)
-      const mockMessages = [
-        {
-          id: 1,
-          roomId: Number(roomId),
-          senderId: user?.userId || 0,
-          senderName: user?.nickname || "나",
-          content: "안녕하세요! 교환 신청했습니다.",
-          timestamp: new Date(Date.now() - 3600000).toISOString(),
-          isMine: true,
-        },
-        {
-          id: 2,
-          roomId: Number(roomId),
-          senderId: 789,
-          senderName: "상대방",
-          content: "네, 확인했습니다. 언제 교환 가능하신가요?",
-          timestamp: new Date(Date.now() - 1800000).toISOString(),
-          isMine: false,
-        },
-      ] as ChatMessage[];
+      const mapped: ChatMessage[] = messages.map((message) => ({
+        id: message.id,
+        roomId: roomIdNumber,
+        senderId: message.senderId,
+        senderName: message.sender?.nickname ?? message.senderNickName,
+        content: message.content,
+        timestamp: message.sentAt || message.createdAt,
+        isMine: message.isMyMessage,
+        type: "CHAT",
+      }));
 
-      return mockMessages;
+      const hasNext = mapped.length > 0;
+      return { content: mapped, hasNext };
     },
-    enabled: !!roomId,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.hasNext ? allPages.length : undefined,
+    enabled: Number.isFinite(roomIdNumber) && roomIdNumber > 0,
+    initialPageParam: 0,
   });
 
+  const flattenedMessages = useMemo(() => {
+    const pages = messagesData?.pages ?? [];
+    return pages.flatMap((page) => page.content);
+  }, [messagesData]);
+
   // 🚨 앙드레 카파시: STOMP WebSocket 연결
-  const { status: wsStatus } = useWebSocket();
+  const { client, connect, status: wsStatus } = useWebSocket();
   const isConnected = wsStatus === "CONNECTED";
+
+  const handleMessageReceived = useCallback(
+    (newMessage: ChatMessage) => {
+      queryClient.setQueryData(
+        ["chatMessages", roomIdNumber],
+        (oldData: InfiniteData<ChatMessagesPage, number> | undefined) => {
+          if (!oldData || oldData.pages.length === 0) return oldData;
+          const nextPages = [...oldData.pages];
+          nextPages[0] = {
+            ...nextPages[0],
+            content: [newMessage, ...nextPages[0].content],
+          };
+          return { ...oldData, pages: nextPages };
+        },
+      );
+    },
+    [queryClient, roomIdNumber],
+  );
+
+  useEffect(() => {
+    if (!client || !isConnected || !Number.isFinite(roomIdNumber)) return;
+
+    const subscription = client.subscribe(
+      `/server/directRoom/${roomIdNumber}`,
+      (message) => {
+        try {
+          const parsed = JSON.parse(message.body) as {
+            id: number;
+            roomId: number;
+            senderId: number;
+            senderName?: string;
+            content: string;
+            timestamp?: string;
+            sentAt?: string;
+            createdAt?: string;
+            type?: "CHAT" | "SYSTEM";
+          };
+
+          const normalized: ChatMessage = {
+            id: parsed.id,
+            roomId: roomIdNumber,
+            senderId: parsed.senderId,
+            senderName: parsed.senderName ?? "",
+            content: parsed.content,
+            timestamp:
+              parsed.sentAt ??
+              parsed.timestamp ??
+              parsed.createdAt ??
+              new Date().toISOString(),
+            isMine: parsed.senderId === (user?.userId ?? -1),
+            type: parsed.type ?? "CHAT",
+          };
+
+          handleMessageReceived(normalized);
+        } catch (error) {
+          console.error("[ChatRoom] message parse error:", error);
+        }
+      },
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [client, handleMessageReceived, isConnected, roomIdNumber, user?.userId]);
 
   // 🚨 앙드레 카파시: AppState 이벤트 리스너 (백그라운드/포그라운드 전환 감지)
   useEffect(() => {
@@ -131,10 +214,12 @@ export default function ChatRoomScreen() {
       if (nextAppState === "active") {
         // 포그라운드 복귀 시 STOMP 재연결
         console.log("📱 [AppState] 앱이 활성화되었습니다.");
-        // TODO: STOMP 재연결 로직 구현
+        void connect();
 
         // 백그라운드 중 누락된 메시지 REST 패칭
-        queryClient.invalidateQueries({ queryKey: ["chatMessages", roomId] });
+        queryClient.invalidateQueries({
+          queryKey: ["chatMessages", roomIdNumber],
+        });
       } else if (nextAppState === "background") {
         // 백그라운드 전환 시 STOMP 비활성화 (배터리 최적화)
         console.log("📱 [AppState] 앱이 백그라운드로 전환되었습니다.");
@@ -145,7 +230,7 @@ export default function ChatRoomScreen() {
     return () => {
       subscription.remove();
     };
-  }, [roomId, queryClient]);
+  }, [connect, queryClient, roomIdNumber]);
 
   // 🚨 앙드레 카파시: 상태 변경 Mutation
   const { mutate: updateItemStatus } = useMutation({
@@ -308,6 +393,53 @@ export default function ChatRoomScreen() {
           {isConnected ? "연결됨" : "연결 끊김"}
         </Text>
       </View>
+
+      <FlatList
+        inverted={true}
+        data={flattenedMessages}
+        keyExtractor={(item) => String(item.id)}
+        contentContainerStyle={styles.messageListContent}
+        renderItem={({ item }) => (
+          <View
+            style={[
+              styles.messageBubble,
+              item.isMine ? styles.myBubble : styles.otherBubble,
+              {
+                backgroundColor: item.isMine ? colors.primary : colors.surface,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.messageText,
+                { color: item.isMine ? colors.background : colors.text },
+              ]}
+            >
+              {item.content}
+            </Text>
+          </View>
+        )}
+        onEndReached={() => {
+          if (hasNextPage && !isFetchingNextPage) {
+            void fetchNextPage();
+          }
+        }}
+        onEndReachedThreshold={0.5}
+        removeClippedSubviews={true}
+        initialNumToRender={15}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        ListFooterComponent={
+          isFetchingNextPage ? (
+            <View style={styles.paginationLoading}>
+              <ActivityIndicator size="small" />
+              <Text style={[styles.loadingText, { color: colors.muted }]}>
+                이전 메시지 로딩 중...
+              </Text>
+            </View>
+          ) : null
+        }
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -373,5 +505,29 @@ const styles = StyleSheet.create({
   connectionStatusText: {
     fontSize: FONT_SIZE.CAPTION,
     fontWeight: "600",
+  },
+  messageListContent: {
+    paddingHorizontal: SPACING.COMPONENT,
+    paddingVertical: SPACING.SMALL,
+  },
+  messageBubble: {
+    maxWidth: "80%",
+    paddingHorizontal: SPACING.COMPONENT,
+    paddingVertical: SPACING.SMALL,
+    borderRadius: BORDER_RADIUS.CARD,
+    marginVertical: SPACING.TINY,
+  },
+  myBubble: {
+    alignSelf: "flex-end",
+  },
+  otherBubble: {
+    alignSelf: "flex-start",
+  },
+  messageText: {
+    fontSize: FONT_SIZE.BODY,
+  },
+  paginationLoading: {
+    paddingVertical: SPACING.SMALL,
+    alignItems: "center",
   },
 });

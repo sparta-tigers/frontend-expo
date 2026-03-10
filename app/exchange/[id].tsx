@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import ImageViewing from "react-native-image-viewing";
 
 import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
@@ -172,6 +173,10 @@ export default function ItemDetailScreen() {
   const queryClient = useQueryClient();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
+  // 라이트박스 상태 관리
+  const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
+  const [imageViewerIndex, setImageViewerIndex] = useState(0);
+
   // React Query로 아이템 상세 정보 가져오기
   const {
     data: item,
@@ -206,6 +211,11 @@ export default function ItemDetailScreen() {
       );
     }
 
+    // ImageViewing을 위한 이미지 포맷 변환
+    const formattedImages = item.data.images.map((url: string) => ({
+      uri: url,
+    }));
+
     return (
       <View style={styles.imageCarousel}>
         <ScrollView
@@ -219,9 +229,16 @@ export default function ItemDetailScreen() {
           }}
         >
           {item.data.images?.map((imageUrl: string, index: number) => (
-            <View key={index} style={styles.imageContainer}>
+            <TouchableOpacity
+              key={index}
+              style={styles.imageContainer}
+              onPress={() => {
+                setImageViewerIndex(index);
+                setIsImageViewerVisible(true);
+              }}
+            >
               <Image source={{ uri: imageUrl }} style={styles.image} />
-            </View>
+            </TouchableOpacity>
           ))}
         </ScrollView>
 
@@ -245,9 +262,18 @@ export default function ItemDetailScreen() {
             ))}
           </View>
         )}
+
+        {/* ImageViewing 라이트박스 */}
+        <ImageViewing
+          images={formattedImages}
+          imageIndex={imageViewerIndex}
+          visible={isImageViewerVisible}
+          onRequestClose={() => setIsImageViewerVisible(false)}
+          swipeToCloseEnabled={true}
+        />
       </View>
     );
-  }, [item, colors, currentImageIndex]);
+  }, [item, colors, currentImageIndex, imageViewerIndex, isImageViewerVisible]);
 
   // 교환 신청 핸들러 (타인 전용)
   const handleExchangeRequest = useCallback(() => {
