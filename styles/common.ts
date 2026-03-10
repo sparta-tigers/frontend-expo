@@ -58,14 +58,11 @@ export const createButtonStyles = (colors: ThemeColors) =>
     } as ViewStyle,
 
     outline: {
-      backgroundColor: "transparent",
       borderWidth: 1,
       borderColor: colors.primary,
     } as ViewStyle,
 
-    ghost: {
-      backgroundColor: "transparent",
-    } as ViewStyle,
+    ghost: {} as ViewStyle,
 
     sm: {
       paddingHorizontal: 12,
@@ -99,7 +96,7 @@ export const createButtonStyles = (colors: ThemeColors) =>
     } as TextStyle,
 
     primaryText: {
-      color: "#FFFFFF",
+      color: colors.background,
     } as TextStyle,
 
     secondaryText: {
@@ -172,7 +169,7 @@ export const createCardStyles = (colors: ThemeColors) =>
       backgroundColor: colors.card,
       borderRadius: 12,
       padding: 16,
-      shadowColor: "#000",
+      shadowColor: colors.border,
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.1,
       shadowRadius: 2,
@@ -233,7 +230,7 @@ export const createListStyles = (colors: ThemeColors) =>
       borderRadius: 8,
       padding: 12,
       marginBottom: 8,
-      shadowColor: "#000",
+      shadowColor: colors.border,
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.1,
       shadowRadius: 2,

@@ -1,13 +1,6 @@
 import { useMemo } from "react";
 import { Platform, useWindowDimensions } from "react-native";
 
-/**
- * 통합 디자인 시스템
- *
- * layout.ts와 responsive.ts를 통합하여 단일 진실 공급원(SSOT) 구축
- * 앙드레 카파시의 '최소한의 코드'와 디터 람스의 '덜, 더 나은' 철학 적용
- */
-
 // 기본 디자인 토큰 (변하지 않는 기준값)
 const BASE_DESIGN_TOKENS = {
   SPACING: {
@@ -52,10 +45,10 @@ const BASE_DESIGN_TOKENS = {
 
 // 디바이스 타입 판별 함수
 const getDeviceType = (width: number) => ({
-  isSmallPhone: width < 375, // iPhone SE, 기타 소형폰
-  isRegularPhone: width >= 375 && width < 414, // iPhone 12/13/14
-  isLargePhone: width >= 414, // iPhone 12/13/14 Plus, Max
-  isTablet: width >= 768, // iPad, 안드로이드 태블릿
+  isSmallPhone: width < 375,
+  isRegularPhone: width >= 375 && width < 414,
+  isLargePhone: width >= 414,
+  isTablet: width >= 768,
   isIOS: Platform.OS === "ios",
   isAndroid: Platform.OS === "android",
 });
@@ -64,50 +57,53 @@ const getDeviceType = (width: number) => ({
 const getDeviceMultiplier = (width: number) => {
   const deviceType = getDeviceType(width);
 
-  if (deviceType.isTablet) return 1.6; // 태블릿: 60% 증가
-  if (deviceType.isLargePhone) return 1.2; // 대형폰: 20% 증가
-  if (deviceType.isSmallPhone) return 0.8; // 소형폰: 20% 감소
-  return 1.0; // 표준폰: 기본값
+  if (deviceType.isTablet) return 1.6;
+  if (deviceType.isLargePhone) return 1.2;
+  if (deviceType.isSmallPhone) return 0.8;
+  return 1.0;
+};
+
+export type UnifiedDesign = {
+  BORDER_RADIUS: typeof BASE_DESIGN_TOKENS.BORDER_RADIUS;
+  SHADOW: typeof BASE_DESIGN_TOKENS.SHADOW;
+  SPACING: Record<keyof typeof BASE_DESIGN_TOKENS.SPACING, number>;
+  FONT_SIZE: Record<keyof typeof BASE_DESIGN_TOKENS.FONT_SIZE, number>;
+  deviceInfo: {
+    width: number;
+    height: number;
+    multiplier: number;
+  } & ReturnType<typeof getDeviceType>;
 };
 
 /**
  * 반응형 디자인 훅
- *
- * useWindowDimensions를 사용하여 성능 최적화
- * 화면 크기 변경 시에만 재계산
  */
-export function useUnifiedDesign() {
+export function useUnifiedDesign(): UnifiedDesign {
   const { width, height } = useWindowDimensions();
 
   return useMemo(() => {
     const multiplier = getDeviceMultiplier(width);
     const deviceType = getDeviceType(width);
 
-    // 동적 디자인 토큰 계산
     const spacing = Object.fromEntries(
       Object.entries(BASE_DESIGN_TOKENS.SPACING).map(([key, value]) => [
         key,
         Math.round(value * multiplier),
       ]),
-    );
+    ) as UnifiedDesign["SPACING"];
 
     const fontSize = Object.fromEntries(
       Object.entries(BASE_DESIGN_TOKENS.FONT_SIZE).map(([key, value]) => [
         key,
         Math.round(value * multiplier),
       ]),
-    );
+    ) as UnifiedDesign["FONT_SIZE"];
 
     return {
-      // 기본 토큰 (변경 없음)
       BORDER_RADIUS: BASE_DESIGN_TOKENS.BORDER_RADIUS,
       SHADOW: BASE_DESIGN_TOKENS.SHADOW,
-
-      // 반응형 토큰
       SPACING: spacing,
       FONT_SIZE: fontSize,
-
-      // 디바이스 정보
       deviceInfo: {
         width,
         height,
@@ -119,10 +115,9 @@ export function useUnifiedDesign() {
 }
 
 /**
- * 간편한 접근을 위한 유틸리티 함수
+ * 훅 외부에서 사용할 경우
  */
 export const getUnifiedDesign = async () => {
-  // 서버사이드 렌더링이나 훅 외부에서 사용할 경우
   const { Dimensions } = await import("react-native");
   const { width } = Dimensions.get("window");
   const multiplier = getDeviceMultiplier(width);
@@ -136,7 +131,6 @@ export const getUnifiedDesign = async () => {
   };
 };
 
-// 기본값 export (하위 호환성)
 export const SPACING = BASE_DESIGN_TOKENS.SPACING;
 export const BORDER_RADIUS = BASE_DESIGN_TOKENS.BORDER_RADIUS;
 export const FONT_SIZE = BASE_DESIGN_TOKENS.FONT_SIZE;

@@ -29,7 +29,7 @@ import {
 
 // 정적 스타일 정의
 const styles = StyleSheet.create({
-  container: {
+  safeLayout: {
     flex: 1,
   },
   header: {
@@ -43,24 +43,6 @@ const styles = StyleSheet.create({
   tabContainer: {
     flexDirection: "row",
     flex: 1,
-  },
-  tab: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-  },
-  activeTab: {
-    borderBottomWidth: 2,
-    borderColor: theme.colors.primary,
-  },
-  inactiveTab: {
-    borderBottomWidth: 1,
-    borderColor: theme.colors.border.medium,
-  },
-  tabText: {
-    fontSize: theme.typography.size.md,
-    fontWeight: theme.typography.weight.bold,
   },
   headerTitle: {
     fontSize: theme.typography.size.xl,
@@ -124,12 +106,15 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   emptyText: {
-    fontSize: theme.typography.size.BODY,
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.secondary,
     textAlign: "center",
     marginBottom: theme.spacing.COMPONENT,
   },
-  emptyButton: {
-    minWidth: 120,
+  emptyImageContainer: {
+    backgroundColor: theme.colors.border.medium,
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingContainer: {
     flex: 1,
@@ -138,8 +123,25 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   loadingText: {
-    fontSize: theme.typography.size.BODY,
-    marginTop: theme.spacing.SMALL,
+    fontSize: 16,
+    marginTop: 8,
+  },
+  emptyButton: {
+    minWidth: 120,
+  },
+  activeTabIndicator: {
+    borderBottomWidth: 2,
+    borderBottomColor: theme.colors.text.primary,
+  },
+  tabTextActive: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: theme.colors.text.primary,
+  },
+  tabTextInactive: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: theme.colors.text.secondary,
   },
   // 교환 요청 관련 스타일
   requestContainer: {
@@ -186,6 +188,22 @@ const styles = StyleSheet.create({
   actionButtonText: {
     fontSize: theme.typography.size.SMALL,
     fontWeight: theme.typography.weight.semibold,
+  },
+  fabButton: {
+    position: "absolute",
+    bottom: theme.spacing.xxl,
+    right: theme.spacing.xxl,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: theme.colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 5,
+  },
+  fabText: {
+    fontSize: 24,
+    color: theme.colors.background,
   },
 });
 
@@ -459,21 +477,8 @@ export default function ExchangeScreen() {
       {item.imageUrl ? (
         <Image source={{ uri: item.imageUrl }} style={styles.itemImage} />
       ) : (
-        <View
-          style={[
-            styles.itemImage,
-            {
-              backgroundColor: colors.border,
-              justifyContent: "center",
-              alignItems: "center",
-            },
-          ]}
-        >
-          <Text
-            style={{ color: colors.muted, fontSize: theme.typography.size.xs }}
-          >
-            이미지 없음
-          </Text>
+        <View style={[styles.itemImage, styles.emptyImageContainer]}>
+          <Text style={styles.emptyText}>이미지 없음</Text>
         </View>
       )}
 
@@ -526,7 +531,7 @@ export default function ExchangeScreen() {
   }, [activeTab]); // activeTab만 의존성으로 설정
 
   return (
-    <SafeLayout style={{ backgroundColor: colors.background }}>
+    <SafeLayout style={styles.safeLayout}>
       {/* 헤더 */}
       <View
         style={[
@@ -556,20 +561,15 @@ export default function ExchangeScreen() {
         <TouchableOpacity
           style={[
             styles.tabButton,
-            activeTab === "items" && {
-              borderBottomWidth: 2,
-              borderBottomColor: colors.primary,
-            },
+            activeTab === "items" && styles.activeTabIndicator,
           ]}
           onPress={() => setActiveTab("items")}
         >
           <Text
             style={[
-              {
-                fontSize: 16,
-                fontWeight: "bold",
-                color: activeTab === "items" ? colors.primary : colors.muted,
-              },
+              activeTab === "items"
+                ? styles.tabTextActive
+                : styles.tabTextInactive,
             ]}
           >
             아이템 목록
@@ -578,20 +578,15 @@ export default function ExchangeScreen() {
         <TouchableOpacity
           style={[
             styles.tabButton,
-            activeTab === "requests" && {
-              borderBottomWidth: 2,
-              borderBottomColor: colors.primary,
-            },
+            activeTab === "requests" && styles.activeTabIndicator,
           ]}
           onPress={() => setActiveTab("requests")}
         >
           <Text
             style={[
-              {
-                fontSize: 16,
-                fontWeight: "bold",
-                color: activeTab === "requests" ? colors.primary : colors.muted,
-              },
+              activeTab === "requests"
+                ? styles.tabTextActive
+                : styles.tabTextInactive,
             ]}
           >
             받은 요청
@@ -706,30 +701,8 @@ export default function ExchangeScreen() {
       </View>
 
       {/* FAB (Floating Action Button) */}
-      <TouchableOpacity
-        style={{
-          position: "absolute",
-          bottom: theme.spacing.xxl,
-          right: theme.spacing.xxl,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          backgroundColor: theme.colors.primary,
-          justifyContent: "center",
-          alignItems: "center",
-          elevation: 5,
-        }}
-        onPress={navigateToCreate}
-      >
-        <Text
-          style={{
-            color: theme.colors.background,
-            fontSize: theme.typography.size.xl,
-            fontWeight: theme.typography.weight.bold,
-          }}
-        >
-          +
-        </Text>
+      <TouchableOpacity style={styles.fabButton} onPress={navigateToCreate}>
+        <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
     </SafeLayout>
   );

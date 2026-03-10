@@ -1,13 +1,13 @@
 import React from "react";
 import {
-  ActivityIndicator,
-  FlatList,
-  ListRenderItem,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ViewStyle,
+    ActivityIndicator,
+    FlatList,
+    ListRenderItem,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    ViewStyle,
 } from "react-native";
 import { useTheme } from "react-native-paper";
 
@@ -173,7 +173,6 @@ const styles = StyleSheet.create({
   item: {
     paddingVertical: 4,
     paddingHorizontal: 16,
-    backgroundColor: "transparent",
   },
   separator: {
     height: 1,

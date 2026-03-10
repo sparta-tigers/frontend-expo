@@ -1,5 +1,5 @@
-import { FONT_SIZE, SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
+import { FONT_SIZE, SPACING } from "@/src/styles/unified-design";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -16,7 +16,7 @@ export function OfflineBanner() {
       style={[
         styles.container,
         {
-          backgroundColor: "#EF4444",
+          backgroundColor: colors.destructive,
           borderBottomColor: colors.border,
         },
       ]}

@@ -1,4 +1,4 @@
-import { SPACING, useUnifiedDesign } from "@/constants/unified-design";
+import { SPACING, useUnifiedDesign } from "@/src/styles/unified-design";
 import React from "react";
 import { StyleSheet, View, ViewStyle } from "react-native";
 import { SafeAreaView, type Edge } from "react-native-safe-area-context";
@@ -77,7 +77,7 @@ export function SafeLayout({
     <SafeAreaView style={[styles.container, style]} edges={edges}>
       <View
         style={[
-          { flex: 1 }, // 🔥 핵심: 항상 화면을 꽉 채우도록 보장
+          styles.fill, // 🔥 핵심: 항상 화면을 꽉 채우도록 보장
           withPadding && styles.content,
           withPadding && responsiveStyles.content,
         ]}
@@ -90,6 +90,9 @@ export function SafeLayout({
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  fill: {
     flex: 1,
   },
   content: {

@@ -22,9 +22,25 @@ import { theme } from "@/src/styles/theme";
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: theme.colors.background,
   },
   scrollView: {
     flex: 1,
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
+  },
+  imageItemWrapper: {
+    position: "relative",
+  },
+  imageAddIcon: {
+    fontSize: theme.typography.size.xl,
+    color: theme.colors.text.tertiary,
+  },
+  imageCountText: {
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.tertiary,
+    marginTop: theme.spacing.xs,
   },
   // 이미지 첨부 UI
   imageScrollContainer: {
@@ -212,15 +228,17 @@ export default function CreateItemScreen() {
   };
 
   return (
-    <SafeLayout
-      edges={["top", "bottom"]}
-      style={{ flex: 1, backgroundColor: theme.colors.background }}
-    >
+    <SafeLayout edges={["top", "bottom"]} style={styles.container}>
       {/* 헤더 */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>교환글 쓰기</Text>
         <TouchableOpacity onPress={handleSubmit} disabled={isPending}>
-          <Text style={[styles.submitButton, isPending && { opacity: 0.6 }]}>
+          <Text
+            style={[
+              styles.submitButton,
+              isPending && styles.submitButtonDisabled,
+            ]}
+          >
             {isPending ? "등록 중..." : "등록"}
           </Text>
         </TouchableOpacity>
@@ -239,21 +257,8 @@ export default function CreateItemScreen() {
               style={styles.imageAddButton}
               onPress={handleImagePicker}
             >
-              <Text
-                style={{
-                  fontSize: theme.typography.size.xl,
-                  color: theme.colors.text.tertiary,
-                }}
-              >
-                📷
-              </Text>
-              <Text
-                style={{
-                  fontSize: theme.typography.size.xs,
-                  color: theme.colors.text.tertiary,
-                  marginTop: theme.spacing.xs,
-                }}
-              >
+              <Text style={styles.imageAddIcon}>📷</Text>
+              <Text style={styles.imageCountText}>
                 {selectedImages.length}/5
               </Text>
             </TouchableOpacity>
@@ -261,7 +266,7 @@ export default function CreateItemScreen() {
 
           {/* 렌더링된 이미지 목록 */}
           {selectedImages.map((imageUri, index) => (
-            <View key={index} style={{ position: "relative" }}>
+            <View key={index} style={styles.imageItemWrapper}>
               <Image source={{ uri: imageUri }} style={styles.imageThumbnail} />
               <TouchableOpacity
                 style={styles.deleteButton}

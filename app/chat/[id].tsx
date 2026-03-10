@@ -170,10 +170,7 @@ export default function ChatRoomScreen() {
   }, []);
 
   return (
-    <SafeLayout
-      edges={["top", "bottom"]}
-      style={{ flex: 1, backgroundColor: theme.colors.background }}
-    >
+    <SafeLayout edges={["top", "bottom"]} style={styles.safeLayout}>
       <ChatHeader nickname={"상대방 닉네임"} />
 
       {/* 아이템 요약 정보 (스크롤 시 고정) */}
@@ -197,22 +194,10 @@ export default function ChatRoomScreen() {
           data={messagesState.data || []}
           renderItem={renderMessage}
           keyExtractor={(item, index) => `${item.sentAt}-${index}`}
-          contentContainerStyle={{ paddingTop: 16 }}
+          contentContainerStyle={styles.listContent}
           ListEmptyComponent={
-            <View
-              style={{
-                flex: 1,
-                justifyContent: "center",
-                alignItems: "center",
-                paddingVertical: 40,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: theme.typography.size.md,
-                  color: theme.colors.text.secondary,
-                }}
-              >
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>
                 {messagesState.status === "loading"
                   ? "메시지를 불러오는 중..."
                   : "메시지가 없습니다. 대화를 시작해보세요!"}
@@ -242,9 +227,8 @@ export default function ChatRoomScreen() {
           <Text
             style={[
               styles.sendIcon,
-              (!inputMessage.trim() || status !== "CONNECTED") && {
-                opacity: 0.5,
-              },
+              (!inputMessage.trim() || status !== "CONNECTED") &&
+                styles.sendIconDisabled,
             ]}
           >
             ➤
@@ -262,25 +246,42 @@ function ChatHeader({ nickname }: { nickname: string }) {
   return (
     <View style={styles.chatHeader}>
       <TouchableOpacity onPress={() => router.back()}>
-        <Text
-          style={{
-            fontSize: theme.typography.size.xl,
-            color: theme.colors.primary,
-          }}
-        >
-          ←
-        </Text>
+        <Text style={styles.backIcon}>←</Text>
       </TouchableOpacity>
       <Text style={styles.headerTitle}>{nickname}</Text>
-      <View style={{ width: 20 }} />
+      <View style={styles.headerRightSpacer} />
     </View>
   );
 }
 
 // 정적 스타일 정의 (작업 지시서 기준)
 const styles = StyleSheet.create({
-  container: {
+  safeLayout: {
     flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  listContent: {
+    paddingTop: theme.spacing.lg,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: theme.spacing.xl,
+  },
+  emptyText: {
+    fontSize: theme.typography.size.md,
+    color: theme.colors.text.secondary,
+  },
+  backIcon: {
+    fontSize: theme.typography.size.xl,
+    color: theme.colors.primary,
+  },
+  headerRightSpacer: {
+    width: theme.spacing.lg,
+  },
+  sendIconDisabled: {
+    opacity: 0.5,
   },
   // 채팅 헤더
   chatHeader: {

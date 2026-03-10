@@ -2,23 +2,23 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback } from "react";
 import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    FlatList,
+    Image,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import { itemsGetListAPI } from "@/src/features/exchange/api";
 import { Item } from "@/src/features/exchange/types";
+import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/unified-design";
 
 // 정적 스타일 정의
 const styles = StyleSheet.create({
@@ -70,6 +70,13 @@ const styles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.IMAGE,
     marginRight: SPACING.COMPONENT,
   },
+  itemImagePlaceholder: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  itemImagePlaceholderText: {
+    fontSize: FONT_SIZE.CAPTION,
+  },
   itemContent: {
     flex: 1,
   },
@@ -114,6 +121,32 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: FONT_SIZE.BODY,
     marginTop: SPACING.SMALL,
+  },
+  skeletonContainer: {
+    opacity: 0.6,
+  },
+  skeletonLineLg: {
+    height: 20,
+    width: "80%",
+    borderRadius: 4,
+  },
+  skeletonLineMd: {
+    height: 16,
+    width: "100%",
+    borderRadius: 4,
+    marginTop: 4,
+  },
+  skeletonLineSm: {
+    height: 16,
+    width: "60%",
+    borderRadius: 4,
+    marginTop: 4,
+  },
+  gridColumnWrapper: {
+    justifyContent: "space-between",
+  },
+  listContentContainer: {
+    paddingHorizontal: SPACING.SCREEN,
   },
   fab: {
     position: "absolute",
@@ -209,14 +242,15 @@ export default function ExchangeListScreen() {
           <View
             style={[
               styles.itemImage,
+              styles.itemImagePlaceholder,
               {
                 backgroundColor: colors.border,
-                justifyContent: "center",
-                alignItems: "center",
               },
             ]}
           >
-            <Text style={{ color: colors.muted, fontSize: 12 }}>
+            <Text
+              style={[styles.itemImagePlaceholderText, { color: colors.muted }]}
+            >
               이미지 없음
             </Text>
           </View>
@@ -256,9 +290,9 @@ export default function ExchangeListScreen() {
       <View
         style={[
           styles.itemContainer,
+          styles.skeletonContainer,
           {
             backgroundColor: colors.surface,
-            opacity: 0.6,
           },
         ]}
       >
@@ -267,36 +301,22 @@ export default function ExchangeListScreen() {
           <View
             style={[
               styles.itemTitle,
-              {
-                backgroundColor: colors.border,
-                height: 20,
-                width: "80%",
-                borderRadius: 4,
-              },
+              styles.skeletonLineLg,
+              { backgroundColor: colors.border },
             ]}
           />
           <View
             style={[
               styles.itemDescription,
-              {
-                backgroundColor: colors.border,
-                height: 16,
-                width: "100%",
-                borderRadius: 4,
-                marginTop: 4,
-              },
+              styles.skeletonLineMd,
+              { backgroundColor: colors.border },
             ]}
           />
           <View
             style={[
               styles.itemDescription,
-              {
-                backgroundColor: colors.border,
-                height: 16,
-                width: "60%",
-                borderRadius: 4,
-                marginTop: 4,
-              },
+              styles.skeletonLineSm,
+              { backgroundColor: colors.border },
             ]}
           />
         </View>
@@ -498,8 +518,8 @@ export default function ExchangeListScreen() {
           }
           showsVerticalScrollIndicator={false}
           keyExtractor={(item) => item.id.toString()}
-          columnWrapperStyle={{ justifyContent: "space-between" }}
-          contentContainerStyle={{ paddingHorizontal: SPACING.SCREEN }}
+          columnWrapperStyle={styles.gridColumnWrapper}
+          contentContainerStyle={styles.listContentContainer}
         />
       </View>
 

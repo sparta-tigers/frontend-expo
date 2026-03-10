@@ -12,11 +12,11 @@ import {
 } from "react-native";
 
 import { Button } from "@/components/ui/button";
-import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useWebSocket } from "@/src/hooks/useWebSocket";
 import { theme } from "@/src/styles/theme";
+import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/unified-design";
 
 /**
  * 교환 채팅방 화면 컴포넌트

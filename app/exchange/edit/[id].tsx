@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import { itemsGetDetailAPI, itemsUpdateAPI } from "@/src/features/exchange/api";
 import { UpdateItemRequest } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
+import { SPACING } from "@/src/styles/unified-design";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";

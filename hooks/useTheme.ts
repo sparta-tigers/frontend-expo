@@ -1,5 +1,5 @@
-import { DARK_THEME, LIGHT_THEME, ThemeColors } from "@/constants/theme";
 import { useTheme as useThemeContext } from "@/context/ThemeContext";
+import { getThemeColors, type ThemePalette } from "@/src/styles/theme";
 import { useColorScheme } from "react-native";
 
 /**
@@ -13,8 +13,10 @@ export const useTheme = () => {
   const { theme, toggleTheme } = useThemeContext();
 
   // 사용자가 선택한 테마가 있으면 그것을 사용, 없으면 시스템 테마 사용
-  const currentTheme = theme || systemColorScheme;
-  const colors = currentTheme === "dark" ? DARK_THEME : LIGHT_THEME;
+  const currentTheme = (theme || systemColorScheme || "light") as
+    | "light"
+    | "dark";
+  const colors: ThemePalette = getThemeColors(currentTheme);
 
   // 디버깅: theme가 undefined일 경우 로그 출력
   if (!theme) {
@@ -36,7 +38,7 @@ export const useTheme = () => {
  * @param colorName 색상 이름
  * @returns 현재 테마에 맞는 색상 값
  */
-export const useThemeColor = (colorName: keyof ThemeColors) => {
+export const useThemeColor = (colorName: keyof ThemePalette) => {
   const { colors } = useTheme();
   return colors[colorName];
 };

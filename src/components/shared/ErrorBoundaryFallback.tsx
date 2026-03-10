@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
+import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/unified-design";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -27,7 +27,7 @@ export function ErrorBoundaryFallback({
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.content}>
-        <Text style={[styles.title, { color: "#EF4444" }]}>
+        <Text style={[styles.title, { color: colors.destructive }]}>
           치명적인 오류가 발생했습니다
         </Text>
 
@@ -37,7 +37,7 @@ export function ErrorBoundaryFallback({
         </Text>
 
         {__DEV__ && (
-          <View style={styles.debugInfo}>
+          <View style={[styles.debugInfo, { backgroundColor: colors.surface }]}>
             <Text style={[styles.errorTitle, { color: colors.muted }]}>
               개발자 정보:
             </Text>
@@ -86,7 +86,6 @@ const styles = StyleSheet.create({
   },
   debugInfo: {
     width: "100%",
-    backgroundColor: "#f5f5f5",
     padding: SPACING.SMALL,
     borderRadius: BORDER_RADIUS.CARD,
     marginBottom: SPACING.COMPONENT,

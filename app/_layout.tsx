@@ -1,6 +1,6 @@
 import { CombinedProvider } from "@/components/providers/combined-provider";
 import { useAuth } from "@/context/AuthContext";
-import { useTheme } from "@/hooks/useThemeColor";
+import { useTheme } from "@/hooks/useTheme";
 import { ErrorBoundaryFallback } from "@/src/components/shared/ErrorBoundaryFallback";
 import { OfflineBanner } from "@/src/components/shared/OfflineBanner";
 import { usePushNotifications } from "@/src/hooks/usePushNotifications";
@@ -10,8 +10,11 @@ import { router, Slot, useSegments } from "expo-router";
 import "fast-text-encoding";
 import { useEffect, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+
+import { theme } from "@/src/styles/theme";
+import { FONT_SIZE, SPACING } from "@/src/styles/unified-design";
 
 /**
  * 루트 레이아웃
@@ -32,7 +35,7 @@ export default function RootLayout() {
 function RootLayoutInner() {
   const { user, isLoading } = useAuth();
   const { expoPushToken } = usePushNotifications();
-  const colors = useTheme();
+  const { colors } = useTheme();
   const segments = useSegments();
 
   // 🚨 앙드레 카파시: 네트워크 상태 감지
@@ -117,8 +120,8 @@ function RootLayoutInner() {
   // 로딩 중인 경우 ActivityIndicator 표시
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -128,7 +131,7 @@ function RootLayoutInner() {
     <ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
       <SafeAreaProvider>
         <SafeAreaView
-          style={{ flex: 1, backgroundColor: colors.background }}
+          style={[styles.safeArea, { backgroundColor: colors.background }]}
           edges={["top", "left", "right"]}
         >
           {/* 🚨 앙드레 카파시: 오프라인 배너 */}
@@ -136,29 +139,23 @@ function RootLayoutInner() {
 
           {/* 1. 고정 헤더 (SafeArea 보호) */}
           <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              paddingHorizontal: 20,
-              paddingVertical: 15,
-              borderBottomWidth: 1,
-              borderBottomColor: colors.border,
-            }}
+            style={[
+              styles.headerContainer,
+              { borderBottomColor: colors.border },
+            ]}
           >
-            <Text
-              style={{
-                fontSize: 20,
-                fontWeight: "bold",
-                color: colors.primary,
-              }}
-            >
+            <Text style={[styles.headerTitle, { color: colors.primary }]}>
               YAGUNIV
             </Text>
           </View>
 
           {/* 2. 하위 라우팅 화면 */}
-          <View style={{ flex: 1, backgroundColor: colors.background }}>
+          <View
+            style={[
+              styles.contentContainer,
+              { backgroundColor: colors.background },
+            ]}
+          >
             <Slot />
           </View>
         </SafeAreaView>
@@ -166,3 +163,29 @@ function RootLayoutInner() {
     </ErrorBoundary>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  safeArea: {
+    flex: 1,
+  },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: SPACING.SCREEN,
+    paddingVertical: SPACING.COMPONENT,
+    borderBottomWidth: 1,
+  },
+  headerTitle: {
+    fontSize: FONT_SIZE.SECTION_TITLE,
+    fontWeight: theme.typography.weight.bold,
+  },
+  contentContainer: {
+    flex: 1,
+  },
+});

@@ -4,10 +4,10 @@ import { StyleSheet, Text, View } from "react-native";
 import { SceneMap, TabView } from "react-native-tab-view";
 
 import { Button } from "@/components/ui/button";
-import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import { Item } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
+import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/unified-design";
 
 /**
  * 교환 리스트 컴포넌트
@@ -21,6 +21,109 @@ interface ExchangeListProps {
 const ExchangeList: React.FC<ExchangeListProps> = ({ role }) => {
   const { colors } = useTheme();
   const { user } = useAuth();
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: SPACING.COMPONENT,
+    },
+    loadingText: {
+      fontSize: FONT_SIZE.BODY,
+      textAlign: "center",
+    },
+    emptyText: {
+      fontSize: FONT_SIZE.BODY,
+      textAlign: "center",
+    },
+    itemContainer: {
+      flexDirection: "row",
+      padding: SPACING.COMPONENT,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      marginBottom: SPACING.SMALL,
+      backgroundColor: colors.surface,
+    },
+    exchangeItem: {
+      padding: SPACING.COMPONENT,
+      marginBottom: SPACING.SMALL,
+      borderRadius: BORDER_RADIUS.CARD,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    itemImage: {
+      width: 60,
+      height: 60,
+      borderRadius: BORDER_RADIUS.IMAGE,
+      backgroundColor: colors.surface,
+      marginRight: SPACING.SMALL,
+    },
+    itemContent: {
+      flex: 1,
+    },
+    itemHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: SPACING.TINY,
+    },
+    itemTitle: {
+      fontSize: FONT_SIZE.BODY,
+      fontWeight: "bold",
+      flex: 1,
+    },
+    itemCategory: {
+      fontSize: FONT_SIZE.SMALL,
+      marginLeft: SPACING.SMALL,
+    },
+    itemDescription: {
+      fontSize: FONT_SIZE.SMALL,
+      color: colors.muted,
+      marginBottom: SPACING.SMALL,
+    },
+    itemFooter: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: SPACING.SMALL,
+    },
+    itemUser: {
+      fontSize: FONT_SIZE.SMALL,
+      flex: 1,
+    },
+    statusBadge: {
+      paddingHorizontal: SPACING.SMALL,
+      paddingVertical: SPACING.TINY,
+      borderRadius: BORDER_RADIUS.BUTTON,
+    },
+    statusText: {
+      fontSize: FONT_SIZE.CAPTION,
+      fontWeight: "600",
+    },
+    chatButton: {
+      paddingVertical: SPACING.SMALL,
+      borderRadius: BORDER_RADIUS.BUTTON,
+    },
+    chatButtonText: {
+      fontSize: FONT_SIZE.SMALL,
+      fontWeight: "600",
+      textAlign: "center",
+    },
+    testContainer: {
+      padding: SPACING.COMPONENT,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    testButton: {
+      paddingVertical: SPACING.SMALL,
+      borderRadius: BORDER_RADIUS.BUTTON,
+    },
+    testButtonText: {
+      fontSize: FONT_SIZE.SMALL,
+      fontWeight: "600",
+      textAlign: "center",
+    },
+  });
 
   // 🚨 앙드레 카파시: 독립적 Query Keys
   const { data: exchanges, isLoading } = useQuery({
@@ -96,16 +199,7 @@ const ExchangeList: React.FC<ExchangeListProps> = ({ role }) => {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {exchanges.map((exchange) => (
-        <View
-          key={exchange.id}
-          style={[
-            styles.exchangeItem,
-            {
-              backgroundColor: colors.surface,
-              borderColor: colors.border,
-            },
-          ]}
-        >
+        <View key={exchange.id} style={styles.exchangeItem}>
           <View style={styles.itemHeader}>
             <Text style={[styles.itemTitle, { color: colors.text }]}>
               {exchange.title}
@@ -115,7 +209,7 @@ const ExchangeList: React.FC<ExchangeListProps> = ({ role }) => {
             </Text>
           </View>
 
-          <Text style={[styles.itemDescription, { color: colors.text }]}>
+          <Text style={[styles.itemDescription, { color: colors.muted }]}>
             {exchange.description}
           </Text>
 
@@ -276,7 +370,6 @@ const styles = StyleSheet.create({
   },
   itemDescription: {
     fontSize: FONT_SIZE.SMALL,
-    color: "#666",
     marginBottom: SPACING.SMALL,
   },
   itemFooter: {
@@ -310,7 +403,6 @@ const styles = StyleSheet.create({
   testContainer: {
     padding: SPACING.COMPONENT,
     borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
   },
   testButton: {
     paddingVertical: SPACING.SMALL,

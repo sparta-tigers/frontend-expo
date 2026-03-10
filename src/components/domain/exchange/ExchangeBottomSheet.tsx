@@ -6,10 +6,10 @@ import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import { Item } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
+import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/unified-design";
 
 /**
  * 교환 신청 바텀시트 컴포넌트
