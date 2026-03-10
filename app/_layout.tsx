@@ -1,13 +1,20 @@
 import { CombinedProvider } from "@/components/providers/combined-provider";
 import { useAuth } from "@/context/AuthContext";
-import { useTheme } from "@/hooks/useThemeColor";
+import { useTheme } from "@/hooks/useTheme";
+import { ErrorBoundaryFallback } from "@/src/components/shared/ErrorBoundaryFallback";
+import { OfflineBanner } from "@/src/components/shared/OfflineBanner";
 import { usePushNotifications } from "@/src/hooks/usePushNotifications";
+import { FONT_SIZE, SPACING } from "@/src/styles/unified-design";
+import { useNetInfo } from "@react-native-community/netinfo";
 import * as Notifications from "expo-notifications";
 import { router, Slot, useSegments } from "expo-router";
-import "fast-text-encoding";
 import { useEffect, useRef } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ErrorBoundary } from "react-error-boundary";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+
+import { theme } from "@/src/styles/theme";
 
 /**
  * 루트 레이아웃
@@ -28,8 +35,11 @@ export default function RootLayout() {
 function RootLayoutInner() {
   const { user, isLoading } = useAuth();
   const { expoPushToken } = usePushNotifications();
-  const colors = useTheme();
+  const { colors } = useTheme();
   const segments = useSegments();
+
+  // 🚨 앙드레 카파시: 네트워크 상태 감지
+  const netInfo = useNetInfo();
 
   // 🚨 앙드레 카파시: 네비게이터 준비 상태 추적
   const navigationReady = useRef(false);
@@ -48,10 +58,9 @@ function RootLayoutInner() {
     }),
   });
 
-  // 토큰 발급 확인
+  // 토큰 발급 확인 (실제 전송 로직은 usePushNotifications 훅에서 처리)
   if (expoPushToken) {
     console.log("Expo Push Token 발급 완료:", expoPushToken);
-    // TODO: 백엔드로 토큰 전송 API 연동
   }
 
   // 🚨 앙드레 카파시: 네비게이터 준비 상태 관리
@@ -110,47 +119,77 @@ function RootLayoutInner() {
   // 로딩 중인 경우 ActivityIndicator 표시
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
-  // 🚨 앙드레 카파시: 기본 렌더링 (Redirect는 useEffect에서 처리)
+  // 🚨 앙드레 카파시: Error Boundary로 전체 앱 감싸기
   return (
-    <SafeAreaProvider>
-      <SafeAreaView
-        style={{ flex: 1, backgroundColor: colors.background }}
-        edges={["top", "left", "right"]}
-      >
-        {/* 1. 고정 헤더 (SafeArea 보호) */}
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            paddingHorizontal: 20,
-            paddingVertical: 15,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.border,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: "bold",
-              color: colors.primary,
-            }}
+    <ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
+      <GestureHandlerRootView style={styles.gestureContainer}>
+        <SafeAreaProvider>
+          <SafeAreaView
+            style={[styles.safeArea, { backgroundColor: colors.background }]}
+            edges={["top", "left", "right"]}
           >
-            YAGUNIV
-          </Text>
-        </View>
+            {/* 🚨 앙드레 카파시: 오프라인 배너 */}
+            {!netInfo.isConnected && <OfflineBanner />}
 
-        {/* 2. 하위 라우팅 화면 */}
-        <View style={{ flex: 1, backgroundColor: colors.background }}>
-          <Slot />
-        </View>
-      </SafeAreaView>
-    </SafeAreaProvider>
+            {/* 1. 고정 헤더 (SafeArea 보호) */}
+            <View
+              style={[
+                styles.headerContainer,
+                { borderBottomColor: colors.border },
+              ]}
+            >
+              <Text style={[styles.headerTitle, { color: colors.primary }]}>
+                YAGUNIV
+              </Text>
+            </View>
+
+            {/* 2. 하위 라우팅 화면 */}
+            <View
+              style={[
+                styles.contentContainer,
+                { backgroundColor: colors.background },
+              ]}
+            >
+              <Slot />
+            </View>
+          </SafeAreaView>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  gestureContainer: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: SPACING.SCREEN,
+    paddingVertical: SPACING.COMPONENT,
+    borderBottomWidth: 1,
+  },
+  headerTitle: {
+    fontSize: FONT_SIZE.SECTION_TITLE,
+    fontWeight: theme.typography.weight.bold,
+  },
+  contentContainer: {
+    flex: 1,
+  },
+});

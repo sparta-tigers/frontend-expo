@@ -1,9 +1,7 @@
 import { apiClient } from "@/src/core/client";
 import type { ApiResponse } from "@/src/shared/types/common";
-import axios from "axios";
 import {
   CreateExchangeDto,
-  CreateItemRequest,
   ExchangeRequestListResponse,
   Item,
   ItemCategory,
@@ -12,10 +10,9 @@ import {
   UserLocation,
 } from "./types";
 
-/**
- * 아이템 관련 API 함수 모음
- * 아이템 등록, 조회, 검색 등 아이템 관리 기능
- */
+type ExchangeRoomResponseDto = {
+  roomId: number;
+};
 
 /**
  * 아이템 목록 조회 API
@@ -38,7 +35,7 @@ export async function itemsGetListAPI(
   if (status) params.status = status;
 
   // try-catch 제거하고 바로 리턴
-  return apiClient.get("/api/v1/items", params);
+  return apiClient.get("/api/items", params);
 }
 
 /**
@@ -51,47 +48,29 @@ export async function itemsGetListAPI(
 export async function itemsGetDetailAPI(
   itemId: number,
 ): Promise<ApiResponse<Item>> {
-  return apiClient.get(`/api/v1/items/${itemId}`);
+  return apiClient.get(`/api/items/${itemId}`);
 }
 
 /**
- * 아이템 생성 API
- * 새로운 아이템 등록
+ * 아이템 생성 API (Multipart)
+ * 새로운 아이템 등록 (이미지 업로드 포함)
  *
- * @param request - 아이템 생성 요청 데이터
+ * @param formData - FormData 인스턴스 (JSON 데이터 + 이미지 파일)
  * @returns 생성된 아이템 정보
  */
-export async function itemsCreateAPI(
-  request: CreateItemRequest,
+export async function createExchangeItem(
+  formData: FormData,
 ): Promise<ApiResponse<Item>> {
-  try {
-    // 백엔드 CreateItemWithLocationRequestDto 스펙에 맞게 페이로드 재구성
-    const payload = {
-      itemDto: {
-        category: request.itemCategory, // ItemCategory enum (GOODS, TICKET)
-        title: request.title,
-        seatInfo: null, // 선택적 필드, 현재는 null로 전송
-        description: request.description,
-      },
-      locationDto: {
-        latitude: Number(request.location.latitude), // double 타입 명시적 변환
-        longitude: Number(request.location.longitude), // double 타입 명시적 변환
-      },
-    };
-
-    const response = await apiClient.post("/api/v1/items", payload);
-    return response.data;
-  } catch (error: any) {
-    if (axios.isAxiosError(error)) {
-      console.error("🚨 [아이템 등록 400 에러 RAW DATA] 🚨");
-      console.error("- Status:", error.response?.status);
-      // 백엔드가 어떤 필드에서 유효성 검사가 실패했는지 알려주는 errors 배열 출력
-      console.error("- Data:", JSON.stringify(error.response?.data, null, 2));
-    } else {
-      console.error("🚨 [알 수 없는 에러]:", error);
-    }
-    throw error;
-  }
+  const response = await apiClient.post("/api/items", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+    transformRequest: (data) => {
+      // Axios가 React Native의 FormData 객체를 문자열로 파괴하는 것을 방지
+      return data;
+    },
+  });
+  return response.data;
 }
 
 /**
@@ -106,7 +85,7 @@ export async function itemsUpdateAPI(
   itemId: number,
   request: UpdateItemRequest,
 ): Promise<ApiResponse<Item>> {
-  return apiClient.patch(`/api/v1/items/${itemId}`, request);
+  return apiClient.patch(`/api/items/${itemId}`, request);
 }
 
 /**
@@ -119,7 +98,7 @@ export async function itemsUpdateAPI(
 export async function itemsDeleteAPI(
   itemId: number,
 ): Promise<ApiResponse<void>> {
-  return apiClient.delete(`/api/v1/items/${itemId}`);
+  return apiClient.delete(`/api/items/${itemId}`);
 }
 
 /**
@@ -134,7 +113,7 @@ export async function itemsGetMyItemsAPI(
   page: number = 0,
   size: number = 20,
 ): Promise<ApiResponse<any>> {
-  return apiClient.get("/api/v1/items/my", { page, size });
+  return apiClient.get("/api/items/my", { page, size });
 }
 
 /**
@@ -151,7 +130,7 @@ export async function itemsSearchAPI(
   page: number = 0,
   size: number = 20,
 ): Promise<ApiResponse<any>> {
-  return apiClient.get("/api/v1/items/search", { keyword, page, size });
+  return apiClient.get("/api/items/search", { keyword, page, size });
 }
 
 /**
@@ -164,7 +143,7 @@ export async function itemsSearchAPI(
 export async function itemsUpdateLocationAPI(
   location: UserLocation,
 ): Promise<ApiResponse<void>> {
-  return apiClient.post("/api/v1/items/location", location);
+  return apiClient.post("/api/items/location", location);
 }
 
 /**
@@ -181,8 +160,8 @@ export async function itemsUpdateLocationAPI(
  */
 export async function exchangeCreateAPI(
   request: CreateExchangeDto,
-): Promise<ApiResponse<void>> {
-  return apiClient.post("/api/v1/exchanges", request);
+): Promise<ApiResponse<ExchangeRoomResponseDto>> {
+  return apiClient.post("/api/exchanges", request);
 }
 
 /**
@@ -197,7 +176,7 @@ export async function exchangeGetReceivedAPI(
   page: number = 0,
   size: number = 20,
 ): Promise<ApiResponse<ExchangeRequestListResponse>> {
-  return apiClient.get("/api/v1/exchanges/receive", { page, size });
+  return apiClient.get("/api/exchanges/receive", { page, size });
 }
 
 /**
@@ -211,19 +190,21 @@ export async function exchangeGetReceivedAPI(
 export async function exchangeUpdateStatusAPI(
   exchangeRequestId: number,
   request: UpdateExchangeStatusDto,
-): Promise<ApiResponse<void>> {
-  return apiClient.patch(`/api/v1/exchanges/${exchangeRequestId}`, request);
+): Promise<ApiResponse<ExchangeRoomResponseDto>> {
+  return apiClient.patch(`/api/exchanges/${exchangeRequestId}`, request);
 }
 
 /**
- * 교환 완료 처리 API
- * 교환이 성공적으로 완료되었음을 표시
+ * 아이템 상태 변경 API
+ * 아이템의 상태를 변경 (예: REGISTERED -> EXCHANGE_RESERVED)
  *
- * @param exchangeRequestId - 교환 요청 고유 ID
- * @returns 교환 완료 처리 결과
+ * @param itemId - 아이템 고유 ID
+ * @param status - 변경할 상태
+ * @returns 상태 변경 처리 결과
  */
-export async function exchangeCompleteAPI(
-  exchangeRequestId: number,
+export async function itemsUpdateStatusAPI(
+  itemId: number,
+  status: string,
 ): Promise<ApiResponse<void>> {
-  return apiClient.patch(`/api/v1/exchanges/${exchangeRequestId}/complete`);
+  return apiClient.patch(`/api/items/${itemId}/status`, { status });
 }

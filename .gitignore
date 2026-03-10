@@ -49,3 +49,11 @@ docs/context/*.md
 .windsurf/
 
 *.log
+
+*.backup
+*.bk
+*.tmp
+*.temp
+*.cache
+*.tmp.*
+*.temp.*

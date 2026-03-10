@@ -4,7 +4,6 @@ import {
   ChatMessageListResponse,
   CreateDirectRoomRequest,
   DirectRoomListResponse,
-  SendMessageRequest,
 } from "./types";
 
 /**
@@ -71,24 +70,3 @@ export async function chatroomsGetMessagesAPI(
 // ): Promise<ApiResponse<void>> {
 //   return apiClient.post("/api/chat/send", request);
 // }
-
-/**
- * 채팅 메시지 전송 (WebSocket 기반)
- * 실시간 메시지 전송을 위한 권장 방식
- *
- * @param request - 메시지 전송 요청 데이터
- * @returns WebSocket 전송 성공 여부
- */
-export async function sendChatMessageWebSocket(
-  request: SendMessageRequest,
-): Promise<boolean> {
-  try {
-    // TODO: 실제 WebSocket 연동 구현
-    // 현재는 임시로 true 반환
-    console.log("WebSocket 메시지 전송 (임시):", request);
-    return true;
-  } catch (error) {
-    console.error("WebSocket 메시지 전송 실패:", error);
-    return false;
-  }
-}

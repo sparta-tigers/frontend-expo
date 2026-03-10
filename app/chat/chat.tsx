@@ -1,16 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import {
-    BORDER_RADIUS,
-    FONT_SIZE,
-    SHADOW,
-    SPACING,
-} from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import { chatroomsGetListAPI } from "@/src/features/chat/api";
 import { DirectRoomResponse } from "@/src/features/chat/types";
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import { ApiResponse } from "@/src/shared/types/common";
+import {
+    BORDER_RADIUS,
+    FONT_SIZE,
+    SHADOW,
+    SPACING,
+} from "@/src/styles/unified-design";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
 import {
@@ -24,21 +24,6 @@ import {
 
 // 정적 스타일 정의
 const chatStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: SPACING.COMPONENT,
-    paddingHorizontal: SPACING.SCREEN,
-    borderBottomWidth: 1,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
   listContainer: {
     padding: SPACING.SMALL,
   },

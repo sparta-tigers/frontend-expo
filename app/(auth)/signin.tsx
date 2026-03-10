@@ -2,9 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/src/hooks/useAuth";
+import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/unified-design";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
@@ -48,7 +48,7 @@ export default function SigninScreen() {
         if (__DEV__) {
           console.log("🔍 [Signin] 지연된 리디렉션 실행:", href);
         }
-        router.replace(href);
+        router.replace(href as any);
       }, 200);
       return;
     }
@@ -56,7 +56,7 @@ export default function SigninScreen() {
     if (__DEV__) {
       console.log("🔍 [Signin] 즉시 리디렉션 실행:", href);
     }
-    router.replace(href);
+    router.replace(href as any);
   };
 
   const handleSignin = async () => {

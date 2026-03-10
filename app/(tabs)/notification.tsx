@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import {
     ticketAlarmAddAPI,
@@ -13,6 +12,7 @@ import {
     TicketAlarm,
 } from "@/src/features/notification/types";
 import { useAuth } from "@/src/hooks/useAuth";
+import { SPACING } from "@/src/styles/unified-design";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -266,7 +266,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: SPACING.SMALL,
     borderWidth: 1,
-    borderColor: "transparent",
   },
   alarmContent: {
     flex: 1,

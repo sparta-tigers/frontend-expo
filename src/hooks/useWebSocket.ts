@@ -24,6 +24,8 @@ interface UseWebSocketReturn {
   sendMessage: (destination: string, body: any) => void;
 }
 
+type ChatDomain = "liveboard" | "directroom" | "location";
+
 /**
  * Polyfill 방어 코드
  * React Native 환경에서 TextEncoder 확인
@@ -91,7 +93,10 @@ const normalizeUrl = (url?: string): string => {
  * @param url - WebSocket 서버 URL
  * @returns WebSocket 연결 상태 및 제어 함수들
  */
-export function useWebSocket(url?: string): UseWebSocketReturn {
+export function useWebSocket(
+  url?: string,
+  chatDomain: ChatDomain = "directroom",
+): UseWebSocketReturn {
   const [status, setStatus] = useState<ConnectionState>("DISCONNECTED");
   const clientRef = useRef<Client | null>(null);
 
@@ -132,6 +137,7 @@ export function useWebSocket(url?: string): UseWebSocketReturn {
           webSocketFactory: () => socket,
           connectHeaders: {
             Authorization: `Bearer ${accessToken || ""}`,
+            ChatDomain: chatDomain,
           },
           debug: (str) => {
             console.log("STOMP Debug (SockJS):", str);
@@ -143,6 +149,7 @@ export function useWebSocket(url?: string): UseWebSocketReturn {
           brokerURL: normalizedUrl,
           connectHeaders: {
             Authorization: `Bearer ${accessToken || ""}`,
+            ChatDomain: chatDomain,
           },
           debug: (str) => {
             console.log("STOMP Debug (Direct):", str);
@@ -175,7 +182,7 @@ export function useWebSocket(url?: string): UseWebSocketReturn {
       console.error("WebSocket connection error:", error);
       setStatus("ERROR");
     }
-  }, [url]);
+  }, [chatDomain, url]);
 
   /**
    * WebSocket 연결 해제 함수

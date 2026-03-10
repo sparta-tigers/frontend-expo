@@ -1,100 +1,107 @@
 import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import {
-  BORDER_RADIUS,
-  FONT_SIZE,
-  SHADOW,
-  SPACING,
-} from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import {
-  exchangeGetReceivedAPI,
-  exchangeUpdateStatusAPI,
-  itemsGetListAPI,
+    exchangeGetReceivedAPI,
+    exchangeUpdateStatusAPI,
+    itemsGetListAPI,
 } from "@/src/features/exchange/api";
 import {
-  ExchangeRequest,
-  ExchangeRequestStatus,
-  Item,
+    ExchangeRequest,
+    ExchangeRequestStatus,
+    Item,
 } from "@/src/features/exchange/types";
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
+import { theme } from "@/src/styles/theme";
+import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
+import * as Location from "expo-location";
 import { useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Image,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
+import MapView, { Marker } from "react-native-maps";
 
 // 정적 스타일 정의
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  map: {
+    flex: 1,
+  },
+  bottomSheetContainer: {
+    backgroundColor: theme.colors.background,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    shadowColor: theme.colors.text.primary,
+    shadowOffset: {
+      width: 0,
+      height: -2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: SPACING.COMPONENT,
-    paddingHorizontal: SPACING.SCREEN,
-    borderBottomWidth: 1,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
+    height: theme.spacing.xxl,
+    borderBottomWidth: 2,
+    borderColor: theme.colors.primary,
   },
   tabContainer: {
     flexDirection: "row",
-    paddingHorizontal: SPACING.SCREEN,
-    borderBottomWidth: 1,
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: theme.typography.size.xl,
+    fontWeight: theme.typography.weight.bold,
   },
   tabButton: {
     flex: 1,
-    paddingVertical: SPACING.COMPONENT,
     alignItems: "center",
-  },
-  activeTab: {
-    borderBottomWidth: 2,
-  },
-  tabText: {
-    fontSize: FONT_SIZE.BODY,
-    fontWeight: "600",
+    justifyContent: "center",
+    paddingVertical: 12,
   },
   listContainer: {
     flex: 1,
-    paddingHorizontal: SPACING.SCREEN,
+    paddingHorizontal: theme.spacing.SCREEN,
   },
   itemContainer: {
     flexDirection: "row",
-    padding: SPACING.COMPONENT,
-    marginBottom: SPACING.SMALL,
-    borderRadius: BORDER_RADIUS.CARD,
-    ...SHADOW.CARD,
+    padding: theme.spacing.lg,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.border.light,
   },
   itemImage: {
-    width: 80,
-    height: 80,
-    borderRadius: BORDER_RADIUS.IMAGE,
-    marginRight: SPACING.COMPONENT,
+    width: 90,
+    height: 90,
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.surface,
+    marginRight: 14,
   },
   itemContent: {
     flex: 1,
+    justifyContent: "space-between",
   },
   itemTitle: {
-    fontSize: FONT_SIZE.BODY,
-    fontWeight: "600",
-    marginBottom: SPACING.SMALL / 2,
+    fontSize: theme.typography.size.md,
+    color: theme.colors.text.primary,
+    fontWeight: theme.typography.weight.bold,
   },
   itemDescription: {
-    fontSize: FONT_SIZE.SMALL,
-    color: "#666",
-    marginBottom: SPACING.SMALL / 2,
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.secondary,
+    marginTop: theme.spacing.xs,
   },
   itemMeta: {
     flexDirection: "row",
@@ -102,11 +109,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   itemCategory: {
-    fontSize: FONT_SIZE.SMALL,
-    fontWeight: "600",
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.secondary,
+    fontWeight: theme.typography.weight.semibold,
   },
   itemDate: {
-    fontSize: FONT_SIZE.CAPTION,
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.secondary,
   },
   emptyContainer: {
     flex: 1,
@@ -115,12 +124,15 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   emptyText: {
-    fontSize: FONT_SIZE.BODY,
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.secondary,
     textAlign: "center",
-    marginBottom: SPACING.COMPONENT,
+    marginBottom: theme.spacing.COMPONENT,
   },
-  emptyButton: {
-    minWidth: 120,
+  emptyImageContainer: {
+    backgroundColor: theme.colors.border.medium,
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingContainer: {
     flex: 1,
@@ -129,54 +141,96 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   loadingText: {
-    fontSize: FONT_SIZE.BODY,
-    marginTop: SPACING.SMALL,
+    fontSize: 16,
+    marginTop: 8,
+  },
+  emptyButton: {
+    minWidth: 120,
+  },
+  activeTabIndicator: {
+    borderBottomWidth: 2,
+    borderBottomColor: theme.colors.text.primary,
+  },
+  tabTextActive: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: theme.colors.text.primary,
+  },
+  tabTextInactive: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: theme.colors.text.secondary,
   },
   // 교환 요청 관련 스타일
   requestContainer: {
-    borderRadius: BORDER_RADIUS.CARD,
-    padding: SPACING.COMPONENT,
-    marginBottom: SPACING.SMALL,
-    ...SHADOW.CARD,
+    borderRadius: theme.radius.CARD,
+    padding: theme.spacing.COMPONENT,
+    marginBottom: theme.spacing.SMALL,
+    ...theme.shadow.card,
   },
   requestContent: {
     flex: 1,
   },
   requestTitle: {
-    fontSize: FONT_SIZE.BODY,
-    fontWeight: "600",
-    marginBottom: SPACING.SMALL,
+    fontSize: theme.typography.size.BODY,
+    fontWeight: theme.typography.weight.semibold,
+    marginBottom: theme.spacing.SMALL,
   },
   requester: {
-    fontSize: FONT_SIZE.SMALL,
-    marginBottom: SPACING.SMALL,
+    fontSize: theme.typography.size.SMALL,
+    marginBottom: theme.spacing.SMALL,
   },
   requestDate: {
-    fontSize: FONT_SIZE.CAPTION,
-    marginBottom: SPACING.SMALL,
+    fontSize: theme.typography.size.CAPTION,
+    marginBottom: theme.spacing.SMALL,
   },
   statusBadge: {
-    paddingHorizontal: SPACING.SMALL,
-    paddingVertical: SPACING.SMALL,
-    borderRadius: 4,
+    paddingHorizontal: theme.spacing.SMALL,
+    paddingVertical: theme.spacing.SMALL,
+    borderRadius: theme.radius.sm,
     alignSelf: "flex-start",
-    marginBottom: SPACING.SMALL,
+    marginBottom: theme.spacing.SMALL,
   },
   statusText: {
-    fontSize: FONT_SIZE.SMALL,
-    fontWeight: "600",
+    fontSize: theme.typography.size.SMALL,
+    fontWeight: theme.typography.weight.semibold,
   },
   requestActions: {
     flexDirection: "row",
-    gap: SPACING.SMALL,
-    marginTop: SPACING.SMALL,
+    gap: theme.spacing.SMALL,
+    marginTop: theme.spacing.SMALL,
   },
   actionButton: {
     flex: 1,
   },
   actionButtonText: {
-    fontSize: FONT_SIZE.SMALL,
-    fontWeight: "600",
+    fontSize: theme.typography.size.SMALL,
+    fontWeight: theme.typography.weight.semibold,
+  },
+  fabButton: {
+    position: "absolute",
+    bottom: theme.spacing.xxl,
+    right: theme.spacing.xxl,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: theme.colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 5,
+  },
+  locationButton: {
+    backgroundColor: theme.colors.info,
+    bottom: theme.spacing.xxl + 70, // 등록 버튼 위에 위치
+  },
+  fabContainer: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+  },
+  fabText: {
+    fontSize: 24,
+    color: theme.colors.background,
   },
 });
 
@@ -191,6 +245,8 @@ const styles = StyleSheet.create({
 export default function ExchangeScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const bottomSheetRef = useRef<BottomSheet>(null);
+  const mapRef = useRef<MapView>(null);
 
   // 탭 상태 관리
   const [activeTab, setActiveTab] = useState<"items" | "requests">("items");
@@ -199,10 +255,16 @@ export default function ExchangeScreen() {
   const [itemsState, fetchItems] = useAsyncState<Item[]>([]);
   const [requestsState, fetchRequests] = useAsyncState<ExchangeRequest[]>([]);
 
-  // 추가 상태 (페이지네이션용)
-  const [page, setPage] = useState(0);
-  const [isLast, setIsLast] = useState(false);
+  // 추가 상태 (페이지네이션용 - 현재 미사용)
+  // const [page, setPage] = useState(0);
+  // const [isLast, setIsLast] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  // 현재 위치 상태
+  const [currentLocation, setCurrentLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
 
   // 받은 교환 요청 목록 가져오기
   const loadExchangeRequests = useCallback(
@@ -212,23 +274,24 @@ export default function ExchangeScreen() {
       try {
         const response = await exchangeGetReceivedAPI(pageNum, 10);
 
-        if (response.resultType === "SUCCESS" && response.data) {
-          const newRequests = response.data.content || [];
+        const requests =
+          response.resultType === "SUCCESS" && response.data
+            ? response.data.content
+            : [];
 
-          if (isRefresh || pageNum === 0) {
-            await fetchRequests(Promise.resolve(newRequests));
-          } else {
-            const currentRequests = requestsState.data || [];
-            await fetchRequests(
-              Promise.resolve([...currentRequests, ...newRequests]),
-            );
-          }
-
-          setIsLast(response.data.last || false);
+        if (pageNum === 0 || isRefresh) {
+          await fetchRequests(Promise.resolve(requests));
+        } else {
+          await fetchRequests(
+            Promise.resolve([...(requestsState.data || []), ...requests]),
+          );
         }
+
+        // setIsLast(responseData?.last || false);
       } catch (error) {
         console.error("교환 요청 목록 로딩 실패:", error);
         Alert.alert("오류", "교환 요청 목록을 불러올 수 없습니다.");
+        await fetchRequests(Promise.resolve([]));
       }
     },
     [requestsState.status, fetchRequests, requestsState.data],
@@ -251,12 +314,13 @@ export default function ExchangeScreen() {
         const response = await itemsGetListAPI(pageNum, 10);
 
         if (response.resultType === "SUCCESS" && response.data) {
-          const { content, last } = response.data;
-          setIsLast(last); // 다음 페이지 호출 차단 스위치
+          const { content } = response.data;
+          // 다음 페이지 정보는 현재 미사용 (BottomSheetFlatList에서 onEndReached 제거)
+          // const { last } = response.data;
 
-          // 교환 완료된 아이템 필터링
+          // 교환 완료된 아이템 필터링 (COMPLETED/FAILED/DELETED 제외 가능)
           const filteredContent = content.filter(
-            (item: Item) => item.status !== "EXCHANGE_COMPLETED",
+            (item: Item) => item.status !== "COMPLETED",
           );
 
           if (pageNum === 0 || isRefresh) {
@@ -310,34 +374,139 @@ export default function ExchangeScreen() {
 
   // 아이템 상세 페이지로 이동
   const navigateToDetail = (itemId: number) => {
-    router.push(`/exchange/${itemId}` as any);
+    router.push(`/exchange/${itemId}`);
   };
 
   // 아이템 생성 페이지로 이동
   const navigateToCreate = () => {
-    router.push("/exchange/create" as any);
+    router.push("/exchange/create");
+  };
+
+  // 현재 위치로 이동
+  const moveToCurrentLocation = async () => {
+    try {
+      // 위치 권한 요청
+      const { status } = await Location.requestForegroundPermissionsAsync();
+
+      if (status !== "granted") {
+        Alert.alert(
+          "위치 권한 필요",
+          "현재 위치로 이동하려면 위치 권한이 필요합니다.\n설정에서 권한을 허용해주세요.",
+        );
+        return;
+      }
+
+      // 현재 위치 가져오기
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      const { latitude, longitude } = location.coords;
+      const userLocation = { latitude, longitude };
+
+      setCurrentLocation(userLocation);
+
+      // 지도를 현재 위치로 이동 (1km 반경)
+      if (mapRef.current) {
+        mapRef.current.animateToRegion(
+          {
+            ...userLocation,
+            latitudeDelta: 0.009, // 약 1km 반경
+            longitudeDelta: 0.009, // 약 1km 반경
+          },
+          1000,
+        );
+      }
+
+      if (__DEV__) {
+        console.log("🔍 [현재 위치로 이동]", userLocation);
+      }
+    } catch (error) {
+      console.error("현재 위치로 이동 실패:", error);
+
+      // 에러 메시지에 따른 처리
+      if (
+        error instanceof Error &&
+        error.message.includes("location services are enabled")
+      ) {
+        Alert.alert(
+          "위치 서비스 비활성화",
+          "기기의 위치 서비스가 비활성화되어 있습니다.\n에뮬레이터 확장 제어에서 Location을 ON으로 설정해주세요.",
+        );
+      } else {
+        Alert.alert(
+          "위치 정보 오류",
+          "현재 위치를 가져올 수 없습니다.\n에뮬레이터 확장 제어에서 가상 위치를 설정해주세요.",
+        );
+      }
+    }
+  };
+
+  // 현재 위치 가져오기 (컴포넌트 마운트 시 자동 실행)
+  const getCurrentLocationOnMount = async () => {
+    try {
+      // 위치 권한 요청
+      const { status } = await Location.requestForegroundPermissionsAsync();
+
+      if (status !== "granted") {
+        console.log("위치 권한이 거부됨");
+        return;
+      }
+
+      // 현재 위치 가져오기
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      const { latitude, longitude } = location.coords;
+      const userLocation = { latitude, longitude };
+
+      setCurrentLocation(userLocation);
+
+      // 지도를 현재 위치로 이동 (1km 반경)
+      if (mapRef.current) {
+        mapRef.current.animateToRegion(
+          {
+            ...userLocation,
+            latitudeDelta: 0.009, // 약 1km 반경
+            longitudeDelta: 0.009, // 약 1km 반경
+          },
+          1000,
+        );
+      }
+
+      if (__DEV__) {
+        console.log("🔍 [초기 위치 설정]", userLocation);
+      }
+    } catch (error) {
+      console.error("초기 위치 가져오기 실패:", error);
+    }
   };
 
   // 새로고침 핸들러
-  const onRefresh = () => {
-    setPage(0);
-    setIsLast(false);
-    fetchItems(loadItems(0, true));
+  const handleRefresh = () => {
+    setRefreshing(true);
+    if (activeTab === "items") {
+      fetchItems(loadItems(0, true));
+    } else {
+      loadExchangeRequests(0, true);
+    }
+    setRefreshing(false);
   };
 
-  // 다음 페이지 로드
-  const loadMore = () => {
-    // 에러 상태에서는 자동 로드를 차단하여 무한 루프 방지
-    if (
-      itemsState.status !== "loading" &&
-      itemsState.status !== "error" &&
-      !isLast
-    ) {
-      const nextPage = page + 1;
-      setPage(nextPage);
-      fetchItems(loadItems(nextPage, false));
-    }
-  };
+  // 다음 페이지 로드 (현재 미사용 - BottomSheetFlatList에서 onEndReached 제거)
+  // const loadMore = () => {
+  //   // 에러 상태에서는 자동 로드를 차단하여 무한 루프 방지
+  //   if (
+  //     itemsState.status !== "loading" &&
+  //     itemsState.status !== "error" &&
+  //     !isLast
+  //   ) {
+  //     const nextPage = page + 1;
+  //     setPage(nextPage);
+  //     fetchItems(loadItems(nextPage, false));
+  //   }
+  // };
 
   // 교환 요청 렌더 함수
   const renderExchangeRequest = ({ item }: { item: ExchangeRequest }) => (
@@ -450,17 +619,8 @@ export default function ExchangeScreen() {
       {item.imageUrl ? (
         <Image source={{ uri: item.imageUrl }} style={styles.itemImage} />
       ) : (
-        <View
-          style={[
-            styles.itemImage,
-            {
-              backgroundColor: colors.border,
-              justifyContent: "center",
-              alignItems: "center",
-            },
-          ]}
-        >
-          <Text style={{ color: colors.muted, fontSize: 12 }}>이미지 없음</Text>
+        <View style={[styles.itemImage, styles.emptyImageContainer]}>
+          <Text style={styles.emptyText}>이미지 없음</Text>
         </View>
       )}
 
@@ -468,7 +628,7 @@ export default function ExchangeScreen() {
       <View style={styles.itemContent}>
         <Text
           style={[styles.itemTitle, { color: colors.text }]}
-          numberOfLines={2}
+          numberOfLines={1}
         >
           {item.title}
         </Text>
@@ -497,6 +657,9 @@ export default function ExchangeScreen() {
     const loadData = async () => {
       if (!isMounted) return;
 
+      // 컴포넌트 마운트 시 현재 위치 가져오기
+      getCurrentLocationOnMount();
+
       if (activeTab === "items") {
         fetchItems(loadItems(0, true));
       } else {
@@ -513,90 +676,122 @@ export default function ExchangeScreen() {
   }, [activeTab]); // activeTab만 의존성으로 설정
 
   return (
-    <SafeLayout style={{ backgroundColor: colors.background }}>
-      {/* 헤더 */}
-      <View
-        style={[
-          styles.header,
-          {
-            borderBottomColor: colors.border,
-            backgroundColor: colors.background,
-          },
-        ]}
+    <SafeLayout style={styles.container}>
+      {/* 1. 백그라운드 지도 뷰 */}
+      <MapView
+        ref={mapRef}
+        style={styles.map}
+        initialRegion={{
+          latitude: 37.5665, // 서울 디폴트 좌표
+          longitude: 126.978,
+          latitudeDelta: 0.009, // 약 1km 반경
+          longitudeDelta: 0.009, // 약 1km 반경
+        }}
       >
-        <Text style={[styles.headerTitle, { color: colors.text }]}>교환</Text>
-        <Button onPress={navigateToCreate} size="sm">
-          + 등록
-        </Button>
-      </View>
+        {/* 현재 위치 마커 */}
+        {currentLocation && (
+          <Marker
+            coordinate={currentLocation}
+            title="내 위치"
+            description="현재 내 위치"
+            pinColor="blue"
+          />
+        )}
 
-      {/* 탭 전환 */}
-      <View
-        style={[
-          styles.tabContainer,
-          {
-            borderBottomColor: colors.border,
-            backgroundColor: colors.background,
-          },
-        ]}
+        {/* 아이템 마커 */}
+        {itemsState.data?.map((item: Item) => (
+          <Marker
+            key={item.id}
+            coordinate={{
+              latitude: item.location?.latitude || 37.5665,
+              longitude: item.location?.longitude || 126.978,
+            }}
+            title={item.title}
+            onPress={() => router.push(`/exchange/${item.id}`)}
+          />
+        ))}
+      </MapView>
+
+      {/* 2. 스와이프업 리스트 뷰 (바텀시트) */}
+      <BottomSheet
+        ref={bottomSheetRef}
+        snapPoints={["15%", "85%"]}
+        style={styles.bottomSheetContainer}
       >
-        <TouchableOpacity
+        {/* 바텀시트 헤더 */}
+        <View
           style={[
-            styles.tabButton,
-            activeTab === "items" && [
-              styles.activeTab,
-              { borderBottomColor: colors.primary },
-            ],
+            styles.header,
+            {
+              borderBottomColor: colors.border,
+              backgroundColor: colors.background,
+            },
           ]}
-          onPress={() => setActiveTab("items")}
         >
-          <Text
-            style={[
-              styles.tabText,
-              {
-                color: activeTab === "items" ? colors.primary : colors.muted,
-              },
-            ]}
-          >
-            아이템 목록
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.tabButton,
-            activeTab === "requests" && [
-              styles.activeTab,
-              { borderBottomColor: colors.primary },
-            ],
-          ]}
-          onPress={() => setActiveTab("requests")}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              {
-                color: activeTab === "requests" ? colors.primary : colors.muted,
-              },
-            ]}
-          >
-            받은 요청
-          </Text>
-        </TouchableOpacity>
-      </View>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>교환</Text>
+          <Button onPress={navigateToCreate} size="sm">
+            + 등록
+          </Button>
+        </View>
 
-      {/* 콘텐츠 영역 */}
-      <View style={styles.listContainer}>
-        {activeTab === "items" ? (
-          // 아이템 목록
-          <>
-            {itemsState.status === "loading" && page === 0 ? (
+        {/* 탭 전환 */}
+        <View
+          style={[
+            styles.tabContainer,
+            {
+              borderBottomColor: colors.border,
+              backgroundColor: colors.background,
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === "items" && styles.activeTabIndicator,
+            ]}
+            onPress={() => setActiveTab("items")}
+          >
+            <Text
+              style={[
+                activeTab === "items"
+                  ? styles.tabTextActive
+                  : styles.tabTextInactive,
+              ]}
+            >
+              아이템 목록
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === "requests" && styles.activeTabIndicator,
+            ]}
+            onPress={() => setActiveTab("requests")}
+          >
+            <Text
+              style={[
+                activeTab === "requests"
+                  ? styles.tabTextActive
+                  : styles.tabTextInactive,
+              ]}
+            >
+              받은 요청
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* 콘텐츠 영역 */}
+        <View style={styles.listContainer}>
+          {/* 아이템 목록 */}
+          {activeTab === "items" &&
+            (itemsState.status === "loading" && 0 ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={colors.primary} />
                 <Text style={[styles.loadingText, { color: colors.text }]}>
                   아이템 목록 로딩 중...
                 </Text>
               </View>
-            ) : itemsState.status === "error" && page === 0 ? (
+            ) : itemsState.status === "error" && 0 ? (
               <View style={styles.emptyContainer}>
                 <Text style={[styles.emptyText, { color: colors.text }]}>
                   {itemsState.error || "아이템 목록을 불러올 수 없습니다."}
@@ -609,63 +804,32 @@ export default function ExchangeScreen() {
                 </Button>
               </View>
             ) : (
-              <FlatList
+              <BottomSheetFlatList
                 data={itemsState.data}
                 renderItem={renderItem}
-                keyExtractor={(item) => item.id.toString()}
-                numColumns={2}
-                key="items-flatlist" // numColumns 변경 시 강제 리렌더링을 위한 키 추가
+                keyExtractor={(item: Item) => item.id.toString()}
                 refreshControl={
                   <RefreshControl
                     refreshing={refreshing}
-                    onRefresh={onRefresh}
+                    onRefresh={handleRefresh}
                   />
                 }
-                onEndReached={loadMore}
-                onEndReachedThreshold={0.1}
-                ListEmptyComponent={
-                  <View style={styles.emptyContainer}>
-                    <Text style={[styles.emptyText, { color: colors.text }]}>
-                      등록된 아이템이 없습니다.
-                    </Text>
-                    <Button
-                      onPress={navigateToCreate}
-                      style={styles.emptyButton}
-                    >
-                      첫 아이템 등록
-                    </Button>
-                  </View>
-                }
-                ListFooterComponent={
-                  itemsState.status === "loading" && page > 0 ? (
-                    <View style={styles.loadingContainer}>
-                      <ActivityIndicator size="small" color={colors.primary} />
-                      <Text
-                        style={[styles.loadingText, { color: colors.text }]}
-                      >
-                        더 불러오는 중...
-                      </Text>
-                    </View>
-                  ) : null
-                }
               />
-            )}
-          </>
-        ) : (
-          // 교환 요청 목록
-          <>
-            {requestsState.status === "loading" ? (
+            ))}
+
+          {/* 교환 요청 목록 */}
+          {activeTab === "requests" &&
+            (requestsState.status === "loading" && 0 ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={colors.primary} />
                 <Text style={[styles.loadingText, { color: colors.text }]}>
-                  교환 요청 목록 로딩 중...
+                  요청 목록 로딩 중...
                 </Text>
               </View>
-            ) : requestsState.status === "error" ? (
+            ) : requestsState.status === "error" && 0 ? (
               <View style={styles.emptyContainer}>
                 <Text style={[styles.emptyText, { color: colors.text }]}>
-                  {requestsState.error ||
-                    "교환 요청 목록을 불러올 수 없습니다."}
+                  {requestsState.error || "요청 목록을 불러올 수 없습니다."}
                 </Text>
                 <Button
                   onPress={() => loadExchangeRequests(0, true)}
@@ -675,28 +839,35 @@ export default function ExchangeScreen() {
                 </Button>
               </View>
             ) : (
-              <FlatList
+              <BottomSheetFlatList
                 data={requestsState.data}
                 renderItem={renderExchangeRequest}
-                keyExtractor={(item) => item.id.toString()}
-                key="requests-flatlist" // 교환 요청 FlatList에 고유 키 추가
+                keyExtractor={(item: ExchangeRequest) => item.id.toString()}
                 refreshControl={
                   <RefreshControl
                     refreshing={refreshing}
-                    onRefresh={() => loadExchangeRequests(0, true)}
+                    onRefresh={handleRefresh}
                   />
                 }
-                ListEmptyComponent={
-                  <View style={styles.emptyContainer}>
-                    <Text style={[styles.emptyText, { color: colors.text }]}>
-                      받은 교환 요청이 없습니다.
-                    </Text>
-                  </View>
-                }
               />
-            )}
-          </>
-        )}
+            ))}
+        </View>
+      </BottomSheet>
+
+      {/* 3. 플로팅 버튼 그룹 (바텀시트 위에 떠있어야 함) */}
+      <View style={styles.fabContainer}>
+        {/* 현재 위치 버튼 */}
+        <TouchableOpacity
+          style={[styles.fabButton, styles.locationButton]}
+          onPress={moveToCurrentLocation}
+        >
+          <Text style={styles.fabText}>📍</Text>
+        </TouchableOpacity>
+
+        {/* 등록 버튼 */}
+        <TouchableOpacity style={styles.fabButton} onPress={navigateToCreate}>
+          <Text style={styles.fabText}>+</Text>
+        </TouchableOpacity>
       </View>
     </SafeLayout>
   );

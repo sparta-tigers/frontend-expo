@@ -1,201 +1,430 @@
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { SafeLayout } from "@/components/ui/safe-layout";
-import { SPACING } from "@/constants/unified-design";
-import { useTheme } from "@/hooks/useTheme";
-import {
-    exchangeCreateAPI,
-    itemsDeleteAPI,
-    itemsGetDetailAPI,
-} from "@/src/features/exchange/api";
-import { CreateExchangeDto, Item } from "@/src/features/exchange/types";
-import { useAuth } from "@/src/hooks/useAuth";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import ImageViewing from "react-native-image-viewing";
+
+import { Button } from "@/components/ui/button";
+import { SafeLayout } from "@/components/ui/safe-layout";
+import { useTheme } from "@/hooks/useTheme";
+import { ExchangeBottomSheet } from "@/src/components/domain/exchange/ExchangeBottomSheet";
+import {
+  itemsDeleteAPI,
+  itemsGetDetailAPI,
+  itemsUpdateStatusAPI,
+} from "@/src/features/exchange/api";
+import { useAuth } from "@/src/hooks/useAuth";
+import { theme } from "@/src/styles/theme";
+
+// 정적 스타일 정의
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  imageContainer: {
+    width: "100%",
+    aspectRatio: 1,
+    backgroundColor: theme.colors.border.light,
+  },
+  image: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  imagePlaceholder: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  imagePlaceholderText: {
+    fontSize: theme.typography.size.BODY,
+    color: theme.colors.text.secondary,
+  },
+  profileRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: theme.spacing.COMPONENT,
+    gap: theme.spacing.SMALL,
+  },
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  nickname: {
+    fontSize: theme.typography.size.md,
+    fontWeight: theme.typography.weight.bold,
+  },
+  contentContainer: {
+    padding: theme.spacing.COMPONENT,
+  },
+  title: {
+    fontSize: theme.typography.size.lg,
+    fontWeight: theme.typography.weight.bold,
+    marginBottom: theme.spacing.SMALL,
+  },
+  description: {
+    fontSize: theme.typography.size.BODY,
+    lineHeight: 22,
+  },
+  desiredItemLabel: {
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.secondary,
+  },
+  desiredItemText: {
+    fontSize: theme.typography.size.md,
+    fontWeight: theme.typography.weight.bold,
+    marginTop: 2,
+  },
+  bottomBar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.sm,
+    borderTopWidth: 1,
+  },
+  desiredItemContainer: {
+    flex: 1,
+  },
+  statusSection: {
+    flex: 1,
+    paddingRight: theme.spacing.SMALL,
+  },
+  statusInfoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: theme.spacing.TINY,
+  },
+  statusLabel: {
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.secondary,
+  },
+  statusValue: {
+    fontSize: theme.typography.size.SMALL,
+    fontWeight: theme.typography.weight.bold,
+  },
+  statusActionsRow: {
+    flexDirection: "row",
+    gap: theme.spacing.TINY,
+    marginTop: theme.spacing.TINY,
+  },
+  statusActionButton: {
+    flex: 1,
+    paddingVertical: theme.spacing.TINY,
+  },
+  statusActionText: {
+    fontSize: theme.typography.size.xs,
+    fontWeight: theme.typography.weight.medium,
+    textAlign: "center",
+  },
+  buttonRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  errorButton: {
+    backgroundColor: theme.colors.error,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  exchangeButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  exchangeButtonText: {
+    fontWeight: "bold",
+    fontSize: 15,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: theme.spacing.SCREEN,
+  },
+  errorText: {
+    fontSize: theme.typography.size.BODY,
+    textAlign: "center",
+    marginBottom: theme.spacing.COMPONENT,
+  },
+  imageCarousel: {
+    width: "100%",
+    aspectRatio: 1,
+  },
+  indicatorContainer: {
+    position: "absolute",
+    bottom: theme.spacing.SMALL,
+    right: theme.spacing.SMALL,
+    flexDirection: "row",
+    gap: theme.spacing.TINY,
+  },
+  indicatorDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    borderWidth: 1,
+  },
+  profileInitialText: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  deleteButtonText: {
+    fontWeight: "bold",
+    fontSize: 15,
+  },
+});
 
 /**
- * 아이템 상세 페이지 컴포넌트
+ * 교환글 상세 화면 컴포넌트
  *
- * PWA의 ItemDetailPage를 React Native로 구현
- * - 아이템 상세 정보 표시
- * - 교환 신청 기능
+ * 작업 지시서 Phase 1 Target 2 구현
+ * - React Query로 데이터 관리 (staleTime: 0)
+ * - 권한 기반 UI 분기 (작성자 vs 타인)
+ * - 이미지 캐러셀 (ScrollView pagingEnabled)
+ * - 하단 액션 바
  */
 export default function ItemDetailScreen() {
-  const router = useRouter();
-  const { id } = useLocalSearchParams();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const { colors } = useTheme();
   const { user } = useAuth();
-  const [item, setItem] = useState<Item | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [exchangeLoading, setExchangeLoading] = useState(false);
-  const [deleteLoading, setDeleteLoading] = useState(false);
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const itemIdNumber = Number(id);
 
-  // 아이템 상세 정보 가져오기
-  const fetchItemDetail = useCallback(async () => {
-    if (!id) return;
+  const [isExchangeSheetOpen, setIsExchangeSheetOpen] = useState(false);
 
-    try {
-      const response = await itemsGetDetailAPI(Number(id));
-      if (response.resultType === "SUCCESS" && response.data) {
-        setItem(response.data);
-      }
-    } catch (error) {
-      console.error("아이템 상세 로딩 실패:", error);
-      Alert.alert("오류", "아이템 정보를 불러올 수 없습니다.");
-    } finally {
-      setLoading(false);
+  // 라이트박스 상태 관리
+  const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
+  const [imageViewerIndex, setImageViewerIndex] = useState(0);
+
+  // React Query로 아이템 상세 정보 가져오기
+  const {
+    data: item,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["item", id],
+    queryFn: () => itemsGetDetailAPI(itemIdNumber),
+    staleTime: 0, // 항상 최신 상태 유지
+    enabled: !!id,
+  });
+
+  // 작성자 여부 확인 (권한 기반 UI 분리용)
+  const isOwner = item?.data?.user?.id === user?.userId;
+
+  // 이미지 캐러셀 렌더링
+  const renderImageCarousel = useCallback(() => {
+    if (!item?.data?.images || item.data.images.length === 0) {
+      return (
+        <View
+          style={[styles.imageContainer, { backgroundColor: colors.border }]}
+        >
+          <View style={styles.imagePlaceholder}>
+            <Text
+              style={[styles.imagePlaceholderText, { color: colors.muted }]}
+            >
+              이미지 없음
+            </Text>
+          </View>
+        </View>
+      );
     }
-  }, [id]);
 
-  // 교환 신청
-  const handleExchangeRequest = useCallback(async () => {
-    if (!item || !user?.accessToken) {
-      Alert.alert("오류", "로그인이 필요하거나 아이템 정보가 없습니다.");
-      return;
-    }
+    // ImageViewing을 위한 이미지 포맷 변환
+    const formattedImages = item.data.images.map((url: string) => ({
+      uri: url,
+    }));
 
-    // 내 아이템인지 확인 - 강화된 권한 검증
-    if (!user?.userId || !item?.userId) {
-      Alert.alert("오류", "사용자 정보가 없습니다. 다시 로그인해주세요.");
-      return;
-    }
+    return (
+      <View style={styles.imageCarousel}>
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={(event) => {
+            const { width } = event.nativeEvent.layoutMeasurement;
+            const index = Math.round(event.nativeEvent.contentOffset.x / width);
+            setCurrentImageIndex(index);
+          }}
+        >
+          {item.data.images?.map((imageUrl: string, index: number) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.imageContainer}
+              onPress={() => {
+                setImageViewerIndex(index);
+                setIsImageViewerVisible(true);
+              }}
+            >
+              <Image source={{ uri: imageUrl }} style={styles.image} />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
-    if (item.userId === user.userId) {
-      Alert.alert("알림", "내 아이템은 교환 신청할 수 없습니다.");
-      console.log("🚨 [권한 오류] 자기 아이템에 교환 신청 시도:", {
-        itemUserId: item.userId,
-        currentUserId: user.userId,
-        itemUserNickname: item.user?.nickname,
-        currentUserEmail: user?.email,
-      });
-      return;
-    }
-
-    Alert.alert("교환 신청", `${item.title} 아이템을 교환하시겠습니까?`, [
-      {
-        text: "취소",
-        style: "cancel",
-      },
-      {
-        text: "교환 신청",
-        style: "default",
-        onPress: async () => {
-          setExchangeLoading(true);
-          try {
-            const request: CreateExchangeDto = {
-              itemId: item.id,
-              message: `${item.title} 아이템에 교환을 신청합니다.`,
-            };
-
-            const response = await exchangeCreateAPI(request);
-
-            if (response.resultType === "SUCCESS") {
-              Alert.alert(
-                "교환 신청 완료",
-                "교환 요청이 성공적으로 전송되었습니다. 상대방의 응답을 기다려주세요.",
-                [
+        {/* 이미지 인디케이터 */}
+        {item.data.images.length > 1 && (
+          <View style={styles.indicatorContainer}>
+            {item.data.images?.map((_: string, index: number) => (
+              <View
+                key={index}
+                style={[
+                  styles.indicatorDot,
                   {
-                    text: "확인",
-                    onPress: () => router.back(),
+                    backgroundColor:
+                      index === currentImageIndex
+                        ? colors.primary
+                        : colors.background,
+                    borderColor: colors.background,
                   },
-                ],
-              );
-            } else {
-              Alert.alert(
-                "오류",
-                "교환 신청에 실패했습니다. 다시 시도해주세요.",
-              );
-            }
-          } catch (error) {
-            console.error("교환 신청 실패:", error);
-            Alert.alert(
-              "오류",
-              "네트워크 에러가 발생했습니다. 다시 시도해주세요.",
-            );
-          } finally {
-            setExchangeLoading(false);
-          }
-        },
+                ]}
+              />
+            ))}
+          </View>
+        )}
+
+        {/* ImageViewing 라이트박스 */}
+        <ImageViewing
+          images={formattedImages}
+          imageIndex={imageViewerIndex}
+          visible={isImageViewerVisible}
+          onRequestClose={() => setIsImageViewerVisible(false)}
+          swipeToCloseEnabled={true}
+        />
+      </View>
+    );
+  }, [item, colors, currentImageIndex, imageViewerIndex, isImageViewerVisible]);
+
+  // 교환 신청 핸들러 (타인 전용)
+  const handleExchangeRequest = useCallback(() => {
+    if (!user?.accessToken) {
+      Alert.alert("로그인 필요", "교환 신청을 위해 로그인이 필요합니다.");
+      return;
+    }
+
+    setIsExchangeSheetOpen(true);
+  }, [user]);
+
+  // 상태 변경 핸들러 (작성자 전용) - 기존 구현 제거됨
+  // const handleStatusChange = useCallback(
+  //   (status: string) => {
+  //     Alert.alert("상태 변경", `${status} 상태로 변경하시겠습니까?`, [
+  //       { text: "취소", style: "cancel" },
+  //       {
+  //         text: "확인",
+  //         onPress: () => {
+  //           // 상태 변경 API 호출 (이전 구현 주석 처리됨)
+  //           Alert.alert("성공", "상태가 변경되었습니다.");
+  //           refetch();
+  //         },
+  //       },
+  //     ]);
+  //   },
+
+  // 상태 변경 Mutation (작성자 전용)
+  const { mutate: updateItemStatus, isPending: isUpdatingStatus } = useMutation({
+    mutationFn: async (newStatus: "COMPLETED" | "FAILED") => {
+      const targetId = item?.data?.id;
+      if (!targetId) {
+        throw new Error("itemId가 없습니다.");
+      }
+      const response = await itemsUpdateStatusAPI(targetId, newStatus);
+      if (response.resultType !== "SUCCESS") {
+        throw new Error("status update failed");
+      }
+      return true;
+    },
+    onSuccess: () => {
+      Alert.alert("성공", "상태가 변경되었습니다.");
+      queryClient.invalidateQueries({ queryKey: ["item", id] });
+      queryClient.invalidateQueries({ queryKey: ["items"] });
+      queryClient.invalidateQueries({ queryKey: ["myItems"] });
+      queryClient.invalidateQueries({ queryKey: ["myExchanges"] });
+    },
+    onError: () => {
+      Alert.alert("오류", "상태 변경에 실패했습니다.");
+    },
+  });
+
+  // 상태 변경 핸들러 (작성자 전용)
+  const handleStatusChange = useCallback(
+    (newStatus: "COMPLETED" | "FAILED") => {
+      if (!item?.data) return;
+
+      Alert.alert(
+        "상태 변경",
+        newStatus === "COMPLETED"
+          ? "교환을 완료 상태로 변경하시겠습니까?"
+          : "교환을 취소 상태로 변경하시겠습니까?",
+        [
+          { text: "취소", style: "cancel" },
+          { text: "확인", onPress: () => updateItemStatus(newStatus) },
+        ],
+      );
+    },
+    [item?.data, updateItemStatus],
+  );
+
+  // 삭제 Mutation
+  const { mutate: deleteItem } = useMutation({
+    mutationFn: () => itemsDeleteAPI(Number(id)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["items"] });
+      queryClient.invalidateQueries({ queryKey: ["myItems"] });
+      router.replace("/(tabs)/exchange");
+    },
+    onError: () => {
+      Alert.alert(
+        "삭제 실패",
+        "아이템 삭제에 실패했습니다. 다시 시도해주세요.",
+      );
+    },
+  });
+
+  // 삭제 핸들러 (작성자 전용)
+  const handleDelete = useCallback(() => {
+    Alert.alert("게시글 삭제", "정말 삭제하시겠습니까? 복구할 수 없습니다.", [
+      { text: "취소", style: "cancel" },
+      {
+        text: "삭제",
+        style: "destructive",
+        onPress: () => deleteItem(),
       },
     ]);
-  }, [item, user, router]);
-
-  // 채팅방으로 이동
-  const handleChatRequest = () => {
-    if (!item) return;
-
-    // TODO: 채팅방 생성 API 연동
-    Alert.alert("알림", "채팅 기능은 준비 중입니다.");
-  };
-
-  // 아이템 삭제 핸들러
-  const handleDeleteItem = useCallback(async () => {
-    if (!item) return;
-
-    Alert.alert(
-      "아이템 삭제",
-      "정말로 이 아이템을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
-      [
-        {
-          text: "취소",
-          style: "cancel",
-        },
-        {
-          text: "삭제",
-          style: "destructive",
-          onPress: async () => {
-            setDeleteLoading(true);
-            try {
-              const response = await itemsDeleteAPI(item.id);
-
-              if (response.resultType === "SUCCESS") {
-                Alert.alert(
-                  "삭제 완료",
-                  "아이템이 성공적으로 삭제되었습니다.",
-                  [
-                    {
-                      text: "확인",
-                      onPress: () => router.replace("/(tabs)/exchange"),
-                    },
-                  ],
-                );
-              } else {
-                Alert.alert("오류", "아이템 삭제에 실패했습니다.");
-              }
-            } catch (error) {
-              console.error("아이템 삭제 실패:", error);
-              Alert.alert("오류", "네트워크 에러가 발생했습니다.");
-            } finally {
-              setDeleteLoading(false);
-            }
-          },
-        },
-      ],
-    );
-  }, [item, router]);
-
-  // 화면 포커스 시 데이터 로드
-  React.useEffect(() => {
-    fetchItemDetail();
-  }, [fetchItemDetail]);
+  }, [deleteItem]);
 
   // 로딩 상태
-  if (loading) {
+  if (isLoading) {
     return (
-      <SafeLayout style={{ backgroundColor: colors.background }}>
+      <SafeLayout
+        edges={["top", "bottom"]}
+        style={{ backgroundColor: colors.background }}
+      >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.loadingText, { color: colors.text }]}>
+          <Text
+            style={[{ color: colors.text, marginTop: theme.spacing.SMALL }]}
+          >
             아이템 정보를 불러오는 중...
           </Text>
         </View>
@@ -203,300 +432,208 @@ export default function ItemDetailScreen() {
     );
   }
 
-  // 아이템 정보가 없는 경우
-  if (!item) {
+  // 에러 상태
+  if (error || !item?.data) {
     return (
-      <SafeLayout style={{ backgroundColor: colors.background }}>
+      <SafeLayout
+        edges={["top", "bottom"]}
+        style={{ backgroundColor: colors.background }}
+      >
         <View style={styles.errorContainer}>
           <Text style={[styles.errorText, { color: colors.text }]}>
-            아이템 정보를 찾을 수 없습니다.
+            아이템 정보를 불러올 수 없습니다.
           </Text>
-          <Button
-            variant="outline"
-            onPress={() => router.back()}
-            style={styles.backButton}
-          >
-            돌아가기
-          </Button>
+          <Button onPress={() => refetch()}>다시 시도</Button>
         </View>
       </SafeLayout>
     );
   }
 
   return (
-    <SafeLayout style={{ backgroundColor: colors.background }}>
-      <ScrollView style={styles.container}>
-        {/* 헤더 */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={[styles.backText, { color: colors.primary }]}>
-              ← 돌아가기
-            </Text>
-          </TouchableOpacity>
-        </View>
+    <SafeLayout edges={["top", "bottom"]} style={styles.container}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* 이미지 캐러셀 */}
+        {renderImageCarousel()}
 
-        {/* 아이템 이미지 */}
-        {item.imageUrl && (
-          <Card style={styles.imageCard}>
+        {/* 작성자 프로필 영역 */}
+        <View style={styles.profileRow}>
+          {item.data.user?.profileImage ? (
             <Image
-              source={{ uri: item.imageUrl }}
-              style={styles.itemImage}
-              resizeMode="cover"
+              source={{ uri: item.data.user.profileImage }}
+              style={styles.profileImage}
             />
-          </Card>
-        )}
-
-        {/* 아이템 정보 */}
-        <Card style={styles.infoCard}>
-          <Text style={[styles.itemTitle, { color: colors.text }]}>
-            {item.title}
-          </Text>
-
-          <Text style={[styles.itemCategory, { color: colors.text }]}>
-            카테고리: {item.category === "TICKET" ? "경기 티켓" : "굿즈/상품"}
-          </Text>
-
-          <Text
-            style={[
-              styles.itemStatus,
-              {
-                color:
-                  item.status === "REGISTERED"
-                    ? colors.primary
-                    : item.status === "EXCHANGE_COMPLETED"
-                      ? colors.success
-                      : colors.destructive,
-              },
-            ]}
-          >
-            상태:{" "}
-            {item.status === "REGISTERED"
-              ? "등록됨"
-              : item.status === "EXCHANGE_COMPLETED"
-                ? "교환완료"
-                : "교환실패"}
-          </Text>
-
-          <Text style={[styles.itemDescription, { color: colors.text }]}>
-            {item.description}
-          </Text>
-
-          <Text style={[styles.itemDate, { color: colors.text }]}>
-            등록일: {new Date(item.createdAt).toLocaleDateString()}
-          </Text>
-        </Card>
-
-        {/* 등록자 정보 */}
-        <Card style={styles.sellerCard}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            등록자 정보
-          </Text>
-          <View style={styles.sellerInfo}>
-            <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-              <Text style={[styles.avatarText, { color: colors.background }]}>
-                {item.user?.nickname?.[0] || "U"}
-              </Text>
-            </View>
-            <View style={styles.sellerDetails}>
-              <Text style={[styles.sellerName, { color: colors.text }]}>
-                {item.user?.nickname || "알 수 없음"}
-              </Text>
-              <Text style={[styles.sellerEmail, { color: colors.muted }]}>
-                사용자 ID: {item.user?.id || "정보 없음"}
-              </Text>
-            </View>
-          </View>
-        </Card>
-
-        {/* 액션 버튼 */}
-        <View style={styles.actionContainer}>
-          {/* 본인 아이템일 경우 수정/삭제 버튼 표시 */}
-          {item.user?.id === user?.userId ? (
-            <View style={styles.ownerActions}>
-              <Button
-                variant="outline"
-                onPress={() => router.push(`/exchange/edit/${item.id}`)}
-                style={styles.editButton}
-                fullWidth
-              >
-                수정
-              </Button>
-              <Button
-                variant="ghost"
-                onPress={handleDeleteItem}
-                loading={deleteLoading}
-                style={[
-                  styles.deleteButton,
-                  { borderColor: colors.destructive },
-                ]}
-                fullWidth
-              >
-                <Text
-                  style={[
-                    styles.deleteButtonText,
-                    { color: colors.destructive },
-                  ]}
-                >
-                  삭제
-                </Text>
-              </Button>
-            </View>
           ) : (
-            /* 다른 사람 아이템일 경우 교환 신청/채팅 버튼 표시 */
-            <View style={styles.guestActions}>
-              <Button
-                variant="primary"
-                onPress={handleExchangeRequest}
-                loading={exchangeLoading}
-                style={styles.exchangeButton}
-                fullWidth
+            <View
+              style={[styles.profileImage, { backgroundColor: colors.border }]}
+            >
+              <Text
+                style={[styles.profileInitialText, { color: colors.muted }]}
               >
-                교환 신청
-              </Button>
-
-              <Button
-                variant="outline"
-                onPress={handleChatRequest}
-                style={styles.chatButton}
-                fullWidth
-              >
-                채팅하기
-              </Button>
+                {item.data.user?.nickname?.[0]?.toUpperCase() || "U"}
+              </Text>
             </View>
           )}
+          <Text style={[styles.nickname, { color: colors.text }]}>
+            {item.data.user?.nickname || "알 수 없음"}
+          </Text>
+        </View>
+
+        {/* 본문 영역 */}
+        <View style={styles.contentContainer}>
+          {/* 제목 */}
+          <Text style={[styles.title, { color: colors.text }]}>
+            {item.data.title}
+          </Text>
+
+          {/* 내용 */}
+          <Text style={[styles.description, { color: colors.text }]}>
+            {item.data.description}
+          </Text>
         </View>
       </ScrollView>
+
+      {/* 하단 고정 바 */}
+      <View style={[styles.bottomBar, { borderColor: colors.border }]}>
+        <View style={styles.desiredItemContainer}>
+          <Text style={[styles.desiredItemLabel, { color: colors.muted }]}>
+            희망 아이템
+          </Text>
+          <Text style={[styles.desiredItemText, { color: colors.text }]}>
+            {item.data.desiredItem || "없음"}
+          </Text>
+        </View>
+
+        {/* 권한 기반 버튼 분기 */}
+        {isOwner ? (
+          <View style={styles.buttonRow}>
+            <View style={styles.statusSection}>
+              <View style={styles.statusInfoRow}>
+                <Text
+                  style={[styles.statusLabel, { color: colors.muted }]}
+                >
+                  현재 상태
+                </Text>
+                <Text
+                  style={[
+                    styles.statusValue,
+                    {
+                      color:
+                        item.data.status === "COMPLETED"
+                          ? colors.primary
+                          : item.data.status === "FAILED"
+                            ? colors.destructive
+                            : colors.text,
+                    },
+                  ]}
+                >
+                  {item.data.status === "REGISTERED"
+                    ? "교환 대기"
+                    : item.data.status === "COMPLETED"
+                      ? "교환 완료"
+                      : item.data.status === "FAILED"
+                        ? "교환 취소"
+                        : item.data.status === "DELETED"
+                          ? "삭제됨"
+                          : item.data.status}
+                </Text>
+              </View>
+
+              <View style={styles.statusActionsRow}>
+                <Button
+                  style={styles.statusActionButton}
+                  disabled={
+                    item.data.status !== "REGISTERED" ||
+                    isUpdatingStatus
+                  }
+                  onPress={() => handleStatusChange("COMPLETED")}
+                >
+                  <Text
+                    style={[
+                      styles.statusActionText,
+                      { color: colors.background },
+                    ]}
+                  >
+                    교환 완료로 표시
+                  </Text>
+                </Button>
+                <Button
+                  variant="outline"
+                  style={styles.statusActionButton}
+                  disabled={
+                    item.data.status !== "REGISTERED" ||
+                    isUpdatingStatus
+                  }
+                  onPress={() => handleStatusChange("FAILED")}
+                >
+                  <Text
+                    style={[
+                      styles.statusActionText,
+                      { color: colors.destructive },
+                    ]}
+                  >
+                    교환 취소로 표시
+                  </Text>
+                </Button>
+              </View>
+            </View>
+
+            <TouchableOpacity style={styles.errorButton} onPress={handleDelete}>
+              <Text
+                style={[styles.deleteButtonText, { color: colors.background }]}
+              >
+                삭제하기
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.exchangeButton,
+                {
+                  backgroundColor: colors.primary,
+                },
+              ]}
+              onPress={() => router.push(`/exchange/edit/${id}` as any)}
+            >
+              <Text
+                style={[
+                  styles.exchangeButtonText,
+                  { color: colors.background },
+                ]}
+              >
+                수정하기
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={[
+              styles.exchangeButton,
+              {
+                backgroundColor:
+                  item.data.status === "REGISTERED"
+                    ? colors.primary
+                    : colors.muted,
+              },
+            ]}
+            onPress={handleExchangeRequest}
+            disabled={item.data.status !== "REGISTERED"}
+          >
+            <Text
+              style={[styles.exchangeButtonText, { color: colors.background }]}
+            >
+              교환 신청하기
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <ExchangeBottomSheet
+        isOpen={isExchangeSheetOpen}
+        onClose={() => setIsExchangeSheetOpen(false)}
+        targetItemId={itemIdNumber}
+      />
     </SafeLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    marginTop: SPACING.SMALL,
-    fontSize: 16,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: SPACING.SCREEN,
-  },
-  errorText: {
-    fontSize: 16,
-    marginBottom: SPACING.SCREEN,
-    textAlign: "center",
-  },
-  backButton: {
-    marginTop: SPACING.SMALL,
-  },
-  header: {
-    padding: SPACING.SCREEN,
-    paddingBottom: SPACING.SMALL,
-  },
-  backText: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  imageCard: {
-    marginBottom: SPACING.SCREEN,
-  },
-  itemImage: {
-    width: "100%",
-    height: 200,
-    borderRadius: 8,
-  },
-  infoCard: {
-    marginBottom: SPACING.SCREEN,
-    padding: SPACING.SCREEN,
-  },
-  itemTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: SPACING.SMALL,
-  },
-  itemCategory: {
-    fontSize: 16,
-    marginBottom: SPACING.SMALL,
-  },
-  itemStatus: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: SPACING.COMPONENT,
-  },
-  itemDescription: {
-    fontSize: 16,
-    lineHeight: 24,
-    marginBottom: SPACING.COMPONENT,
-  },
-  itemDate: {
-    fontSize: 14,
-    color: "#6B7280",
-  },
-  sellerCard: {
-    marginBottom: SPACING.SCREEN,
-    padding: SPACING.SCREEN,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: SPACING.COMPONENT,
-  },
-  sellerInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: SPACING.COMPONENT,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarText: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  sellerDetails: {
-    flex: 1,
-  },
-  sellerName: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 2,
-  },
-  sellerEmail: {
-    fontSize: 14,
-  },
-  actionContainer: {
-    padding: SPACING.SCREEN,
-    gap: SPACING.COMPONENT,
-  },
-  exchangeButton: {
-    marginBottom: SPACING.SMALL,
-  },
-  chatButton: {},
-  ownerActions: {
-    gap: SPACING.SMALL,
-  },
-  guestActions: {
-    gap: SPACING.SMALL,
-  },
-  editButton: {},
-  deleteButton: {
-    borderWidth: 1,
-    borderRadius: 8,
-  },
-  deleteButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});

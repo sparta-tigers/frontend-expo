@@ -1,35 +1,72 @@
-import { Button } from "@/components/ui/button";
-import { useTheme } from "@/hooks/useTheme";
+import { useQuery } from "@tanstack/react-query";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+import { SafeLayout } from "@/components/ui/safe-layout";
 import { chatroomsGetMessagesAPI } from "@/src/features/chat/api";
 import { ChatMessage } from "@/src/features/chat/types";
+import { useAuth } from "@/src/hooks/useAuth";
 import { useWebSocket } from "@/src/hooks/useWebSocket";
+import { apiClient } from "@/src/core/client";
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import { ApiResponse } from "@/src/shared/types/common";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
-import {
-    Alert,
-    FlatList,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
-} from "react-native";
+import { theme } from "@/src/styles/theme";
+
+/**
+ * DirectRoomItemResponseDto에 대응하는 프론트엔드 DTO.
+ * Java DTO(`DirectRoomItemResponseDto`)를 TypeScript 인터페이스로 옮긴 형태이다.
+ */
+interface DirectRoomItemDto {
+  itemId: number;
+  title: string;
+  description: string;
+  category: "TICKET" | "GOODS";
+  status: "REGISTERED" | "COMPLETED" | "FAILED" | "DELETED";
+  ownerId: number;
+  ownerNickname: string;
+}
 
 /**
  * 채팅방 상세 화면
- * 실시간 채팅이 가능한 동적 라우트 화면
+ * 작업 지시서 Target 4 구현
+ * - 상단 고정 아이템 요약 정보
+ * - 채팅 말풍선 (내 메시지: 우측 꼬리, 상대 메시지: 좌측 꼬리)
+ * - 시스템 메시지: 중앙 정렬 둥근 필
+ * - 하단 입력 폼: 둥근 Input + 전송 버튼
  */
 export default function ChatRoomScreen() {
-  const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { status, sendMessage } = useWebSocket();
-  const { colors } = useTheme();
+  const { status, sendMessage } = useWebSocket(undefined, "directroom");
+  const { user } = useAuth();
 
   const [inputMessage, setInputMessage] = useState("");
-  const flatListRef = useRef<FlatList>(null);
+  const directRoomId = Number(id);
+
+  const { data: roomItem } = useQuery({
+    queryKey: ["directRoomItem", directRoomId],
+    queryFn: async () => {
+      if (!Number.isFinite(directRoomId)) {
+        throw new Error("유효하지 않은 채팅방 ID입니다.");
+      }
+
+      const response = await apiClient.get(
+        `/api/direct-rooms/${directRoomId}/item`,
+      );
+      return response.data as DirectRoomItemDto;
+    },
+    enabled: Number.isFinite(directRoomId),
+  });
+
+  const isRoomCompleted =
+    roomItem?.status === "COMPLETED" || roomItem?.status === "DELETED";
 
   // useAsyncState 훅으로 메시지 상태 관리
   const [messagesState, loadMessages] = useAsyncState<ChatMessage[]>([]);
@@ -57,14 +94,14 @@ export default function ChatRoomScreen() {
         sentAt: msg.sentAt,
         sender: msg.sender,
         senderNickName: msg.senderNickName,
-        isMyMessage: msg.senderId === 1, // TODO: 실제 사용자 ID로 변경
+        isMyMessage: user?.userId ? msg.senderId === user.userId : false,
       }));
 
       return formattedMessages;
     }
 
     throw new Error("메시지를 불러올 수 없습니다.");
-  }, [id]);
+  }, [id, user?.userId]);
 
   // 초기 데이터 로드
   useEffect(() => {
@@ -73,27 +110,38 @@ export default function ChatRoomScreen() {
 
   // 메시지 전송
   const handleSendMessage = useCallback(async () => {
-    if (!inputMessage.trim() || !id || status !== "CONNECTED") return;
+    if (
+      !inputMessage.trim() ||
+      !id ||
+      status !== "CONNECTED" ||
+      isRoomCompleted
+    ) {
+      return;
+    }
+    if (!user?.userId) return;
 
     try {
       const messageContent = inputMessage.trim();
       const myMessage: ChatMessage = {
         id: Date.now(),
         directRoomId: Number(id),
-        senderId: 1, // TODO: 실제 사용자 ID로 변경
+        senderId: user.userId,
         content: messageContent,
         createdAt: new Date().toISOString(),
         sentAt: new Date().toISOString(),
         sender: {
-          id: 1,
-          nickname: "나", // TODO: 실제 사용자 닉네임으로 변경
+          id: user.userId,
+          nickname: user.nickname ?? "",
         },
-        senderNickName: "나", // TODO: 실제 사용자 닉네임으로 변경
+        senderNickName: user.nickname ?? "",
         isMyMessage: true,
       };
 
       // 메시지 전송
-      sendMessage(`/app/chat/${id}`, messageContent);
+      sendMessage("/client/directRoom/send", {
+        roomId: Number(id),
+        message: messageContent,
+      });
 
       // UI에 즉시 반영
       loadMessages(Promise.resolve([myMessage, ...(messagesState.data || [])]));
@@ -101,310 +149,319 @@ export default function ChatRoomScreen() {
     } catch (error) {
       console.error("메시지 전송 에러:", error);
     }
-  }, [inputMessage, id, status, sendMessage, messagesState.data, loadMessages]);
+  }, [
+    inputMessage,
+    id,
+    status,
+    isRoomCompleted,
+    user?.userId,
+    user?.nickname,
+    sendMessage,
+    messagesState.data,
+    loadMessages,
+  ]);
 
-  // 채팅 중 교환 거절 처리
-  const handleRejectExchange = useCallback(async () => {
-    Alert.alert(
-      "교환 거절",
-      "정말로 교환을 거절하시겠습니까? 거절하면 채팅이 종료됩니다.",
-      [
-        {
-          text: "취소",
-          style: "cancel",
-        },
-        {
-          text: "거절",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              // TODO: 실제 교환 요청 ID를 파라미터로 받아와야 함
-              // 현재는 채팅방 ID만 있음, 교환 요청 ID가 필요
-              Alert.alert("알림", "교환 거절 기능은 곧 구현됩니다.");
+  // 메시지 아이템 렌더링 (작업 지시서 기준 말풍선 디자인)
+  const renderMessage = useCallback(({ item }: { item: ChatMessage }) => {
+    // 시스템 메시지 처리 (senderId가 0인 경우 시스템 메시지로 간주)
+    if (item.senderId === 0) {
+      return (
+        <View style={styles.systemMessageContainer}>
+          <View style={styles.systemMessageBubble}>
+            <Text style={styles.systemMessageText}>{item.content}</Text>
+          </View>
+        </View>
+      );
+    }
 
-              // 임시 구현 (교환 요청 ID가 필요)
-              /*
-              const updateData: UpdateExchangeStatusDto = {
-                status: ExchangeRequestStatus.REJECTED,
-                message: "채팅 중 교환을 거절했습니다.",
-              };
-
-              const response = await exchangeUpdateStatusAPI(exchangeRequestId, updateData);
-
-              if (response.resultType === "SUCCESS") {
-                Alert.alert("거절 완료", "교환을 거절했습니다. 채팅을 종료합니다.");
-                router.back();
-              } else {
-                Alert.alert("오류", "교환 거절에 실패했습니다.");
-              }
-              */
-            } catch (error) {
-              console.error("교환 거절 실패:", error);
-              Alert.alert("오류", "네트워크 에러가 발생했습니다.");
-            }
-          },
-        },
-      ],
-    );
-  }, []);
-
-  // 메시지 아이템 렌더링
-  const renderMessage = useCallback(
-    ({ item }: { item: ChatMessage }) => (
+    return (
       <View
         style={[
           styles.messageContainer,
           item.isMyMessage ? styles.myMessage : styles.otherMessage,
         ]}
       >
-        <Text
-          style={[
-            styles.messageText,
-            item.isMyMessage ? styles.myMessageText : styles.otherMessageText,
-          ]}
-        >
-          {item.content}
-        </Text>
-        <Text
-          style={[
-            styles.messageTime,
-            item.isMyMessage ? styles.myMessageTime : styles.otherMessageTime,
-          ]}
-        >
-          {new Date(item.sentAt).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </Text>
-      </View>
-    ),
-    [],
-  );
-
-  // 연결 상태 표시
-  const getConnectionStatusText = () => {
-    switch (status) {
-      case "CONNECTING":
-        return "🟡 연결 중...";
-      case "CONNECTED":
-        return "🟢 연결됨";
-      case "DISCONNECTED":
-        return "🔴 연결 끊김";
-      case "ERROR":
-        return "🔴 연결 오류";
-      default:
-        return "🔴 연결 끊김";
-    }
-  };
-
-  return (
-    <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.surface }]}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      {/* 헤더 */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <Button onPress={() => router.back()} variant="ghost" size="sm">
-          ←
-        </Button>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>
-          채팅방 #{id}
-        </Text>
-        <Text style={[styles.connectionStatus, { color: colors.muted }]}>
-          {getConnectionStatusText()}
-        </Text>
-      </View>
-
-      {/* 에러 상태 */}
-      {messagesState.status === "error" && (
         <View
-          style={[styles.errorContainer, { backgroundColor: colors.surface }]}
-        >
-          <Text style={[styles.errorText, { color: colors.text }]}>
-            {messagesState.error}
-          </Text>
-        </View>
-      )}
-
-      {/* 메시지 목록 */}
-      <FlatList
-        ref={flatListRef}
-        data={messagesState.data || []}
-        renderItem={renderMessage}
-        keyExtractor={(item, index) => `${item.sentAt}-${index}`}
-        style={styles.messagesList}
-        contentContainerStyle={styles.messagesContainer}
-        inverted={true}
-        onContentSizeChange={() => {
-          flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
-        }}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, { color: colors.muted }]}>
-              {messagesState.status === "loading"
-                ? "메시지를 불러오는 중..."
-                : "메시지가 없습니다"}
-            </Text>
-          </View>
-        }
-      />
-
-      {/* 입력창 */}
-      <View style={[styles.inputContainer, { borderTopColor: colors.border }]}>
-        <TextInput
           style={[
-            styles.textInput,
-            {
-              backgroundColor: colors.surface,
-              borderColor: colors.border,
-              color: colors.text,
-            },
+            item.isMyMessage
+              ? styles.myMessageBubble
+              : styles.otherMessageBubble,
           ]}
-          value={inputMessage}
-          onChangeText={setInputMessage}
-          placeholder="메시지를 입력하세요..."
-          placeholderTextColor={colors.muted}
-          multiline
-          maxLength={500}
-          editable={status === "CONNECTED"}
-        />
-        <Button
-          onPress={handleSendMessage}
-          disabled={!inputMessage.trim() || status !== "CONNECTED"}
-          size="sm"
-          style={[
-            styles.sendButton,
-            (!inputMessage.trim() || status !== "CONNECTED") &&
-              styles.sendButtonDisabled,
-          ]}
-        >
-          전송
-        </Button>
-      </View>
-
-      {/* 교환 거절 버튼 */}
-      <View
-        style={[
-          styles.exchangeActionsContainer,
-          { borderTopColor: colors.border },
-        ]}
-      >
-        <Button
-          onPress={handleRejectExchange}
-          variant="outline"
-          style={[styles.rejectButton, { borderColor: colors.destructive }]}
         >
           <Text
-            style={[styles.rejectButtonText, { color: colors.destructive }]}
+            style={[
+              styles.messageText,
+              {
+                color: item.isMyMessage
+                  ? theme.colors.background
+                  : theme.colors.text.primary,
+              },
+            ]}
           >
-            교환 거절
+            {item.content}
           </Text>
-        </Button>
+          <Text
+            style={[
+              styles.messageTime,
+              {
+                color: item.isMyMessage
+                  ? theme.colors.background + "80"
+                  : theme.colors.text.secondary,
+              },
+            ]}
+          >
+            {new Date(item.sentAt).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </Text>
+        </View>
       </View>
-    </KeyboardAvoidingView>
+    );
+  }, []);
+
+  return (
+    <SafeLayout edges={["top", "bottom"]} style={styles.safeLayout}>
+      <ChatHeader nickname={"상대방 닉네임"} />
+
+      {/* 아이템 요약 정보 (스크롤 시 고정) */}
+      <View style={styles.itemSummaryContainer}>
+        <View style={styles.itemInfo}>
+          <Text style={styles.itemTitle}>
+            {roomItem?.title ?? "아이템 정보를 불러오는 중..."}
+          </Text>
+          <Text style={styles.itemPrice}>
+            {roomItem
+              ? roomItem.status === "COMPLETED"
+                ? "교환 완료"
+                : roomItem.status === "FAILED"
+                  ? "교환 취소"
+                  : roomItem.status === "DELETED"
+                    ? "삭제된 아이템"
+                    : "교환 진행 중"
+              : ""}
+          </Text>
+        </View>
+      </View>
+
+      {/* 채팅 리스트 */}
+      <View style={styles.chatList}>
+        <FlatList
+          inverted
+          data={messagesState.data || []}
+          renderItem={renderMessage}
+          keyExtractor={(item, index) => `${item.sentAt}-${index}`}
+          contentContainerStyle={styles.listContent}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>
+                {messagesState.status === "loading"
+                  ? "메시지를 불러오는 중..."
+                  : "메시지가 없습니다. 대화를 시작해보세요!"}
+              </Text>
+            </View>
+          }
+        />
+      </View>
+
+      {/* 하단 입력 폼 */}
+      <View style={styles.inputFormContainer}>
+        <TextInput
+          style={styles.textInput}
+          value={inputMessage}
+          onChangeText={setInputMessage}
+          placeholder="메시지 보내기"
+          placeholderTextColor={theme.colors.text.tertiary}
+          multiline={false}
+          maxLength={500}
+          editable={status === "CONNECTED" && !isRoomCompleted}
+        />
+        <TouchableOpacity
+          style={styles.sendButton}
+          onPress={handleSendMessage}
+          disabled={
+            !inputMessage.trim() || status !== "CONNECTED" || isRoomCompleted
+          }
+        >
+          <Text
+            style={[
+              styles.sendIcon,
+              (!inputMessage.trim() ||
+                status !== "CONNECTED" ||
+                isRoomCompleted) &&
+                styles.sendIconDisabled,
+            ]}
+          >
+            ➤
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </SafeLayout>
   );
 }
 
+// 채팅 헤더 컴포넌트
+function ChatHeader({ nickname }: { nickname: string }) {
+  const router = useRouter();
+
+  return (
+    <View style={styles.chatHeader}>
+      <TouchableOpacity onPress={() => router.back()}>
+        <Text style={styles.backIcon}>←</Text>
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>{nickname}</Text>
+      <View style={styles.headerRightSpacer} />
+    </View>
+  );
+}
+
+// 정적 스타일 정의 (작업 지시서 기준)
 const styles = StyleSheet.create({
-  container: {
+  safeLayout: {
     flex: 1,
+    backgroundColor: theme.colors.background,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderBottomWidth: 1,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  connectionStatus: {
-    fontSize: 12,
-  },
-  errorContainer: {
-    padding: 12,
-  },
-  errorText: {
-    textAlign: "center",
-    fontSize: 14,
-  },
-  messagesList: {
-    flex: 1,
-  },
-  messagesContainer: {
-    padding: 16,
-  },
-  messageContainer: {
-    marginVertical: 4,
-    maxWidth: "80%",
-  },
-  myMessage: {
-    alignSelf: "flex-end",
-    alignItems: "flex-end",
-  },
-  otherMessage: {
-    alignSelf: "flex-start",
-    alignItems: "flex-start",
-  },
-  messageText: {
-    fontSize: 16,
-    padding: 12,
-    borderRadius: 16,
-    marginBottom: 4,
-  },
-  myMessageText: {
-    color: "white",
-  },
-  otherMessageText: {
-    color: "white",
-  },
-  messageTime: {
-    fontSize: 12,
-    marginHorizontal: 12,
-  },
-  myMessageTime: {
-    textAlign: "right",
-  },
-  otherMessageTime: {
-    textAlign: "left",
+  listContent: {
+    paddingTop: theme.spacing.lg,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    paddingVertical: theme.spacing.xl,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: theme.typography.size.md,
+    color: theme.colors.text.secondary,
   },
-  inputContainer: {
+  backIcon: {
+    fontSize: theme.typography.size.xl,
+    color: theme.colors.primary,
+  },
+  headerRightSpacer: {
+    width: theme.spacing.lg,
+  },
+  sendIconDisabled: {
+    opacity: 0.5,
+  },
+  // 채팅 헤더
+  chatHeader: {
     flexDirection: "row",
-    padding: 16,
+    alignItems: "center",
+    padding: theme.spacing.lg,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.border.medium,
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: theme.typography.size.lg,
+    fontWeight: theme.typography.weight.bold,
+    color: theme.colors.text.primary,
+    marginLeft: theme.spacing.sm,
+  },
+  // 아이템 요약 정보 (스크롤 시 고정)
+  itemSummaryContainer: {
+    flexDirection: "row",
+    padding: theme.spacing.sm,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.border.medium,
+    alignItems: "center",
+  },
+  itemInfo: {
+    flex: 1,
+    marginLeft: theme.spacing.sm,
+  },
+  itemTitle: {
+    fontSize: theme.typography.size.sm,
+    fontWeight: theme.typography.weight.bold,
+    color: theme.colors.text.primary,
+  },
+  itemPrice: {
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.secondary,
+    marginTop: 2,
+  },
+  // 채팅 리스트
+  chatList: {
+    flex: 1,
+  },
+  // 채팅 말풍선
+  messageContainer: {
+    marginVertical: 4,
+    marginHorizontal: 16,
+    maxWidth: "80%",
+  },
+  myMessage: {
+    alignSelf: "flex-end",
+  },
+  otherMessage: {
+    alignSelf: "flex-start",
+  },
+  myMessageBubble: {
+    backgroundColor: theme.colors.primary,
+    color: theme.colors.background,
+    borderTopLeftRadius: 16,
+    borderBottomLeftRadius: 16,
+    borderTopRightRadius: 16,
+    borderBottomRightRadius: 4, // 꼬리가 우측 하단
+    padding: theme.spacing.sm,
+  },
+  otherMessageBubble: {
+    backgroundColor: theme.colors.border.light,
+    color: theme.colors.text.primary,
+    borderTopLeftRadius: 4, // 꼬리가 좌측 하단
+    borderBottomLeftRadius: 16,
+    borderTopRightRadius: 16,
+    borderBottomRightRadius: 16,
+    padding: theme.spacing.sm,
+  },
+  messageText: {
+    fontSize: theme.typography.size.md,
+    lineHeight: 20,
+  },
+  messageTime: {
+    fontSize: 11,
+    color: theme.colors.text.secondary,
+    marginTop: theme.spacing.xs,
+  },
+  // 시스템 메시지
+  systemMessageContainer: {
+    alignItems: "center",
+    marginVertical: theme.spacing.xs,
+  },
+  systemMessageBubble: {
+    backgroundColor: theme.colors.border.medium,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: 12,
+  },
+  systemMessageText: {
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.secondary,
+    textAlign: "center",
+  },
+  // 하단 입력 폼
+  inputFormContainer: {
+    flexDirection: "row",
+    padding: theme.spacing.sm,
     borderTopWidth: 1,
-    alignItems: "flex-end",
+    borderColor: theme.colors.border.light,
+    alignItems: "center",
   },
   textInput: {
     flex: 1,
-    marginRight: 12,
-    maxHeight: 100,
+    height: 40,
+    backgroundColor: theme.colors.border.light,
+    borderRadius: 20,
+    paddingHorizontal: theme.spacing.lg,
+    fontSize: theme.typography.size.md,
+    marginRight: theme.spacing.sm,
   },
   sendButton: {
-    minWidth: 60,
+    padding: theme.spacing.xs,
   },
-  sendButtonDisabled: {
-    opacity: 0.5,
-  },
-  exchangeActionsContainer: {
-    padding: 16,
-    borderTopWidth: 1,
-  },
-  rejectButton: {
-    minWidth: 100,
-    borderColor: "red",
-  },
-  rejectButtonText: {
-    color: "red",
+  sendIcon: {
+    fontSize: theme.typography.size.xl,
+    color: theme.colors.primary,
   },
 });

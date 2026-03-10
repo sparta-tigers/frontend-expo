@@ -1,568 +1,592 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useTheme } from "@/hooks/useTheme";
-import { itemsCreateAPI } from "@/src/features/exchange/api";
-import {
-  CreateItemRequest,
-  ItemCategory,
-  LocationDto,
-} from "@/src/features/exchange/types";
-import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { router } from "expo-router";
+import React from "react";
 import {
-  Alert,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
+
+import { SafeLayout } from "@/components/ui/safe-layout";
+import { createExchangeItem } from "@/src/features/exchange/api";
+import { ItemCategory, LocationDto } from "@/src/features/exchange/types";
+import { theme } from "@/src/styles/theme";
+
+// Location 모듈 타입 단언
+const LocationModule = Location as any;
+
+// 정적 스타일 정의 (작업 지시서 기준)
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
+  },
+  imageItemWrapper: {
+    position: "relative",
+  },
+  imageAddIcon: {
+    fontSize: theme.typography.size.xl,
+    color: theme.colors.text.tertiary,
+  },
+  imageCountText: {
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.tertiary,
+    marginTop: theme.spacing.xs,
+  },
+  // 이미지 첨부 UI
+  imageScrollContainer: {
+    padding: theme.spacing.lg,
+    paddingBottom: theme.spacing.xl,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.border.light,
+  },
+  imageAddButton: {
+    width: 72,
+    height: 72,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border.dark,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: theme.spacing.sm,
+    backgroundColor: theme.colors.surface,
+  },
+  imageThumbnail: {
+    width: 72,
+    height: 72,
+    borderRadius: theme.radius.md,
+    marginRight: theme.spacing.sm,
+  },
+  deleteButton: {
+    position: "absolute",
+    top: -8,
+    right: -8,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: theme.colors.error,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  deleteButtonText: {
+    color: theme.colors.background,
+    fontSize: theme.typography.size.xs,
+    fontWeight: theme.typography.weight.bold,
+  },
+  // 입력 폼
+  formContainer: {
+    paddingHorizontal: theme.spacing.lg,
+  },
+  titleInput: {
+    height: 60,
+    fontSize: theme.typography.size.lg,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.border.light,
+    marginBottom: theme.spacing.lg,
+  },
+  desiredItemInput: {
+    height: 60,
+    fontSize: theme.typography.size.md,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.border.light,
+    marginBottom: theme.spacing.lg,
+  },
+  contentInput: {
+    minHeight: 200,
+    fontSize: theme.typography.size.md,
+    paddingTop: theme.spacing.lg,
+    textAlignVertical: "top",
+    borderBottomWidth: 1,
+    borderColor: theme.colors.border.light,
+  },
+  // 헤더
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.border.medium,
+  },
+  headerTitle: {
+    fontSize: theme.typography.size.lg,
+    fontWeight: theme.typography.weight.bold,
+    color: theme.colors.text.primary,
+    flex: 1,
+    textAlign: "center",
+  },
+  backButton: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+  },
+  backButtonText: {
+    fontSize: theme.typography.size.xl,
+    color: theme.colors.primary,
+    fontWeight: theme.typography.weight.bold,
+  },
+  submitButton: {
+    fontSize: theme.typography.size.md,
+    fontWeight: theme.typography.weight.bold,
+    color: theme.colors.primary,
+  },
+  // 위치 정보 UI
+  locationContainer: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.border.light,
+  },
+  locationHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: theme.spacing.sm,
+  },
+  locationTitle: {
+    fontSize: theme.typography.size.md,
+    fontWeight: theme.typography.weight.bold,
+    color: theme.colors.text.primary,
+  },
+  locationRefreshButton: {
+    fontSize: theme.typography.size.sm,
+    color: theme.colors.primary,
+  },
+  locationContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: theme.spacing.sm,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.md,
+  },
+  locationIcon: {
+    fontSize: theme.typography.size.lg,
+    marginRight: theme.spacing.sm,
+  },
+  locationText: {
+    flex: 1,
+    fontSize: theme.typography.size.sm,
+    color: theme.colors.text.secondary,
+  },
+  locationLoading: {
+    marginLeft: theme.spacing.sm,
+  },
+  // 카테고리 선택 UI
+  categoryContainer: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.border.light,
+  },
+  label: {
+    fontSize: theme.typography.size.md,
+    fontWeight: theme.typography.weight.bold,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.sm,
+  },
+  categoryButtons: {
+    flexDirection: "row",
+    gap: theme.spacing.sm,
+  },
+  categoryButton: {
+    flex: 1,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border.medium,
+    backgroundColor: theme.colors.background,
+    alignItems: "center",
+  },
+  categoryButtonActive: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  categoryButtonText: {
+    fontSize: theme.typography.size.md,
+    color: theme.colors.text.secondary,
+    fontWeight: theme.typography.weight.medium,
+  },
+  categoryButtonTextActive: {
+    color: theme.colors.background,
+    fontWeight: theme.typography.weight.bold,
+  },
+});
+
 /**
- * 아이템 생성 화면
- * 사용자가 새로운 물물교환 아이템을 등록하는 컴포넌트
+ * 교환글 작성 화면 컴포넌트
+ *
+ * 작업 지시서 Target 3 구현
+ * - 이미지 첨부 UI: 가로 스크롤, 72x72 정방형
+ * - 입력 폼: 하단 선 스타일
+ * - SafeLayout 적용
  */
 export default function CreateItemScreen() {
-  const router = useRouter();
-  const { colors } = useTheme();
+  const queryClient = useQueryClient();
 
-  // useAsyncState 훅으로 생성 요청 상태 관리
-  const [createState, _createItem] = useAsyncState<any>(null);
-
-  // 폼 상태
-  const [formData, setFormData] = useState({
-    category: "TICKET" as ItemCategory,
+  // 폼 데이터 상태
+  const [formData, setFormData] = React.useState({
     title: "",
-    description: "",
-    price: "",
-    imageUrl: "", // 일단 문자열로 관리 (추후 expo-image-picker 연동)
-    region: "", // 거래 희망 장소 (동/면/읍)
-    latitude: 37.5665, // 위도 (기본값: 서울)
-    longitude: 126.978, // 경도 (기본값: 서울)
+    desiredItem: "",
+    content: "",
+    itemCategory: "TICKET" as ItemCategory, // 기본값 추가
   });
 
-  // 위치 가져오기 로딩 상태
-  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [selectedImages, setSelectedImages] = React.useState<string[]>([]);
 
-  // API 호출 상태 감지
-  useEffect(() => {
-    if (createState.status === "success") {
-      Alert.alert("성공", "아이템이 성공적으로 등록되었습니다.", [
-        {
-          text: "확인",
-          onPress: () => {
-            // 등록 성공 후 목록 새로고침을 위해 이전 화면으로 복귀
-            router.replace("/(tabs)/exchange");
-          },
+  // 위치 정보 상태
+  const [currentLocation, setCurrentLocation] = React.useState<LocationDto>({
+    latitude: 37.5665,
+    longitude: 126.978,
+    address: "서울특별시",
+  });
+  const [locationLoading, setLocationLoading] = React.useState(false);
+
+  // React Query Mutation으로 제출 처리
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (data: typeof formData) => {
+      const requestFormData = new FormData();
+
+      // 1. JSON 데이터를 문자열로 직렬화하여 'request' 파트에 추가 (백엔드 @RequestPart("request") 매핑)
+      const requestData = {
+        itemDto: {
+          category: data.itemCategory,
+          title: data.title.trim(),
+          description: data.content.trim(),
+          desiredItem: data.desiredItem?.trim() || "",
         },
-      ]);
-    } else if (createState.status === "error" && createState.error) {
-      Alert.alert("오류", createState.error);
+        locationDto: {
+          latitude: currentLocation.latitude,
+          longitude: currentLocation.longitude,
+        },
+      };
+      requestFormData.append("request", JSON.stringify(requestData));
+
+      // 2. 선택된 이미지 파일들을 'itemImage' (또는 백엔드 배열명) 파트에 추가
+      selectedImages.forEach((uri, index) => {
+        const filename = uri.split("/").pop() || `image_${index}.jpg`;
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : `image/jpeg`;
+
+        requestFormData.append("itemImage", {
+          // 다중 업로드 시 백엔드 파라미터명(itemImages 등) 확인 필요
+          uri: uri,
+          name: filename,
+          type,
+        } as any); // RN의 FormData 타입 에러 우회
+      });
+
+      if (__DEV__) {
+        console.log("🚀 멀티파트 전송 준비 완료:", requestFormData);
+      }
+
+      // 3. API 호출
+      return createExchangeItem(requestFormData);
+    },
+    onSuccess: () => {
+      Alert.alert("성공", "아이템이 등록되었습니다.");
+      // 캐시 무효화로 목록 새로고침
+      queryClient.invalidateQueries({ queryKey: ["items"] });
+      router.replace("/(tabs)/exchange");
+    },
+    onError: (error) => {
+      Alert.alert("업로드 실패", "게시글 등록 중 문제가 발생했습니다.");
+      console.error(error);
+    },
+  });
+
+  const onSubmit = (data: typeof formData) => {
+    // 기본 유효성 검사
+    if (!data.title.trim() || !data.content.trim()) {
+      Alert.alert("오류", "제목과 내용을 입력해주세요.");
+      return;
     }
-  }, [createState.status, createState.error, router]);
-
-  // 입력값 변경 핸들러
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    mutate(data);
   };
 
-  // 카테고리 변경 핸들러
-  const handleCategoryChange = (category: ItemCategory) => {
-    setFormData((prev) => ({ ...prev, category }));
+  const handleSubmit = () => {
+    onSubmit(formData);
   };
 
-  // 이미지 선택 핸들러
-  const handleImageSelect = async () => {
+  // 위치 정보 가져오기
+  const getCurrentLocation = async () => {
+    setLocationLoading(true);
+
     try {
-      // 권한 요청
-      const permissionResult =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permissionResult.granted) {
-        Alert.alert("권한 필요", "갤러리 접근 권한이 필요합니다.");
+      // 위치 권한 요청
+      let { status } = await LocationModule.requestForegroundPermissionsAsync();
+
+      if (status !== "granted") {
+        console.log("위치 권한이 거부됨");
+        Alert.alert("권한 필요", "위치 정보를 사용하려면 권한이 필요합니다.");
+        setLocationLoading(false);
         return;
       }
 
-      // 이미지 선택
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.5,
+      // 현재 위치 가져오기
+      const location = await LocationModule.getCurrentPositionAsync({
+        accuracy: LocationModule.Accuracy.Balanced,
       });
 
-      if (!result.canceled && result.assets && result.assets[0]) {
-        setFormData((prev) => ({ ...prev, imageUrl: result.assets[0].uri }));
+      // 주소 변환 (역지오코딩)
+      const [address] = await LocationModule.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+
+      const locationData: LocationDto = {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        address:
+          address?.formattedAddress ||
+          `${address?.city || ""} ${address?.district || ""}`.trim() ||
+          "위치 정보 없음",
+      };
+
+      setCurrentLocation(locationData);
+
+      if (__DEV__) {
+        console.log("🔍 [위치 정보 가져오기]", locationData);
       }
     } catch (error) {
-      console.error("이미지 선택 에러:", error);
+      console.error("위치 정보 가져오기 실패:", error);
+
+      // 에러 메시지에 따라 처리
+      if (
+        error instanceof Error &&
+        error.message.includes("location services are enabled")
+      ) {
+        Alert.alert(
+          "위치 서비스 비활성화",
+          "기기의 위치 서비스를 활성화해주세요.\n설정 > 개인정보 보호 및 보안 > 위치 서비스",
+        );
+      } else {
+        Alert.alert(
+          "위치 정보 오류",
+          "위치 정보를 가져올 수 없습니다. 기본 위치(서울)를 사용합니다.",
+        );
+      }
+
+      // 기본 위치 유지 (서울 시청)
+      const defaultLocation: LocationDto = {
+        latitude: 37.5665,
+        longitude: 126.978,
+        address: "서울특별시",
+      };
+      setCurrentLocation(defaultLocation);
+    } finally {
+      setLocationLoading(false);
+    }
+  };
+
+  // 컴포넌트 마운트 시 위치 정보 가져오기
+  React.useEffect(() => {
+    getCurrentLocation();
+  }, []);
+
+  // 이미지 선택
+  const handleImagePicker = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+        allowsMultipleSelection: true,
+      });
+
+      if (!result.canceled && result.assets) {
+        const newImages = result.assets.map((asset) => asset.uri || "");
+        const updatedImages = [...selectedImages, ...newImages].slice(0, 5); // 최대 5장
+        setSelectedImages(updatedImages);
+
+        if (__DEV__) {
+          console.log("🔍 [이미지 선택]", `${updatedImages.length}장 선택됨`);
+        }
+      }
+    } catch {
       Alert.alert("오류", "이미지 선택에 실패했습니다.");
     }
   };
 
-  // 이미지 삭제 핸들러
-  const handleImageRemove = () => {
-    setFormData((prev) => ({ ...prev, imageUrl: "" }));
-  };
-
-  // 현재 위치 가져오기 핸들러
-  const handleGetCurrentLocation = async () => {
-    try {
-      setIsGettingLocation(true);
-
-      // 1. 권한 요청
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("권한 필요", "위치 접근 권한이 필요합니다.");
-        return;
-      }
-
-      // 2. 현재 위치 가져오기
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-
-      const { latitude, longitude } = location.coords;
-
-      // 3. 좌표를 주소로 변환
-      const addresses = await Location.reverseGeocodeAsync({
-        latitude,
-        longitude,
-      });
-
-      if (addresses && addresses.length > 0) {
-        const address = addresses[0];
-
-        // 4. 동네 이름 추출 (우선순위: street > district > city)
-        let regionName = "";
-
-        if (address.street) {
-          regionName = address.street;
-        } else if (address.district) {
-          regionName = address.district;
-        } else if (address.city) {
-          regionName = address.city;
-        } else {
-          regionName = "알 수 없는 위치";
-        }
-
-        // 5. 폼 데이터 업데이트
-        setFormData((prev) => ({
-          ...prev,
-          region: regionName,
-          latitude,
-          longitude,
-        }));
-
-        Alert.alert("위치 확인", `${regionName}으로 설정되었습니다.`);
-      } else {
-        Alert.alert("오류", "주소를 찾을 수 없습니다.");
-      }
-    } catch (error) {
-      console.error("위치 가져오기 에러:", error);
-      Alert.alert("오류", "위치를 가져오는데 실패했습니다.");
-    } finally {
-      setIsGettingLocation(false);
-    }
-  };
-
-  // 입력값 검증
-  const validateForm = (): boolean => {
-    if (!formData.title.trim()) {
-      Alert.alert("오류", "제목을 입력해주세요.");
-      return false;
-    }
-
-    if (!formData.description.trim()) {
-      Alert.alert("오류", "설명을 입력해주세요.");
-      return false;
-    }
-
-    if (!formData.price.trim()) {
-      Alert.alert("오류", "가격/가치를 입력해주세요.");
-      return false;
-    }
-
-    if (isNaN(Number(formData.price)) || Number(formData.price) <= 0) {
-      Alert.alert("오류", "올바른 가격을 입력해주세요.");
-      return false;
-    }
-
-    return true;
-  };
-
-  // 아이템 생성 핸들러
-  const handleCreateItem = async () => {
-    if (!validateForm()) return;
-
-    try {
-      const locationDto: LocationDto = {
-        latitude: formData.latitude, // 실제 위치 데이터 사용
-        longitude: formData.longitude, // 실제 위치 데이터 사용
-        address: "위치 정보", // TODO: 실제 주소로 변환
-      };
-
-      // CreateItemRequest 형식으로 데이터 생성
-      const requestData: CreateItemRequest = {
-        itemCategory: formData.category, // 백엔드 DTO 필드명에 맞춤
-        title: formData.title.trim(),
-        description: formData.description.trim(),
-        location: locationDto,
-      };
-
-      // API 호출 (JSON 형식)
-      console.log("JSON 전송:", requestData);
-
-      await _createItem(itemsCreateAPI(requestData));
-    } catch (error) {
-      console.error("아이템 생성 에러:", error);
-    }
+  // 이미지 제거
+  const removeImage = (index: number) => {
+    const updatedImages = selectedImages.filter((_, i) => i !== index);
+    setSelectedImages(updatedImages);
   };
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: colors.surface }]}
-      contentContainerStyle={styles.contentContainer}
-    >
+    <SafeLayout edges={["top", "bottom"]} style={styles.container}>
       {/* 헤더 */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <Button onPress={() => router.back()} variant="ghost" size="sm">
-          ←
-        </Button>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>
-          아이템 등록
-        </Text>
-        <View style={styles.headerSpacer} />
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
+          <Text style={styles.backButtonText}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>교환글 쓰기</Text>
+        <TouchableOpacity onPress={handleSubmit} disabled={isPending}>
+          <Text
+            style={[
+              styles.submitButton,
+              isPending && styles.submitButtonDisabled,
+            ]}
+          >
+            {isPending ? "등록 중..." : "등록"}
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      {/* 폼 내용 */}
-      <View style={styles.formContainer}>
-        {/* 이미지 업로드 */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            이미지
-          </Text>
-          <TouchableOpacity
-            style={[
-              styles.imageUploadContainer,
-              { borderColor: colors.border },
-            ]}
-            onPress={handleImageSelect}
-          >
-            {formData.imageUrl ? (
-              <View style={styles.uploadedImageContainer}>
-                <Image
-                  source={{ uri: formData.imageUrl }}
-                  style={styles.uploadedImage}
-                />
-                <TouchableOpacity
-                  style={[
-                    styles.imageRemoveButton,
-                    { backgroundColor: colors.destructive },
-                  ]}
-                  onPress={handleImageRemove}
-                >
-                  <Text
-                    style={[
-                      styles.imageRemoveButtonText,
-                      { color: colors.background },
-                    ]}
-                  >
-                    ✕
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <View style={styles.imagePlaceholder}>
-                <Text
-                  style={[styles.imagePlaceholderText, { color: colors.muted }]}
-                >
-                  📷 이미지 추가
-                </Text>
-                <Text
-                  style={[
-                    styles.imagePlaceholderSubText,
-                    { color: colors.muted },
-                  ]}
-                >
-                  갤러리에서 선택
-                </Text>
-              </View>
+      <ScrollView style={styles.scrollView}>
+        {/* 이미지 첨부 가로 스크롤 */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.imageScrollContainer}
+        >
+          {/* 이미지 추가 버튼 */}
+          {selectedImages.length < 5 && (
+            <TouchableOpacity
+              style={styles.imageAddButton}
+              onPress={handleImagePicker}
+            >
+              <Text style={styles.imageAddIcon}>📷</Text>
+              <Text style={styles.imageCountText}>
+                {selectedImages.length}/5
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {/* 렌더링된 이미지 목록 */}
+          {selectedImages.map((imageUri, index) => (
+            <View key={index} style={styles.imageItemWrapper}>
+              <Image source={{ uri: imageUri }} style={styles.imageThumbnail} />
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => removeImage(index)}
+              >
+                <Text style={styles.deleteButtonText}>×</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </ScrollView>
+
+        {/* 위치 정보 영역 */}
+        <View style={styles.locationContainer}>
+          <View style={styles.locationHeader}>
+            <Text style={styles.locationTitle}>📍 위치 정보</Text>
+            <TouchableOpacity
+              onPress={getCurrentLocation}
+              disabled={locationLoading}
+            >
+              <Text style={styles.locationRefreshButton}>
+                {locationLoading ? "로딩 중..." : "🔄 새로고침"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.locationContent}>
+            <Text style={styles.locationIcon}>📍</Text>
+            <Text style={styles.locationText}>{currentLocation.address}</Text>
+            {locationLoading && (
+              <ActivityIndicator
+                size="small"
+                color={theme.colors.primary}
+                style={styles.locationLoading}
+              />
             )}
-          </TouchableOpacity>
+          </View>
         </View>
 
-        {/* 카테고리 선택 */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            카테고리
-          </Text>
+        {/* 입력 폼 영역 */}
+        <View style={styles.formContainer}>
+          {/* 카테고리 선택 */}
           <View style={styles.categoryContainer}>
-            <TouchableOpacity
-              style={[
-                styles.categoryButton,
-                formData.category === "TICKET" && [
-                  styles.categoryButtonActive,
-                  { backgroundColor: colors.primary },
-                ],
-              ]}
-              onPress={() => handleCategoryChange("TICKET")}
-            >
-              <Text
+            <Text style={styles.label}>카테고리</Text>
+            <View style={styles.categoryButtons}>
+              <TouchableOpacity
                 style={[
-                  styles.categoryButtonText,
-                  formData.category === "TICKET"
-                    ? { color: colors.background }
-                    : { color: colors.muted },
+                  styles.categoryButton,
+                  formData.itemCategory === "TICKET" &&
+                    styles.categoryButtonActive,
                 ]}
+                onPress={() =>
+                  setFormData({ ...formData, itemCategory: "TICKET" })
+                }
               >
-                티켓
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.categoryButton,
-                formData.category === "GOODS" && [
-                  styles.categoryButtonActive,
-                  { backgroundColor: colors.primary },
-                ],
-              ]}
-              onPress={() => handleCategoryChange("GOODS")}
-            >
-              <Text
+                <Text
+                  style={[
+                    styles.categoryButtonText,
+                    formData.itemCategory === "TICKET" &&
+                      styles.categoryButtonTextActive,
+                  ]}
+                >
+                  티켓
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
                 style={[
-                  styles.categoryButtonText,
-                  formData.category === "GOODS"
-                    ? { color: colors.background }
-                    : { color: colors.muted },
+                  styles.categoryButton,
+                  formData.itemCategory === "GOODS" &&
+                    styles.categoryButtonActive,
                 ]}
+                onPress={() =>
+                  setFormData({ ...formData, itemCategory: "GOODS" })
+                }
               >
-                굿즈
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  style={[
+                    styles.categoryButtonText,
+                    formData.itemCategory === "GOODS" &&
+                      styles.categoryButtonTextActive,
+                  ]}
+                >
+                  굿즈
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
 
-        {/* 제목 */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            제목 *
-          </Text>
-          <Input
-            value={formData.title}
-            onChangeText={(value) => handleInputChange("title", value)}
-            placeholder="아이템 제목을 입력하세요"
-            style={styles.input}
-          />
-        </View>
-
-        {/* 설명 */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            설명 *
-          </Text>
           <TextInput
-            style={[
-              styles.textInput,
-              styles.textArea,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.border,
-                color: colors.text,
-              },
-            ]}
-            value={formData.description}
-            onChangeText={(value) => handleInputChange("description", value)}
-            placeholder="아이템 상세 설명을 입력하세요"
-            placeholderTextColor={colors.muted}
+            placeholder="제목"
+            style={styles.titleInput}
+            value={formData.title}
+            onChangeText={(text) => setFormData({ ...formData, title: text })}
+          />
+
+          <TextInput
+            placeholder="희망 아이템 (선택)"
+            style={styles.desiredItemInput}
+            value={formData.desiredItem}
+            onChangeText={(text) =>
+              setFormData({ ...formData, desiredItem: text })
+            }
+          />
+
+          <TextInput
+            placeholder="내용을 입력하세요."
             multiline
-            textAlignVertical="top"
+            style={styles.contentInput}
+            value={formData.content}
+            onChangeText={(text) => setFormData({ ...formData, content: text })}
           />
         </View>
-
-        {/* 가격/가치 */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            가격/가치 *
-          </Text>
-          <Input
-            value={formData.price}
-            onChangeText={(value) => handleInputChange("price", value)}
-            placeholder="가격을 입력하세요"
-            keyboardType="numeric"
-            style={styles.input}
-          />
-        </View>
-
-        {/* 거래 희망 장소 */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            거래 희망 장소
-          </Text>
-          <View style={styles.locationContainer}>
-            <Input
-              value={formData.region}
-              onChangeText={(value) => handleInputChange("region", value)}
-              placeholder="동네 이름을 입력하세요"
-              style={[styles.input, styles.locationInput]}
-            />
-            <Button
-              onPress={handleGetCurrentLocation}
-              loading={isGettingLocation}
-              disabled={isGettingLocation}
-              variant="outline"
-              size="sm"
-              style={styles.locationButton}
-            >
-              📍 현재 위치로 찾기
-            </Button>
-          </View>
-        </View>
-
-        {/* 등록 버튼 */}
-        <View style={styles.buttonContainer}>
-          <Button
-            onPress={handleCreateItem}
-            loading={createState.status === "loading"}
-            disabled={createState.status === "loading"}
-            fullWidth
-            style={styles.submitButton}
-          >
-            아이템 등록
-          </Button>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  contentContainer: {
-    paddingBottom: 40,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    borderBottomWidth: 1,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  headerSpacer: {
-    width: 60,
-  },
-  formContainer: {
-    padding: 20,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  imageUploadContainer: {
-    width: "100%",
-    height: 200,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderStyle: "dashed",
-    justifyContent: "center",
-    alignItems: "center",
-    overflow: "hidden",
-  },
-  uploadedImageContainer: {
-    width: "100%",
-    height: "100%",
-    position: "relative",
-  },
-  uploadedImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-  },
-  imageRemoveButton: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  imageRemoveButtonText: {
-    fontSize: 12,
-    fontWeight: "bold",
-  },
-  imagePlaceholder: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  imagePlaceholderText: {
-    fontSize: 16,
-    fontWeight: "500",
-    marginBottom: 4,
-  },
-  imagePlaceholderSubText: {
-    fontSize: 14,
-  },
-  categoryContainer: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  categoryButton: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: "center",
-  },
-  categoryButtonActive: {
-    borderWidth: 0,
-  },
-  categoryButtonText: {
-    fontSize: 16,
-    fontWeight: "500",
-  },
-  input: {
-    marginBottom: 8,
-  },
-  textInput: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-  },
-  textArea: {
-    minHeight: 100,
-  },
-  locationContainer: {
-    gap: 12,
-  },
-  locationInput: {
-    marginBottom: 0,
-  },
-  locationButton: {
-    alignSelf: "flex-start",
-  },
-  buttonContainer: {
-    marginTop: 32,
-  },
-  submitButton: {
-    marginBottom: 16,
-  },
-});

@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import {
     exchangeGetReceivedAPI,
@@ -13,6 +12,7 @@ import {
     UpdateExchangeStatusDto,
 } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
+import { SPACING } from "@/src/styles/unified-design";
 import React, { useCallback, useEffect, useState } from "react";
 import { Alert, FlatList, StyleSheet, Text, View } from "react-native";
 

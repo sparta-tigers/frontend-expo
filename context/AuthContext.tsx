@@ -30,7 +30,54 @@ interface SimpleToken {
   refreshToken: string;
   email?: string; // 이메일 정보 (선택적)
   userId?: number; // 사용자 ID (선택적)
+  nickname?: string; // 사용자 닉네임 (선택적)
 }
+
+const decodeJwtPayload = (token: string): Record<string, unknown> | null => {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+    const json = atob(padded);
+    const parsed = JSON.parse(json) as Record<string, unknown>;
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+const getTokenClaimFromAccessToken = (
+  accessToken: string,
+): Pick<SimpleToken, "userId" | "email" | "nickname"> => {
+  const payload = decodeJwtPayload(accessToken);
+  if (!payload) return {};
+
+  const userIdRaw = payload.userId;
+  const userId =
+    typeof userIdRaw === "number"
+      ? userIdRaw
+      : typeof userIdRaw === "string"
+        ? Number(userIdRaw)
+        : undefined;
+
+  const email = typeof payload.email === "string" ? payload.email : undefined;
+  const nickname =
+    typeof payload.nickname === "string" ? payload.nickname : undefined;
+
+  const result: Pick<SimpleToken, "userId" | "email" | "nickname"> = {};
+  if (typeof userId === "number" && Number.isFinite(userId)) {
+    result.userId = userId;
+  }
+  if (typeof email === "string") {
+    result.email = email;
+  }
+  if (typeof nickname === "string") {
+    result.nickname = nickname;
+  }
+  return result;
+};
 
 /**
  * AuthContext 타입 정의
@@ -111,9 +158,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           await setTokens(accessToken, refreshToken);
 
           // 사용자 상태 설정
+          const claim = getTokenClaimFromAccessToken(accessToken);
           const tokenPayload: SimpleToken = {
             accessToken,
             refreshToken,
+            ...claim,
           };
 
           setUser(tokenPayload);
@@ -172,15 +221,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       }
 
       if (response.resultType === "SUCCESS" && response.data) {
-        // 🚨 1단계: 응답 구조 유연성 확보
-        // 1. 응답 데이터 구조가 { data: { token: { accessToken... } } } 인 경우
-        // 2. 응답 데이터 구조가 { data: { accessToken... } } 인 경우
-        // 3. 응답 데이터 구조가 바로 { accessToken... } } 인 경우
-        const rawData =
-          (response.data as any)?.data || response.data || response;
-        const tokenData = rawData.token || rawData;
+        const tokenData = response.data.token;
 
-        if (!tokenData || !tokenData.accessToken || !tokenData.refreshToken) {
+        if (!tokenData.accessToken || !tokenData.refreshToken) {
           console.error(
             "🚨 [파싱 실패] 토큰 정보가 불완전합니다. 현재 구조:",
             JSON.stringify(response, null, 2),
@@ -206,9 +249,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         }
 
         // 상태 업데이트
+        const claim = getTokenClaimFromAccessToken(tokenData.accessToken);
         setUser({
           accessToken: tokenData.accessToken,
           refreshToken: tokenData.refreshToken,
+          ...claim,
         });
 
         if (__DEV__) {

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
+import { SPACING } from "@/src/styles/unified-design";
 import { router } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
