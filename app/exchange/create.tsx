@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
 import { router } from "expo-router";
 import React from "react";
 import {
+    ActivityIndicator,
     Alert,
     Image,
     ScrollView,
@@ -17,6 +19,9 @@ import { SafeLayout } from "@/components/ui/safe-layout";
 import { createExchangeItem } from "@/src/features/exchange/api";
 import { ItemCategory, LocationDto } from "@/src/features/exchange/types";
 import { theme } from "@/src/styles/theme";
+
+// Location 모듈 타입 단언
+const LocationModule = Location as any;
 
 // 정적 스타일 정의 (작업 지시서 기준)
 const styles = StyleSheet.create({
@@ -128,6 +133,47 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.weight.bold,
     color: theme.colors.primary,
   },
+  // 위치 정보 UI
+  locationContainer: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.border.light,
+  },
+  locationHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: theme.spacing.sm,
+  },
+  locationTitle: {
+    fontSize: theme.typography.size.md,
+    fontWeight: theme.typography.weight.bold,
+    color: theme.colors.text.primary,
+  },
+  locationRefreshButton: {
+    fontSize: theme.typography.size.sm,
+    color: theme.colors.primary,
+  },
+  locationContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: theme.spacing.sm,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.md,
+  },
+  locationIcon: {
+    fontSize: theme.typography.size.lg,
+    marginRight: theme.spacing.sm,
+  },
+  locationText: {
+    flex: 1,
+    fontSize: theme.typography.size.sm,
+    color: theme.colors.text.secondary,
+  },
+  locationLoading: {
+    marginLeft: theme.spacing.sm,
+  },
 });
 
 /**
@@ -150,6 +196,14 @@ export default function CreateItemScreen() {
 
   const [selectedImages, setSelectedImages] = React.useState<string[]>([]);
 
+  // 위치 정보 상태
+  const [currentLocation, setCurrentLocation] = React.useState<LocationDto>({
+    latitude: 37.5665,
+    longitude: 126.978,
+    address: "서울특별시",
+  });
+  const [locationLoading, setLocationLoading] = React.useState(false);
+
   // React Query Mutation으로 제출 처리
   const { mutate, isPending } = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -158,11 +212,7 @@ export default function CreateItemScreen() {
         itemCategory: "TICKET" as ItemCategory, // 기본값
         title: data.title,
         description: data.content,
-        location: {
-          latitude: 37.5665,
-          longitude: 126.978,
-          address: "서울시",
-        } as LocationDto,
+        location: currentLocation, // 동적 위치 정보 사용
         desiredItem: data.desiredItem || undefined,
       };
 
@@ -192,6 +242,57 @@ export default function CreateItemScreen() {
   const handleSubmit = () => {
     onSubmit(formData);
   };
+
+  // 위치 정보 가져오기
+  const getCurrentLocation = async () => {
+    setLocationLoading(true);
+
+    try {
+      // 위치 권한 요청
+      let { status } = await LocationModule.requestForegroundPermissionsAsync();
+
+      if (status !== "granted") {
+        Alert.alert("권한 필요", "위치 정보를 사용하려면 권한이 필요합니다.");
+        return;
+      }
+
+      // 현재 위치 가져오기
+      const location = await LocationModule.getCurrentPositionAsync({
+        accuracy: LocationModule.Accuracy.Balanced,
+      });
+
+      // 주소 변환 (역지오코딩)
+      const [address] = await LocationModule.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+
+      const locationData: LocationDto = {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        address:
+          address?.formattedAddress ||
+          `${address?.city || ""} ${address?.district || ""}`.trim() ||
+          "위치 정보 없음",
+      };
+
+      setCurrentLocation(locationData);
+
+      if (__DEV__) {
+        console.log("🔍 [위치 정보 가져오기]", locationData);
+      }
+    } catch (error) {
+      console.error("위치 정보 가져오기 실패:", error);
+      Alert.alert("오류", "위치 정보를 가져올 수 없습니다.");
+    } finally {
+      setLocationLoading(false);
+    }
+  };
+
+  // 컴포넌트 마운트 시 위치 정보 가져오기
+  React.useEffect(() => {
+    getCurrentLocation();
+  }, []);
 
   // 이미지 선택 (UI Only - 백엔드 수정 전까지 기능 정지)
   const handleImagePicker = async () => {
@@ -277,6 +378,33 @@ export default function CreateItemScreen() {
             </View>
           ))}
         </ScrollView>
+
+        {/* 위치 정보 영역 */}
+        <View style={styles.locationContainer}>
+          <View style={styles.locationHeader}>
+            <Text style={styles.locationTitle}>📍 위치 정보</Text>
+            <TouchableOpacity
+              onPress={getCurrentLocation}
+              disabled={locationLoading}
+            >
+              <Text style={styles.locationRefreshButton}>
+                {locationLoading ? "로딩 중..." : "🔄 새로고침"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.locationContent}>
+            <Text style={styles.locationIcon}>📍</Text>
+            <Text style={styles.locationText}>{currentLocation.address}</Text>
+            {locationLoading && (
+              <ActivityIndicator
+                size="small"
+                color={theme.colors.primary}
+                style={styles.locationLoading}
+              />
+            )}
+          </View>
+        </View>
 
         {/* 입력 폼 영역 */}
         <View style={styles.formContainer}>

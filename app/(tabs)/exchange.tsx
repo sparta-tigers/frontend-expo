@@ -13,12 +13,12 @@ import {
 } from "@/src/features/exchange/types";
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import { theme } from "@/src/styles/theme";
+import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
   Image,
   RefreshControl,
   StyleSheet,
@@ -26,11 +26,31 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import MapView, { Marker } from "react-native-maps";
+
+// 임시 타입 정의 (패키지 설치 후 제거)
+type BottomSheetRef = any;
 
 // 정적 스타일 정의
 const styles = StyleSheet.create({
-  safeLayout: {
+  container: {
     flex: 1,
+  },
+  map: {
+    flex: 1,
+  },
+  bottomSheetContainer: {
+    backgroundColor: theme.colors.background,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    shadowColor: theme.colors.text.primary,
+    shadowOffset: {
+      width: 0,
+      height: -2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
   },
   header: {
     flexDirection: "row",
@@ -218,6 +238,7 @@ const styles = StyleSheet.create({
 export default function ExchangeScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   // 탭 상태 관리
   const [activeTab, setActiveTab] = useState<"items" | "requests">("items");
@@ -226,9 +247,9 @@ export default function ExchangeScreen() {
   const [itemsState, fetchItems] = useAsyncState<Item[]>([]);
   const [requestsState, fetchRequests] = useAsyncState<ExchangeRequest[]>([]);
 
-  // 추가 상태 (페이지네이션용)
-  const [page, setPage] = useState(0);
-  const [isLast, setIsLast] = useState(false);
+  // 추가 상태 (페이지네이션용 - 현재 미사용)
+  // const [page, setPage] = useState(0);
+  // const [isLast, setIsLast] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   // 받은 교환 요청 목록 가져오기
@@ -239,23 +260,25 @@ export default function ExchangeScreen() {
       try {
         const response = await exchangeGetReceivedAPI(pageNum, 10);
 
-        if (response.resultType === "SUCCESS" && response.data) {
-          const newRequests = response.data.content || [];
+        // 임시 타입 단언으로 API 응답 처리
+        const responseData = response.data as any;
+        const requests = Array.isArray(responseData?.data)
+          ? responseData.data
+          : [];
 
-          if (isRefresh || pageNum === 0) {
-            await fetchRequests(Promise.resolve(newRequests));
-          } else {
-            const currentRequests = requestsState.data || [];
-            await fetchRequests(
-              Promise.resolve([...currentRequests, ...newRequests]),
-            );
-          }
-
-          setIsLast(response.data.last || false);
+        if (pageNum === 0 || isRefresh) {
+          await fetchRequests(Promise.resolve(requests));
+        } else {
+          await fetchRequests(
+            Promise.resolve([...(requestsState.data || []), ...requests]),
+          );
         }
+
+        // setIsLast(responseData?.last || false);
       } catch (error) {
         console.error("교환 요청 목록 로딩 실패:", error);
         Alert.alert("오류", "교환 요청 목록을 불러올 수 없습니다.");
+        await fetchRequests(Promise.resolve([]));
       }
     },
     [requestsState.status, fetchRequests, requestsState.data],
@@ -278,8 +301,9 @@ export default function ExchangeScreen() {
         const response = await itemsGetListAPI(pageNum, 10);
 
         if (response.resultType === "SUCCESS" && response.data) {
-          const { content, last } = response.data;
-          setIsLast(last); // 다음 페이지 호출 차단 스위치
+          const { content } = response.data;
+          // 다음 페이지 정보는 현재 미사용 (BottomSheetFlatList에서 onEndReached 제거)
+          // const { last } = response.data;
 
           // 교환 완료된 아이템 필터링
           const filteredContent = content.filter(
@@ -346,25 +370,31 @@ export default function ExchangeScreen() {
   };
 
   // 새로고침 핸들러
-  const onRefresh = () => {
-    setPage(0);
-    setIsLast(false);
-    fetchItems(loadItems(0, true));
+  const handleRefresh = () => {
+    // setPage(0);
+    // setIsLast(false);
+    setRefreshing(true);
+    if (activeTab === "items") {
+      fetchItems(loadItems(0, true));
+    } else {
+      loadExchangeRequests(0, true);
+    }
+    setRefreshing(false);
   };
 
-  // 다음 페이지 로드
-  const loadMore = () => {
-    // 에러 상태에서는 자동 로드를 차단하여 무한 루프 방지
-    if (
-      itemsState.status !== "loading" &&
-      itemsState.status !== "error" &&
-      !isLast
-    ) {
-      const nextPage = page + 1;
-      setPage(nextPage);
-      fetchItems(loadItems(nextPage, false));
-    }
-  };
+  // 다음 페이지 로드 (현재 미사용 - BottomSheetFlatList에서 onEndReached 제거)
+  // const loadMore = () => {
+  //   // 에러 상태에서는 자동 로드를 차단하여 무한 루프 방지
+  //   if (
+  //     itemsState.status !== "loading" &&
+  //     itemsState.status !== "error" &&
+  //     !isLast
+  //   ) {
+  //     const nextPage = page + 1;
+  //     setPage(nextPage);
+  //     fetchItems(loadItems(nextPage, false));
+  //   }
+  // };
 
   // 교환 요청 렌더 함수
   const renderExchangeRequest = ({ item }: { item: ExchangeRequest }) => (
@@ -531,82 +561,110 @@ export default function ExchangeScreen() {
   }, [activeTab]); // activeTab만 의존성으로 설정
 
   return (
-    <SafeLayout style={styles.safeLayout}>
-      {/* 헤더 */}
-      <View
-        style={[
-          styles.header,
-          {
-            borderBottomColor: colors.border,
-            backgroundColor: colors.background,
-          },
-        ]}
+    <SafeLayout style={styles.container}>
+      {/* 1. 백그라운드 지도 뷰 */}
+      <MapView
+        style={styles.map}
+        initialRegion={{
+          latitude: 37.5665, // 서울 디폴트 좌표
+          longitude: 126.978,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        }}
       >
-        <Text style={[styles.headerTitle, { color: colors.text }]}>교환</Text>
-        <Button onPress={navigateToCreate} size="sm">
-          + 등록
-        </Button>
-      </View>
+        {itemsState.data?.map((item: Item) => (
+          <Marker
+            key={item.id}
+            coordinate={{
+              latitude: item.location?.latitude || 37.5665,
+              longitude: item.location?.longitude || 126.978,
+            }}
+            title={item.title}
+            onPress={() => router.push(`/exchange/${item.id}`)}
+          />
+        ))}
+      </MapView>
 
-      {/* 탭 전환 */}
-      <View
-        style={[
-          styles.tabContainer,
-          {
-            borderBottomColor: colors.border,
-            backgroundColor: colors.background,
-          },
-        ]}
+      {/* 2. 스와이프업 리스트 뷰 (바텀시트) */}
+      <BottomSheet
+        ref={bottomSheetRef}
+        snapPoints={["15%", "85%"]}
+        style={styles.bottomSheetContainer}
       >
-        <TouchableOpacity
+        {/* 바텀시트 헤더 */}
+        <View
           style={[
-            styles.tabButton,
-            activeTab === "items" && styles.activeTabIndicator,
+            styles.header,
+            {
+              borderBottomColor: colors.border,
+              backgroundColor: colors.background,
+            },
           ]}
-          onPress={() => setActiveTab("items")}
         >
-          <Text
-            style={[
-              activeTab === "items"
-                ? styles.tabTextActive
-                : styles.tabTextInactive,
-            ]}
-          >
-            아이템 목록
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.tabButton,
-            activeTab === "requests" && styles.activeTabIndicator,
-          ]}
-          onPress={() => setActiveTab("requests")}
-        >
-          <Text
-            style={[
-              activeTab === "requests"
-                ? styles.tabTextActive
-                : styles.tabTextInactive,
-            ]}
-          >
-            받은 요청
-          </Text>
-        </TouchableOpacity>
-      </View>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>교환</Text>
+          <Button onPress={navigateToCreate} size="sm">
+            + 등록
+          </Button>
+        </View>
 
-      {/* 콘텐츠 영역 */}
-      <View style={styles.listContainer}>
-        {activeTab === "items" ? (
-          // 아이템 목록
-          <>
-            {itemsState.status === "loading" && page === 0 ? (
+        {/* 탭 전환 */}
+        <View
+          style={[
+            styles.tabContainer,
+            {
+              borderBottomColor: colors.border,
+              backgroundColor: colors.background,
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === "items" && styles.activeTabIndicator,
+            ]}
+            onPress={() => setActiveTab("items")}
+          >
+            <Text
+              style={[
+                activeTab === "items"
+                  ? styles.tabTextActive
+                  : styles.tabTextInactive,
+              ]}
+            >
+              아이템 목록
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === "requests" && styles.activeTabIndicator,
+            ]}
+            onPress={() => setActiveTab("requests")}
+          >
+            <Text
+              style={[
+                activeTab === "requests"
+                  ? styles.tabTextActive
+                  : styles.tabTextInactive,
+              ]}
+            >
+              받은 요청
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* 콘텐츠 영역 */}
+        <View style={styles.listContainer}>
+          {/* 아이템 목록 */}
+          {activeTab === "items" &&
+            (itemsState.status === "loading" && 0 ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={colors.primary} />
                 <Text style={[styles.loadingText, { color: colors.text }]}>
                   아이템 목록 로딩 중...
                 </Text>
               </View>
-            ) : itemsState.status === "error" && page === 0 ? (
+            ) : itemsState.status === "error" && 0 ? (
               <View style={styles.emptyContainer}>
                 <Text style={[styles.emptyText, { color: colors.text }]}>
                   {itemsState.error || "아이템 목록을 불러올 수 없습니다."}
@@ -619,59 +677,29 @@ export default function ExchangeScreen() {
                 </Button>
               </View>
             ) : (
-              <FlatList
+              <BottomSheetFlatList
                 data={itemsState.data}
                 renderItem={renderItem}
-                keyExtractor={(item) => item.id.toString()}
-                numColumns={2}
-                key="items-flatlist" // numColumns 변경 시 강제 리렌더링을 위한 키 추가
+                keyExtractor={(item: Item) => item.id.toString()}
                 refreshControl={
                   <RefreshControl
                     refreshing={refreshing}
-                    onRefresh={onRefresh}
+                    onRefresh={handleRefresh}
                   />
                 }
-                onEndReached={loadMore}
-                onEndReachedThreshold={0.1}
-                ListEmptyComponent={
-                  <View style={styles.emptyContainer}>
-                    <Text style={[styles.emptyText, { color: colors.text }]}>
-                      등록된 아이템이 없습니다.
-                    </Text>
-                    <Button
-                      onPress={navigateToCreate}
-                      style={styles.emptyButton}
-                    >
-                      첫 아이템 등록
-                    </Button>
-                  </View>
-                }
-                ListFooterComponent={
-                  itemsState.status === "loading" && page > 0 ? (
-                    <View style={styles.loadingContainer}>
-                      <ActivityIndicator size="small" color={colors.primary} />
-                      <Text
-                        style={[styles.loadingText, { color: colors.text }]}
-                      >
-                        더 불러오는 중...
-                      </Text>
-                    </View>
-                  ) : null
-                }
               />
-            )}
-          </>
-        ) : (
-          // 교환 요청 목록
-          <>
-            {requestsState.status === "loading" && page === 0 ? (
+            ))}
+
+          {/* 교환 요청 목록 */}
+          {activeTab === "requests" &&
+            (requestsState.status === "loading" && 0 ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={colors.primary} />
                 <Text style={[styles.loadingText, { color: colors.text }]}>
                   요청 목록 로딩 중...
                 </Text>
               </View>
-            ) : requestsState.status === "error" && page === 0 ? (
+            ) : requestsState.status === "error" && 0 ? (
               <View style={styles.emptyContainer}>
                 <Text style={[styles.emptyText, { color: colors.text }]}>
                   {requestsState.error || "요청 목록을 불러올 수 없습니다."}
@@ -684,23 +712,22 @@ export default function ExchangeScreen() {
                 </Button>
               </View>
             ) : (
-              <FlatList
+              <BottomSheetFlatList
                 data={requestsState.data}
                 renderItem={renderExchangeRequest}
-                keyExtractor={(item) => item.id.toString()}
+                keyExtractor={(item: ExchangeRequest) => item.id.toString()}
                 refreshControl={
                   <RefreshControl
                     refreshing={refreshing}
-                    onRefresh={() => loadExchangeRequests(0, true)}
+                    onRefresh={handleRefresh}
                   />
                 }
               />
-            )}
-          </>
-        )}
-      </View>
+            ))}
+        </View>
+      </BottomSheet>
 
-      {/* FAB (Floating Action Button) */}
+      {/* 3. 플로팅 버튼 (바텀시트 위에 떠있어야 함) */}
       <TouchableOpacity style={styles.fabButton} onPress={navigateToCreate}>
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
