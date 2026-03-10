@@ -259,16 +259,43 @@ export default function CreateItemScreen() {
   // React Query Mutation으로 제출 처리
   const { mutate, isPending } = useMutation({
     mutationFn: async (data: typeof formData) => {
-      // 백엔드 CreateItemRequest 스펙에 맞게 페이로드 재구성
-      const payload = {
-        category: data.itemCategory, // 백엔드는 category 필드명 사용
-        title: data.title,
-        description: data.content,
-        location: currentLocation, // 동적 위치 정보 사용
-        desiredItem: data.desiredItem || undefined,
-      };
+      const requestFormData = new FormData();
 
-      return createExchangeItem(payload as any, selectedImages);
+      // 1. JSON 데이터를 문자열로 직렬화하여 'request' 파트에 추가 (백엔드 @RequestPart("request") 매핑)
+      const requestData = {
+        itemDto: {
+          category: data.itemCategory,
+          title: data.title.trim(),
+          description: data.content.trim(),
+          desiredItem: data.desiredItem?.trim() || "",
+        },
+        locationDto: {
+          latitude: currentLocation.latitude,
+          longitude: currentLocation.longitude,
+        },
+      };
+      requestFormData.append("request", JSON.stringify(requestData));
+
+      // 2. 선택된 이미지 파일들을 'itemImage' (또는 백엔드 배열명) 파트에 추가
+      selectedImages.forEach((uri, index) => {
+        const filename = uri.split("/").pop() || `image_${index}.jpg`;
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : `image/jpeg`;
+
+        requestFormData.append("itemImage", {
+          // 다중 업로드 시 백엔드 파라미터명(itemImages 등) 확인 필요
+          uri: uri,
+          name: filename,
+          type,
+        } as any); // RN의 FormData 타입 에러 우회
+      });
+
+      if (__DEV__) {
+        console.log("🚀 멀티파트 전송 준비 완료:", requestFormData);
+      }
+
+      // 3. API 호출
+      return createExchangeItem(requestFormData);
     },
     onSuccess: () => {
       Alert.alert("성공", "아이템이 등록되었습니다.");
@@ -371,7 +398,7 @@ export default function CreateItemScreen() {
     getCurrentLocation();
   }, []);
 
-  // 이미지 선택 (UI Only - 백엔드 수정 전까지 기능 정지)
+  // 이미지 선택
   const handleImagePicker = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -387,11 +414,8 @@ export default function CreateItemScreen() {
         const updatedImages = [...selectedImages, ...newImages].slice(0, 5); // 최대 5장
         setSelectedImages(updatedImages);
 
-        // 개발 환경에서만 경고 표시
         if (__DEV__) {
-          console.log(
-            "🔍 [이미지 선택] UI만 구현됨 (백엔드 수정 전까지 기능 정지)",
-          );
+          console.log("🔍 [이미지 선택]", `${updatedImages.length}장 선택됨`);
         }
       }
     } catch {

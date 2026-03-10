@@ -1,9 +1,7 @@
 import { apiClient } from "@/src/core/client";
 import type { ApiResponse } from "@/src/shared/types/common";
-import * as ImageManipulator from "expo-image-manipulator";
 import {
   CreateExchangeDto,
-  CreateItemRequest,
   ExchangeRequestListResponse,
   Item,
   ItemCategory,
@@ -57,60 +55,21 @@ export async function itemsGetDetailAPI(
  * 아이템 생성 API (Multipart)
  * 새로운 아이템 등록 (이미지 업로드 포함)
  *
- * @param requestData - 아이템 생성 요청 데이터
- * @param imageUris - 선택된 이미지 URI 배열
+ * @param formData - FormData 인스턴스 (JSON 데이터 + 이미지 파일)
  * @returns 생성된 아이템 정보
  */
 export async function createExchangeItem(
-  requestData: CreateItemRequest,
-  imageUris: string[],
+  formData: FormData,
 ): Promise<ApiResponse<Item>> {
-  const formData = new FormData();
-
-  // 1. JSON DTO 주입 (Spring Boot @RequestPart("itemRequest") 호환)
-  formData.append("itemRequest", {
-    string: JSON.stringify(requestData),
-    type: "application/json",
-  } as any);
-
-  // 2. 이미지 압축 및 주입 (Spring Boot @RequestPart("images") 호환)
-  if (imageUris && imageUris.length > 0) {
-    for (let i = 0; i < imageUris.length; i++) {
-      try {
-        const manipResult = await ImageManipulator.manipulateAsync(
-          imageUris[i],
-          [{ resize: { width: 1080 } }],
-          { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG },
-        );
-
-        const filename = manipResult.uri.split("/").pop() || `image_${i}.jpg`;
-
-        formData.append("images", {
-          uri: manipResult.uri,
-          name: filename,
-          type: "image/jpeg",
-        } as any);
-      } catch (error) {
-        console.error(
-          `Image compression failed for URI: ${imageUris[i]}`,
-          error,
-        );
-        throw new Error("이미지 처리 중 오류가 발생했습니다.");
-      }
-    }
-  }
-
-  // 3. API 전송
   const response = await apiClient.post("/api/items", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
-    transformRequest: (data: any) => {
-      // Axios가 RN의 FormData 객체를 변형하지 못하도록 방어
+    transformRequest: (data) => {
+      // Axios가 React Native의 FormData 객체를 문자열로 파괴하는 것을 방지
       return data;
     },
   });
-
   return response.data;
 }
 
