@@ -185,6 +185,46 @@ const styles = StyleSheet.create({
   locationLoading: {
     marginLeft: theme.spacing.sm,
   },
+  // 카테고리 선택 UI
+  categoryContainer: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.border.light,
+  },
+  label: {
+    fontSize: theme.typography.size.md,
+    fontWeight: theme.typography.weight.bold,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.sm,
+  },
+  categoryButtons: {
+    flexDirection: "row",
+    gap: theme.spacing.sm,
+  },
+  categoryButton: {
+    flex: 1,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border.medium,
+    backgroundColor: theme.colors.background,
+    alignItems: "center",
+  },
+  categoryButtonActive: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  categoryButtonText: {
+    fontSize: theme.typography.size.md,
+    color: theme.colors.text.secondary,
+    fontWeight: theme.typography.weight.medium,
+  },
+  categoryButtonTextActive: {
+    color: theme.colors.background,
+    fontWeight: theme.typography.weight.bold,
+  },
 });
 
 /**
@@ -203,6 +243,7 @@ export default function CreateItemScreen() {
     title: "",
     desiredItem: "",
     content: "",
+    itemCategory: "TICKET" as ItemCategory, // 기본값 추가
   });
 
   const [selectedImages, setSelectedImages] = React.useState<string[]>([]);
@@ -220,7 +261,7 @@ export default function CreateItemScreen() {
     mutationFn: async (data: typeof formData) => {
       // 백엔드 CreateItemRequest 스펙에 맞게 페이로드 재구성
       const payload = {
-        itemCategory: "TICKET" as ItemCategory, // 기본값
+        itemCategory: data.itemCategory, // formData에서 category 사용
         title: data.title,
         description: data.content,
         location: currentLocation, // 동적 위치 정보 사용
@@ -450,6 +491,53 @@ export default function CreateItemScreen() {
 
         {/* 입력 폼 영역 */}
         <View style={styles.formContainer}>
+          {/* 카테고리 선택 */}
+          <View style={styles.categoryContainer}>
+            <Text style={styles.label}>카테고리</Text>
+            <View style={styles.categoryButtons}>
+              <TouchableOpacity
+                style={[
+                  styles.categoryButton,
+                  formData.itemCategory === "TICKET" &&
+                    styles.categoryButtonActive,
+                ]}
+                onPress={() =>
+                  setFormData({ ...formData, itemCategory: "TICKET" })
+                }
+              >
+                <Text
+                  style={[
+                    styles.categoryButtonText,
+                    formData.itemCategory === "TICKET" &&
+                      styles.categoryButtonTextActive,
+                  ]}
+                >
+                  티켓
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.categoryButton,
+                  formData.itemCategory === "GOODS" &&
+                    styles.categoryButtonActive,
+                ]}
+                onPress={() =>
+                  setFormData({ ...formData, itemCategory: "GOODS" })
+                }
+              >
+                <Text
+                  style={[
+                    styles.categoryButtonText,
+                    formData.itemCategory === "GOODS" &&
+                      styles.categoryButtonTextActive,
+                  ]}
+                >
+                  굿즈
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
           <TextInput
             placeholder="제목"
             style={styles.titleInput}

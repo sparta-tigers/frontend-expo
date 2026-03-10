@@ -14,6 +14,7 @@ import {
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import { theme } from "@/src/styles/theme";
 import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
+import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
 import {
@@ -30,6 +31,9 @@ import MapView, { Marker } from "react-native-maps";
 
 // 임시 타입 정의 (패키지 설치 후 제거)
 type BottomSheetRef = any;
+
+// Location 모듈 타입 단언
+const LocationModule = Location as any;
 
 // 정적 스타일 정의
 const styles = StyleSheet.create({
@@ -221,6 +225,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 5,
   },
+  locationButton: {
+    backgroundColor: theme.colors.info,
+    bottom: theme.spacing.xxl + 70, // 등록 버튼 위에 위치
+  },
+  fabContainer: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+  },
   fabText: {
     fontSize: 24,
     color: theme.colors.background,
@@ -239,6 +252,7 @@ export default function ExchangeScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const mapRef = useRef<MapView>(null);
 
   // 탭 상태 관리
   const [activeTab, setActiveTab] = useState<"items" | "requests">("items");
@@ -251,6 +265,12 @@ export default function ExchangeScreen() {
   // const [page, setPage] = useState(0);
   // const [isLast, setIsLast] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  // 현재 위치 상태
+  const [currentLocation, setCurrentLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
 
   // 받은 교환 요청 목록 가져오기
   const loadExchangeRequests = useCallback(
@@ -369,10 +389,113 @@ export default function ExchangeScreen() {
     router.push("/exchange/create" as any);
   };
 
+  // 현재 위치로 이동
+  const moveToCurrentLocation = async () => {
+    try {
+      // 위치 권한 요청
+      let { status } = await LocationModule.requestForegroundPermissionsAsync();
+
+      if (status !== "granted") {
+        Alert.alert(
+          "위치 권한 필요",
+          "현재 위치로 이동하려면 위치 권한이 필요합니다.\n설정에서 권한을 허용해주세요.",
+        );
+        return;
+      }
+
+      // 현재 위치 가져오기
+      const location = await LocationModule.getCurrentPositionAsync({
+        accuracy: LocationModule.Accuracy.Balanced,
+        timeout: 10000,
+        maximumAge: 60000, // 1분 이내의 캐시된 위치 사용
+      });
+
+      const { latitude, longitude } = location.coords;
+      const userLocation = { latitude, longitude };
+
+      setCurrentLocation(userLocation);
+
+      // 지도를 현재 위치로 이동 (1km 반경)
+      if (mapRef.current) {
+        mapRef.current.animateToRegion(
+          {
+            ...userLocation,
+            latitudeDelta: 0.009, // 약 1km 반경
+            longitudeDelta: 0.009, // 약 1km 반경
+          },
+          1000,
+        );
+      }
+
+      if (__DEV__) {
+        console.log("🔍 [현재 위치로 이동]", userLocation);
+      }
+    } catch (error) {
+      console.error("현재 위치로 이동 실패:", error);
+
+      // 에러 메시지에 따른 처리
+      if (
+        error instanceof Error &&
+        error.message.includes("location services are enabled")
+      ) {
+        Alert.alert(
+          "위치 서비스 비활성화",
+          "기기의 위치 서비스가 비활성화되어 있습니다.\n에뮬레이터 확장 제어에서 Location을 ON으로 설정해주세요.",
+        );
+      } else {
+        Alert.alert(
+          "위치 정보 오류",
+          "현재 위치를 가져올 수 없습니다.\n에뮬레이터 확장 제어에서 가상 위치를 설정해주세요.",
+        );
+      }
+    }
+  };
+
+  // 현재 위치 가져오기 (컴포넌트 마운트 시 자동 실행)
+  const getCurrentLocationOnMount = async () => {
+    try {
+      // 위치 권한 요청
+      let { status } = await LocationModule.requestForegroundPermissionsAsync();
+
+      if (status !== "granted") {
+        console.log("위치 권한이 거부됨");
+        return;
+      }
+
+      // 현재 위치 가져오기
+      const location = await LocationModule.getCurrentPositionAsync({
+        accuracy: LocationModule.Accuracy.Balanced,
+        timeout: 10000,
+        maximumAge: 60000,
+      });
+
+      const { latitude, longitude } = location.coords;
+      const userLocation = { latitude, longitude };
+
+      setCurrentLocation(userLocation);
+
+      // 지도를 현재 위치로 이동 (1km 반경)
+      if (mapRef.current) {
+        mapRef.current.animateToRegion(
+          {
+            ...userLocation,
+            latitudeDelta: 0.009, // 약 1km 반경
+            longitudeDelta: 0.009, // 약 1km 반경
+          },
+          1000,
+        );
+      }
+
+      if (__DEV__) {
+        console.log("🔍 [초기 위치 설정]", userLocation);
+      }
+    } catch (error) {
+      console.error("초기 위치 가져오기 실패:", error);
+    }
+  };
+
   // 새로고침 핸들러
   const handleRefresh = () => {
-    // setPage(0);
-    // setIsLast(false);
     setRefreshing(true);
     if (activeTab === "items") {
       fetchItems(loadItems(0, true));
@@ -545,6 +668,9 @@ export default function ExchangeScreen() {
     const loadData = async () => {
       if (!isMounted) return;
 
+      // 컴포넌트 마운트 시 현재 위치 가져오기
+      getCurrentLocationOnMount();
+
       if (activeTab === "items") {
         fetchItems(loadItems(0, true));
       } else {
@@ -564,14 +690,26 @@ export default function ExchangeScreen() {
     <SafeLayout style={styles.container}>
       {/* 1. 백그라운드 지도 뷰 */}
       <MapView
+        ref={mapRef}
         style={styles.map}
         initialRegion={{
           latitude: 37.5665, // 서울 디폴트 좌표
           longitude: 126.978,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
+          latitudeDelta: 0.009, // 약 1km 반경
+          longitudeDelta: 0.009, // 약 1km 반경
         }}
       >
+        {/* 현재 위치 마커 */}
+        {currentLocation && (
+          <Marker
+            coordinate={currentLocation}
+            title="내 위치"
+            description="현재 내 위치"
+            pinColor="blue"
+          />
+        )}
+
+        {/* 아이템 마커 */}
         {itemsState.data?.map((item: Item) => (
           <Marker
             key={item.id}
@@ -727,10 +865,21 @@ export default function ExchangeScreen() {
         </View>
       </BottomSheet>
 
-      {/* 3. 플로팅 버튼 (바텀시트 위에 떠있어야 함) */}
-      <TouchableOpacity style={styles.fabButton} onPress={navigateToCreate}>
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
+      {/* 3. 플로팅 버튼 그룹 (바텀시트 위에 떠있어야 함) */}
+      <View style={styles.fabContainer}>
+        {/* 현재 위치 버튼 */}
+        <TouchableOpacity
+          style={[styles.fabButton, styles.locationButton]}
+          onPress={moveToCurrentLocation}
+        >
+          <Text style={styles.fabText}>📍</Text>
+        </TouchableOpacity>
+
+        {/* 등록 버튼 */}
+        <TouchableOpacity style={styles.fabButton} onPress={navigateToCreate}>
+          <Text style={styles.fabText}>+</Text>
+        </TouchableOpacity>
+      </View>
     </SafeLayout>
   );
 }
