@@ -32,3 +32,9 @@
 - 사용자가 명시적으로 언급하지 않는 이상, 절대로 임의 커밋을 생성하지 않는다.
 - `project-context.md`와 `migration-plan.md` 문서는 AI가 주요 작업이 완료되면 주기적으로 자동 업데이트한다.
 - Type Check Rule: Run 'npx tsc --noEmit' ONLY after completing a full feature or modifying core types (not after minor UI tweaks), and fix any errors before reporting completion.
+
+## Front-end Styling Strict Rules (Violation is strictly prohibited)
+1. **NO INLINE STYLES**: `style={{ margin: 10, color: 'red' }}` is completely banned. All styles MUST be extracted to `StyleSheet.create`.
+2. **NO HARDCODED COLORS/SPACING**: Never use raw hex codes (e.g., `#FFFFFF`) or raw spacing numbers (e.g., `16`, `24`) inside `StyleSheet`. 
+3. **USE THEME ONLY**: You MUST import and use the global theme object (`import { theme } from '@/styles/theme'`).
+4. **EXCEPTION**: Only dynamic styles based on React state (e.g., `Animated.View`, `width: dynamicValue`) are allowed inline.
