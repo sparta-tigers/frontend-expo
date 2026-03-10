@@ -263,7 +263,9 @@ export default function CreateItemScreen() {
       let { status } = await LocationModule.requestForegroundPermissionsAsync();
 
       if (status !== "granted") {
+        console.log("위치 권한이 거부됨");
         Alert.alert("권한 필요", "위치 정보를 사용하려면 권한이 필요합니다.");
+        setLocationLoading(false);
         return;
       }
 
@@ -294,7 +296,30 @@ export default function CreateItemScreen() {
       }
     } catch (error) {
       console.error("위치 정보 가져오기 실패:", error);
-      Alert.alert("오류", "위치 정보를 가져올 수 없습니다.");
+
+      // 에러 메시지에 따라 처리
+      if (
+        error instanceof Error &&
+        error.message.includes("location services are enabled")
+      ) {
+        Alert.alert(
+          "위치 서비스 비활성화",
+          "기기의 위치 서비스를 활성화해주세요.\n설정 > 개인정보 보호 및 보안 > 위치 서비스",
+        );
+      } else {
+        Alert.alert(
+          "위치 정보 오류",
+          "위치 정보를 가져올 수 없습니다. 기본 위치(서울)를 사용합니다.",
+        );
+      }
+
+      // 기본 위치 유지 (서울 시청)
+      const defaultLocation: LocationDto = {
+        latitude: 37.5665,
+        longitude: 126.978,
+        address: "서울특별시",
+      };
+      setCurrentLocation(defaultLocation);
     } finally {
       setLocationLoading(false);
     }
