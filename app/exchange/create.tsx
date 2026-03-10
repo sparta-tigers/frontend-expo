@@ -261,7 +261,7 @@ export default function CreateItemScreen() {
     mutationFn: async (data: typeof formData) => {
       // 백엔드 CreateItemRequest 스펙에 맞게 페이로드 재구성
       const payload = {
-        itemCategory: data.itemCategory, // formData에서 category 사용
+        category: data.itemCategory, // 백엔드는 category 필드명 사용
         title: data.title,
         description: data.content,
         location: currentLocation, // 동적 위치 정보 사용
