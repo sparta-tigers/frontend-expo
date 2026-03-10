@@ -1,11 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import {
-  BORDER_RADIUS,
-  FONT_SIZE,
-  SHADOW,
-  SPACING,
-} from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import {
   exchangeGetReceivedAPI,
@@ -18,6 +12,7 @@ import {
   Item,
 } from "@/src/features/exchange/types";
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
+import { theme } from "@/src/styles/theme";
 import { useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
@@ -41,9 +36,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    height: 48,
+    height: theme.spacing.xxl,
     borderBottomWidth: 2,
-    borderColor: "#000000",
+    borderColor: theme.colors.primary,
   },
   tabContainer: {
     flexDirection: "row",
@@ -57,19 +52,19 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderColor: "#000000",
+    borderColor: theme.colors.primary,
   },
   inactiveTab: {
     borderBottomWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: theme.colors.border.medium,
   },
   tabText: {
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: theme.typography.size.md,
+    fontWeight: theme.typography.weight.bold,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
+    fontSize: theme.typography.size.xl,
+    fontWeight: theme.typography.weight.bold,
   },
   tabButton: {
     flex: 1,
@@ -79,19 +74,19 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     flex: 1,
-    paddingHorizontal: SPACING.SCREEN,
+    paddingHorizontal: theme.spacing.SCREEN,
   },
   itemContainer: {
     flexDirection: "row",
-    padding: 16,
+    padding: theme.spacing.lg,
     borderBottomWidth: 1,
-    borderColor: "#F3F4F6",
+    borderColor: theme.colors.border.light,
   },
   itemImage: {
     width: 90,
     height: 90,
-    borderRadius: 8,
-    backgroundColor: "#F9FAFB",
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.surface,
     marginRight: 14,
   },
   itemContent: {
@@ -99,14 +94,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   itemTitle: {
-    fontSize: 16,
-    color: "#111827",
-    fontWeight: "bold",
+    fontSize: theme.typography.size.md,
+    color: theme.colors.text.primary,
+    fontWeight: theme.typography.weight.bold,
   } as any,
   itemDescription: {
-    fontSize: 12,
-    color: "#6B7280",
-    marginTop: 4,
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.secondary,
+    marginTop: theme.spacing.xs,
   },
   itemMeta: {
     flexDirection: "row",
@@ -114,13 +109,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   itemCategory: {
-    fontSize: 12,
-    color: "#6B7280",
-    fontWeight: "600",
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.secondary,
+    fontWeight: theme.typography.weight.semibold,
   },
   itemDate: {
-    fontSize: 12,
-    color: "#6B7280",
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.secondary,
   },
   emptyContainer: {
     flex: 1,
@@ -129,9 +124,9 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   emptyText: {
-    fontSize: FONT_SIZE.BODY,
+    fontSize: theme.typography.size.BODY,
     textAlign: "center",
-    marginBottom: SPACING.COMPONENT,
+    marginBottom: theme.spacing.COMPONENT,
   },
   emptyButton: {
     minWidth: 120,
@@ -143,54 +138,54 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   loadingText: {
-    fontSize: FONT_SIZE.BODY,
-    marginTop: SPACING.SMALL,
+    fontSize: theme.typography.size.BODY,
+    marginTop: theme.spacing.SMALL,
   },
   // 교환 요청 관련 스타일
   requestContainer: {
-    borderRadius: BORDER_RADIUS.CARD,
-    padding: SPACING.COMPONENT,
-    marginBottom: SPACING.SMALL,
-    ...SHADOW.CARD,
+    borderRadius: theme.radius.CARD,
+    padding: theme.spacing.COMPONENT,
+    marginBottom: theme.spacing.SMALL,
+    ...theme.shadow.card,
   },
   requestContent: {
     flex: 1,
   },
   requestTitle: {
-    fontSize: FONT_SIZE.BODY,
-    fontWeight: "600",
-    marginBottom: SPACING.SMALL,
+    fontSize: theme.typography.size.BODY,
+    fontWeight: theme.typography.weight.semibold,
+    marginBottom: theme.spacing.SMALL,
   },
   requester: {
-    fontSize: FONT_SIZE.SMALL,
-    marginBottom: SPACING.SMALL,
+    fontSize: theme.typography.size.SMALL,
+    marginBottom: theme.spacing.SMALL,
   },
   requestDate: {
-    fontSize: FONT_SIZE.CAPTION,
-    marginBottom: SPACING.SMALL,
+    fontSize: theme.typography.size.CAPTION,
+    marginBottom: theme.spacing.SMALL,
   },
   statusBadge: {
-    paddingHorizontal: SPACING.SMALL,
-    paddingVertical: SPACING.SMALL,
-    borderRadius: 4,
+    paddingHorizontal: theme.spacing.SMALL,
+    paddingVertical: theme.spacing.SMALL,
+    borderRadius: theme.radius.sm,
     alignSelf: "flex-start",
-    marginBottom: SPACING.SMALL,
+    marginBottom: theme.spacing.SMALL,
   },
   statusText: {
-    fontSize: FONT_SIZE.SMALL,
-    fontWeight: "600",
+    fontSize: theme.typography.size.SMALL,
+    fontWeight: theme.typography.weight.semibold,
   },
   requestActions: {
     flexDirection: "row",
-    gap: SPACING.SMALL,
-    marginTop: SPACING.SMALL,
+    gap: theme.spacing.SMALL,
+    marginTop: theme.spacing.SMALL,
   },
   actionButton: {
     flex: 1,
   },
   actionButtonText: {
-    fontSize: FONT_SIZE.SMALL,
-    fontWeight: "600",
+    fontSize: theme.typography.size.SMALL,
+    fontWeight: theme.typography.weight.semibold,
   },
 });
 
@@ -474,7 +469,11 @@ export default function ExchangeScreen() {
             },
           ]}
         >
-          <Text style={{ color: colors.muted, fontSize: 12 }}>이미지 없음</Text>
+          <Text
+            style={{ color: colors.muted, fontSize: theme.typography.size.xs }}
+          >
+            이미지 없음
+          </Text>
         </View>
       )}
 
@@ -710,19 +709,25 @@ export default function ExchangeScreen() {
       <TouchableOpacity
         style={{
           position: "absolute",
-          bottom: 24,
-          right: 24,
+          bottom: theme.spacing.xxl,
+          right: theme.spacing.xxl,
           width: 56,
           height: 56,
           borderRadius: 28,
-          backgroundColor: "#000000",
+          backgroundColor: theme.colors.primary,
           justifyContent: "center",
           alignItems: "center",
           elevation: 5,
         }}
         onPress={navigateToCreate}
       >
-        <Text style={{ color: "#FFFFFF", fontSize: 24, fontWeight: "bold" }}>
+        <Text
+          style={{
+            color: theme.colors.background,
+            fontSize: theme.typography.size.xl,
+            fontWeight: theme.typography.weight.bold,
+          }}
+        >
           +
         </Text>
       </TouchableOpacity>

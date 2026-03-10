@@ -16,6 +16,7 @@ import {
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { createExchangeItem } from "@/src/features/exchange/api";
 import { ItemCategory, LocationDto } from "@/src/features/exchange/types";
+import { theme } from "@/src/styles/theme";
 
 // 정적 스타일 정의 (작업 지시서 기준)
 const styles = StyleSheet.create({
@@ -27,27 +28,27 @@ const styles = StyleSheet.create({
   },
   // 이미지 첨부 UI
   imageScrollContainer: {
-    padding: 16,
-    paddingBottom: 20,
+    padding: theme.spacing.lg,
+    paddingBottom: theme.spacing.xl,
     borderBottomWidth: 1,
-    borderColor: "#F3F4F6",
+    borderColor: theme.colors.border.light,
   },
   imageAddButton: {
     width: 72,
     height: 72,
-    borderRadius: 8,
+    borderRadius: theme.radius.md,
     borderWidth: 1,
-    borderColor: "#D1D5DB",
+    borderColor: theme.colors.border.dark,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
-    backgroundColor: "#F9FAFB",
+    marginRight: theme.spacing.sm,
+    backgroundColor: theme.colors.surface,
   },
   imageThumbnail: {
     width: 72,
     height: 72,
-    borderRadius: 8,
-    marginRight: 12,
+    borderRadius: theme.radius.md,
+    marginRight: theme.spacing.sm,
   },
   deleteButton: {
     position: "absolute",
@@ -56,60 +57,60 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: "#EF4444",
+    backgroundColor: theme.colors.error,
     justifyContent: "center",
     alignItems: "center",
   },
   deleteButtonText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "bold",
+    color: theme.colors.background,
+    fontSize: theme.typography.size.xs,
+    fontWeight: theme.typography.weight.bold,
   },
   // 입력 폼
   formContainer: {
-    paddingHorizontal: 16,
+    paddingHorizontal: theme.spacing.lg,
   },
   titleInput: {
     height: 60,
-    fontSize: 18,
+    fontSize: theme.typography.size.lg,
     borderBottomWidth: 1,
-    borderColor: "#F3F4F6",
-    marginBottom: 16,
+    borderColor: theme.colors.border.light,
+    marginBottom: theme.spacing.lg,
   },
   desiredItemInput: {
     height: 60,
-    fontSize: 16,
+    fontSize: theme.typography.size.md,
     borderBottomWidth: 1,
-    borderColor: "#F3F4F6",
-    marginBottom: 16,
+    borderColor: theme.colors.border.light,
+    marginBottom: theme.spacing.lg,
   },
   contentInput: {
     minHeight: 200,
-    fontSize: 16,
-    paddingTop: 16,
+    fontSize: theme.typography.size.md,
+    paddingTop: theme.spacing.lg,
     textAlignVertical: "top",
     borderBottomWidth: 1,
-    borderColor: "#F3F4F6",
+    borderColor: theme.colors.border.light,
   },
   // 헤더
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
     borderBottomWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: theme.colors.border.medium,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#111827",
+    fontSize: theme.typography.size.lg,
+    fontWeight: theme.typography.weight.bold,
+    color: theme.colors.text.primary,
   },
   submitButton: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#007AFF",
+    fontSize: theme.typography.size.md,
+    fontWeight: theme.typography.weight.bold,
+    color: theme.colors.primary,
   },
 });
 
@@ -213,7 +214,7 @@ export default function CreateItemScreen() {
   return (
     <SafeLayout
       edges={["top", "bottom"]}
-      style={{ flex: 1, backgroundColor: "#FFF" }}
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
     >
       {/* 헤더 */}
       <View style={styles.header}>
@@ -238,8 +239,21 @@ export default function CreateItemScreen() {
               style={styles.imageAddButton}
               onPress={handleImagePicker}
             >
-              <Text style={{ fontSize: 24, color: "#9CA3AF" }}>📷</Text>
-              <Text style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>
+              <Text
+                style={{
+                  fontSize: theme.typography.size.xl,
+                  color: theme.colors.text.tertiary,
+                }}
+              >
+                📷
+              </Text>
+              <Text
+                style={{
+                  fontSize: theme.typography.size.xs,
+                  color: theme.colors.text.tertiary,
+                  marginTop: theme.spacing.xs,
+                }}
+              >
                 {selectedImages.length}/5
               </Text>
             </TouchableOpacity>

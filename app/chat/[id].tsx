@@ -4,6 +4,7 @@ import { ChatMessage } from "@/src/features/chat/types";
 import { useWebSocket } from "@/src/hooks/useWebSocket";
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import { ApiResponse } from "@/src/shared/types/common";
+import { theme } from "@/src/styles/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -13,7 +14,7 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
 } from "react-native";
 
 /**
@@ -139,7 +140,11 @@ export default function ChatRoomScreen() {
           <Text
             style={[
               styles.messageText,
-              { color: item.isMyMessage ? "#FFFFFF" : "#111827" },
+              {
+                color: item.isMyMessage
+                  ? theme.colors.background
+                  : theme.colors.text.primary,
+              },
             ]}
           >
             {item.content}
@@ -147,7 +152,11 @@ export default function ChatRoomScreen() {
           <Text
             style={[
               styles.messageTime,
-              { color: item.isMyMessage ? "#FFFFFF80" : "#6B7280" },
+              {
+                color: item.isMyMessage
+                  ? theme.colors.background + "80"
+                  : theme.colors.text.secondary,
+              },
             ]}
           >
             {new Date(item.sentAt).toLocaleTimeString([], {
@@ -163,7 +172,7 @@ export default function ChatRoomScreen() {
   return (
     <SafeLayout
       edges={["top", "bottom"]}
-      style={{ flex: 1, backgroundColor: "#FFFFFF" }}
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
     >
       <ChatHeader nickname={"상대방 닉네임"} />
 
@@ -198,7 +207,12 @@ export default function ChatRoomScreen() {
                 paddingVertical: 40,
               }}
             >
-              <Text style={{ fontSize: 16, color: "#6B7280" }}>
+              <Text
+                style={{
+                  fontSize: theme.typography.size.md,
+                  color: theme.colors.text.secondary,
+                }}
+              >
                 {messagesState.status === "loading"
                   ? "메시지를 불러오는 중..."
                   : "메시지가 없습니다. 대화를 시작해보세요!"}
@@ -215,7 +229,7 @@ export default function ChatRoomScreen() {
           value={inputMessage}
           onChangeText={setInputMessage}
           placeholder="메시지 보내기"
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={theme.colors.text.tertiary}
           multiline={false}
           maxLength={500}
           editable={status === "CONNECTED"}
@@ -248,7 +262,14 @@ function ChatHeader({ nickname }: { nickname: string }) {
   return (
     <View style={styles.chatHeader}>
       <TouchableOpacity onPress={() => router.back()}>
-        <Text style={{ fontSize: 20, color: "#000000" }}>←</Text>
+        <Text
+          style={{
+            fontSize: theme.typography.size.xl,
+            color: theme.colors.primary,
+          }}
+        >
+          ←
+        </Text>
       </TouchableOpacity>
       <Text style={styles.headerTitle}>{nickname}</Text>
       <View style={{ width: 20 }} />
@@ -265,58 +286,58 @@ const styles = StyleSheet.create({
   chatHeader: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
+    padding: theme.spacing.lg,
     borderBottomWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: theme.colors.border.medium,
   },
   headerTitle: {
     flex: 1,
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#111827",
-    marginLeft: 12,
+    fontSize: theme.typography.size.lg,
+    fontWeight: theme.typography.weight.bold,
+    color: theme.colors.text.primary,
+    marginLeft: theme.spacing.sm,
   },
   // 아이템 요약 정보 (스크롤 시 고정)
   itemSummaryContainer: {
     flexDirection: "row",
-    padding: 12,
+    padding: theme.spacing.sm,
     borderBottomWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: theme.colors.border.medium,
     alignItems: "center",
   },
   itemThumbnail: {
     width: 48,
     height: 48,
-    borderRadius: 6,
+    borderRadius: theme.radius.sm,
   },
   itemInfo: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: theme.spacing.sm,
   },
   itemTitle: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#111827",
+    fontSize: theme.typography.size.sm,
+    fontWeight: theme.typography.weight.bold,
+    color: theme.colors.text.primary,
   },
   itemPrice: {
-    fontSize: 12,
-    color: "#6B7280",
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.secondary,
     marginTop: 2,
   },
   statusButton: {
     height: 32,
-    paddingHorizontal: 12,
+    paddingHorizontal: theme.spacing.sm,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#000000",
-    backgroundColor: "#FFFFFF",
+    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.background,
     justifyContent: "center",
     alignItems: "center",
   },
   statusButtonText: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#000000",
+    fontSize: theme.typography.size.xs,
+    fontWeight: theme.typography.weight.bold,
+    color: theme.colors.primary,
   },
   // 채팅 리스트
   chatList: {
@@ -335,70 +356,70 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   myMessageBubble: {
-    backgroundColor: "#000000",
-    color: "#FFFFFF",
+    backgroundColor: theme.colors.primary,
+    color: theme.colors.background,
     borderTopLeftRadius: 16,
     borderBottomLeftRadius: 16,
     borderTopRightRadius: 16,
     borderBottomRightRadius: 4, // 꼬리가 우측 하단
-    padding: 12,
+    padding: theme.spacing.sm,
   },
   otherMessageBubble: {
-    backgroundColor: "#F3F4F6",
-    color: "#111827",
+    backgroundColor: theme.colors.border.light,
+    color: theme.colors.text.primary,
     borderTopLeftRadius: 4, // 꼬리가 좌측 하단
     borderBottomLeftRadius: 16,
     borderTopRightRadius: 16,
     borderBottomRightRadius: 16,
-    padding: 12,
+    padding: theme.spacing.sm,
   },
   messageText: {
-    fontSize: 16,
+    fontSize: theme.typography.size.md,
     lineHeight: 20,
   },
   messageTime: {
     fontSize: 11,
-    color: "#6B7280",
-    marginTop: 4,
+    color: theme.colors.text.secondary,
+    marginTop: theme.spacing.xs,
   },
   // 시스템 메시지
   systemMessageContainer: {
     alignItems: "center",
-    marginVertical: 8,
+    marginVertical: theme.spacing.xs,
   },
   systemMessageBubble: {
-    backgroundColor: "#E5E7EB",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: theme.colors.border.medium,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
     borderRadius: 12,
   },
   systemMessageText: {
-    fontSize: 12,
-    color: "#6B7280",
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.secondary,
     textAlign: "center",
   },
   // 하단 입력 폼
   inputFormContainer: {
     flexDirection: "row",
-    padding: 12,
+    padding: theme.spacing.sm,
     borderTopWidth: 1,
-    borderColor: "#F3F4F6",
+    borderColor: theme.colors.border.light,
     alignItems: "center",
   },
   textInput: {
     flex: 1,
     height: 40,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: theme.colors.border.light,
     borderRadius: 20,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    marginRight: 12,
+    paddingHorizontal: theme.spacing.lg,
+    fontSize: theme.typography.size.md,
+    marginRight: theme.spacing.sm,
   },
   sendButton: {
-    padding: 8,
+    padding: theme.spacing.xs,
   },
   sendIcon: {
-    fontSize: 24,
-    color: "#000000",
+    fontSize: theme.typography.size.xl,
+    color: theme.colors.primary,
   },
 });

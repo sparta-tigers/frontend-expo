@@ -14,10 +14,10 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { FONT_SIZE, SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import { itemsGetDetailAPI } from "@/src/features/exchange/api";
 import { useAuth } from "@/src/hooks/useAuth";
+import { theme } from "@/src/styles/theme";
 
 // 정적 스타일 정의
 const styles = StyleSheet.create({
@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     width: "100%",
     aspectRatio: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: theme.colors.border.light,
   },
   image: {
     width: "100%",
@@ -43,72 +43,72 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   imagePlaceholderText: {
-    fontSize: FONT_SIZE.BODY,
-    color: "#999",
+    fontSize: theme.typography.size.BODY,
+    color: theme.colors.text.tertiary,
   },
   contentContainer: {
-    padding: 16,
+    padding: theme.spacing.lg,
     paddingBottom: 40, // 하단 고정 바에 가리지 않도록 여백 추가
   },
   title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#111827",
-    marginBottom: 12,
+    fontSize: theme.typography.size.xl,
+    fontWeight: theme.typography.weight.bold,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.sm,
   },
   description: {
-    fontSize: 16,
-    color: "#374151",
+    fontSize: theme.typography.size.md,
+    color: theme.colors.text.secondary,
     lineHeight: 24,
   },
   profileRow: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
+    padding: theme.spacing.lg,
     borderBottomWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: theme.colors.border.medium,
   },
   profileImage: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    marginRight: 12,
+    marginRight: theme.spacing.sm,
   },
   nickname: {
-    fontSize: 14,
-    fontWeight: "bold",
-    color: "#111827",
+    fontSize: theme.typography.size.sm,
+    fontWeight: theme.typography.weight.bold,
+    color: theme.colors.text.primary,
   },
   bottomBar: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.sm,
     borderTopWidth: 1,
-    borderColor: "#E5E7EB",
+    borderColor: theme.colors.border.medium,
   },
   desiredItemContainer: {
     flex: 1,
   },
   desiredItemLabel: {
-    fontSize: 12,
-    color: "#6B7280",
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.secondary,
   },
   desiredItemText: {
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: theme.typography.size.md,
+    fontWeight: theme.typography.weight.bold,
     marginTop: 2,
   },
   actionButton: {
-    backgroundColor: "#000000",
+    backgroundColor: theme.colors.primary,
     paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    paddingHorizontal: theme.spacing.xl,
+    borderRadius: theme.radius.md,
   },
   actionButtonText: {
-    color: "#FFFFFF",
-    fontWeight: "bold",
+    color: theme.colors.background,
+    fontWeight: theme.typography.weight.bold,
     fontSize: 15,
   },
   loadingContainer: {
@@ -120,12 +120,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: SPACING.SCREEN,
+    padding: theme.spacing.SCREEN,
   },
   errorText: {
-    fontSize: FONT_SIZE.BODY,
+    fontSize: theme.typography.size.BODY,
     textAlign: "center",
-    marginBottom: SPACING.COMPONENT,
+    marginBottom: theme.spacing.COMPONENT,
   },
 });
 
@@ -202,10 +202,10 @@ export default function ItemDetailScreen() {
           <View
             style={{
               position: "absolute",
-              bottom: SPACING.SMALL,
-              right: SPACING.SMALL,
+              bottom: theme.spacing.SMALL,
+              right: theme.spacing.SMALL,
               flexDirection: "row",
-              gap: SPACING.TINY,
+              gap: theme.spacing.TINY,
             }}
           >
             {item.data.images?.map((_: string, index: number) => (
@@ -284,7 +284,9 @@ export default function ItemDetailScreen() {
       >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[{ color: colors.text, marginTop: SPACING.SMALL }]}>
+          <Text
+            style={[{ color: colors.text, marginTop: theme.spacing.SMALL }]}
+          >
             아이템 정보를 불러오는 중...
           </Text>
         </View>
