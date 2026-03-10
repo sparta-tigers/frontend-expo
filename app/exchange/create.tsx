@@ -3,12 +3,12 @@ import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import React from "react";
 import {
-  Alert,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Image,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -18,9 +18,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
-import { itemsCreateAPI } from "@/src/features/exchange/api";
+import { createExchangeItem } from "@/src/features/exchange/api";
 import { ItemCategory, LocationDto } from "@/src/features/exchange/types";
-import { useAuth } from "@/src/hooks/useAuth";
 
 // Zod 스키마 강제 - 작업 지시서 요구사항
 const createItemSchema = z.object({
@@ -148,7 +147,6 @@ const styles = StyleSheet.create({
 export default function CreateItemScreen() {
   const queryClient = useQueryClient();
   const { colors } = useTheme();
-  const { user } = useAuth();
 
   // react-hook-form 대신 useState로 간단 구현 (제어 컴포넌트 원리 적용)
   const [formData, setFormData] = React.useState<CreateItemFormData>({
@@ -159,12 +157,11 @@ export default function CreateItemScreen() {
 
   const [selectedImages, setSelectedImages] = React.useState<string[]>([]);
   const [errors, setErrors] = React.useState<Partial<CreateItemFormData>>({});
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   // React Query Mutation으로 제출 처리
-  const createItemMutation = useMutation({
+  const { mutate, isPending } = useMutation({
     mutationFn: async (data: CreateItemFormData) => {
-      // 백엔드 결함 우회: 파일 데이터 배제, JSON으로만 전송
+      // 백엔드 CreateItemRequest 스펙에 맞게 페이로드 재구성
       const payload = {
         itemCategory:
           data.categoryId === 1
@@ -177,11 +174,10 @@ export default function CreateItemScreen() {
           longitude: 126.978,
           address: "서울시",
         } as LocationDto,
-        images: [], // 껍데기 처리 (핵심)
         desiredItem: data.desiredItem || undefined,
       };
 
-      return itemsCreateAPI(payload as any);
+      return createExchangeItem(payload as any, selectedImages);
     },
     onSuccess: () => {
       Alert.alert("성공", "아이템이 등록되었습니다.");
@@ -189,15 +185,22 @@ export default function CreateItemScreen() {
       queryClient.invalidateQueries({ queryKey: ["items"] });
       router.replace("/(tabs)/exchange");
     },
-    onError: () => {
-      Alert.alert("오류", "아이템 등록에 실패했습니다.");
-      console.error("아이템 생성 실패");
-      setIsSubmitting(false);
-    },
-    onSettled: () => {
-      setIsSubmitting(false);
+    onError: (error) => {
+      Alert.alert("업로드 실패", "게시글 등록 중 문제가 발생했습니다.");
+      console.error(error);
     },
   });
+
+  const onSubmit = (data: CreateItemFormData) => {
+    // Phase 1의 Mocking(images: []) 로직 제거. 실제 State 값과 분리하여 전송.
+    mutate(data);
+  };
+
+  const handleSubmit = () => {
+    if (validateForm()) {
+      onSubmit(formData);
+    }
+  };
 
   // Zod 유효성 검증
   const validateForm = (): boolean => {
@@ -259,22 +262,6 @@ export default function CreateItemScreen() {
     { id: 1, name: "티켓", value: "TICKET" as ItemCategory },
     { id: 2, name: "굿즈", value: "GOODS" as ItemCategory },
   ];
-
-  // 폼 제출
-  const handleSubmit = () => {
-    if (!validateForm()) {
-      Alert.alert("오류", "입력값을 확인해주세요.");
-      return;
-    }
-
-    if (!user?.accessToken) {
-      Alert.alert("오류", "로그인이 필요합니다.");
-      return;
-    }
-
-    setIsSubmitting(true);
-    createItemMutation.mutate(formData);
-  };
 
   return (
     <SafeAreaView
@@ -440,12 +427,12 @@ export default function CreateItemScreen() {
           <Button
             style={[
               { backgroundColor: colors.primary },
-              isSubmitting && { opacity: 0.6 },
+              isPending && { opacity: 0.6 },
             ]}
             onPress={handleSubmit}
-            disabled={isSubmitting}
+            disabled={isPending}
           >
-            {isSubmitting ? "등록 중..." : "아이템 등록"}
+            {isPending ? "업로드 중..." : "등록하기"}
           </Button>
         </View>
       </KeyboardAwareScrollView>

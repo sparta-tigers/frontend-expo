@@ -1,6 +1,6 @@
 import { apiClient } from "@/src/core/client";
 import type { ApiResponse } from "@/src/shared/types/common";
-import axios from "axios";
+import * as ImageManipulator from "expo-image-manipulator";
 import {
   CreateExchangeDto,
   CreateItemRequest,
@@ -11,11 +11,6 @@ import {
   UpdateItemRequest,
   UserLocation,
 } from "./types";
-
-/**
- * 아이템 관련 API 함수 모음
- * 아이템 등록, 조회, 검색 등 아이템 관리 기능
- */
 
 /**
  * 아이템 목록 조회 API
@@ -55,43 +50,64 @@ export async function itemsGetDetailAPI(
 }
 
 /**
- * 아이템 생성 API
- * 새로운 아이템 등록
+ * 아이템 생성 API (Multipart)
+ * 새로운 아이템 등록 (이미지 업로드 포함)
  *
- * @param request - 아이템 생성 요청 데이터
+ * @param requestData - 아이템 생성 요청 데이터
+ * @param imageUris - 선택된 이미지 URI 배열
  * @returns 생성된 아이템 정보
  */
-export async function itemsCreateAPI(
-  request: CreateItemRequest,
+export async function createExchangeItem(
+  requestData: CreateItemRequest,
+  imageUris: string[],
 ): Promise<ApiResponse<Item>> {
-  try {
-    // 백엔드 CreateItemWithLocationRequestDto 스펙에 맞게 페이로드 재구성
-    const payload = {
-      itemDto: {
-        category: request.itemCategory, // ItemCategory enum (GOODS, TICKET)
-        title: request.title,
-        seatInfo: null, // 선택적 필드, 현재는 null로 전송
-        description: request.description,
-      },
-      locationDto: {
-        latitude: Number(request.location.latitude), // double 타입 명시적 변환
-        longitude: Number(request.location.longitude), // double 타입 명시적 변환
-      },
-    };
+  const formData = new FormData();
 
-    const response = await apiClient.post("/api/items", payload);
-    return response.data;
-  } catch (error: any) {
-    if (axios.isAxiosError(error)) {
-      console.error("🚨 [아이템 등록 400 에러 RAW DATA] 🚨");
-      console.error("- Status:", error.response?.status);
-      // 백엔드가 어떤 필드에서 유효성 검사가 실패했는지 알려주는 errors 배열 출력
-      console.error("- Data:", JSON.stringify(error.response?.data, null, 2));
-    } else {
-      console.error("🚨 [알 수 없는 에러]:", error);
+  // 1. JSON DTO 주입 (Spring Boot @RequestPart("itemRequest") 호환)
+  formData.append("itemRequest", {
+    string: JSON.stringify(requestData),
+    type: "application/json",
+  } as any);
+
+  // 2. 이미지 압축 및 주입 (Spring Boot @RequestPart("images") 호환)
+  if (imageUris && imageUris.length > 0) {
+    for (let i = 0; i < imageUris.length; i++) {
+      try {
+        const manipResult = await ImageManipulator.manipulateAsync(
+          imageUris[i],
+          [{ resize: { width: 1080 } }],
+          { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG },
+        );
+
+        const filename = manipResult.uri.split("/").pop() || `image_${i}.jpg`;
+
+        formData.append("images", {
+          uri: manipResult.uri,
+          name: filename,
+          type: "image/jpeg",
+        } as any);
+      } catch (error) {
+        console.error(
+          `Image compression failed for URI: ${imageUris[i]}`,
+          error,
+        );
+        throw new Error("이미지 처리 중 오류가 발생했습니다.");
+      }
     }
-    throw error;
   }
+
+  // 3. API 전송
+  const response = await apiClient.post("/api/items", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+    transformRequest: (data: any) => {
+      // Axios가 RN의 FormData 객체를 변형하지 못하도록 방어
+      return data;
+    },
+  });
+
+  return response.data;
 }
 
 /**

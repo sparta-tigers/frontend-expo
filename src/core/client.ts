@@ -316,9 +316,10 @@ export const apiClient = {
   post: async <T = any>(
     url: string,
     data?: Record<string, any>,
+    config?: AxiosRequestConfig,
   ): Promise<T> => {
     try {
-      const response = await axiosInstance.post(url, data);
+      const response = await axiosInstance.post(url, data, config);
       return response.data;
     } catch (error) {
       console.error(`POST ${url} 요청 실패:`, error);
