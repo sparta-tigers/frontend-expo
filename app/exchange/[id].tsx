@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -22,11 +22,6 @@ import {
   itemsGetDetailAPI,
   itemsUpdateStatusAPI,
 } from "@/src/features/exchange/api";
-import {
-  ExchangeRequestStatus,
-  type ReceiveRequestResponseDto,
-} from "@/src/features/exchange/types";
-import { apiClient } from "@/src/core/client";
 import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
 
@@ -136,10 +131,6 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.weight.medium,
     textAlign: "center",
   },
-  statusHelperText: {
-    marginTop: theme.spacing.TINY,
-    fontSize: theme.typography.size.xs,
-  },
   buttonRow: {
     flexDirection: "row",
     gap: 8,
@@ -242,31 +233,6 @@ export default function ItemDetailScreen() {
   // 작성자 여부 확인 (권한 기반 UI 분리용)
   const isOwner = item?.data?.user?.id === user?.userId;
 
-  const { data: itemExchanges } = useQuery({
-    queryKey: ["itemExchanges", itemIdNumber],
-    queryFn: async () => {
-      const response = await apiClient.get("/api/exchanges/my", {
-        role: "receiver",
-        status: undefined,
-      });
-      const content = response.data?.content;
-      return Array.isArray(content)
-        ? (content as ReceiveRequestResponseDto[])
-        : [];
-    },
-    enabled: isOwner && !!itemIdNumber && !!user?.userId,
-  });
-
-  const hasActiveExchange = useMemo(() => {
-    if (!itemExchanges) return false;
-    return itemExchanges.some(
-      (exchange) =>
-        exchange.itemId === itemIdNumber &&
-        (exchange.status === ExchangeRequestStatus.PENDING ||
-          exchange.status === ExchangeRequestStatus.ACCEPTED),
-    );
-  }, [itemExchanges, itemIdNumber]);
-
   // 이미지 캐러셀 렌더링
   const renderImageCarousel = useCallback(() => {
     if (!item?.data?.images || item.data.images.length === 0) {
@@ -359,7 +325,7 @@ export default function ItemDetailScreen() {
     setIsExchangeSheetOpen(true);
   }, [user]);
 
-  // 상태 변경 핸들러 (작성자 전용) - TODO: 구현 필요
+  // 상태 변경 핸들러 (작성자 전용) - 기존 구현 제거됨
   // const handleStatusChange = useCallback(
   //   (status: string) => {
   //     Alert.alert("상태 변경", `${status} 상태로 변경하시겠습니까?`, [
@@ -367,7 +333,7 @@ export default function ItemDetailScreen() {
   //       {
   //         text: "확인",
   //         onPress: () => {
-  //           // TODO: 상태 변경 API 호출
+  //           // 상태 변경 API 호출 (이전 구현 주석 처리됨)
   //           Alert.alert("성공", "상태가 변경되었습니다.");
   //           refetch();
   //         },
@@ -405,14 +371,6 @@ export default function ItemDetailScreen() {
     (newStatus: "COMPLETED" | "FAILED") => {
       if (!item?.data) return;
 
-      if (hasActiveExchange) {
-        Alert.alert(
-          "상태 변경 불가",
-          "진행 중인 교환/채팅이 있어 상태를 변경할 수 없습니다.\n교환 관리 또는 채팅 화면에서 완료/취소를 진행해주세요.",
-        );
-        return;
-      }
-
       Alert.alert(
         "상태 변경",
         newStatus === "COMPLETED"
@@ -424,7 +382,7 @@ export default function ItemDetailScreen() {
         ],
       );
     },
-    [hasActiveExchange, item?.data, updateItemStatus],
+    [item?.data, updateItemStatus],
   );
 
   // 삭제 Mutation
@@ -588,7 +546,6 @@ export default function ItemDetailScreen() {
                   style={styles.statusActionButton}
                   disabled={
                     item.data.status !== "REGISTERED" ||
-                    hasActiveExchange ||
                     isUpdatingStatus
                   }
                   onPress={() => handleStatusChange("COMPLETED")}
@@ -607,7 +564,6 @@ export default function ItemDetailScreen() {
                   style={styles.statusActionButton}
                   disabled={
                     item.data.status !== "REGISTERED" ||
-                    hasActiveExchange ||
                     isUpdatingStatus
                   }
                   onPress={() => handleStatusChange("FAILED")}
@@ -622,17 +578,6 @@ export default function ItemDetailScreen() {
                   </Text>
                 </Button>
               </View>
-
-              {hasActiveExchange && (
-                <Text
-                  style={[
-                    styles.statusHelperText,
-                    { color: colors.muted },
-                  ]}
-                >
-                  진행 중인 교환/채팅이 있어 여기서는 상태를 변경할 수 없습니다.
-                </Text>
-              )}
             </View>
 
             <TouchableOpacity style={styles.errorButton} onPress={handleDelete}>

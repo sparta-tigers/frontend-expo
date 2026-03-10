@@ -58,10 +58,9 @@ function RootLayoutInner() {
     }),
   });
 
-  // 토큰 발급 확인
+  // 토큰 발급 확인 (실제 전송 로직은 usePushNotifications 훅에서 처리)
   if (expoPushToken) {
     console.log("Expo Push Token 발급 완료:", expoPushToken);
-    // TODO: 백엔드로 토큰 전송 API 연동
   }
 
   // 🚨 앙드레 카파시: 네비게이터 준비 상태 관리

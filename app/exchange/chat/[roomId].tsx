@@ -78,7 +78,7 @@ export default function ChatRoomScreen() {
 
   const roomIdNumber = Number(roomId);
 
-  // 상태 관리 (TODO: 메시지 입력 기능 구현 시 사용)
+  // 상태 관리: 메시지 입력 기능 확장 시 활용 예정
 
   // 🚨 앙드레 카파시: 아이템 정보 조회 (도메인 상태 결합)
   const { data: exchangeItem, isLoading: itemLoading } = useQuery({

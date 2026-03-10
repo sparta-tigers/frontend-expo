@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Platform } from "react-native";
 
 import { apiClient } from "@/src/core/client";
+import { useAuth } from "@/src/hooks/useAuth";
 
 // 타입 정의
 interface NotificationType {
@@ -41,6 +42,7 @@ export function usePushNotifications() {
     null,
   );
   const router = useRouter();
+  const { isLoggedIn } = useAuth();
 
   useEffect(() => {
     // 안드로이드 Expo Go 환경에서는 푸시 알림 기능 스킵
@@ -93,22 +95,12 @@ export function usePushNotifications() {
       }
     };
 
-    // 비동기 함수 실행 및 토큰 설정
-    registerForPushNotificationsAsync().then(async (token) => {
+    // 비동기 함수 실행 및 토큰 설정 (로컬 토큰 발급만 담당)
+    registerForPushNotificationsAsync().then((token) => {
       if (!token) return;
 
       setExpoPushToken(token);
       console.log("Expo Push Token:", token);
-
-      try {
-        const response = await apiClient.post("/api/device-tokens", {
-          token,
-          deviceType: Device.osName ?? "UNKNOWN",
-        });
-        console.log("디바이스 토큰 등록 결과:", response);
-      } catch (error) {
-        console.error("디바이스 토큰 등록 실패:", error);
-      }
     });
 
     // 채널 설정 (Android)
@@ -166,6 +158,25 @@ export function usePushNotifications() {
       }
     };
   }, [router]);
+
+  // 로그인 상태 + Expo 토큰이 모두 준비된 이후에만 백엔드에 디바이스 토큰 등록
+  useEffect(() => {
+    const registerDeviceTokenToBackend = async () => {
+      if (!expoPushToken || !isLoggedIn) return;
+
+      try {
+        const response = await apiClient.post("/api/device-tokens", {
+          token: expoPushToken,
+          deviceType: Device.osName ?? "UNKNOWN",
+        });
+        console.log("디바이스 토큰 등록 결과:", response);
+      } catch (error) {
+        console.error("디바이스 토큰 등록 실패:", error);
+      }
+    };
+
+    void registerDeviceTokenToBackend();
+  }, [expoPushToken, isLoggedIn]);
 
   return {
     expoPushToken,

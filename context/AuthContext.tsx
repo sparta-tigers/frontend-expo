@@ -221,7 +221,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       }
 
       if (response.resultType === "SUCCESS" && response.data) {
-        const tokenData = response.data;
+        const tokenData = response.data.token;
 
         if (!tokenData.accessToken || !tokenData.refreshToken) {
           console.error(

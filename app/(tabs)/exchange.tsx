@@ -318,9 +318,9 @@ export default function ExchangeScreen() {
           // 다음 페이지 정보는 현재 미사용 (BottomSheetFlatList에서 onEndReached 제거)
           // const { last } = response.data;
 
-          // 교환 완료된 아이템 필터링
+          // 교환 완료된 아이템 필터링 (COMPLETED/FAILED/DELETED 제외 가능)
           const filteredContent = content.filter(
-            (item: Item) => item.status !== "EXCHANGE_COMPLETED",
+            (item: Item) => item.status !== "COMPLETED",
           );
 
           if (pageNum === 0 || isRefresh) {
