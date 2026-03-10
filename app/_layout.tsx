@@ -4,17 +4,17 @@ import { useTheme } from "@/hooks/useTheme";
 import { ErrorBoundaryFallback } from "@/src/components/shared/ErrorBoundaryFallback";
 import { OfflineBanner } from "@/src/components/shared/OfflineBanner";
 import { usePushNotifications } from "@/src/hooks/usePushNotifications";
+import { FONT_SIZE, SPACING } from "@/src/styles/unified-design";
 import { useNetInfo } from "@react-native-community/netinfo";
 import * as Notifications from "expo-notifications";
 import { router, Slot, useSegments } from "expo-router";
-import "fast-text-encoding";
 import { useEffect, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import { theme } from "@/src/styles/theme";
-import { FONT_SIZE, SPACING } from "@/src/styles/unified-design";
 
 /**
  * 루트 레이아웃
@@ -129,37 +129,39 @@ function RootLayoutInner() {
   // 🚨 앙드레 카파시: Error Boundary로 전체 앱 감싸기
   return (
     <ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
-      <SafeAreaProvider>
-        <SafeAreaView
-          style={[styles.safeArea, { backgroundColor: colors.background }]}
-          edges={["top", "left", "right"]}
-        >
-          {/* 🚨 앙드레 카파시: 오프라인 배너 */}
-          {!netInfo.isConnected && <OfflineBanner />}
-
-          {/* 1. 고정 헤더 (SafeArea 보호) */}
-          <View
-            style={[
-              styles.headerContainer,
-              { borderBottomColor: colors.border },
-            ]}
+      <GestureHandlerRootView style={styles.gestureContainer}>
+        <SafeAreaProvider>
+          <SafeAreaView
+            style={[styles.safeArea, { backgroundColor: colors.background }]}
+            edges={["top", "left", "right"]}
           >
-            <Text style={[styles.headerTitle, { color: colors.primary }]}>
-              YAGUNIV
-            </Text>
-          </View>
+            {/* 🚨 앙드레 카파시: 오프라인 배너 */}
+            {!netInfo.isConnected && <OfflineBanner />}
 
-          {/* 2. 하위 라우팅 화면 */}
-          <View
-            style={[
-              styles.contentContainer,
-              { backgroundColor: colors.background },
-            ]}
-          >
-            <Slot />
-          </View>
-        </SafeAreaView>
-      </SafeAreaProvider>
+            {/* 1. 고정 헤더 (SafeArea 보호) */}
+            <View
+              style={[
+                styles.headerContainer,
+                { borderBottomColor: colors.border },
+              ]}
+            >
+              <Text style={[styles.headerTitle, { color: colors.primary }]}>
+                YAGUNIV
+              </Text>
+            </View>
+
+            {/* 2. 하위 라우팅 화면 */}
+            <View
+              style={[
+                styles.contentContainer,
+                { backgroundColor: colors.background },
+              ]}
+            >
+              <Slot />
+            </View>
+          </SafeAreaView>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
     </ErrorBoundary>
   );
 }
@@ -169,6 +171,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  gestureContainer: {
+    flex: 1,
   },
   safeArea: {
     flex: 1,
