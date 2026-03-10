@@ -12,10 +12,12 @@ import {
 } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
-import { useCallback, useEffect } from "react";
+import { SPACING } from "@/src/styles/unified-design";
+import { useCallback, useEffect, useState } from "react";
 import {
     Alert,
     FlatList,
+    RefreshControl,
     StyleSheet,
     Text,
     TouchableOpacity,
@@ -29,6 +31,8 @@ import {
 export default function ExchangeRequestsScreen() {
   const { user } = useAuth();
   const { colors } = useTheme();
+
+  const [refreshing, setRefreshing] = useState(false);
 
   // useAsyncState 훅으로 교환 요청 목록 상태 관리
   const [requestsState, loadRequests] = useAsyncState<ExchangeRequest[]>([]);
@@ -55,6 +59,11 @@ export default function ExchangeRequestsScreen() {
   useEffect(() => {
     loadRequests(fetchExchangeRequests());
   }, [loadRequests, fetchExchangeRequests]);
+
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadRequests(fetchExchangeRequests()).finally(() => setRefreshing(false));
+  }, [fetchExchangeRequests, loadRequests]);
 
   // 교환 요청 수락
   const handleAcceptRequest = useCallback(async (requestId: number) => {
@@ -263,6 +272,13 @@ export default function ExchangeRequestsScreen() {
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.primary}
+            />
+          }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={[styles.emptyText, { color: colors.muted }]}>
@@ -279,18 +295,18 @@ export default function ExchangeRequestsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    padding: SPACING.SCREEN,
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: SPACING.SECTION,
   },
   listContainer: {
-    gap: 16,
+    gap: SPACING.COMPONENT,
   },
   requestItem: {
-    padding: 16,
+    padding: SPACING.COMPONENT,
     borderRadius: 12,
     borderWidth: 1,
   },
@@ -298,7 +314,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: SPACING.SMALL,
   },
   itemTitle: {
     fontSize: 18,
@@ -309,28 +325,28 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   requestInfo: {
-    marginBottom: 12,
+    marginBottom: SPACING.COMPONENT,
   },
   requesterText: {
     fontSize: 16,
-    marginBottom: 4,
+    marginBottom: SPACING.TINY,
   },
   dateText: {
     fontSize: 14,
   },
   actionButtons: {
     flexDirection: "row",
-    gap: 12,
+    gap: SPACING.COMPONENT,
   },
   acceptButton: {
     flex: 1,
-    padding: 12,
+    padding: SPACING.COMPONENT,
     borderRadius: 8,
     alignItems: "center",
   },
   rejectButton: {
     flex: 1,
-    padding: 12,
+    padding: SPACING.COMPONENT,
     borderRadius: 8,
     alignItems: "center",
   },
@@ -350,18 +366,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: SPACING.SCREEN,
   },
   errorText: {
     fontSize: 16,
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: SPACING.SECTION,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 40,
+    paddingVertical: SPACING.SECTION * 2,
   },
   emptyText: {
     fontSize: 16,

@@ -1,22 +1,24 @@
 import {
-  InfiniteData,
-  useInfiniteQuery,
-  useMutation,
-  useQuery,
-  useQueryClient,
+    InfiniteData,
+    useInfiniteQuery,
+    useMutation,
+    useQuery,
+    useQueryClient,
 } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  AppState,
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    Alert,
+    AppState,
+    FlatList,
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 import { Button } from "@/components/ui/button";
@@ -70,6 +72,8 @@ export default function ChatRoomScreen() {
   const { user } = useAuth();
   const { colors } = useTheme();
 
+  const [messageText, setMessageText] = useState("");
+
   const roomIdNumber = Number(roomId);
 
   // 상태 관리 (TODO: 메시지 입력 기능 구현 시 사용)
@@ -99,6 +103,13 @@ export default function ChatRoomScreen() {
     },
     enabled: !!roomId,
   });
+
+  const isInputDisabled = useMemo(() => {
+    return (
+      exchangeItem?.status === "EXCHANGE_COMPLETED" ||
+      exchangeItem?.status === "EXCHANGE_FAILED"
+    );
+  }, [exchangeItem?.status]);
 
   // 🚨 앙드레 카파시: 과거 메시지 조회
   const {
@@ -141,7 +152,11 @@ export default function ChatRoomScreen() {
   }, [messagesData]);
 
   // 🚨 앙드레 카파시: STOMP WebSocket 연결
-  const { client, connect, status: wsStatus } = useWebSocket();
+  const {
+    client,
+    connect,
+    status: wsStatus,
+  } = useWebSocket(undefined, "directroom");
   const isConnected = wsStatus === "CONNECTED";
 
   const handleMessageReceived = useCallback(
@@ -161,6 +176,58 @@ export default function ChatRoomScreen() {
     },
     [queryClient, roomIdNumber],
   );
+
+  const handleSendMessage = useCallback(() => {
+    if (!client || !isConnected) {
+      Alert.alert(
+        "연결 오류",
+        "서버와 연결이 불안정합니다. 잠시 후 다시 시도해주세요.",
+      );
+      return;
+    }
+
+    if (!user?.userId) {
+      Alert.alert("로그인 필요", "메시지를 전송하려면 로그인이 필요합니다.");
+      return;
+    }
+
+    if (!messageText.trim()) return;
+
+    const now = new Date().toISOString();
+    const optimistic: ChatMessage = {
+      id: Date.now(),
+      roomId: roomIdNumber,
+      senderId: user.userId,
+      senderName: user.nickname ?? "",
+      content: messageText.trim(),
+      timestamp: now,
+      isMine: true,
+      type: "CHAT",
+    };
+
+    handleMessageReceived(optimistic);
+    setMessageText("");
+
+    try {
+      client.publish({
+        destination: "/client/directRoom/send",
+        body: JSON.stringify({
+          roomId: roomIdNumber,
+          message: optimistic.content,
+        }),
+      });
+    } catch (error) {
+      console.error("[ChatRoom] send message error:", error);
+      Alert.alert("전송 실패", "메시지 전송에 실패했습니다.");
+    }
+  }, [
+    client,
+    handleMessageReceived,
+    isConnected,
+    messageText,
+    roomIdNumber,
+    user,
+  ]);
 
   useEffect(() => {
     if (!client || !isConnected || !Number.isFinite(roomIdNumber)) return;
@@ -440,6 +507,43 @@ export default function ChatRoomScreen() {
           ) : null
         }
       />
+
+      <View style={[styles.inputBar, { borderTopColor: colors.border }]}>
+        <TextInput
+          value={messageText}
+          onChangeText={setMessageText}
+          placeholder={
+            isInputDisabled ? "종료된 교환입니다" : "메시지를 입력하세요"
+          }
+          placeholderTextColor={colors.muted}
+          editable={!isInputDisabled}
+          style={[
+            styles.textInput,
+            {
+              backgroundColor: colors.surface,
+              color: colors.text,
+              borderColor: colors.border,
+            },
+          ]}
+        />
+        <TouchableOpacity
+          onPress={handleSendMessage}
+          disabled={isInputDisabled || !messageText.trim()}
+          style={[
+            styles.sendButton,
+            {
+              backgroundColor:
+                isInputDisabled || !messageText.trim()
+                  ? colors.muted
+                  : colors.primary,
+            },
+          ]}
+        >
+          <Text style={[styles.sendButtonText, { color: colors.background }]}>
+            전송
+          </Text>
+        </TouchableOpacity>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -529,5 +633,30 @@ const styles = StyleSheet.create({
   paginationLoading: {
     paddingVertical: SPACING.SMALL,
     alignItems: "center",
+  },
+  inputBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: SPACING.COMPONENT,
+    paddingVertical: SPACING.SMALL,
+    borderTopWidth: 1,
+  },
+  textInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: BORDER_RADIUS.BUTTON,
+    paddingHorizontal: SPACING.COMPONENT,
+    paddingVertical: SPACING.SMALL,
+    fontSize: FONT_SIZE.BODY,
+  },
+  sendButton: {
+    marginLeft: SPACING.SMALL,
+    paddingHorizontal: SPACING.COMPONENT,
+    paddingVertical: SPACING.SMALL,
+    borderRadius: BORDER_RADIUS.BUTTON,
+  },
+  sendButtonText: {
+    fontSize: FONT_SIZE.BODY,
+    fontWeight: "600",
   },
 });

@@ -12,6 +12,10 @@ import {
   UserLocation,
 } from "./types";
 
+type ExchangeRoomResponseDto = {
+  roomId: number;
+};
+
 /**
  * 아이템 목록 조회 API
  * 모든 아이템 목록을 페이징 처리하여 반환
@@ -197,7 +201,7 @@ export async function itemsUpdateLocationAPI(
  */
 export async function exchangeCreateAPI(
   request: CreateExchangeDto,
-): Promise<ApiResponse<void>> {
+): Promise<ApiResponse<ExchangeRoomResponseDto>> {
   return apiClient.post("/api/exchanges", request);
 }
 
@@ -227,7 +231,7 @@ export async function exchangeGetReceivedAPI(
 export async function exchangeUpdateStatusAPI(
   exchangeRequestId: number,
   request: UpdateExchangeStatusDto,
-): Promise<ApiResponse<void>> {
+): Promise<ApiResponse<ExchangeRoomResponseDto>> {
   return apiClient.patch(`/api/exchanges/${exchangeRequestId}`, request);
 }
 

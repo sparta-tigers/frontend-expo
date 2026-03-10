@@ -1,6 +1,14 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import {
+    FlatList,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 import { SceneMap, TabView } from "react-native-tab-view";
 
 import { Button } from "@/components/ui/button";
@@ -21,6 +29,9 @@ interface ExchangeListProps {
 const ExchangeList: React.FC<ExchangeListProps> = ({ role }) => {
   const { colors } = useTheme();
   const { user } = useAuth();
+  const router = useRouter();
+
+  const [refreshing, setRefreshing] = useState(false);
 
   const styles = StyleSheet.create({
     container: {
@@ -126,7 +137,11 @@ const ExchangeList: React.FC<ExchangeListProps> = ({ role }) => {
   });
 
   // 🚨 앙드레 카파시: 독립적 Query Keys
-  const { data: exchanges, isLoading } = useQuery({
+  const {
+    data: exchanges,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["myExchanges", role], // 역할별로 완전히 분리된 쿼리 키
     queryFn: async () => {
       // TODO: 역할별 교환 목록 API 호출
@@ -175,6 +190,78 @@ const ExchangeList: React.FC<ExchangeListProps> = ({ role }) => {
     enabled: !!user?.userId,
   });
 
+  const handleRefresh = () => {
+    setRefreshing(true);
+    refetch().finally(() => setRefreshing(false));
+  };
+
+  const renderExchangeItem = ({ item: exchange }: { item: Item }) => (
+    <TouchableOpacity
+      style={styles.exchangeItem}
+      onPress={() => router.push(`/exchange/${exchange.id}` as any)}
+      activeOpacity={0.8}
+    >
+      <View style={styles.itemHeader}>
+        <Text style={[styles.itemTitle, { color: colors.text }]}>
+          {exchange.title}
+        </Text>
+        <Text style={[styles.itemCategory, { color: colors.muted }]}>
+          {exchange.category === "TICKET" ? "티켓" : "굿즈"}
+        </Text>
+      </View>
+
+      <Text style={[styles.itemDescription, { color: colors.muted }]}>
+        {exchange.description}
+      </Text>
+
+      <View style={styles.itemFooter}>
+        <Text style={[styles.itemUser, { color: colors.primary }]}>
+          {role === "buyer" ? "받는 사람: " : "보낸 사람: "}
+          {exchange.user.nickname}
+        </Text>
+
+        <View
+          style={[
+            styles.statusBadge,
+            {
+              backgroundColor:
+                exchange.status === "REGISTERED"
+                  ? colors.warning
+                  : exchange.status === "EXCHANGE_COMPLETED"
+                    ? colors.success
+                    : exchange.status === "EXCHANGE_FAILED"
+                      ? colors.destructive
+                      : colors.muted,
+            },
+          ]}
+        >
+          <Text style={[styles.statusText, { color: colors.background }]}>
+            {exchange.status === "REGISTERED"
+              ? "교환 대기"
+              : exchange.status === "EXCHANGE_COMPLETED"
+                ? "교환 완료"
+                : exchange.status === "EXCHANGE_FAILED"
+                  ? "교환 취소"
+                  : "알 수 없음"}
+          </Text>
+        </View>
+      </View>
+
+      <Button
+        style={[
+          styles.chatButton,
+          {
+            backgroundColor: colors.primary,
+          },
+        ]}
+      >
+        <Text style={[styles.chatButtonText, { color: colors.background }]}>
+          채팅하기
+        </Text>
+      </Button>
+    </TouchableOpacity>
+  );
+
   if (isLoading) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -198,68 +285,19 @@ const ExchangeList: React.FC<ExchangeListProps> = ({ role }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {exchanges.map((exchange) => (
-        <View key={exchange.id} style={styles.exchangeItem}>
-          <View style={styles.itemHeader}>
-            <Text style={[styles.itemTitle, { color: colors.text }]}>
-              {exchange.title}
-            </Text>
-            <Text style={[styles.itemCategory, { color: colors.muted }]}>
-              {exchange.category === "TICKET" ? "티켓" : "굿즈"}
-            </Text>
-          </View>
-
-          <Text style={[styles.itemDescription, { color: colors.muted }]}>
-            {exchange.description}
-          </Text>
-
-          <View style={styles.itemFooter}>
-            <Text style={[styles.itemUser, { color: colors.primary }]}>
-              {role === "buyer" ? "받는 사람: " : "보낸 사람: "}
-              {exchange.user.nickname}
-            </Text>
-
-            <View
-              style={[
-                styles.statusBadge,
-                {
-                  backgroundColor:
-                    exchange.status === "REGISTERED"
-                      ? colors.warning || "#F59E0B"
-                      : exchange.status === "EXCHANGE_COMPLETED"
-                        ? colors.success || "#10B981"
-                        : exchange.status === "EXCHANGE_FAILED"
-                          ? "#EF4444"
-                          : colors.muted,
-                },
-              ]}
-            >
-              <Text style={[styles.statusText, { color: colors.background }]}>
-                {exchange.status === "REGISTERED"
-                  ? "교환 대기"
-                  : exchange.status === "EXCHANGE_COMPLETED"
-                    ? "교환 완료"
-                    : exchange.status === "EXCHANGE_FAILED"
-                      ? "교환 취소"
-                      : "알 수 없음"}
-              </Text>
-            </View>
-          </View>
-
-          <Button
-            style={[
-              styles.chatButton,
-              {
-                backgroundColor: colors.primary,
-              },
-            ]}
-          >
-            <Text style={[styles.chatButtonText, { color: colors.background }]}>
-              채팅하기
-            </Text>
-          </Button>
-        </View>
-      ))}
+      <FlatList
+        data={exchanges}
+        renderItem={renderExchangeItem}
+        keyExtractor={(item) => String(item.id)}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+          />
+        }
+      />
     </View>
   );
 };
@@ -279,8 +317,8 @@ export default function MyExchangesScreen() {
   // TabView 상태 관리
   const [index, setIndex] = useState(0);
   const [routes] = useState([
-    { key: "requested", title: "신청한 교환" },
-    { key: "received", title: "요청받은 교환" },
+    { key: "requested", title: "내가 등록한 물건" },
+    { key: "received", title: "종료된 교환 내역" },
   ]);
 
   // 🚨 앙드레 카파시: 상태 동기화 테스트 함수

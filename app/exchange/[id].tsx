@@ -16,6 +16,7 @@ import ImageViewing from "react-native-image-viewing";
 import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { useTheme } from "@/hooks/useTheme";
+import { ExchangeBottomSheet } from "@/src/components/domain/exchange/ExchangeBottomSheet";
 import { itemsDeleteAPI, itemsGetDetailAPI } from "@/src/features/exchange/api";
 import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
@@ -173,6 +174,8 @@ export default function ItemDetailScreen() {
   const queryClient = useQueryClient();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
+  const [isExchangeSheetOpen, setIsExchangeSheetOpen] = useState(false);
+
   // 라이트박스 상태 관리
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
   const [imageViewerIndex, setImageViewerIndex] = useState(0);
@@ -282,8 +285,7 @@ export default function ItemDetailScreen() {
       return;
     }
 
-    // TODO: 바텀시트 트랜잭션 구현 (Phase 2)
-    Alert.alert("교환 신청", "교환 신청 기능은 Phase 2에서 구현됩니다.");
+    setIsExchangeSheetOpen(true);
   }, [user]);
 
   // 상태 변경 핸들러 (작성자 전용) - TODO: 구현 필요
@@ -433,6 +435,24 @@ export default function ItemDetailScreen() {
                 삭제하기
               </Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.exchangeButton,
+                {
+                  backgroundColor: colors.primary,
+                },
+              ]}
+              onPress={() => router.push(`/exchange/edit/${id}` as any)}
+            >
+              <Text
+                style={[
+                  styles.exchangeButtonText,
+                  { color: colors.background },
+                ]}
+              >
+                수정하기
+              </Text>
+            </TouchableOpacity>
           </View>
         ) : (
           <TouchableOpacity
@@ -456,6 +476,11 @@ export default function ItemDetailScreen() {
           </TouchableOpacity>
         )}
       </View>
+
+      <ExchangeBottomSheet
+        isOpen={isExchangeSheetOpen}
+        onClose={() => setIsExchangeSheetOpen(false)}
+      />
     </SafeLayout>
   );
 }

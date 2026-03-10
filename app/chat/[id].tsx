@@ -27,7 +27,7 @@ import {
  */
 export default function ChatRoomScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { status, sendMessage } = useWebSocket();
+  const { status, sendMessage } = useWebSocket(undefined, "directroom");
 
   const [inputMessage, setInputMessage] = useState("");
 
@@ -100,7 +100,10 @@ export default function ChatRoomScreen() {
       };
 
       // 메시지 전송
-      sendMessage(`/app/chat/${id}`, messageContent);
+      sendMessage("/client/directRoom/send", {
+        roomId: Number(id),
+        message: messageContent,
+      });
 
       // UI에 즉시 반영
       loadMessages(Promise.resolve([myMessage, ...(messagesState.data || [])]));
