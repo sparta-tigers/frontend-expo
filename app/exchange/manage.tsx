@@ -13,6 +13,7 @@ import { SceneMap, TabView } from "react-native-tab-view";
 
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
+import { apiClient } from "@/src/core/client";
 import { Item } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/unified-design";
@@ -144,48 +145,15 @@ const ExchangeList: React.FC<ExchangeListProps> = ({ role }) => {
   } = useQuery({
     queryKey: ["myExchanges", role], // 역할별로 완전히 분리된 쿼리 키
     queryFn: async () => {
-      // TODO: 역할별 교환 목록 API 호출
-      /*
-      const response = await exchangesGetMyExchangesAPI({
-        role,
+      // 역할 매핑: buyer(sender), seller(receiver)
+      const backendRole = role === "buyer" ? "sender" : "receiver";
+
+      const response = await apiClient.get("/api/exchanges/my", {
+        role: backendRole,
         status: undefined, // 모든 상태
       });
-      return response.data;
-      */
 
-      // Mock 데이터 (실제 API 연동 전)
-      return [
-        {
-          id: 1001,
-          title: "A석 티켓 교환",
-          description: "좋은 자리입니다",
-          category: "TICKET" as const,
-          status: "REGISTERED" as const,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          userId: role === "buyer" ? user?.userId || 0 : 789,
-          user: {
-            id: role === "buyer" ? user?.userId || 0 : 789,
-            nickname: role === "buyer" ? user?.nickname || "나" : "상대방",
-          },
-          location: { latitude: 37.5665, longitude: 126.978, address: "서울" },
-        },
-        {
-          id: 1002,
-          title: "응원 굿즈 교환",
-          description: "한정판 굿즈입니다",
-          category: "GOODS" as const,
-          status: "EXCHANGE_COMPLETED" as const,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          userId: role === "buyer" ? user?.userId || 0 : 456,
-          user: {
-            id: role === "buyer" ? user?.userId || 0 : 456,
-            nickname: role === "buyer" ? user?.nickname || "나" : "다른상대",
-          },
-          location: { latitude: 37.5665, longitude: 126.978, address: "서울" },
-        },
-      ] as Item[];
+      return response.data.content as Item[];
     },
     enabled: !!user?.userId,
   });
@@ -227,9 +195,9 @@ const ExchangeList: React.FC<ExchangeListProps> = ({ role }) => {
               backgroundColor:
                 exchange.status === "REGISTERED"
                   ? colors.warning
-                  : exchange.status === "EXCHANGE_COMPLETED"
+                  : exchange.status === "COMPLETED"
                     ? colors.success
-                    : exchange.status === "EXCHANGE_FAILED"
+                    : exchange.status === "FAILED"
                       ? colors.destructive
                       : colors.muted,
             },
@@ -238,9 +206,9 @@ const ExchangeList: React.FC<ExchangeListProps> = ({ role }) => {
           <Text style={[styles.statusText, { color: colors.background }]}>
             {exchange.status === "REGISTERED"
               ? "교환 대기"
-              : exchange.status === "EXCHANGE_COMPLETED"
+              : exchange.status === "COMPLETED"
                 ? "교환 완료"
-                : exchange.status === "EXCHANGE_FAILED"
+                : exchange.status === "FAILED"
                   ? "교환 취소"
                   : "알 수 없음"}
           </Text>

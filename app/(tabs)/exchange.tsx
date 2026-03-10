@@ -2,14 +2,14 @@ import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { useTheme } from "@/hooks/useTheme";
 import {
-  exchangeGetReceivedAPI,
-  exchangeUpdateStatusAPI,
-  itemsGetListAPI,
+    exchangeGetReceivedAPI,
+    exchangeUpdateStatusAPI,
+    itemsGetListAPI,
 } from "@/src/features/exchange/api";
 import {
-  ExchangeRequest,
-  ExchangeRequestStatus,
-  Item,
+    ExchangeRequest,
+    ExchangeRequestStatus,
+    Item,
 } from "@/src/features/exchange/types";
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import { theme } from "@/src/styles/theme";
@@ -18,22 +18,16 @@ import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
-
-// 임시 타입 정의 (패키지 설치 후 제거)
-type BottomSheetRef = any;
-
-// Location 모듈 타입 단언
-const LocationModule = Location as any;
 
 // 정적 스타일 정의
 const styles = StyleSheet.create({
@@ -103,7 +97,7 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.size.md,
     color: theme.colors.text.primary,
     fontWeight: theme.typography.weight.bold,
-  } as any,
+  },
   itemDescription: {
     fontSize: theme.typography.size.xs,
     color: theme.colors.text.secondary,
@@ -251,7 +245,7 @@ const styles = StyleSheet.create({
 export default function ExchangeScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const bottomSheetRef = useRef<BottomSheet>(null);
   const mapRef = useRef<MapView>(null);
 
   // 탭 상태 관리
@@ -280,11 +274,10 @@ export default function ExchangeScreen() {
       try {
         const response = await exchangeGetReceivedAPI(pageNum, 10);
 
-        // 임시 타입 단언으로 API 응답 처리
-        const responseData = response.data as any;
-        const requests = Array.isArray(responseData?.data)
-          ? responseData.data
-          : [];
+        const requests =
+          response.resultType === "SUCCESS" && response.data
+            ? response.data.content
+            : [];
 
         if (pageNum === 0 || isRefresh) {
           await fetchRequests(Promise.resolve(requests));
@@ -381,19 +374,19 @@ export default function ExchangeScreen() {
 
   // 아이템 상세 페이지로 이동
   const navigateToDetail = (itemId: number) => {
-    router.push(`/exchange/${itemId}` as any);
+    router.push(`/exchange/${itemId}`);
   };
 
   // 아이템 생성 페이지로 이동
   const navigateToCreate = () => {
-    router.push("/exchange/create" as any);
+    router.push("/exchange/create");
   };
 
   // 현재 위치로 이동
   const moveToCurrentLocation = async () => {
     try {
       // 위치 권한 요청
-      let { status } = await LocationModule.requestForegroundPermissionsAsync();
+      const { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status !== "granted") {
         Alert.alert(
@@ -404,10 +397,8 @@ export default function ExchangeScreen() {
       }
 
       // 현재 위치 가져오기
-      const location = await LocationModule.getCurrentPositionAsync({
-        accuracy: LocationModule.Accuracy.Balanced,
-        timeout: 10000,
-        maximumAge: 60000, // 1분 이내의 캐시된 위치 사용
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
       });
 
       const { latitude, longitude } = location.coords;
@@ -455,7 +446,7 @@ export default function ExchangeScreen() {
   const getCurrentLocationOnMount = async () => {
     try {
       // 위치 권한 요청
-      let { status } = await LocationModule.requestForegroundPermissionsAsync();
+      const { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status !== "granted") {
         console.log("위치 권한이 거부됨");
@@ -463,10 +454,8 @@ export default function ExchangeScreen() {
       }
 
       // 현재 위치 가져오기
-      const location = await LocationModule.getCurrentPositionAsync({
-        accuracy: LocationModule.Accuracy.Balanced,
-        timeout: 10000,
-        maximumAge: 60000,
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
       });
 
       const { latitude, longitude } = location.coords;

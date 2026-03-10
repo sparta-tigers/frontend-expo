@@ -10,15 +10,15 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 /**
@@ -26,8 +26,6 @@ import {
  *
  * 기존 아이템 정보를 불러와 수정하는 기능
  * - 아이템 정보 수정
- * - 이미지 업로드 (TODO)
- * - 위치 정보 수정 (TODO)
  */
 export default function EditItemScreen() {
   const router = useRouter();
@@ -182,7 +180,7 @@ export default function EditItemScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* 아이템 이미지 (TODO: 이미지 업로드 기능) */}
+        {/* 아이템 이미지 */}
         {item.imageUrl && (
           <Card style={styles.imageCard}>
             <Image

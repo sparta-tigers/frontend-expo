@@ -13,6 +13,7 @@ import {
 import { useAuth } from "@/src/hooks/useAuth";
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import { SPACING } from "@/src/styles/unified-design";
+import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
     Alert,
@@ -31,6 +32,7 @@ import {
 export default function ExchangeRequestsScreen() {
   const { user } = useAuth();
   const { colors } = useTheme();
+  const router = useRouter();
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -66,57 +68,83 @@ export default function ExchangeRequestsScreen() {
   }, [fetchExchangeRequests, loadRequests]);
 
   // 교환 요청 수락
-  const handleAcceptRequest = useCallback(async (requestId: number) => {
-    Alert.alert(
-      "교환 요청 수락",
-      "이 교환 요청을 수락하시겠습니까? 수락하면 1:1 채팅으로 이동합니다.",
-      [
-        {
-          text: "취소",
-          style: "cancel",
-        },
-        {
-          text: "수락",
-          style: "default",
-          onPress: async () => {
-            try {
-              const updateData: UpdateExchangeStatusDto = {
-                status: ExchangeRequestStatus.ACCEPTED,
-                message: "교환 요청을 수락했습니다.",
-              };
-
-              const response = await exchangeUpdateStatusAPI(
-                requestId,
-                updateData,
-              );
-
-              if (response.resultType === "SUCCESS") {
-                Alert.alert(
-                  "수락 완료",
-                  "교환 요청을 수락했습니다. 채팅으로 이동합니다.",
-                  [
-                    {
-                      text: "확인",
-                      onPress: () => {
-                        // TODO: 채팅방으로 이동 (채팅방 ID 필요)
-                        // router.push(`/chat/${chatroomId}`);
-                        Alert.alert("알림", "채팅 기능은 곧 구현됩니다.");
-                      },
-                    },
-                  ],
-                );
-              } else {
-                Alert.alert("오류", "교환 요청 수락에 실패했습니다.");
-              }
-            } catch (error) {
-              console.error("교환 요청 수락 실패:", error);
-              Alert.alert("오류", "네트워크 에러가 발생했습니다.");
-            }
+  const handleAcceptRequest = useCallback(
+    async (requestId: number) => {
+      Alert.alert(
+        "교환 요청 수락",
+        "이 교환 요청을 수락하시겠습니까? 수락하면 1:1 채팅으로 이동합니다.",
+        [
+          {
+            text: "취소",
+            style: "cancel",
           },
-        },
-      ],
-    );
-  }, []);
+          {
+            text: "수락",
+            style: "default",
+            onPress: async () => {
+              try {
+                const updateData: UpdateExchangeStatusDto = {
+                  status: ExchangeRequestStatus.ACCEPTED,
+                  message: "교환 요청을 수락했습니다.",
+                };
+
+                const response = await exchangeUpdateStatusAPI(
+                  requestId,
+                  updateData,
+                );
+
+                if (response.resultType === "SUCCESS") {
+                  const responseData = response.data as unknown;
+                  const roomId =
+                    typeof responseData === "object" && responseData !== null
+                      ? ((
+                          responseData as {
+                            roomId?: number;
+                            directRoomId?: number;
+                          }
+                        ).roomId ??
+                        (
+                          responseData as {
+                            roomId?: number;
+                            directRoomId?: number;
+                          }
+                        ).directRoomId)
+                      : undefined;
+
+                  if (!roomId) {
+                    Alert.alert(
+                      "오류",
+                      "채팅방 ID를 가져올 수 없습니다. 잠시 후 다시 시도해주세요.",
+                    );
+                    return;
+                  }
+
+                  Alert.alert(
+                    "수락 완료",
+                    "교환 요청을 수락했습니다. 채팅으로 이동합니다.",
+                    [
+                      {
+                        text: "확인",
+                        onPress: () => {
+                          router.push(`/exchange/chat/${roomId}`);
+                        },
+                      },
+                    ],
+                  );
+                } else {
+                  Alert.alert("오류", "교환 요청 수락에 실패했습니다.");
+                }
+              } catch (error) {
+                console.error("교환 요청 수락 실패:", error);
+                Alert.alert("오류", "네트워크 에러가 발생했습니다.");
+              }
+            },
+          },
+        ],
+      );
+    },
+    [router],
+  );
 
   // 교환 요청 거절
   const handleRejectRequest = useCallback(

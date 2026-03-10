@@ -23,7 +23,9 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
+import { apiClient } from "@/src/core/client";
 import { chatroomsGetMessagesAPI } from "@/src/features/chat/api";
+import { itemsUpdateStatusAPI } from "@/src/features/exchange/api";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useWebSocket } from "@/src/hooks/useWebSocket";
 import { theme } from "@/src/styles/theme";
@@ -59,7 +61,7 @@ interface ExchangeItem {
   title: string;
   description: string;
   category: "TICKET" | "GOODS";
-  status: "REGISTERED" | "EXCHANGE_COMPLETED" | "EXCHANGE_FAILED";
+  status: "REGISTERED" | "COMPLETED" | "FAILED" | "DELETED";
   user: {
     id: number;
     nickname: string;
@@ -82,32 +84,17 @@ export default function ChatRoomScreen() {
   const { data: exchangeItem, isLoading: itemLoading } = useQuery({
     queryKey: ["exchangeItem", roomId],
     queryFn: async () => {
-      // TODO: 채팅방 관련 아이템 정보 API 호출
-      /*
-      const response = await exchangeGetItemByRoomIdAPI(Number(roomId));
-      return response.data;
-      */
-
-      // Mock 데이터 (실제 API 연동 전)
-      return {
-        id: 123,
-        title: "경기 티켓 교환",
-        description: "A석 1열 좋은 자리입니다",
-        category: "TICKET" as const,
-        status: "REGISTERED" as const,
-        user: {
-          id: 456,
-          nickname: "상대방",
-        },
-      } as ExchangeItem;
+      const response = await apiClient.get(
+        `/api/direct-rooms/${roomIdNumber}/item`,
+      );
+      return response.data as ExchangeItem;
     },
     enabled: !!roomId,
   });
 
   const isInputDisabled = useMemo(() => {
     return (
-      exchangeItem?.status === "EXCHANGE_COMPLETED" ||
-      exchangeItem?.status === "EXCHANGE_FAILED"
+      exchangeItem?.status === "COMPLETED" || exchangeItem?.status === "DELETED"
     );
   }, [exchangeItem?.status]);
 
@@ -290,27 +277,24 @@ export default function ChatRoomScreen() {
       } else if (nextAppState === "background") {
         // 백그라운드 전환 시 STOMP 비활성화 (배터리 최적화)
         console.log("📱 [AppState] 앱이 백그라운드로 전환되었습니다.");
-        // TODO: STOMP 비활성화 로직 구현
+        void client?.deactivate();
       }
     });
 
     return () => {
       subscription.remove();
     };
-  }, [connect, queryClient, roomIdNumber]);
+  }, [client, connect, queryClient, roomIdNumber]);
 
   // 🚨 앙드레 카파시: 상태 변경 Mutation
   const { mutate: updateItemStatus } = useMutation({
-    mutationFn: async () => {
-      // TODO: 아이템 상태 변경 API 호출
-      /*
-      const response = await itemsUpdateStatusAPI(exchangeItem?.id, newStatus);
-      return response.data;
-      */
-
-      // Mock 응답 (실제 API 연동 전)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      return { success: true };
+    mutationFn: async (newStatus: "COMPLETED" | "FAILED") => {
+      if (!exchangeItem?.id) throw new Error("itemId missing");
+      const response = await itemsUpdateStatusAPI(exchangeItem.id, newStatus);
+      if (response.resultType !== "SUCCESS") {
+        throw new Error("status update failed");
+      }
+      return true;
     },
     onSuccess: () => {
       Alert.alert("성공", "상태가 변경되었습니다.");
@@ -330,15 +314,15 @@ export default function ChatRoomScreen() {
 
   // 상태 변경 버튼 핸들러
   const handleStatusChange = useCallback(
-    (newStatus: "EXCHANGE_COMPLETED" | "EXCHANGE_FAILED") => {
+    (newStatus: "COMPLETED" | "FAILED") => {
       Alert.alert(
         "확인",
-        newStatus === "EXCHANGE_COMPLETED"
+        newStatus === "COMPLETED"
           ? "교환을 확정하시겠습니까?"
           : "교환을 취소하시겠습니까?",
         [
           { text: "취소", style: "cancel" },
-          { text: "확인", onPress: () => updateItemStatus() },
+          { text: "확인", onPress: () => updateItemStatus(newStatus) },
         ],
       );
     },
@@ -364,7 +348,7 @@ export default function ChatRoomScreen() {
             상태:{" "}
             {exchangeItem.status === "REGISTERED"
               ? "등록됨"
-              : exchangeItem.status === "EXCHANGE_COMPLETED"
+              : exchangeItem.status === "COMPLETED"
                 ? "교환 완료"
                 : "교환 취소"}
           </Text>
@@ -376,7 +360,7 @@ export default function ChatRoomScreen() {
                 // 아이템 소유자(Seller) 화면
                 <>
                   <Button
-                    onPress={() => handleStatusChange("EXCHANGE_COMPLETED")}
+                    onPress={() => handleStatusChange("COMPLETED")}
                     style={[
                       styles.statusButton,
                       {
@@ -394,7 +378,7 @@ export default function ChatRoomScreen() {
                     </Text>
                   </Button>
                   <Button
-                    onPress={() => handleStatusChange("EXCHANGE_FAILED")}
+                    onPress={() => handleStatusChange("FAILED")}
                     style={styles.statusButtonError}
                   >
                     <Text

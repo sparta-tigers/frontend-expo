@@ -4,6 +4,8 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Platform } from "react-native";
 
+import { apiClient } from "@/src/core/client";
+
 // 타입 정의
 interface NotificationType {
   request: {
@@ -92,11 +94,20 @@ export function usePushNotifications() {
     };
 
     // 비동기 함수 실행 및 토큰 설정
-    registerForPushNotificationsAsync().then((token) => {
-      if (token) {
-        setExpoPushToken(token);
-        console.log("Expo Push Token:", token);
-        // TODO: 백엔드로 토큰 전송 API 연동
+    registerForPushNotificationsAsync().then(async (token) => {
+      if (!token) return;
+
+      setExpoPushToken(token);
+      console.log("Expo Push Token:", token);
+
+      try {
+        const response = await apiClient.post("/api/device-tokens", {
+          token,
+          deviceType: Device.osName ?? "UNKNOWN",
+        });
+        console.log("디바이스 토큰 등록 결과:", response);
+      } catch (error) {
+        console.error("디바이스 토큰 등록 실패:", error);
       }
     });
 

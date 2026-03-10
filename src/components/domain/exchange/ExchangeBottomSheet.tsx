@@ -7,7 +7,11 @@ import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "@/hooks/useTheme";
-import { Item } from "@/src/features/exchange/types";
+import {
+    exchangeCreateAPI,
+    itemsGetMyItemsAPI,
+} from "@/src/features/exchange/api";
+import { CreateExchangeDto, Item } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/unified-design";
 
@@ -25,11 +29,14 @@ interface ExchangeBottomSheetProps {
   onClose: () => void;
   /** 바텀시트 열림 상태 */
   isOpen: boolean;
+  /** 교환 대상 아이템 ID */
+  targetItemId: number;
 }
 
 export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
   onClose,
   isOpen,
+  targetItemId,
 }) => {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -45,37 +52,10 @@ export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
   const { data: myItems, isLoading } = useQuery({
     queryKey: ["myItems", user?.userId],
     queryFn: async () => {
-      // TODO: 내 아이템 목록 API 호출
-      // const response = await itemsGetMyItemsAPI(user?.userId);
-      // return response.data;
-
-      // Mock 데이터 (실제 API 연동 전)
-      return [
-        {
-          id: 101,
-          title: "내 티켓 1",
-          description: "경기 티켓입니다",
-          category: "TICKET" as const,
-          status: "REGISTERED" as const,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          userId: user?.userId || 0,
-          user: { id: user?.userId || 0, nickname: user?.nickname || "나" },
-          location: { latitude: 37.5665, longitude: 126.978, address: "서울" },
-        },
-        {
-          id: 102,
-          title: "내 굿즈 1",
-          description: "응원 굿즈입니다",
-          category: "GOODS" as const,
-          status: "REGISTERED" as const,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          userId: user?.userId || 0,
-          user: { id: user?.userId || 0, nickname: user?.nickname || "나" },
-          location: { latitude: 37.5665, longitude: 126.978, address: "서울" },
-        },
-      ] as Item[];
+      const response = await itemsGetMyItemsAPI(0, 50);
+      if (response.resultType !== "SUCCESS" || !response.data) return [];
+      const content = response.data.content;
+      return Array.isArray(content) ? (content as Item[]) : [];
     },
     enabled: isOpen && !!user?.userId, // 바텀시트가 열리고 사용자가 있을 때만 활성화
   });
@@ -83,24 +63,32 @@ export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
   // 🚨 앙드레 카파시: Atomic Routing - 교환 신청 Mutation
   const { mutate: requestExchange, isPending } = useMutation({
     mutationFn: async () => {
-      // TODO: 교환 신청 API 호출
-      /*
-      const response = await exchangesCreateAPI({
-        targetItemId,
-        myItemId: selectedItemId!,
+      const payload: CreateExchangeDto = {
+        itemId: targetItemId,
         message: message.trim(),
-      });
-      return response.data;
-      */
-
-      // Mock 응답 (실제 API 연동 전)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      return {
-        roomId: 12345, // 생성된 채팅방 ID
-        exchangeId: 67890, // 교환 신청 ID
       };
+      const response = await exchangeCreateAPI(payload);
+      if (response.resultType !== "SUCCESS") {
+        throw new Error(
+          typeof response.error === "string"
+            ? response.error
+            : "교환 신청에 실패했습니다.",
+        );
+      }
+      return response.data;
     },
     onSuccess: (data) => {
+      const roomId =
+        typeof data === "object" && data !== null
+          ? ((data as { roomId?: number; directRoomId?: number }).roomId ??
+            (data as { roomId?: number; directRoomId?: number }).directRoomId)
+          : undefined;
+
+      if (!roomId) {
+        Alert.alert("오류", "채팅방 ID를 가져올 수 없습니다.");
+        return;
+      }
+
       // 성공 시 처리
       Alert.alert("성공", "교환 신청이 완료되었습니다.");
 
@@ -111,7 +99,7 @@ export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
       queryClient.invalidateQueries({ queryKey: ["myItems"] });
 
       // 3. 🚨 앙드레 카파시: Atomic Routing - 즉시 채팅방으로 이동
-      router.replace(`/exchange/chat/${data.roomId}`);
+      router.replace(`/exchange/chat/${roomId}`);
     },
     onError: (error) => {
       Alert.alert("오류", "교환 신청에 실패했습니다.");

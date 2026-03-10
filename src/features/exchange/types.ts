@@ -50,7 +50,7 @@ export interface Item {
   imageUrl?: string;
   images?: string[]; // 이미지 배열 추가
   desiredItem?: string; // 희망 교환 물품 추가
-  status: "REGISTERED" | "EXCHANGE_COMPLETED" | "EXCHANGE_FAILED";
+  status: "REGISTERED" | "COMPLETED" | "FAILED" | "DELETED";
   createdAt: string;
   updatedAt: string;
   userId: number;

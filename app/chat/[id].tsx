@@ -1,21 +1,38 @@
-import { SafeLayout } from "@/components/ui/safe-layout";
-import { chatroomsGetMessagesAPI } from "@/src/features/chat/api";
-import { ChatMessage } from "@/src/features/chat/types";
-import { useWebSocket } from "@/src/hooks/useWebSocket";
-import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
-import { ApiResponse } from "@/src/shared/types/common";
-import { theme } from "@/src/styles/theme";
+import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
-    FlatList,
-    Image,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  FlatList,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
+
+import { SafeLayout } from "@/components/ui/safe-layout";
+import { chatroomsGetMessagesAPI } from "@/src/features/chat/api";
+import { ChatMessage } from "@/src/features/chat/types";
+import { useAuth } from "@/src/hooks/useAuth";
+import { useWebSocket } from "@/src/hooks/useWebSocket";
+import { apiClient } from "@/src/core/client";
+import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
+import { ApiResponse } from "@/src/shared/types/common";
+import { theme } from "@/src/styles/theme";
+
+/**
+ * DirectRoomItemResponseDto에 대응하는 프론트엔드 DTO.
+ * Java DTO(`DirectRoomItemResponseDto`)를 TypeScript 인터페이스로 옮긴 형태이다.
+ */
+interface DirectRoomItemDto {
+  itemId: number;
+  title: string;
+  description: string;
+  category: "TICKET" | "GOODS";
+  status: "REGISTERED" | "COMPLETED" | "FAILED" | "DELETED";
+  ownerId: number;
+  ownerNickname: string;
+}
 
 /**
  * 채팅방 상세 화면
@@ -28,15 +45,28 @@ import {
 export default function ChatRoomScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { status, sendMessage } = useWebSocket(undefined, "directroom");
+  const { user } = useAuth();
 
   const [inputMessage, setInputMessage] = useState("");
+  const directRoomId = Number(id);
 
-  // Mock 아이템 데이터 (실제로는 채팅방 정보에서 가져와야 함)
-  const mockItem = {
-    title: "야구 경기 티켓",
-    price: null, // 교환의 경우 가격 없음
-    thumb: "https://via.placeholder.com/48x48/cccccc/666666?text=ITEM",
-  };
+  const { data: roomItem } = useQuery({
+    queryKey: ["directRoomItem", directRoomId],
+    queryFn: async () => {
+      if (!Number.isFinite(directRoomId)) {
+        throw new Error("유효하지 않은 채팅방 ID입니다.");
+      }
+
+      const response = await apiClient.get(
+        `/api/direct-rooms/${directRoomId}/item`,
+      );
+      return response.data as DirectRoomItemDto;
+    },
+    enabled: Number.isFinite(directRoomId),
+  });
+
+  const isRoomCompleted =
+    roomItem?.status === "COMPLETED" || roomItem?.status === "DELETED";
 
   // useAsyncState 훅으로 메시지 상태 관리
   const [messagesState, loadMessages] = useAsyncState<ChatMessage[]>([]);
@@ -64,14 +94,14 @@ export default function ChatRoomScreen() {
         sentAt: msg.sentAt,
         sender: msg.sender,
         senderNickName: msg.senderNickName,
-        isMyMessage: msg.senderId === 1, // TODO: 실제 사용자 ID로 변경
+        isMyMessage: user?.userId ? msg.senderId === user.userId : false,
       }));
 
       return formattedMessages;
     }
 
     throw new Error("메시지를 불러올 수 없습니다.");
-  }, [id]);
+  }, [id, user?.userId]);
 
   // 초기 데이터 로드
   useEffect(() => {
@@ -80,22 +110,30 @@ export default function ChatRoomScreen() {
 
   // 메시지 전송
   const handleSendMessage = useCallback(async () => {
-    if (!inputMessage.trim() || !id || status !== "CONNECTED") return;
+    if (
+      !inputMessage.trim() ||
+      !id ||
+      status !== "CONNECTED" ||
+      isRoomCompleted
+    ) {
+      return;
+    }
+    if (!user?.userId) return;
 
     try {
       const messageContent = inputMessage.trim();
       const myMessage: ChatMessage = {
         id: Date.now(),
         directRoomId: Number(id),
-        senderId: 1, // TODO: 실제 사용자 ID로 변경
+        senderId: user.userId,
         content: messageContent,
         createdAt: new Date().toISOString(),
         sentAt: new Date().toISOString(),
         sender: {
-          id: 1,
-          nickname: "나", // TODO: 실제 사용자 닉네임으로 변경
+          id: user.userId,
+          nickname: user.nickname ?? "",
         },
-        senderNickName: "나", // TODO: 실제 사용자 닉네임으로 변경
+        senderNickName: user.nickname ?? "",
         isMyMessage: true,
       };
 
@@ -111,7 +149,17 @@ export default function ChatRoomScreen() {
     } catch (error) {
       console.error("메시지 전송 에러:", error);
     }
-  }, [inputMessage, id, status, sendMessage, messagesState.data, loadMessages]);
+  }, [
+    inputMessage,
+    id,
+    status,
+    isRoomCompleted,
+    user?.userId,
+    user?.nickname,
+    sendMessage,
+    messagesState.data,
+    loadMessages,
+  ]);
 
   // 메시지 아이템 렌더링 (작업 지시서 기준 말풍선 디자인)
   const renderMessage = useCallback(({ item }: { item: ChatMessage }) => {
@@ -178,16 +226,22 @@ export default function ChatRoomScreen() {
 
       {/* 아이템 요약 정보 (스크롤 시 고정) */}
       <View style={styles.itemSummaryContainer}>
-        <Image source={{ uri: mockItem.thumb }} style={styles.itemThumbnail} />
         <View style={styles.itemInfo}>
-          <Text style={styles.itemTitle}>{mockItem.title}</Text>
+          <Text style={styles.itemTitle}>
+            {roomItem?.title ?? "아이템 정보를 불러오는 중..."}
+          </Text>
           <Text style={styles.itemPrice}>
-            {mockItem.price ? `${mockItem.price}원` : "교환"}
+            {roomItem
+              ? roomItem.status === "COMPLETED"
+                ? "교환 완료"
+                : roomItem.status === "FAILED"
+                  ? "교환 취소"
+                  : roomItem.status === "DELETED"
+                    ? "삭제된 아이템"
+                    : "교환 진행 중"
+              : ""}
           </Text>
         </View>
-        <TouchableOpacity style={styles.statusButton}>
-          <Text style={styles.statusButtonText}>교환 확정</Text>
-        </TouchableOpacity>
       </View>
 
       {/* 채팅 리스트 */}
@@ -220,17 +274,21 @@ export default function ChatRoomScreen() {
           placeholderTextColor={theme.colors.text.tertiary}
           multiline={false}
           maxLength={500}
-          editable={status === "CONNECTED"}
+          editable={status === "CONNECTED" && !isRoomCompleted}
         />
         <TouchableOpacity
           style={styles.sendButton}
           onPress={handleSendMessage}
-          disabled={!inputMessage.trim() || status !== "CONNECTED"}
+          disabled={
+            !inputMessage.trim() || status !== "CONNECTED" || isRoomCompleted
+          }
         >
           <Text
             style={[
               styles.sendIcon,
-              (!inputMessage.trim() || status !== "CONNECTED") &&
+              (!inputMessage.trim() ||
+                status !== "CONNECTED" ||
+                isRoomCompleted) &&
                 styles.sendIconDisabled,
             ]}
           >
@@ -309,11 +367,6 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border.medium,
     alignItems: "center",
   },
-  itemThumbnail: {
-    width: 48,
-    height: 48,
-    borderRadius: theme.radius.sm,
-  },
   itemInfo: {
     flex: 1,
     marginLeft: theme.spacing.sm,
@@ -327,21 +380,6 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.size.xs,
     color: theme.colors.text.secondary,
     marginTop: 2,
-  },
-  statusButton: {
-    height: 32,
-    paddingHorizontal: theme.spacing.sm,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: theme.colors.primary,
-    backgroundColor: theme.colors.background,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  statusButtonText: {
-    fontSize: theme.typography.size.xs,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.primary,
   },
   // 채팅 리스트
   chatList: {

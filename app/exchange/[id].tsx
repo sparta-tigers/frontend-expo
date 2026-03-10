@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -17,7 +17,16 @@ import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { useTheme } from "@/hooks/useTheme";
 import { ExchangeBottomSheet } from "@/src/components/domain/exchange/ExchangeBottomSheet";
-import { itemsDeleteAPI, itemsGetDetailAPI } from "@/src/features/exchange/api";
+import {
+  itemsDeleteAPI,
+  itemsGetDetailAPI,
+  itemsUpdateStatusAPI,
+} from "@/src/features/exchange/api";
+import {
+  ExchangeRequestStatus,
+  type ReceiveRequestResponseDto,
+} from "@/src/features/exchange/types";
+import { apiClient } from "@/src/core/client";
 import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
 
@@ -94,6 +103,42 @@ const styles = StyleSheet.create({
   },
   desiredItemContainer: {
     flex: 1,
+  },
+  statusSection: {
+    flex: 1,
+    paddingRight: theme.spacing.SMALL,
+  },
+  statusInfoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: theme.spacing.TINY,
+  },
+  statusLabel: {
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.secondary,
+  },
+  statusValue: {
+    fontSize: theme.typography.size.SMALL,
+    fontWeight: theme.typography.weight.bold,
+  },
+  statusActionsRow: {
+    flexDirection: "row",
+    gap: theme.spacing.TINY,
+    marginTop: theme.spacing.TINY,
+  },
+  statusActionButton: {
+    flex: 1,
+    paddingVertical: theme.spacing.TINY,
+  },
+  statusActionText: {
+    fontSize: theme.typography.size.xs,
+    fontWeight: theme.typography.weight.medium,
+    textAlign: "center",
+  },
+  statusHelperText: {
+    marginTop: theme.spacing.TINY,
+    fontSize: theme.typography.size.xs,
   },
   buttonRow: {
     flexDirection: "row",
@@ -173,6 +218,7 @@ export default function ItemDetailScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const itemIdNumber = Number(id);
 
   const [isExchangeSheetOpen, setIsExchangeSheetOpen] = useState(false);
 
@@ -188,13 +234,38 @@ export default function ItemDetailScreen() {
     refetch,
   } = useQuery({
     queryKey: ["item", id],
-    queryFn: () => itemsGetDetailAPI(Number(id)),
+    queryFn: () => itemsGetDetailAPI(itemIdNumber),
     staleTime: 0, // 항상 최신 상태 유지
     enabled: !!id,
   });
 
   // 작성자 여부 확인 (권한 기반 UI 분리용)
   const isOwner = item?.data?.user?.id === user?.userId;
+
+  const { data: itemExchanges } = useQuery({
+    queryKey: ["itemExchanges", itemIdNumber],
+    queryFn: async () => {
+      const response = await apiClient.get("/api/exchanges/my", {
+        role: "receiver",
+        status: undefined,
+      });
+      const content = response.data?.content;
+      return Array.isArray(content)
+        ? (content as ReceiveRequestResponseDto[])
+        : [];
+    },
+    enabled: isOwner && !!itemIdNumber && !!user?.userId,
+  });
+
+  const hasActiveExchange = useMemo(() => {
+    if (!itemExchanges) return false;
+    return itemExchanges.some(
+      (exchange) =>
+        exchange.itemId === itemIdNumber &&
+        (exchange.status === ExchangeRequestStatus.PENDING ||
+          exchange.status === ExchangeRequestStatus.ACCEPTED),
+    );
+  }, [itemExchanges, itemIdNumber]);
 
   // 이미지 캐러셀 렌더링
   const renderImageCarousel = useCallback(() => {
@@ -303,6 +374,58 @@ export default function ItemDetailScreen() {
   //       },
   //     ]);
   //   },
+
+  // 상태 변경 Mutation (작성자 전용)
+  const { mutate: updateItemStatus, isPending: isUpdatingStatus } = useMutation({
+    mutationFn: async (newStatus: "COMPLETED" | "FAILED") => {
+      const targetId = item?.data?.id;
+      if (!targetId) {
+        throw new Error("itemId가 없습니다.");
+      }
+      const response = await itemsUpdateStatusAPI(targetId, newStatus);
+      if (response.resultType !== "SUCCESS") {
+        throw new Error("status update failed");
+      }
+      return true;
+    },
+    onSuccess: () => {
+      Alert.alert("성공", "상태가 변경되었습니다.");
+      queryClient.invalidateQueries({ queryKey: ["item", id] });
+      queryClient.invalidateQueries({ queryKey: ["items"] });
+      queryClient.invalidateQueries({ queryKey: ["myItems"] });
+      queryClient.invalidateQueries({ queryKey: ["myExchanges"] });
+    },
+    onError: () => {
+      Alert.alert("오류", "상태 변경에 실패했습니다.");
+    },
+  });
+
+  // 상태 변경 핸들러 (작성자 전용)
+  const handleStatusChange = useCallback(
+    (newStatus: "COMPLETED" | "FAILED") => {
+      if (!item?.data) return;
+
+      if (hasActiveExchange) {
+        Alert.alert(
+          "상태 변경 불가",
+          "진행 중인 교환/채팅이 있어 상태를 변경할 수 없습니다.\n교환 관리 또는 채팅 화면에서 완료/취소를 진행해주세요.",
+        );
+        return;
+      }
+
+      Alert.alert(
+        "상태 변경",
+        newStatus === "COMPLETED"
+          ? "교환을 완료 상태로 변경하시겠습니까?"
+          : "교환을 취소 상태로 변경하시겠습니까?",
+        [
+          { text: "취소", style: "cancel" },
+          { text: "확인", onPress: () => updateItemStatus(newStatus) },
+        ],
+      );
+    },
+    [hasActiveExchange, item?.data, updateItemStatus],
+  );
 
   // 삭제 Mutation
   const { mutate: deleteItem } = useMutation({
@@ -428,6 +551,90 @@ export default function ItemDetailScreen() {
         {/* 권한 기반 버튼 분기 */}
         {isOwner ? (
           <View style={styles.buttonRow}>
+            <View style={styles.statusSection}>
+              <View style={styles.statusInfoRow}>
+                <Text
+                  style={[styles.statusLabel, { color: colors.muted }]}
+                >
+                  현재 상태
+                </Text>
+                <Text
+                  style={[
+                    styles.statusValue,
+                    {
+                      color:
+                        item.data.status === "COMPLETED"
+                          ? colors.primary
+                          : item.data.status === "FAILED"
+                            ? colors.destructive
+                            : colors.text,
+                    },
+                  ]}
+                >
+                  {item.data.status === "REGISTERED"
+                    ? "교환 대기"
+                    : item.data.status === "COMPLETED"
+                      ? "교환 완료"
+                      : item.data.status === "FAILED"
+                        ? "교환 취소"
+                        : item.data.status === "DELETED"
+                          ? "삭제됨"
+                          : item.data.status}
+                </Text>
+              </View>
+
+              <View style={styles.statusActionsRow}>
+                <Button
+                  style={styles.statusActionButton}
+                  disabled={
+                    item.data.status !== "REGISTERED" ||
+                    hasActiveExchange ||
+                    isUpdatingStatus
+                  }
+                  onPress={() => handleStatusChange("COMPLETED")}
+                >
+                  <Text
+                    style={[
+                      styles.statusActionText,
+                      { color: colors.background },
+                    ]}
+                  >
+                    교환 완료로 표시
+                  </Text>
+                </Button>
+                <Button
+                  variant="outline"
+                  style={styles.statusActionButton}
+                  disabled={
+                    item.data.status !== "REGISTERED" ||
+                    hasActiveExchange ||
+                    isUpdatingStatus
+                  }
+                  onPress={() => handleStatusChange("FAILED")}
+                >
+                  <Text
+                    style={[
+                      styles.statusActionText,
+                      { color: colors.destructive },
+                    ]}
+                  >
+                    교환 취소로 표시
+                  </Text>
+                </Button>
+              </View>
+
+              {hasActiveExchange && (
+                <Text
+                  style={[
+                    styles.statusHelperText,
+                    { color: colors.muted },
+                  ]}
+                >
+                  진행 중인 교환/채팅이 있어 여기서는 상태를 변경할 수 없습니다.
+                </Text>
+              )}
+            </View>
+
             <TouchableOpacity style={styles.errorButton} onPress={handleDelete}>
               <Text
                 style={[styles.deleteButtonText, { color: colors.background }]}
@@ -480,6 +687,7 @@ export default function ItemDetailScreen() {
       <ExchangeBottomSheet
         isOpen={isExchangeSheetOpen}
         onClose={() => setIsExchangeSheetOpen(false)}
+        targetItemId={itemIdNumber}
       />
     </SafeLayout>
   );
