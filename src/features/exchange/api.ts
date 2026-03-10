@@ -232,14 +232,16 @@ export async function exchangeUpdateStatusAPI(
 }
 
 /**
- * 교환 완료 처리 API
- * 교환이 성공적으로 완료되었음을 표시
+ * 아이템 상태 변경 API
+ * 아이템의 상태를 변경 (예: REGISTERED -> EXCHANGE_RESERVED)
  *
- * @param exchangeRequestId - 교환 요청 고유 ID
- * @returns 교환 완료 처리 결과
+ * @param itemId - 아이템 고유 ID
+ * @param status - 변경할 상태
+ * @returns 상태 변경 처리 결과
  */
-export async function exchangeCompleteAPI(
-  exchangeRequestId: number,
+export async function itemsUpdateStatusAPI(
+  itemId: number,
+  status: string,
 ): Promise<ApiResponse<void>> {
-  return apiClient.patch(`/api/exchanges/${exchangeRequestId}/complete`);
+  return apiClient.patch(`/api/items/${itemId}/status`, { status });
 }

@@ -4,20 +4,21 @@ import { SafeLayout } from "@/components/ui/safe-layout";
 import { SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import { itemsGetDetailAPI, itemsUpdateAPI } from "@/src/features/exchange/api";
-import { Item, UpdateItemRequest } from "@/src/features/exchange/types";
+import { UpdateItemRequest } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 /**
@@ -33,40 +34,56 @@ export default function EditItemScreen() {
   const { id } = useLocalSearchParams();
   const { colors } = useTheme();
   const { user } = useAuth();
-  const [item, setItem] = useState<Item | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
 
-  // 폼 상태
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState<"TICKET" | "GOODS">("GOODS");
+  // React Query로 아이템 상세 정보 가져오기
+  const {
+    data: itemResponse,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["item", id],
+    queryFn: () => itemsGetDetailAPI(Number(id)),
+    enabled: !!id,
+  });
 
-  // 아이템 상세 정보 가져오기
-  const fetchItemDetail = useCallback(async () => {
-    if (!id) return;
+  const item = itemResponse?.data;
 
-    try {
-      const response = await itemsGetDetailAPI(Number(id));
-      if (response.resultType === "SUCCESS" && response.data) {
-        const itemData = response.data;
-        setItem(itemData);
+  // 폼 상태 - defaultValues 주입
+  const [title, setTitle] = useState(item?.title || "");
+  const [description, setDescription] = useState(item?.description || "");
+  const [category, setCategory] = useState<"TICKET" | "GOODS">(
+    item?.category || "GOODS",
+  );
 
-        // 폼 초기화
-        setTitle(itemData.title);
-        setDescription(itemData.description);
-        setCategory(itemData.category);
-      }
-    } catch (error) {
-      console.error("아이템 상세 로딩 실패:", error);
-      Alert.alert("오류", "아이템 정보를 불러올 수 없습니다.");
-    } finally {
-      setLoading(false);
+  // 아이템 데이터가 로드된 후 폼 초기화
+  React.useEffect(() => {
+    if (item) {
+      setTitle(item.title);
+      setDescription(item.description);
+      setCategory(item.category);
     }
-  }, [id]);
+  }, [item]);
 
-  // 아이템 수정
-  const handleUpdateItem = useCallback(async () => {
+  // 아이템 수정 Mutation
+  const updateItemMutation = useMutation({
+    mutationFn: (request: UpdateItemRequest) =>
+      itemsUpdateAPI(Number(id), request),
+    onSuccess: () => {
+      Alert.alert("수정 완료", "아이템이 성공적으로 수정되었습니다.", [
+        {
+          text: "확인",
+          onPress: () => router.back(),
+        },
+      ]);
+    },
+    onError: (error) => {
+      console.error("아이템 수정 실패:", error);
+      Alert.alert("오류", "아이템 수정에 실패했습니다.");
+    },
+  });
+
+  // 아이템 수정 핸들러
+  const handleUpdateItem = useCallback(() => {
     if (!item || !user?.accessToken) {
       Alert.alert("오류", "로그인이 필요하거나 아이템 정보가 없습니다.");
       return;
@@ -108,50 +125,30 @@ export default function EditItemScreen() {
       {
         text: "수정",
         style: "default",
-        onPress: async () => {
-          setSaving(true);
-          try {
-            const request: UpdateItemRequest = {
-              category: category, // 백엔드 UpdateItemRequestDto 스펙에 맞는 필드명
-              title: title.trim(),
-              description: description.trim(),
-            };
-
-            const response = await itemsUpdateAPI(item.id, request);
-
-            if (response.resultType === "SUCCESS") {
-              Alert.alert("수정 완료", "아이템이 성공적으로 수정되었습니다.", [
-                {
-                  text: "확인",
-                  onPress: () => router.back(),
-                },
-              ]);
-            } else {
-              Alert.alert("오류", "아이템 수정에 실패했습니다.");
-            }
-          } catch (error) {
-            console.error("아이템 수정 실패:", error);
-            Alert.alert("오류", "네트워크 에러가 발생했습니다.");
-          } finally {
-            setSaving(false);
-          }
+        onPress: () => {
+          const request: UpdateItemRequest = {
+            category: category,
+            title: title.trim(),
+            description: description.trim(),
+          };
+          updateItemMutation.mutate(request);
         },
       },
     ]);
-  }, [item, user, title, description, category, router]);
-
-  // 화면 포커스 시 데이터 로드
-  React.useEffect(() => {
-    fetchItemDetail();
-  }, [fetchItemDetail]);
+  }, [item, user, title, description, category, updateItemMutation]);
 
   // 로딩 상태
-  if (loading) {
+  if (isLoading) {
     return (
-      <SafeLayout style={{ backgroundColor: colors.background }}>
+      <SafeLayout edges={["top", "bottom"]} style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.loadingText, { color: colors.text }]}>
+          <Text
+            style={[
+              styles.loadingText,
+              { color: colors.text, marginTop: SPACING.SMALL },
+            ]}
+          >
             아이템 정보를 불러오는 중...
           </Text>
         </View>
@@ -159,21 +156,15 @@ export default function EditItemScreen() {
     );
   }
 
-  // 아이템 정보가 없는 경우
-  if (!item) {
+  // 에러 상태
+  if (error || !item) {
     return (
-      <SafeLayout style={{ backgroundColor: colors.background }}>
+      <SafeLayout edges={["top", "bottom"]} style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={[styles.errorText, { color: colors.text }]}>
-            아이템 정보를 찾을 수 없습니다.
+            아이템 정보를 불러올 수 없습니다.
           </Text>
-          <Button
-            variant="outline"
-            onPress={() => router.back()}
-            style={styles.backButton}
-          >
-            돌아가기
-          </Button>
+          <Button onPress={() => router.reload()}>다시 시도</Button>
         </View>
       </SafeLayout>
     );
@@ -310,7 +301,7 @@ export default function EditItemScreen() {
           <Button
             variant="primary"
             onPress={handleUpdateItem}
-            loading={saving}
+            loading={updateItemMutation.isPending}
             style={styles.saveButton}
             fullWidth
           >
@@ -345,9 +336,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: SPACING.SCREEN,
     textAlign: "center",
-  },
-  backButton: {
-    marginTop: SPACING.SMALL,
   },
   header: {
     padding: SPACING.SCREEN,

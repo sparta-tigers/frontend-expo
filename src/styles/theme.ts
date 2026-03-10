@@ -1,34 +1,35 @@
 /**
  * 통합 디자인 시스템 (Single Source of Truth)
- * 
+ *
  * Phase 6: Design System Normalization & Debt Eradication
  * 모든 디자인 토큰을 단일 theme 객체로 통합
  */
 
 export const theme = {
   colors: {
-    primary: '#000000',     // 메인 검정
-    background: '#FFFFFF',  // 기본 배경
-    surface: '#F9FAFB',     // 카드/입력창 배경 (gray-50)
-    card: '#FFFFFF',        // 카드 배경
+    primary: "#000000", // 메인 검정
+    background: "#FFFFFF", // 기본 배경
+    surface: "#F9FAFB", // 카드/입력창 배경 (gray-50)
+    card: "#FFFFFF", // 카드 배경
     text: {
-      primary: '#111827',   // 기본 텍스트 (gray-900)
-      secondary: '#6B7280', // 보조 텍스트 (gray-500)
-      tertiary: '#9CA3AF',  // 비활성 텍스트 (gray-400)
+      primary: "#111827", // 기본 텍스트 (gray-900)
+      secondary: "#6B7280", // 보조 텍스트 (gray-500)
+      tertiary: "#9CA3AF", // 비활성 텍스트 (gray-400)
     },
     border: {
-      light: '#F3F4F6',     // 얇은 선 (gray-100)
-      medium: '#E5E7EB',    // 기본 선 (gray-200)
-      dark: '#D1D5DB',      // 진한 선 (gray-300)
+      light: "#F3F4F6", // 얇은 선 (gray-100)
+      medium: "#E5E7EB", // 기본 선 (gray-200)
+      dark: "#D1D5DB", // 진한 선 (gray-300)
+      bottom: "#e0e0e0",
     },
     // 기존 호환성을 위한 별칭
-    muted: '#6B7280',       // 보조 텍스트와 동일
-    overlay: 'rgba(0, 0, 0, 0.5)',
+    muted: "#6B7280", // 보조 텍스트와 동일
+    overlay: "rgba(0, 0, 0, 0.5)",
     // 상태 색상
-    success: '#10B981',
-    warning: '#F59E0B',
-    error: '#EF4444',
-    info: '#3B82F6',
+    success: "#10B981",
+    warning: "#F59E0B",
+    error: "#EF4444",
+    info: "#3B82F6",
   },
   spacing: {
     xs: 4,
@@ -61,10 +62,10 @@ export const theme = {
       TITLE: 28,
     },
     weight: {
-      regular: '400',
-      medium: '500',
-      semibold: '600',
-      bold: '700',
+      regular: "400",
+      medium: "500",
+      semibold: "600",
+      bold: "700",
     },
   },
   radius: {

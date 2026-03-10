@@ -1,23 +1,22 @@
-import { FlashList } from "@shopify/flash-list";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect } from "react";
 import {
-    Alert,
-    AppState,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    View,
+  Alert,
+  AppState,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useWebSocket } from "@/src/hooks/useWebSocket";
+import { theme } from "@/src/styles/theme";
 
 /**
  * 교환 채팅방 화면 컴포넌트
@@ -36,6 +35,7 @@ interface ChatMessage {
   content: string;
   timestamp: string;
   isMine: boolean;
+  type?: "CHAT" | "SYSTEM"; // Target 15: 시스템 메시지 타입 추가
 }
 
 interface ExchangeItem {
@@ -55,11 +55,8 @@ export default function ChatRoomScreen() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { colors } = useTheme();
-  const flatListRef = useRef<any>(null);
 
-  // 상태 관리
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [inputText, setInputText] = useState("");
+  // 상태 관리 (TODO: 메시지 입력 기능 구현 시 사용)
 
   // 🚨 앙드레 카파시: 아이템 정보 조회 (도메인 상태 결합)
   const { data: exchangeItem, isLoading: itemLoading } = useQuery({
@@ -88,7 +85,7 @@ export default function ChatRoomScreen() {
   });
 
   // 🚨 앙드레 카파시: 과거 메시지 조회
-  const { isLoading: messagesLoading } = useQuery({
+  useQuery({
     queryKey: ["chatMessages", roomId],
     queryFn: async () => {
       // TODO: 과거 메시지 API 호출
@@ -119,18 +116,13 @@ export default function ChatRoomScreen() {
         },
       ] as ChatMessage[];
 
-      setMessages(mockMessages);
       return mockMessages;
     },
     enabled: !!roomId,
   });
 
   // 🚨 앙드레 카파시: STOMP WebSocket 연결
-  const {
-    status: wsStatus,
-    client: stompClient,
-    sendMessage: publish,
-  } = useWebSocket();
+  const { status: wsStatus } = useWebSocket();
   const isConnected = wsStatus === "CONNECTED";
 
   // 🚨 앙드레 카파시: AppState 이벤트 리스너 (백그라운드/포그라운드 전환 감지)
@@ -139,27 +131,21 @@ export default function ChatRoomScreen() {
       if (nextAppState === "active") {
         // 포그라운드 복귀 시 STOMP 재연결
         console.log("📱 [AppState] 앱이 활성화되었습니다.");
-
-        if (stompClient && !stompClient.connected) {
-          // TODO: 재연결 로직 구현
-        }
+        // TODO: STOMP 재연결 로직 구현
 
         // 백그라운드 중 누락된 메시지 REST 패칭
         queryClient.invalidateQueries({ queryKey: ["chatMessages", roomId] });
       } else if (nextAppState === "background") {
         // 백그라운드 전환 시 STOMP 비활성화 (배터리 최적화)
         console.log("📱 [AppState] 앱이 백그라운드로 전환되었습니다.");
-
-        if (stompClient && stompClient.connected) {
-          // TODO: 비활성화 로직 구현
-        }
+        // TODO: STOMP 비활성화 로직 구현
       }
     });
 
     return () => {
       subscription.remove();
     };
-  }, [roomId, stompClient, queryClient]);
+  }, [roomId, queryClient]);
 
   // 🚨 앙드레 카파시: 상태 변경 Mutation
   const { mutate: updateItemStatus } = useMutation({
@@ -185,26 +171,10 @@ export default function ChatRoomScreen() {
       queryClient.invalidateQueries({ queryKey: ["myItems"] });
       queryClient.invalidateQueries({ queryKey: ["myExchanges"] });
     },
-    onError: (error) => {
+    onError: () => {
       Alert.alert("오류", "상태 변경에 실패했습니다.");
-      console.error("상태 변경 실패:", error);
     },
   });
-
-  // 메시지 전송 핸들러
-  const handleSendMessage = useCallback(() => {
-    if (!inputText.trim() || !isConnected) return;
-
-    const messageData = {
-      roomId: Number(roomId),
-      content: inputText.trim(),
-      senderId: user?.userId,
-      senderName: user?.nickname,
-    };
-
-    publish(`/pub/chat/${roomId}`, messageData);
-    setInputText("");
-  }, [inputText, isConnected, roomId, user, publish]);
 
   // 상태 변경 버튼 핸들러
   const handleStatusChange = useCallback(
@@ -221,50 +191,6 @@ export default function ChatRoomScreen() {
       );
     },
     [updateItemStatus],
-  );
-
-  // 메시지 렌더링 컴포넌트
-  const renderMessage = useCallback(
-    ({ item }: { item: ChatMessage }) => (
-      <View
-        style={[
-          styles.messageContainer,
-          {
-            backgroundColor: item.isMine ? colors.primary : colors.surface,
-            alignSelf: item.isMine ? "flex-end" : "flex-start",
-          },
-        ]}
-      >
-        <Text
-          style={[
-            styles.senderName,
-            { color: item.isMine ? colors.background : colors.text },
-          ]}
-        >
-          {item.senderName}
-        </Text>
-        <Text
-          style={[
-            styles.messageContent,
-            { color: item.isMine ? colors.background : colors.text },
-          ]}
-        >
-          {item.content}
-        </Text>
-        <Text
-          style={[
-            styles.timestamp,
-            { color: item.isMine ? colors.background : colors.muted },
-          ]}
-        >
-          {new Date(item.timestamp).toLocaleTimeString("ko-KR", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </Text>
-      </View>
-    ),
-    [colors],
   );
 
   // 아이템 정보 헤더
@@ -291,45 +217,67 @@ export default function ChatRoomScreen() {
                 : "교환 취소"}
           </Text>
 
-          {/* 🚨 앙드레 카파시: 상태 변경 버튼 */}
+          {/* Target 14: 채팅방 상태 제어 UI - 소유자/요청자 화면 분기 */}
           {exchangeItem.status === "REGISTERED" && (
             <View style={styles.statusButtons}>
-              <Button
-                onPress={() => handleStatusChange("EXCHANGE_COMPLETED")}
-                style={[
-                  styles.statusButton,
-                  {
-                    backgroundColor: colors.primary,
-                  },
-                ]}
-              >
-                <Text
+              {exchangeItem.user.id === user?.userId ? (
+                // 아이템 소유자(Seller) 화면
+                <>
+                  <Button
+                    onPress={() => handleStatusChange("EXCHANGE_COMPLETED")}
+                    style={[
+                      styles.statusButton,
+                      {
+                        backgroundColor: colors.primary,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.statusButtonText,
+                        { color: colors.background },
+                      ]}
+                    >
+                      교환 확정
+                    </Text>
+                  </Button>
+                  <Button
+                    onPress={() => handleStatusChange("EXCHANGE_FAILED")}
+                    style={styles.statusButtonError}
+                  >
+                    <Text
+                      style={[
+                        styles.statusButtonText,
+                        { color: colors.background },
+                      ]}
+                    >
+                      교환 취소
+                    </Text>
+                  </Button>
+                </>
+              ) : (
+                // 요청자(Buyer) 화면
+                <Button
+                  onPress={() =>
+                    Alert.alert("알림", "교환 확정은 소유자만 할 수 있습니다.")
+                  }
                   style={[
-                    styles.statusButtonText,
-                    { color: colors.background },
+                    styles.statusButton,
+                    {
+                      backgroundColor: colors.muted,
+                    },
                   ]}
                 >
-                  교환 확정
-                </Text>
-              </Button>
-              <Button
-                onPress={() => handleStatusChange("EXCHANGE_FAILED")}
-                style={[
-                  styles.statusButton,
-                  {
-                    backgroundColor: "#EF4444",
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.statusButtonText,
-                    { color: colors.background },
-                  ]}
-                >
-                  교환 취소
-                </Text>
-              </Button>
+                  <Text
+                    style={[
+                      styles.statusButtonText,
+                      { color: colors.background },
+                    ]}
+                  >
+                    교환 대기 중
+                  </Text>
+                </Button>
+              )}
             </View>
           )}
         </View>
@@ -345,74 +293,13 @@ export default function ChatRoomScreen() {
       {/* 아이템 정보 헤더 */}
       {renderExchangeItemHeader()}
 
-      {/* 🚨 앙드레 카파시: FlashList Inverted 렌더링 */}
-      <FlashList
-        ref={flatListRef}
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.messagesList}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, { color: colors.muted }]}>
-              {messagesLoading
-                ? "메시지를 불러오는 중..."
-                : "아직 메시지가 없습니다"}
-            </Text>
-          </View>
-        }
-      />
-
-      {/* 메시지 입력창 */}
-      <View
-        style={[styles.inputContainer, { backgroundColor: colors.surface }]}
-      >
-        <Input
-          placeholder="메시지를 입력하세요"
-          value={inputText}
-          onChangeText={setInputText}
-          multiline
-          style={styles.messageInput}
-        />
-        <Button
-          onPress={handleSendMessage}
-          disabled={!inputText.trim() || !isConnected}
-          style={[
-            styles.sendButton,
-            {
-              backgroundColor:
-                !inputText.trim() || !isConnected
-                  ? colors.muted
-                  : colors.primary,
-            },
-          ]}
-        >
-          <Text
-            style={[
-              styles.sendButtonText,
-              {
-                color:
-                  !inputText.trim() || !isConnected
-                    ? colors.background
-                    : colors.background,
-              },
-            ]}
-          >
-            전송
-          </Text>
-        </Button>
-      </View>
-
       {/* 연결 상태 표시 */}
       <View
         style={[
           styles.connectionStatus,
-          {
-            backgroundColor: isConnected
-              ? colors.success || "#10B981"
-              : "#EF4444",
-          },
+          isConnected
+            ? styles.connectionStatusConnected
+            : styles.connectionStatusDisconnected,
         ]}
       >
         <Text
@@ -433,7 +320,7 @@ const styles = StyleSheet.create({
   itemHeader: {
     padding: SPACING.COMPONENT,
     borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
+    borderBottomColor: theme.colors.border.bottom,
   },
   itemTitle: {
     fontSize: FONT_SIZE.BODY,
@@ -458,6 +345,12 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.SMALL,
     borderRadius: BORDER_RADIUS.BUTTON,
   },
+  statusButtonError: {
+    backgroundColor: theme.colors.error,
+    flex: 1,
+    paddingVertical: SPACING.SMALL,
+    borderRadius: BORDER_RADIUS.BUTTON,
+  },
   statusButtonText: {
     fontSize: FONT_SIZE.SMALL,
     fontWeight: "600",
@@ -467,63 +360,15 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.BODY,
     textAlign: "center",
   },
-  messagesList: {
-    paddingHorizontal: SPACING.COMPONENT,
-    paddingVertical: SPACING.SMALL,
-  },
-  messageContainer: {
-    maxWidth: "70%",
-    padding: SPACING.SMALL,
-    borderRadius: BORDER_RADIUS.CARD,
-    marginBottom: SPACING.SMALL,
-  },
-  senderName: {
-    fontSize: FONT_SIZE.SMALL,
-    fontWeight: "600",
-    marginBottom: SPACING.TINY,
-  },
-  messageContent: {
-    fontSize: FONT_SIZE.BODY,
-    lineHeight: 20,
-  },
-  timestamp: {
-    fontSize: FONT_SIZE.CAPTION,
-    marginTop: SPACING.TINY,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: SPACING.SECTION * 2,
-  },
-  emptyText: {
-    fontSize: FONT_SIZE.BODY,
-    textAlign: "center",
-  },
-  inputContainer: {
-    flexDirection: "row",
-    padding: SPACING.COMPONENT,
-    borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
-    alignItems: "flex-end",
-    gap: SPACING.SMALL,
-  },
-  messageInput: {
-    flex: 1,
-    maxHeight: 100,
-  },
-  sendButton: {
-    paddingHorizontal: SPACING.COMPONENT,
-    paddingVertical: SPACING.SMALL,
-    borderRadius: BORDER_RADIUS.BUTTON,
-  },
-  sendButtonText: {
-    fontSize: FONT_SIZE.BODY,
-    fontWeight: "600",
-  },
   connectionStatus: {
     paddingVertical: SPACING.TINY,
     alignItems: "center",
+  },
+  connectionStatusConnected: {
+    backgroundColor: theme.colors.success,
+  },
+  connectionStatusDisconnected: {
+    backgroundColor: theme.colors.error,
   },
   connectionStatusText: {
     fontSize: FONT_SIZE.CAPTION,

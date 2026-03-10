@@ -1,21 +1,21 @@
-import { useQuery } from "@tanstack/react-query";
-import { useLocalSearchParams } from "expo-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { useTheme } from "@/hooks/useTheme";
-import { itemsGetDetailAPI } from "@/src/features/exchange/api";
+import { itemsDeleteAPI, itemsGetDetailAPI } from "@/src/features/exchange/api";
 import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
 
@@ -44,52 +44,34 @@ const styles = StyleSheet.create({
   },
   imagePlaceholderText: {
     fontSize: theme.typography.size.BODY,
-    color: theme.colors.text.tertiary,
-  },
-  contentContainer: {
-    padding: theme.spacing.lg,
-    paddingBottom: 40, // 하단 고정 바에 가리지 않도록 여백 추가
-  },
-  title: {
-    fontSize: theme.typography.size.xl,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing.sm,
-  },
-  description: {
-    fontSize: theme.typography.size.md,
     color: theme.colors.text.secondary,
-    lineHeight: 24,
   },
   profileRow: {
     flexDirection: "row",
     alignItems: "center",
-    padding: theme.spacing.lg,
-    borderBottomWidth: 1,
-    borderColor: theme.colors.border.medium,
+    padding: theme.spacing.COMPONENT,
+    gap: theme.spacing.SMALL,
   },
   profileImage: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    marginRight: theme.spacing.sm,
   },
   nickname: {
-    fontSize: theme.typography.size.sm,
+    fontSize: theme.typography.size.md,
     fontWeight: theme.typography.weight.bold,
-    color: theme.colors.text.primary,
   },
-  bottomBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: theme.spacing.xl,
-    paddingVertical: theme.spacing.sm,
-    borderTopWidth: 1,
-    borderColor: theme.colors.border.medium,
+  contentContainer: {
+    padding: theme.spacing.COMPONENT,
   },
-  desiredItemContainer: {
-    flex: 1,
+  title: {
+    fontSize: theme.typography.size.lg,
+    fontWeight: theme.typography.weight.bold,
+    marginBottom: theme.spacing.SMALL,
+  },
+  description: {
+    fontSize: theme.typography.size.BODY,
+    lineHeight: 22,
   },
   desiredItemLabel: {
     fontSize: theme.typography.size.xs,
@@ -100,15 +82,34 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.weight.bold,
     marginTop: 2,
   },
-  actionButton: {
-    backgroundColor: theme.colors.primary,
-    paddingVertical: 10,
+  bottomBar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: theme.spacing.xl,
-    borderRadius: theme.radius.md,
+    paddingVertical: theme.spacing.sm,
+    borderTopWidth: 1,
   },
-  actionButtonText: {
-    color: theme.colors.background,
-    fontWeight: theme.typography.weight.bold,
+  desiredItemContainer: {
+    flex: 1,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  errorButton: {
+    backgroundColor: theme.colors.error,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  exchangeButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  exchangeButtonText: {
+    fontWeight: "bold",
     fontSize: 15,
   },
   loadingContainer: {
@@ -127,6 +128,31 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: theme.spacing.COMPONENT,
   },
+  imageCarousel: {
+    width: "100%",
+    aspectRatio: 1,
+  },
+  indicatorContainer: {
+    position: "absolute",
+    bottom: theme.spacing.SMALL,
+    right: theme.spacing.SMALL,
+    flexDirection: "row",
+    gap: theme.spacing.TINY,
+  },
+  indicatorDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    borderWidth: 1,
+  },
+  profileInitialText: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  deleteButtonText: {
+    fontWeight: "bold",
+    fontSize: 15,
+  },
 });
 
 /**
@@ -142,6 +168,8 @@ export default function ItemDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors } = useTheme();
   const { user } = useAuth();
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // React Query로 아이템 상세 정보 가져오기
@@ -157,8 +185,8 @@ export default function ItemDetailScreen() {
     enabled: !!id,
   });
 
-  // 작성자 여부 확인 (권한 기반 UI 분리용) - TODO: 구현 필요
-  // const isOwner = item?.data?.userId === user?.userId;
+  // 작성자 여부 확인 (권한 기반 UI 분리용)
+  const isOwner = item?.data?.user?.id === user?.userId;
 
   // 이미지 캐러셀 렌더링
   const renderImageCarousel = useCallback(() => {
@@ -179,7 +207,7 @@ export default function ItemDetailScreen() {
     }
 
     return (
-      <View style={styles.imageContainer}>
+      <View style={styles.imageCarousel}>
         <ScrollView
           horizontal
           pagingEnabled
@@ -191,7 +219,7 @@ export default function ItemDetailScreen() {
           }}
         >
           {item.data.images?.map((imageUrl: string, index: number) => (
-            <View key={index} style={{ width: "100%", aspectRatio: 1 }}>
+            <View key={index} style={styles.imageContainer}>
               <Image source={{ uri: imageUrl }} style={styles.image} />
             </View>
           ))}
@@ -199,29 +227,20 @@ export default function ItemDetailScreen() {
 
         {/* 이미지 인디케이터 */}
         {item.data.images.length > 1 && (
-          <View
-            style={{
-              position: "absolute",
-              bottom: theme.spacing.SMALL,
-              right: theme.spacing.SMALL,
-              flexDirection: "row",
-              gap: theme.spacing.TINY,
-            }}
-          >
+          <View style={styles.indicatorContainer}>
             {item.data.images?.map((_: string, index: number) => (
               <View
                 key={index}
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: 4,
-                  backgroundColor:
-                    index === currentImageIndex
-                      ? colors.primary
-                      : colors.background,
-                  borderWidth: 1,
-                  borderColor: colors.background,
-                }}
+                style={[
+                  styles.indicatorDot,
+                  {
+                    backgroundColor:
+                      index === currentImageIndex
+                        ? colors.primary
+                        : colors.background,
+                    borderColor: colors.background,
+                  },
+                ]}
               />
             ))}
           </View>
@@ -256,24 +275,34 @@ export default function ItemDetailScreen() {
   //       },
   //     ]);
   //   },
-  //   [refetch],
-  // );
 
-  // 삭제 핸들러 (작성자 전용) - TODO: 구현 필요
-  // const handleDelete = useCallback(() => {
-  //   Alert.alert("삭제 확인", "정말로 이 아이템을 삭제하시겠습니까?", [
-  //     { text: "취소", style: "cancel" },
-  //     {
-  //       text: "삭제",
-  //       style: "destructive",
-  //       onPress: () => {
-  //         // TODO: 삭제 API 호출
-  //         Alert.alert("성공", "아이템이 삭제되었습니다.");
-  //         router.replace("/(tabs)/exchange");
-  //       },
-  //     },
-  //   ]);
-  // }, [router]);
+  // 삭제 Mutation
+  const { mutate: deleteItem } = useMutation({
+    mutationFn: () => itemsDeleteAPI(Number(id)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["items"] });
+      queryClient.invalidateQueries({ queryKey: ["myItems"] });
+      router.replace("/(tabs)/exchange");
+    },
+    onError: () => {
+      Alert.alert(
+        "삭제 실패",
+        "아이템 삭제에 실패했습니다. 다시 시도해주세요.",
+      );
+    },
+  });
+
+  // 삭제 핸들러 (작성자 전용)
+  const handleDelete = useCallback(() => {
+    Alert.alert("게시글 삭제", "정말 삭제하시겠습니까? 복구할 수 없습니다.", [
+      { text: "취소", style: "cancel" },
+      {
+        text: "삭제",
+        style: "destructive",
+        onPress: () => deleteItem(),
+      },
+    ]);
+  }, [deleteItem]);
 
   // 로딩 상태
   if (isLoading) {
@@ -312,10 +341,7 @@ export default function ItemDetailScreen() {
   }
 
   return (
-    <SafeLayout
-      edges={["top", "bottom"]}
-      style={{ flex: 1, backgroundColor: "#FFF" }}
-    >
+    <SafeLayout edges={["top", "bottom"]} style={styles.container}>
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -332,21 +358,10 @@ export default function ItemDetailScreen() {
             />
           ) : (
             <View
-              style={[
-                styles.profileImage,
-                {
-                  backgroundColor: colors.border,
-                  justifyContent: "center",
-                  alignItems: "center",
-                },
-              ]}
+              style={[styles.profileImage, { backgroundColor: colors.border }]}
             >
               <Text
-                style={{
-                  color: colors.muted,
-                  fontSize: 16,
-                  fontWeight: "bold",
-                }}
+                style={[styles.profileInitialText, { color: colors.muted }]}
               >
                 {item.data.user?.nickname?.[0]?.toUpperCase() || "U"}
               </Text>
@@ -372,36 +387,48 @@ export default function ItemDetailScreen() {
       </ScrollView>
 
       {/* 하단 고정 바 */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: 16,
-          borderTopWidth: 1,
-          borderColor: "#E5E7EB",
-        }}
-      >
-        <View>
-          <Text style={{ fontSize: 12, color: "#6B7280" }}>희망 아이템</Text>
-          <Text style={{ fontSize: 16, fontWeight: "bold", marginTop: 2 }}>
+      <View style={[styles.bottomBar, { borderColor: colors.border }]}>
+        <View style={styles.desiredItemContainer}>
+          <Text style={[styles.desiredItemLabel, { color: colors.muted }]}>
+            희망 아이템
+          </Text>
+          <Text style={[styles.desiredItemText, { color: colors.text }]}>
             {item.data.desiredItem || "없음"}
           </Text>
         </View>
-        <TouchableOpacity
-          style={{
-            backgroundColor: "#000000",
-            paddingVertical: 10,
-            paddingHorizontal: 20,
-            borderRadius: 8,
-          }}
-          onPress={handleExchangeRequest}
-          disabled={item.data.status !== "REGISTERED"}
-        >
-          <Text style={{ color: "#FFFFFF", fontWeight: "bold", fontSize: 15 }}>
-            교환 신청하기
-          </Text>
-        </TouchableOpacity>
+
+        {/* 권한 기반 버튼 분기 */}
+        {isOwner ? (
+          <View style={styles.buttonRow}>
+            <TouchableOpacity style={styles.errorButton} onPress={handleDelete}>
+              <Text
+                style={[styles.deleteButtonText, { color: colors.background }]}
+              >
+                삭제하기
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={[
+              styles.exchangeButton,
+              {
+                backgroundColor:
+                  item.data.status === "REGISTERED"
+                    ? colors.primary
+                    : colors.muted,
+              },
+            ]}
+            onPress={handleExchangeRequest}
+            disabled={item.data.status !== "REGISTERED"}
+          >
+            <Text
+              style={[styles.exchangeButtonText, { color: colors.background }]}
+            >
+              교환 신청하기
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeLayout>
   );
