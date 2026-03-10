@@ -351,7 +351,6 @@ export default function ChatRoomScreen() {
         data={messages}
         renderItem={renderMessage}
         keyExtractor={(item) => item.id.toString()}
-        inverted={true} // 최신 메시지가 아래에 고정되도록 강제}
         contentContainerStyle={styles.messagesList}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={

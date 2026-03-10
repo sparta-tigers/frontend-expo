@@ -1,20 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/constants/unified-design";
+import { SafeLayout } from "@/components/ui/safe-layout";
+import { FONT_SIZE, SPACING } from "@/constants/unified-design";
 import { useTheme } from "@/hooks/useTheme";
 import { itemsGetDetailAPI } from "@/src/features/exchange/api";
 import { useAuth } from "@/src/hooks/useAuth";
@@ -28,7 +28,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   imageContainer: {
-    height: 300,
+    width: "100%",
+    aspectRatio: 1,
     backgroundColor: "#f5f5f5",
   },
   image: {
@@ -46,104 +47,69 @@ const styles = StyleSheet.create({
     color: "#999",
   },
   contentContainer: {
-    padding: SPACING.SCREEN,
+    padding: 16,
+    paddingBottom: 40, // 하단 고정 바에 가리지 않도록 여백 추가
   },
   title: {
-    fontSize: FONT_SIZE.TITLE,
+    fontSize: 20,
     fontWeight: "bold",
-    marginBottom: SPACING.COMPONENT,
+    color: "#111827",
+    marginBottom: 12,
   },
-  metaContainer: {
+  description: {
+    fontSize: 16,
+    color: "#374151",
+    lineHeight: 24,
+  },
+  profileRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
+  },
+  nickname: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#111827",
+  },
+  bottomBar: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: SPACING.SECTION,
-  },
-  category: {
-    fontSize: FONT_SIZE.SMALL,
-    fontWeight: "600",
-    paddingHorizontal: SPACING.SMALL,
-    paddingVertical: SPACING.SMALL / 2,
-    borderRadius: BORDER_RADIUS.BUTTON,
-    overflow: "hidden",
-  },
-  date: {
-    fontSize: FONT_SIZE.CAPTION,
-    color: "#666",
-  },
-  status: {
-    fontSize: FONT_SIZE.SMALL,
-    fontWeight: "600",
-    paddingHorizontal: SPACING.SMALL,
-    paddingVertical: SPACING.SMALL / 2,
-    borderRadius: BORDER_RADIUS.BUTTON,
-    overflow: "hidden",
-  },
-  description: {
-    fontSize: FONT_SIZE.BODY,
-    lineHeight: 24,
-    marginBottom: SPACING.SECTION,
-  },
-  sectionTitle: {
-    fontSize: FONT_SIZE.SECTION_TITLE,
-    fontWeight: "bold",
-    marginBottom: SPACING.COMPONENT,
-  },
-  userInfoContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: SPACING.COMPONENT,
-    borderRadius: BORDER_RADIUS.CARD,
-    marginBottom: SPACING.SECTION,
-  },
-  userAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginRight: SPACING.COMPONENT,
-  },
-  userAvatarPlaceholder: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#e0e0e0",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: SPACING.COMPONENT,
-  },
-  userInfo: {
-    flex: 1,
-  },
-  userName: {
-    fontSize: FONT_SIZE.BODY,
-    fontWeight: "600",
-    marginBottom: SPACING.SMALL / 2,
-  },
-  userDate: {
-    fontSize: FONT_SIZE.CAPTION,
-    color: "#666",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderColor: "#E5E7EB",
   },
   desiredItemContainer: {
-    padding: SPACING.COMPONENT,
-    borderRadius: BORDER_RADIUS.CARD,
-    marginBottom: SPACING.SECTION,
+    flex: 1,
   },
-  desiredItemTitle: {
-    fontSize: FONT_SIZE.SMALL,
-    fontWeight: "600",
-    marginBottom: SPACING.SMALL,
+  desiredItemLabel: {
+    fontSize: 12,
+    color: "#6B7280",
   },
   desiredItemText: {
-    fontSize: FONT_SIZE.BODY,
-  },
-  bottomActionBar: {
-    flexDirection: "row",
-    padding: SPACING.SCREEN,
-    borderTopWidth: 1,
-    gap: SPACING.SMALL,
+    fontSize: 16,
+    fontWeight: "bold",
+    marginTop: 2,
   },
   actionButton: {
-    flex: 1,
+    backgroundColor: "#000000",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  actionButtonText: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    fontSize: 15,
   },
   loadingContainer: {
     flex: 1,
@@ -173,7 +139,6 @@ const styles = StyleSheet.create({
  * - 하단 액션 바
  */
 export default function ItemDetailScreen() {
-  const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors } = useTheme();
   const { user } = useAuth();
@@ -192,8 +157,8 @@ export default function ItemDetailScreen() {
     enabled: !!id,
   });
 
-  // 작성자 여부 확인
-  const isOwner = item?.data?.userId === user?.userId;
+  // 작성자 여부 확인 (권한 기반 UI 분리용) - TODO: 구현 필요
+  // const isOwner = item?.data?.userId === user?.userId;
 
   // 이미지 캐러셀 렌더링
   const renderImageCarousel = useCallback(() => {
@@ -220,12 +185,13 @@ export default function ItemDetailScreen() {
           pagingEnabled
           showsHorizontalScrollIndicator={false}
           onMomentumScrollEnd={(event) => {
-            const index = Math.round(event.nativeEvent.contentOffset.x / 300);
+            const { width } = event.nativeEvent.layoutMeasurement;
+            const index = Math.round(event.nativeEvent.contentOffset.x / width);
             setCurrentImageIndex(index);
           }}
         >
           {item.data.images?.map((imageUrl: string, index: number) => (
-            <View key={index} style={{ width: 300, height: 300 }}>
+            <View key={index} style={{ width: "100%", aspectRatio: 1 }}>
               <Image source={{ uri: imageUrl }} style={styles.image} />
             </View>
           ))}
@@ -275,45 +241,46 @@ export default function ItemDetailScreen() {
     Alert.alert("교환 신청", "교환 신청 기능은 Phase 2에서 구현됩니다.");
   }, [user]);
 
-  // 상태 변경 핸들러 (작성자 전용)
-  const handleStatusChange = useCallback(
-    (status: string) => {
-      Alert.alert("상태 변경", `${status} 상태로 변경하시겠습니까?`, [
-        { text: "취소", style: "cancel" },
-        {
-          text: "확인",
-          onPress: () => {
-            // TODO: 상태 변경 API 호출
-            Alert.alert("성공", "상태가 변경되었습니다.");
-            refetch();
-          },
-        },
-      ]);
-    },
-    [refetch],
-  );
+  // 상태 변경 핸들러 (작성자 전용) - TODO: 구현 필요
+  // const handleStatusChange = useCallback(
+  //   (status: string) => {
+  //     Alert.alert("상태 변경", `${status} 상태로 변경하시겠습니까?`, [
+  //       { text: "취소", style: "cancel" },
+  //       {
+  //         text: "확인",
+  //         onPress: () => {
+  //           // TODO: 상태 변경 API 호출
+  //           Alert.alert("성공", "상태가 변경되었습니다.");
+  //           refetch();
+  //         },
+  //       },
+  //     ]);
+  //   },
+  //   [refetch],
+  // );
 
-  // 삭제 핸들러 (작성자 전용)
-  const handleDelete = useCallback(() => {
-    Alert.alert("삭제 확인", "정말로 이 아이템을 삭제하시겠습니까?", [
-      { text: "취소", style: "cancel" },
-      {
-        text: "삭제",
-        style: "destructive",
-        onPress: () => {
-          // TODO: 삭제 API 호출
-          Alert.alert("성공", "아이템이 삭제되었습니다.");
-          router.replace("/(tabs)/exchange");
-        },
-      },
-    ]);
-  }, [router]);
+  // 삭제 핸들러 (작성자 전용) - TODO: 구현 필요
+  // const handleDelete = useCallback(() => {
+  //   Alert.alert("삭제 확인", "정말로 이 아이템을 삭제하시겠습니까?", [
+  //     { text: "취소", style: "cancel" },
+  //     {
+  //       text: "삭제",
+  //       style: "destructive",
+  //       onPress: () => {
+  //         // TODO: 삭제 API 호출
+  //         Alert.alert("성공", "아이템이 삭제되었습니다.");
+  //         router.replace("/(tabs)/exchange");
+  //       },
+  //     },
+  //   ]);
+  // }, [router]);
 
   // 로딩 상태
   if (isLoading) {
     return (
-      <SafeAreaView
-        style={[styles.container, { backgroundColor: colors.background }]}
+      <SafeLayout
+        edges={["top", "bottom"]}
+        style={{ backgroundColor: colors.background }}
       >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -321,15 +288,16 @@ export default function ItemDetailScreen() {
             아이템 정보를 불러오는 중...
           </Text>
         </View>
-      </SafeAreaView>
+      </SafeLayout>
     );
   }
 
   // 에러 상태
   if (error || !item?.data) {
     return (
-      <SafeAreaView
-        style={[styles.container, { backgroundColor: colors.background }]}
+      <SafeLayout
+        edges={["top", "bottom"]}
+        style={{ backgroundColor: colors.background }}
       >
         <View style={styles.errorContainer}>
           <Text style={[styles.errorText, { color: colors.text }]}>
@@ -337,13 +305,14 @@ export default function ItemDetailScreen() {
           </Text>
           <Button onPress={() => refetch()}>다시 시도</Button>
         </View>
-      </SafeAreaView>
+      </SafeLayout>
     );
   }
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
+    <SafeLayout
+      edges={["top", "bottom"]}
+      style={{ flex: 1, backgroundColor: "#FFF" }}
     >
       <ScrollView
         style={styles.scrollView}
@@ -352,160 +321,86 @@ export default function ItemDetailScreen() {
         {/* 이미지 캐러셀 */}
         {renderImageCarousel()}
 
-        {/* 콘텐츠 */}
+        {/* 작성자 프로필 영역 */}
+        <View style={styles.profileRow}>
+          {item.data.user?.profileImage ? (
+            <Image
+              source={{ uri: item.data.user.profileImage }}
+              style={styles.profileImage}
+            />
+          ) : (
+            <View
+              style={[
+                styles.profileImage,
+                {
+                  backgroundColor: colors.border,
+                  justifyContent: "center",
+                  alignItems: "center",
+                },
+              ]}
+            >
+              <Text
+                style={{
+                  color: colors.muted,
+                  fontSize: 16,
+                  fontWeight: "bold",
+                }}
+              >
+                {item.data.user?.nickname?.[0]?.toUpperCase() || "U"}
+              </Text>
+            </View>
+          )}
+          <Text style={[styles.nickname, { color: colors.text }]}>
+            {item.data.user?.nickname || "알 수 없음"}
+          </Text>
+        </View>
+
+        {/* 본문 영역 */}
         <View style={styles.contentContainer}>
           {/* 제목 */}
           <Text style={[styles.title, { color: colors.text }]}>
             {item.data.title}
           </Text>
 
-          {/* 메타 정보 */}
-          <View style={styles.metaContainer}>
-            <Text
-              style={[
-                styles.category,
-                {
-                  backgroundColor: colors.primary + "20",
-                  color: colors.primary,
-                },
-              ]}
-            >
-              {item.data.category === "TICKET" ? "티켓" : "굿즈"}
-            </Text>
-            <Text style={[styles.date, { color: colors.muted }]}>
-              {new Date(item.data.createdAt).toLocaleDateString()}
-            </Text>
-            <Text
-              style={[
-                styles.status,
-                {
-                  backgroundColor:
-                    item.data.status === "REGISTERED"
-                      ? colors.success + "20"
-                      : item.data.status === "EXCHANGE_COMPLETED"
-                        ? colors.primary + "20"
-                        : colors.destructive + "20",
-                  color:
-                    item.data.status === "REGISTERED"
-                      ? colors.success
-                      : item.data.status === "EXCHANGE_COMPLETED"
-                        ? colors.primary
-                        : colors.destructive,
-                },
-              ]}
-            >
-              {item.data.status === "REGISTERED"
-                ? "등록됨"
-                : item.data.status === "EXCHANGE_COMPLETED"
-                  ? "교환완료"
-                  : "교환실패"}
-            </Text>
-          </View>
-
-          {/* 설명 */}
+          {/* 내용 */}
           <Text style={[styles.description, { color: colors.text }]}>
             {item.data.description}
           </Text>
-
-          {/* 희망 아이템 */}
-          {item.data.desiredItem && (
-            <Card
-              style={[
-                styles.desiredItemContainer,
-                { backgroundColor: colors.surface, shadowColor: colors.border },
-              ]}
-            >
-              <Text
-                style={[styles.desiredItemTitle, { color: colors.primary }]}
-              >
-                희망 교환 물품
-              </Text>
-              <Text style={[styles.desiredItemText, { color: colors.text }]}>
-                {item.data.desiredItem}
-              </Text>
-            </Card>
-          )}
-
-          {/* 등록자 정보 */}
-          <Card
-            style={[
-              styles.userInfoContainer,
-              { backgroundColor: colors.surface, shadowColor: colors.border },
-            ]}
-          >
-            {item.data.user?.profileImage ? (
-              <Image
-                source={{ uri: item.data.user.profileImage }}
-                style={styles.userAvatar}
-              />
-            ) : (
-              <View
-                style={[
-                  styles.userAvatarPlaceholder,
-                  { backgroundColor: colors.border },
-                ]}
-              >
-                <Text style={{ color: colors.muted, fontSize: 16 }}>
-                  {item.data.user?.nickname?.[0]?.toUpperCase() || "U"}
-                </Text>
-              </View>
-            )}
-            <View style={styles.userInfo}>
-              <Text style={[styles.userName, { color: colors.text }]}>
-                {item.data.user?.nickname || "알 수 없음"}
-              </Text>
-              <Text style={[styles.userDate, { color: colors.muted }]}>
-                {new Date(item.data.createdAt).toLocaleDateString()}
-              </Text>
-            </View>
-          </Card>
         </View>
       </ScrollView>
 
-      {/* 하단 액션 바 - 권한 기반 분기 */}
+      {/* 하단 고정 바 */}
       <View
-        style={[
-          styles.bottomActionBar,
-          {
-            borderTopColor: colors.border,
-            backgroundColor: colors.background,
-          },
-        ]}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: 16,
+          borderTopWidth: 1,
+          borderColor: "#E5E7EB",
+        }}
       >
-        {isOwner ? (
-          // 작성자 액션
-          <>
-            <Button
-              style={[styles.actionButton, { backgroundColor: colors.primary }]}
-              onPress={() => handleStatusChange("EXCHANGE_COMPLETED")}
-            >
-              <Text style={{ color: colors.background }}>교환 완료</Text>
-            </Button>
-            <Button
-              style={[
-                styles.actionButton,
-                { backgroundColor: colors.destructive },
-              ]}
-              onPress={handleDelete}
-            >
-              <Text style={{ color: colors.background }}>삭제</Text>
-            </Button>
-          </>
-        ) : (
-          // 타인 액션
-          <Button
-            style={[styles.actionButton, { backgroundColor: colors.primary }]}
-            onPress={handleExchangeRequest}
-            disabled={item.data.status !== "REGISTERED"}
-          >
-            <Text style={{ color: colors.background }}>
-              {item.data.status === "REGISTERED"
-                ? "교환 신청하기"
-                : "교환 불가"}
-            </Text>
-          </Button>
-        )}
+        <View>
+          <Text style={{ fontSize: 12, color: "#6B7280" }}>희망 아이템</Text>
+          <Text style={{ fontSize: 16, fontWeight: "bold", marginTop: 2 }}>
+            {item.data.desiredItem || "없음"}
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={{
+            backgroundColor: "#000000",
+            paddingVertical: 10,
+            paddingHorizontal: 20,
+            borderRadius: 8,
+          }}
+          onPress={handleExchangeRequest}
+          disabled={item.data.status !== "REGISTERED"}
+        >
+          <Text style={{ color: "#FFFFFF", fontWeight: "bold", fontSize: 15 }}>
+            교환 신청하기
+          </Text>
+        </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </SafeLayout>
   );
 }

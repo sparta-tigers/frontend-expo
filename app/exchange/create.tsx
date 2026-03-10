@@ -5,35 +5,19 @@ import React from "react";
 import {
     Alert,
     Image,
+    ScrollView,
     StyleSheet,
     Text,
+    TextInput,
     TouchableOpacity,
     View,
 } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { SafeAreaView } from "react-native-safe-area-context";
-import * as z from "zod";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/constants/unified-design";
-import { useTheme } from "@/hooks/useTheme";
+import { SafeLayout } from "@/components/ui/safe-layout";
 import { createExchangeItem } from "@/src/features/exchange/api";
 import { ItemCategory, LocationDto } from "@/src/features/exchange/types";
 
-// Zod 스키마 강제 - 작업 지시서 요구사항
-const createItemSchema = z.object({
-  title: z.string().min(1, "제목을 입력해주세요."),
-  description: z.string().min(1, "내용을 입력해주세요."),
-  desiredItem: z.string().optional(),
-  categoryId: z.number().min(1, "카테고리를 선택해주세요."),
-});
-
-type CreateItemFormData = z.infer<typeof createItemSchema> & {
-  [key: string]: string | number | undefined;
-};
-
-// 정적 스타일 정의
+// 정적 스타일 정의 (작업 지시서 기준)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -41,134 +25,122 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  contentContainer: {
-    padding: SPACING.SCREEN,
+  // 이미지 첨부 UI
+  imageScrollContainer: {
+    padding: 16,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderColor: "#F3F4F6",
   },
-  section: {
-    marginBottom: SPACING.SECTION,
-  },
-  sectionTitle: {
-    fontSize: FONT_SIZE.SECTION_TITLE,
-    fontWeight: "bold",
-    marginBottom: SPACING.COMPONENT,
-  },
-  imagePickerContainer: {
-    flexDirection: "row",
-    gap: SPACING.SMALL,
-    marginBottom: SPACING.COMPONENT,
-  },
-  imagePickerButton: {
-    width: 80,
-    height: 80,
-    borderRadius: BORDER_RADIUS.CARD,
-    backgroundColor: "#f5f5f5",
+  imageAddButton: {
+    width: 72,
+    height: 72,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#ddd",
-    borderStyle: "dashed",
+    marginRight: 12,
+    backgroundColor: "#F9FAFB",
   },
-  imagePickerButtonText: {
+  imageThumbnail: {
+    width: 72,
+    height: 72,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  deleteButton: {
+    position: "absolute",
+    top: -8,
+    right: -8,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: "#EF4444",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  deleteButtonText: {
+    color: "#FFFFFF",
     fontSize: 12,
-    color: "#999",
-    textAlign: "center",
+    fontWeight: "bold",
   },
-  selectedImage: {
-    width: 80,
-    height: 80,
-    borderRadius: BORDER_RADIUS.CARD,
+  // 입력 폼
+  formContainer: {
+    paddingHorizontal: 16,
   },
-  categoryContainer: {
+  titleInput: {
+    height: 60,
+    fontSize: 18,
+    borderBottomWidth: 1,
+    borderColor: "#F3F4F6",
+    marginBottom: 16,
+  },
+  desiredItemInput: {
+    height: 60,
+    fontSize: 16,
+    borderBottomWidth: 1,
+    borderColor: "#F3F4F6",
+    marginBottom: 16,
+  },
+  contentInput: {
+    minHeight: 200,
+    fontSize: 16,
+    paddingTop: 16,
+    textAlignVertical: "top",
+    borderBottomWidth: 1,
+    borderColor: "#F3F4F6",
+  },
+  // 헤더
+  header: {
     flexDirection: "row",
-    gap: SPACING.SMALL,
-    marginBottom: SPACING.COMPONENT,
-  },
-  categoryButton: {
-    flex: 1,
-    paddingVertical: SPACING.SMALL,
-    paddingHorizontal: SPACING.SMALL,
-    borderRadius: BORDER_RADIUS.BUTTON,
-    borderWidth: 1,
+    justifyContent: "space-between",
     alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderColor: "#E5E7EB",
   },
-  categoryButtonActive: {
-    backgroundColor: "#007AFF",
-    borderColor: "#007AFF",
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#111827",
   },
-  categoryButtonText: {
-    fontSize: FONT_SIZE.SMALL,
-    fontWeight: "600",
-  },
-  categoryButtonTextActive: {
-    color: "#fff",
-  },
-  locationContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: SPACING.SMALL,
-    marginBottom: SPACING.COMPONENT,
-  },
-  locationButton: {
-    paddingVertical: SPACING.SMALL,
-    paddingHorizontal: SPACING.COMPONENT,
-    borderRadius: BORDER_RADIUS.BUTTON,
-    backgroundColor: "#f5f5f5",
-    borderWidth: 1,
-    borderColor: "#ddd",
-  },
-  locationButtonText: {
-    fontSize: FONT_SIZE.SMALL,
-    color: "#666",
-  },
-  submitContainer: {
-    padding: SPACING.SCREEN,
-    paddingBottom: SPACING.SCREEN * 2, // 키보드 공간 확보
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    fontSize: FONT_SIZE.BODY,
-    marginTop: SPACING.SMALL,
+  submitButton: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#007AFF",
   },
 });
 
 /**
  * 교환글 작성 화면 컴포넌트
  *
- * 작업 지시서 Phase 1 Target 3 구현
- * - Zod 스키마 강제 유효성 검증
- * - KeyboardAwareScrollView로 키보드 가림 방지
- * - 이미지 업로드 Mocking (백엔드 결함 우회)
- * - react-hook-form + 제어 컴포넌트
+ * 작업 지시서 Target 3 구현
+ * - 이미지 첨부 UI: 가로 스크롤, 72x72 정방형
+ * - 입력 폼: 하단 선 스타일
+ * - SafeLayout 적용
  */
 export default function CreateItemScreen() {
   const queryClient = useQueryClient();
-  const { colors } = useTheme();
 
-  // react-hook-form 대신 useState로 간단 구현 (제어 컴포넌트 원리 적용)
-  const [formData, setFormData] = React.useState<CreateItemFormData>({
+  // 폼 데이터 상태
+  const [formData, setFormData] = React.useState({
     title: "",
-    description: "",
-    categoryId: 1, // TICKET 카테고리 기본값
+    desiredItem: "",
+    content: "",
   });
 
   const [selectedImages, setSelectedImages] = React.useState<string[]>([]);
-  const [errors, setErrors] = React.useState<Partial<CreateItemFormData>>({});
 
   // React Query Mutation으로 제출 처리
   const { mutate, isPending } = useMutation({
-    mutationFn: async (data: CreateItemFormData) => {
+    mutationFn: async (data: typeof formData) => {
       // 백엔드 CreateItemRequest 스펙에 맞게 페이로드 재구성
       const payload = {
-        itemCategory:
-          data.categoryId === 1
-            ? ("TICKET" as ItemCategory)
-            : ("GOODS" as ItemCategory),
+        itemCategory: "TICKET" as ItemCategory, // 기본값
         title: data.title,
-        description: data.description,
+        description: data.content,
         location: {
           latitude: 37.5665,
           longitude: 126.978,
@@ -191,36 +163,17 @@ export default function CreateItemScreen() {
     },
   });
 
-  const onSubmit = (data: CreateItemFormData) => {
-    // Phase 1의 Mocking(images: []) 로직 제거. 실제 State 값과 분리하여 전송.
+  const onSubmit = (data: typeof formData) => {
+    // 기본 유효성 검사
+    if (!data.title.trim() || !data.content.trim()) {
+      Alert.alert("오류", "제목과 내용을 입력해주세요.");
+      return;
+    }
     mutate(data);
   };
 
   const handleSubmit = () => {
-    if (validateForm()) {
-      onSubmit(formData);
-    }
-  };
-
-  // Zod 유효성 검증
-  const validateForm = (): boolean => {
-    try {
-      createItemSchema.parse(formData);
-      setErrors({});
-      return true;
-    } catch (error: unknown) {
-      if (error instanceof z.ZodError) {
-        const fieldErrors: Partial<CreateItemFormData> = {};
-        error.issues.forEach((err) => {
-          if (err.path.length > 0) {
-            const key = err.path[0] as keyof CreateItemFormData;
-            fieldErrors[key] = err.message as any;
-          }
-        });
-        setErrors(fieldErrors);
-      }
-      return false;
-    }
+    onSubmit(formData);
   };
 
   // 이미지 선택 (UI Only - 백엔드 수정 전까지 기능 정지)
@@ -246,7 +199,7 @@ export default function CreateItemScreen() {
           );
         }
       }
-    } catch (error) {
+    } catch {
       Alert.alert("오류", "이미지 선택에 실패했습니다.");
     }
   };
@@ -257,185 +210,82 @@ export default function CreateItemScreen() {
     setSelectedImages(updatedImages);
   };
 
-  // 카테고리 선택
-  const categories = [
-    { id: 1, name: "티켓", value: "TICKET" as ItemCategory },
-    { id: 2, name: "굿즈", value: "GOODS" as ItemCategory },
-  ];
-
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
+    <SafeLayout
+      edges={["top", "bottom"]}
+      style={{ flex: 1, backgroundColor: "#FFF" }}
     >
-      <KeyboardAwareScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.contentContainer}
-        keyboardShouldPersistTaps="handled"
-        enableOnAndroid={true}
-        extraScrollHeight={20}
-      >
-        {/* 이미지 선택 섹션 */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            이미지 (최대 5장)
+      {/* 헤더 */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>교환글 쓰기</Text>
+        <TouchableOpacity onPress={handleSubmit} disabled={isPending}>
+          <Text style={[styles.submitButton, isPending && { opacity: 0.6 }]}>
+            {isPending ? "등록 중..." : "등록"}
           </Text>
-          <View style={styles.imagePickerContainer}>
-            {/* 이미지 선택 버튼 */}
-            {selectedImages.length < 5 && (
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView style={styles.scrollView}>
+        {/* 이미지 첨부 가로 스크롤 */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.imageScrollContainer}
+        >
+          {/* 이미지 추가 버튼 */}
+          {selectedImages.length < 5 && (
+            <TouchableOpacity
+              style={styles.imageAddButton}
+              onPress={handleImagePicker}
+            >
+              <Text style={{ fontSize: 24, color: "#9CA3AF" }}>📷</Text>
+              <Text style={{ fontSize: 12, color: "#9CA3AF", marginTop: 4 }}>
+                {selectedImages.length}/5
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {/* 렌더링된 이미지 목록 */}
+          {selectedImages.map((imageUri, index) => (
+            <View key={index} style={{ position: "relative" }}>
+              <Image source={{ uri: imageUri }} style={styles.imageThumbnail} />
               <TouchableOpacity
-                style={[
-                  styles.imagePickerButton,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.border,
-                  },
-                ]}
-                onPress={handleImagePicker}
+                style={styles.deleteButton}
+                onPress={() => removeImage(index)}
               >
-                <Text
-                  style={[
-                    styles.imagePickerButtonText,
-                    { color: colors.muted },
-                  ]}
-                >
-                  + 이미지
-                  <br />
-                  추가
-                </Text>
+                <Text style={styles.deleteButtonText}>×</Text>
               </TouchableOpacity>
-            )}
+            </View>
+          ))}
+        </ScrollView>
 
-            {/* 선택된 이미지 미리보기 */}
-            {selectedImages.map((imageUri, index) => (
-              <View key={index} style={{ position: "relative" }}>
-                <Image
-                  source={{ uri: imageUri }}
-                  style={styles.selectedImage}
-                />
-                <TouchableOpacity
-                  style={{
-                    position: "absolute",
-                    top: -5,
-                    right: -5,
-                    width: 20,
-                    height: 20,
-                    borderRadius: 10,
-                    backgroundColor: colors.destructive,
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                  onPress={() => removeImage(index)}
-                >
-                  <Text
-                    style={{ color: "#fff", fontSize: 12, fontWeight: "bold" }}
-                  >
-                    ×
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* 카테고리 선택 섹션 */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            카테고리
-          </Text>
-          <View style={styles.categoryContainer}>
-            {categories.map((category) => (
-              <TouchableOpacity
-                key={category.id}
-                style={[
-                  styles.categoryButton,
-                  {
-                    borderColor: colors.border,
-                    backgroundColor:
-                      formData.categoryId === category.id
-                        ? colors.primary
-                        : colors.surface,
-                  },
-                ]}
-                onPress={() =>
-                  setFormData({ ...formData, categoryId: category.id })
-                }
-              >
-                <Text
-                  style={[
-                    styles.categoryButtonText,
-                    {
-                      color:
-                        formData.categoryId === category.id
-                          ? colors.background
-                          : colors.text,
-                    },
-                  ]}
-                >
-                  {category.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* 제목 입력 */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            제목 *
-          </Text>
-          <Input
-            placeholder="제목을 입력하세요"
+        {/* 입력 폼 영역 */}
+        <View style={styles.formContainer}>
+          <TextInput
+            placeholder="제목"
+            style={styles.titleInput}
             value={formData.title}
             onChangeText={(text) => setFormData({ ...formData, title: text })}
-            error={!!errors.title}
           />
-        </View>
 
-        {/* 설명 입력 */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            설명 *
-          </Text>
-          <Input
-            placeholder="상세 설명을 입력하세요"
-            value={formData.description}
-            onChangeText={(text) =>
-              setFormData({ ...formData, description: text })
-            }
-            multiline
-            numberOfLines={4}
-            error={!!errors.description}
-          />
-        </View>
-
-        {/* 희망 아이템 입력 */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            희망 교환 물품 (선택)
-          </Text>
-          <Input
-            placeholder="희망하는 물품을 입력하세요"
-            value={formData.desiredItem || ""}
+          <TextInput
+            placeholder="희망 아이템 (선택)"
+            style={styles.desiredItemInput}
+            value={formData.desiredItem}
             onChangeText={(text) =>
               setFormData({ ...formData, desiredItem: text })
             }
           />
-        </View>
 
-        {/* 제출 버튼 */}
-        <View style={styles.submitContainer}>
-          <Button
-            style={[
-              { backgroundColor: colors.primary },
-              isPending && { opacity: 0.6 },
-            ]}
-            onPress={handleSubmit}
-            disabled={isPending}
-          >
-            {isPending ? "업로드 중..." : "등록하기"}
-          </Button>
+          <TextInput
+            placeholder="내용을 입력하세요."
+            multiline
+            style={styles.contentInput}
+            value={formData.content}
+            onChangeText={(text) => setFormData({ ...formData, content: text })}
+          />
         </View>
-      </KeyboardAwareScrollView>
-    </SafeAreaView>
+      </ScrollView>
+    </SafeLayout>
   );
 }

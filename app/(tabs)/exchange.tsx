@@ -41,30 +41,41 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: SPACING.COMPONENT,
-    paddingHorizontal: SPACING.SCREEN,
+    height: 48,
+    borderBottomWidth: 2,
+    borderColor: "#000000",
+  },
+  tabContainer: {
+    flexDirection: "row",
+    flex: 1,
+  },
+  tab: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+  },
+  activeTab: {
+    borderBottomWidth: 2,
+    borderColor: "#000000",
+  },
+  inactiveTab: {
     borderBottomWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  tabText: {
+    fontSize: 16,
+    fontWeight: "bold",
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: "bold",
   },
-  tabContainer: {
-    flexDirection: "row",
-    paddingHorizontal: SPACING.SCREEN,
-    borderBottomWidth: 1,
-  },
   tabButton: {
     flex: 1,
-    paddingVertical: SPACING.COMPONENT,
     alignItems: "center",
-  },
-  activeTab: {
-    borderBottomWidth: 2,
-  },
-  tabText: {
-    fontSize: FONT_SIZE.BODY,
-    fontWeight: "600",
+    justifyContent: "center",
+    paddingVertical: 12,
   },
   listContainer: {
     flex: 1,
@@ -72,29 +83,30 @@ const styles = StyleSheet.create({
   },
   itemContainer: {
     flexDirection: "row",
-    padding: SPACING.COMPONENT,
-    marginBottom: SPACING.SMALL,
-    borderRadius: BORDER_RADIUS.CARD,
-    ...SHADOW.CARD,
+    padding: 16,
+    borderBottomWidth: 1,
+    borderColor: "#F3F4F6",
   },
   itemImage: {
-    width: 80,
-    height: 80,
-    borderRadius: BORDER_RADIUS.IMAGE,
-    marginRight: SPACING.COMPONENT,
+    width: 90,
+    height: 90,
+    borderRadius: 8,
+    backgroundColor: "#F9FAFB",
+    marginRight: 14,
   },
   itemContent: {
     flex: 1,
+    justifyContent: "space-between",
   },
   itemTitle: {
-    fontSize: FONT_SIZE.BODY,
-    fontWeight: "600",
-    marginBottom: SPACING.SMALL / 2,
-  },
+    fontSize: 16,
+    color: "#111827",
+    fontWeight: "bold",
+  } as any,
   itemDescription: {
-    fontSize: FONT_SIZE.SMALL,
-    color: "#666",
-    marginBottom: SPACING.SMALL / 2,
+    fontSize: 12,
+    color: "#6B7280",
+    marginTop: 4,
   },
   itemMeta: {
     flexDirection: "row",
@@ -102,11 +114,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   itemCategory: {
-    fontSize: FONT_SIZE.SMALL,
+    fontSize: 12,
+    color: "#6B7280",
     fontWeight: "600",
   },
   itemDate: {
-    fontSize: FONT_SIZE.CAPTION,
+    fontSize: 12,
+    color: "#6B7280",
   },
   emptyContainer: {
     flex: 1,
@@ -468,7 +482,7 @@ export default function ExchangeScreen() {
       <View style={styles.itemContent}>
         <Text
           style={[styles.itemTitle, { color: colors.text }]}
-          numberOfLines={2}
+          numberOfLines={1}
         >
           {item.title}
         </Text>
@@ -543,17 +557,18 @@ export default function ExchangeScreen() {
         <TouchableOpacity
           style={[
             styles.tabButton,
-            activeTab === "items" && [
-              styles.activeTab,
-              { borderBottomColor: colors.primary },
-            ],
+            activeTab === "items" && {
+              borderBottomWidth: 2,
+              borderBottomColor: colors.primary,
+            },
           ]}
           onPress={() => setActiveTab("items")}
         >
           <Text
             style={[
-              styles.tabText,
               {
+                fontSize: 16,
+                fontWeight: "bold",
                 color: activeTab === "items" ? colors.primary : colors.muted,
               },
             ]}
@@ -564,17 +579,18 @@ export default function ExchangeScreen() {
         <TouchableOpacity
           style={[
             styles.tabButton,
-            activeTab === "requests" && [
-              styles.activeTab,
-              { borderBottomColor: colors.primary },
-            ],
+            activeTab === "requests" && {
+              borderBottomWidth: 2,
+              borderBottomColor: colors.primary,
+            },
           ]}
           onPress={() => setActiveTab("requests")}
         >
           <Text
             style={[
-              styles.tabText,
               {
+                fontSize: 16,
+                fontWeight: "bold",
                 color: activeTab === "requests" ? colors.primary : colors.muted,
               },
             ]}
@@ -654,18 +670,17 @@ export default function ExchangeScreen() {
         ) : (
           // 교환 요청 목록
           <>
-            {requestsState.status === "loading" ? (
+            {requestsState.status === "loading" && page === 0 ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={colors.primary} />
                 <Text style={[styles.loadingText, { color: colors.text }]}>
-                  교환 요청 목록 로딩 중...
+                  요청 목록 로딩 중...
                 </Text>
               </View>
-            ) : requestsState.status === "error" ? (
+            ) : requestsState.status === "error" && page === 0 ? (
               <View style={styles.emptyContainer}>
                 <Text style={[styles.emptyText, { color: colors.text }]}>
-                  {requestsState.error ||
-                    "교환 요청 목록을 불러올 수 없습니다."}
+                  {requestsState.error || "요청 목록을 불러올 수 없습니다."}
                 </Text>
                 <Button
                   onPress={() => loadExchangeRequests(0, true)}
@@ -679,25 +694,38 @@ export default function ExchangeScreen() {
                 data={requestsState.data}
                 renderItem={renderExchangeRequest}
                 keyExtractor={(item) => item.id.toString()}
-                key="requests-flatlist" // 교환 요청 FlatList에 고유 키 추가
                 refreshControl={
                   <RefreshControl
                     refreshing={refreshing}
                     onRefresh={() => loadExchangeRequests(0, true)}
                   />
                 }
-                ListEmptyComponent={
-                  <View style={styles.emptyContainer}>
-                    <Text style={[styles.emptyText, { color: colors.text }]}>
-                      받은 교환 요청이 없습니다.
-                    </Text>
-                  </View>
-                }
               />
             )}
           </>
         )}
       </View>
+
+      {/* FAB (Floating Action Button) */}
+      <TouchableOpacity
+        style={{
+          position: "absolute",
+          bottom: 24,
+          right: 24,
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          backgroundColor: "#000000",
+          justifyContent: "center",
+          alignItems: "center",
+          elevation: 5,
+        }}
+        onPress={navigateToCreate}
+      >
+        <Text style={{ color: "#FFFFFF", fontSize: 24, fontWeight: "bold" }}>
+          +
+        </Text>
+      </TouchableOpacity>
     </SafeLayout>
   );
 }
