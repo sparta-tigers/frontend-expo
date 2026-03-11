@@ -1,24 +1,24 @@
 import {
-  authSigninAPI,
-  authSignoutAPI,
-  authSignupAPI,
+    authSigninAPI,
+    authSignoutAPI,
+    authSignupAPI,
 } from "@/src/features/auth/api";
 import {
-  AuthSigninRequest,
-  AuthSignupRequest,
+    AuthSigninRequest,
+    AuthSignupRequest,
 } from "@/src/features/auth/types";
 import {
-  clearTokens,
-  getAccessToken,
-  getRefreshToken,
-  setTokens,
+    clearTokens,
+    getAccessToken,
+    getRefreshToken,
+    setTokens,
 } from "@/src/utils/tokenStore";
 import {
-  ReactNode,
-  createContext,
-  useContext,
-  useEffect,
-  useState,
+    ReactNode,
+    createContext,
+    useContext,
+    useEffect,
+    useState,
 } from "react";
 
 /**
@@ -221,7 +221,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       }
 
       if (response.resultType === "SUCCESS" && response.data) {
-        const tokenData = response.data.token;
+        const tokenData = response.data;
 
         if (!tokenData.accessToken || !tokenData.refreshToken) {
           console.error(
