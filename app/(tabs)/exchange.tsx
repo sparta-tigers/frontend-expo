@@ -14,7 +14,10 @@ import {
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
-import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
+import BottomSheet, {
+  BottomSheetFlatList,
+  BottomSheetFlatListMethods,
+} from "@gorhom/bottom-sheet";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
@@ -276,7 +279,7 @@ export default function ExchangeScreen() {
   const { colors } = useTheme();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const mapRef = useRef<MapView>(null);
-  const listRef = useRef<BottomSheetFlatList<any>>(null); // Phase 4: 리스트 스크롤 제어용
+  const listRef = useRef<BottomSheetFlatListMethods>(null); // Phase 4: 리스트 스크롤 제어용
 
   // 탭 상태 관리
   const [activeTab, setActiveTab] = useState<"items" | "requests">("items");
