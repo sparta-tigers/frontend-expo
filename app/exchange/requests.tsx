@@ -266,7 +266,7 @@ export default function ExchangeRequestsScreen() {
 
         <View style={styles.requestInfo}>
           <Text style={[styles.requesterText, { color: colors.muted }]}>
-            대상: {item.item?.user?.nickname || "알 수 없음"}
+            대상: {item.item?.user?.userNickname || "알 수 없음"}
           </Text>
           <Text style={[styles.dateText, { color: colors.muted }]}>
             {new Date(item.createdAt).toLocaleDateString()}

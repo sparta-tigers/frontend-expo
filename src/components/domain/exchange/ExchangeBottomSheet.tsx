@@ -47,7 +47,7 @@ export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
 
   // 상태 관리
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
-  const [message, setMessage] = useState("");
+  const [have, setHave] = useState("");
 
   // 🚨 앙드레 카파시: Lazy Loading - 바텀시트 활성화 시점에만 데이터 페칭
   const { data: myItems, isLoading } = useQuery({
@@ -65,8 +65,9 @@ export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
   const { mutate: requestExchange, isPending } = useMutation({
     mutationFn: async () => {
       const payload: CreateExchangeDto = {
+        receiverId: 0, // TODO: 이 컴포넌트는 레거시. apply/[id].tsx 사용 권장
         itemId: targetItemId,
-        message: message.trim(),
+        have: have.trim() || "교환 제안",
       };
       const response = await exchangeCreateAPI(payload);
       if (response.resultType !== "SUCCESS") {
@@ -120,13 +121,13 @@ export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
       return;
     }
 
-    if (!message.trim()) {
+    if (!have.trim()) {
       Alert.alert("알림", "교환 제안 메시지를 입력해주세요.");
       return;
     }
 
     requestExchange();
-  }, [selectedItemId, message, requestExchange]);
+  }, [selectedItemId, have, requestExchange]);
 
   // 바텀시트 열림/닫힘 감지
   React.useEffect(() => {
@@ -235,8 +236,8 @@ export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
           </Text>
           <Input
             placeholder="교환하고 싶은 이유를 알려주세요"
-            value={message}
-            onChangeText={setMessage}
+            value={have}
+            onChangeText={setHave}
             multiline
             numberOfLines={3}
             style={styles.messageInput}
@@ -247,12 +248,12 @@ export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
         <View style={styles.buttonContainer}>
           <Button
             onPress={handleSubmit}
-            disabled={!selectedItemId || !message.trim() || isPending}
+            disabled={!selectedItemId || !have.trim() || isPending}
             style={[
               styles.submitButton,
               {
                 backgroundColor:
-                  !selectedItemId || !message.trim() || isPending
+                  !selectedItemId || !have.trim() || isPending
                     ? colors.muted
                     : colors.primary,
               },
@@ -263,7 +264,7 @@ export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
                 styles.submitButtonText,
                 {
                   color:
-                    !selectedItemId || !message.trim() || isPending
+                    !selectedItemId || !have.trim() || isPending
                       ? colors.background
                       : colors.background,
                 },

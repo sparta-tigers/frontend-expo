@@ -99,7 +99,7 @@ export default function EditItemScreen() {
       Logger.debug("[권한 오류] 아이템 소유자 불일치:", {
         itemUserId: item.userId,
         currentUserId: user.userId,
-        itemUserNickname: item.user?.nickname,
+        itemUserNickname: item.user?.userNickname,
         currentUserEmail: user?.email,
       });
       return;

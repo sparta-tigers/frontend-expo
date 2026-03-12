@@ -55,11 +55,11 @@ export interface Item {
   status: "REGISTERED" | "COMPLETED" | "FAILED" | "DELETED";
   createdAt: string;
   updatedAt: string;
-  userId: number;
+  userId?: number; // 체인을 위한 호환 필드
   user: {
-    id: number;
-    nickname: string;
-    profileImage?: string; // 프로필 이미지 추가
+    userId: number;       // UserResponseDto.userId (백엔드 스펙)
+    userNickname: string;  // UserResponseDto.userNickname (백엔드 스펙)
+    profileImage?: string;
   };
 
   // 호환성을 위한 computed 속성
@@ -108,11 +108,16 @@ export interface ExchangeRequest {
 
 /**
  * 교환 요청 생성 페이로드
- * 백엔드 CreateExchangeRequestDto 스펙 매칭
+ * 백엔드 `ExchangeRequestDto` 스펙 정확히 매칭
+ *
+ * @field receiverId - 아이템 등록자의 userId (필수)
+ * @field itemId - 교환을 원하는 아이템 ID (필수)
+ * @field have - 렬요청자가 제안하는 교환 물건 설명 (필수, @NotBlank)
  */
 export interface CreateExchangeDto {
+  receiverId: number;
   itemId: number;
-  message?: string; // 선택적 메시지
+  have: string; // 내가 제안하는 교환 물건 설명 (필수)
 }
 
 /**

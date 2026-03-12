@@ -25,6 +25,8 @@ import ImageViewing from "react-native-image-viewing";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/button";
+import { Logger } from "@/src/utils/logger";
+
 
 // 정적 스타일 정의
 const styles = StyleSheet.create({
@@ -202,8 +204,25 @@ const styles = StyleSheet.create({
     gap: theme.spacing.COMPONENT,
   },
   headerLeftButton: {
-    marginLeft: 0,
-    marginRight: 16,
+    padding: 8,
+    marginRight: 4,
+  },
+  customHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 52,
+    paddingHorizontal: theme.spacing.COMPONENT,
+    borderBottomWidth: 1,
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: theme.typography.size.md,
+    fontWeight: theme.typography.weight.bold,
+    textAlign: "center",
+  },
+  headerActionButton: {
+    paddingHorizontal: theme.spacing.SMALL,
+    paddingVertical: 4,
   },
 });
 
@@ -243,8 +262,21 @@ export default function ItemDetailScreen() {
     enabled: !!id,
   });
 
-  // 작성자 여부 확인 (권한 기반 UI 분리용)
-  const isOwner = item?.data?.userId === user?.userId || item?.data?.user?.id === user?.userId;
+  // \ubc31\uc5d4\ub4dc DTO \ud544\ub4dc \ud63c\uc6a9 \uac00\ub2a5\uc131(userId vs id)\uc5d0 \ub300\ube44\ud558\uc5ec \ud0c4\ub825\uc801\uc73c\ub85c \ucd94\ucd9c
+  const itemUserObjId = item?.data?.user?.userId ?? (item?.data?.user as any)?.id ?? item?.data?.userId;
+  const myUserId = user?.userId;
+
+  // [Bug 1 DEBUG] 로그: isOwner 판단에 사용되는 값 확인 (테스트 후 제거)
+  if (__DEV__ && item?.data) {
+    Logger.debug('[isOwner DEBUG]', JSON.stringify({
+      itemUserObjId,
+      myUserId,
+      isOwnerResult: Number(itemUserObjId) === Number(myUserId),
+    }));
+  }
+
+  // 항상 Number() 변환으로 타입 불일치 방지
+  const isOwner = Number(itemUserObjId) === Number(myUserId) && !!myUserId;
 
   // 이미지 캐러셀 렌더링
   const renderImageCarousel = useCallback(() => {
@@ -466,33 +498,43 @@ export default function ItemDetailScreen() {
 
   return (
     <>
-      {/* 🚨 반드시 최상단에 Stack.Screen 배치 */}
+      {/* headerShown: false + 컴포넌트 내부 커스텀 헤더로 iOS 뒤로가기 해결 */}
       <Stack.Screen
         options={{
-          headerShown: true,
-          headerTitle: "아이템 상세",
-          headerBackTitleVisible: false,
-          headerBackVisible: true, // 안드로이드 기본 지원
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} style={styles.headerLeftButton}>
-              <Ionicons name="chevron-back" size={24} color={colors.text} />
-            </TouchableOpacity>
-          ),
-          headerRight: () =>
-            isOwner ? (
-              <View style={styles.headerRightContainer}>
-                <TouchableOpacity onPress={() => router.push(`/exchange/edit/${id}` as any)}>
-                  <Text style={{ fontSize: theme.typography.size.BODY, color: colors.primary }}>수정</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleDelete}>
-                  <Text style={{ fontSize: theme.typography.size.BODY, color: colors.destructive }}>삭제</Text>
-                </TouchableOpacity>
-              </View>
-            ) : null,
+          headerShown: false, // iOS/Android 모두 시스템 헤더 비활화
+          gestureEnabled: true,      // iOS 스와이프 제스처 허용
+          gestureDirection: "horizontal", // 왕포와이프 방향
         } as any}
       />
 
+      {/* 컴포넌트 내부 커스텀 헤더 (항상 보임) */}
       <SafeLayout edges={["top", "bottom"]} style={styles.container}>
+        {/* 커스텀 헤더 영역 */}
+        <View
+          style={[
+            styles.customHeader,
+            { backgroundColor: colors.background, borderBottomColor: colors.border },
+          ]}
+        >
+          <TouchableOpacity onPress={() => router.back()} style={styles.headerLeftButton}>
+            <Ionicons name="chevron-back" size={28} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>
+            아이템 상세
+          </Text>
+          <View style={styles.headerRightContainer}>
+            {isOwner && (
+              <>
+                <TouchableOpacity onPress={() => router.push(`/exchange/edit/${id}` as any)} style={styles.headerActionButton}>
+                  <Text style={{ fontSize: theme.typography.size.BODY, color: colors.primary }}>수정</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleDelete} style={styles.headerActionButton}>
+                  <Text style={{ fontSize: theme.typography.size.BODY, color: colors.destructive }}>삭제</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent} // 🚨 하단 버튼 높이만큼 여백 확보
@@ -518,12 +560,12 @@ export default function ItemDetailScreen() {
                 <Text
                   style={[styles.profileInitialText, { color: colors.muted }]}
                 >
-                  {item.data.user?.nickname?.[0]?.toUpperCase() || "U"}
+                  {item.data.user?.userNickname?.[0]?.toUpperCase() || "U"}
                 </Text>
               </View>
             )}
             <Text style={[styles.nickname, { color: colors.text }]}>
-              {item.data.user?.nickname || "알 수 없음"}
+              {item.data.user?.userNickname || "알 수 없음"}
             </Text>
           </View>
 

@@ -40,7 +40,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   map: {
-    flex: 1,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   bottomSheetContainer: {
     backgroundColor: theme.colors.background,
@@ -150,6 +154,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     right: 0,
+    elevation: 5,      // Android 레이어
   },
   fabText: {
     fontSize: 24,
@@ -158,11 +163,11 @@ const styles = StyleSheet.create({
   // 재검색 버튼 스타일 (Phase 1)
   reSearchButton: {
     position: "absolute",
-    alignSelf: "center", // left 50%, translateX 대체
+    alignSelf: "center",
     backgroundColor: theme.colors.primary,
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.sm,
-    borderRadius: 20, // 알약 모양
+    borderRadius: 20,
     flexDirection: "row",
     alignItems: "center",
     shadowColor: theme.colors.text.primary,
@@ -172,8 +177,8 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 4,
-    elevation: 5,
-    zIndex: 1000, // 최상단에 표시
+    elevation: 10, // 더 위로
+    zIndex: 2000, // 모든 요소 위에 표시
   },
   reSearchText: {
     color: theme.colors.background,
@@ -508,8 +513,8 @@ export default function ExchangeScreen() {
   // 지도 이동 완료 핸들러 (Phase 1)
   const handleRegionChangeComplete = (region: any) => {
     setMapRegion(region);
-    // 지도가 완전히 로딩된 이후의 유저 드래그만 이동으로 간주
-    if (isMapReady) {
+    // Bug 2: 초기 데이터가 1회 로딩된 이후의 유저 이동만 지도 이동으로 간주
+    if (isMapReady && isInitialFetched) {
       setIsMapMoved(true);
     }
   };
@@ -657,7 +662,7 @@ export default function ExchangeScreen() {
   ]);
 
   return (
-    <SafeLayout style={styles.container}>
+    <SafeLayout style={[styles.container, { backgroundColor: colors.background }]}>
       {/* 1. 백그라운드 지도 뷰 */}
       <MapView
         ref={mapRef}
@@ -720,27 +725,27 @@ export default function ExchangeScreen() {
         })}
       </MapView>
 
-      {/* 1. 바텀시트 아래에 깔릴 우하단 플로팅 버튼 (위치 및 프로필) */}
-      <View style={styles.fabContainer}>
-        {/* 현재 위치 버튼 */}
-        <TouchableOpacity
-          style={[styles.fabButton, styles.locationButton]}
-          onPress={moveToCurrentLocation}
-        >
-          <Text style={styles.fabText}>📍</Text>
-        </TouchableOpacity>
+      {/* Bug 3 Fix: BottomSheet 다음에 렌뤈링하여 항상 위에 표시 */}
+      {!isProfileModalVisible && (
+        <View style={styles.fabContainer}>
+          <TouchableOpacity
+            style={[styles.fabButton, styles.locationButton]}
+            onPress={moveToCurrentLocation}
+          >
+            <Text style={styles.fabText}>📍</Text>
+          </TouchableOpacity>
 
-        {/* 8페이지 진입: 내 정보 모달 오픈 */}
-        <TouchableOpacity style={styles.fabButton} onPress={() => setProfileModalVisible(true)}>
-          <Text style={styles.fabText}>👤</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity style={styles.fabButton} onPress={() => setProfileModalVisible(true)}>
+            <Text style={styles.fabText}>👤</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
-      {/* 2. 스와이프업 리스트 뷰 (바텀시트) - React Native 특성상 나중에 렌더링되어야 플로팅 요소들을 위로 덮음 */}
       <BottomSheet
         ref={bottomSheetRef}
         snapPoints={["15%", "85%"]}
         style={styles.bottomSheetContainer}
+        backgroundStyle={{ backgroundColor: colors.background }}
       >
         {/* 2페이지 디자인: TICKET / ITEM 필터 */}
         <View style={[styles.filterContainer, { backgroundColor: colors.background }]}>
@@ -818,12 +823,12 @@ export default function ExchangeScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* 4. 현 지도에서 재검색 버튼 (Phase 1) - 최상단 고정 */}
+      {/* Bug 1 Fix: 재검색 버튼을 topOverlay 아래에 위치시키고 모든 요소 위에 표시 */}
       {isMapMoved && (
         <TouchableOpacity
           style={[
             styles.reSearchButton,
-            { top: Math.max(insets.top, 20) + 70 }, // topOverlay 버튼 영역 아래로 동적 할당
+            { top: insets.top + 120 }, // topOverlay(top:60) + 버튼높이(약 44) + 여백(16)
           ]}
           onPress={handleSearchCurrentLocation}
         >
