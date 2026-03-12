@@ -13,6 +13,7 @@ import {
 import { useAuth } from "@/src/hooks/useAuth";
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import { SPACING } from "@/src/styles/unified-design";
+import { Logger } from "@/src/utils/logger";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -135,7 +136,7 @@ export default function ExchangeRequestsScreen() {
                   Alert.alert("오류", "교환 요청 수락에 실패했습니다.");
                 }
               } catch (error) {
-                console.error("교환 요청 수락 실패:", error);
+                Logger.error("교환 요청 수락 실패:", error);
                 Alert.alert("오류", "네트워크 에러가 발생했습니다.");
               }
             },
@@ -177,7 +178,7 @@ export default function ExchangeRequestsScreen() {
                 Alert.alert("오류", "교환 요청 거절에 실패했습니다.");
               }
             } catch (error) {
-              console.error("교환 요청 거절 실패:", error);
+              Logger.error("교환 요청 거절 실패:", error);
               Alert.alert("오류", "네트워크 에러가 발생했습니다.");
             }
           },

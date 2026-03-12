@@ -9,6 +9,12 @@ module.exports = defineConfig([
     ignores: ["dist/*", ".expo/**"],
   },
   {
+    files: ["src/utils/logger.ts"],
+    rules: {
+      "no-console": "off",
+    },
+  },
+  {
     plugins: {
       "react-native": reactNative,
     },
@@ -21,6 +27,9 @@ module.exports = defineConfig([
 
       // 3. 선언해두고 사용하지 않는 스타일 객체 청소
       "react-native/no-unused-styles": "error",
+
+      // 4. console 로직 직접 사용 금지 (Logger 사용 강제)
+      "no-console": "error",
     },
   },
 ]);

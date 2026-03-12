@@ -5,6 +5,7 @@ import { SafeLayout } from "@/components/ui/safe-layout";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/src/hooks/useAuth";
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/unified-design";
+import { Logger } from "@/src/utils/logger";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
@@ -59,7 +60,7 @@ export default function SignupScreen() {
         Alert.alert("실패", "회원가입에 실패했습니다");
       }
     } catch (error) {
-      console.error("회원가입 에러:", error);
+      Logger.error("회원가입 에러:", error);
       Alert.alert("오류", "회원가입 중 오류가 발생했습니다");
     }
   };

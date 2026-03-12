@@ -6,6 +6,7 @@ import { itemsGetDetailAPI, itemsUpdateAPI } from "@/src/features/exchange/api";
 import { UpdateItemRequest } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
 import { SPACING } from "@/src/styles/unified-design";
+import { Logger } from "@/src/utils/logger";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
@@ -75,7 +76,7 @@ export default function EditItemScreen() {
       ]);
     },
     onError: (error) => {
-      console.error("아이템 수정 실패:", error);
+      Logger.error("아이템 수정 실패:", error);
       Alert.alert("오류", "아이템 수정에 실패했습니다.");
     },
   });
@@ -95,7 +96,7 @@ export default function EditItemScreen() {
 
     if (item.userId !== user.userId) {
       Alert.alert("오류", "본인의 아이템만 수정할 수 있습니다.");
-      console.log("🚨 [권한 오류] 아이템 소유자 불일치:", {
+      Logger.debug("[권한 오류] 아이템 소유자 불일치:", {
         itemUserId: item.userId,
         currentUserId: user.userId,
         itemUserNickname: item.user?.nickname,

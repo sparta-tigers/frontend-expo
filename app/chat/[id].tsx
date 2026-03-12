@@ -2,23 +2,24 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
-  FlatList,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    FlatList,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 import { SafeLayout } from "@/components/ui/safe-layout";
+import { apiClient } from "@/src/core/client";
 import { chatroomsGetMessagesAPI } from "@/src/features/chat/api";
 import { ChatMessage } from "@/src/features/chat/types";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useWebSocket } from "@/src/hooks/useWebSocket";
-import { apiClient } from "@/src/core/client";
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import { ApiResponse } from "@/src/shared/types/common";
 import { theme } from "@/src/styles/theme";
+import { Logger } from "@/src/utils/logger";
 
 /**
  * DirectRoomItemResponseDto에 대응하는 프론트엔드 DTO.
@@ -147,7 +148,7 @@ export default function ChatRoomScreen() {
       loadMessages(Promise.resolve([myMessage, ...(messagesState.data || [])]));
       setInputMessage("");
     } catch (error) {
-      console.error("메시지 전송 에러:", error);
+      Logger.error("메시지 전송 에러:", error);
     }
   }, [
     inputMessage,

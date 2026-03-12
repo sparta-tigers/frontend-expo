@@ -14,6 +14,7 @@ import {
 import { CreateExchangeDto, Item } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/unified-design";
+import { Logger } from "@/src/utils/logger";
 
 /**
  * 교환 신청 바텀시트 컴포넌트
@@ -103,7 +104,7 @@ export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
     },
     onError: (error) => {
       Alert.alert("오류", "교환 신청에 실패했습니다.");
-      console.error("교환 신청 실패:", error);
+      Logger.error("교환 신청 실패:", error);
     },
   });
 

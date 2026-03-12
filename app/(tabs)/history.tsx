@@ -3,16 +3,17 @@ import { Card } from "@/components/ui/card";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { useTheme } from "@/hooks/useTheme";
 import {
-    exchangeGetReceivedAPI,
-    exchangeUpdateStatusAPI,
+  exchangeGetReceivedAPI,
+  exchangeUpdateStatusAPI,
 } from "@/src/features/exchange/api";
 import {
-    ExchangeRequest,
-    ExchangeRequestStatus,
-    UpdateExchangeStatusDto,
+  ExchangeRequest,
+  ExchangeRequestStatus,
+  UpdateExchangeStatusDto,
 } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
 import { SPACING } from "@/src/styles/unified-design";
+import { Logger } from "@/src/utils/logger";
 import React, { useCallback, useEffect, useState } from "react";
 import { Alert, FlatList, StyleSheet, Text, View } from "react-native";
 
@@ -37,7 +38,7 @@ export default function HistoryScreen() {
         setExchangeRequests(response.data.content);
       }
     } catch (error) {
-      console.error("교환 요청 목록 로딩 실패:", error);
+      Logger.error("교환 요청 목록 로딩 실패:", error);
       Alert.alert("오류", "교환 요청 목록을 불러올 수 없습니다.");
     } finally {
       setLoading(false);
@@ -74,7 +75,7 @@ export default function HistoryScreen() {
           Alert.alert("오류", "상태 업데이트에 실패했습니다.");
         }
       } catch (error) {
-        console.error("상태 업데이트 실패:", error);
+        Logger.error("상태 업데이트 실패:", error);
         Alert.alert("오류", "네트워크 에러가 발생했습니다.");
       } finally {
         setActionLoading(null);
