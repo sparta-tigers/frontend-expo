@@ -340,6 +340,9 @@ export default function ExchangeScreen() {
     async (
       pageNum: number = 0,
       isRefresh: boolean = false,
+      lat?: number,
+      lng?: number,
+      radiusKm?: number,
     ): Promise<Item[]> => {
       if (itemsState.status === "loading" && !isRefresh) return [];
 
@@ -349,7 +352,15 @@ export default function ExchangeScreen() {
       if (isRefresh) setRefreshing(true);
 
       try {
-        const response = await itemsGetListAPI(pageNum, 10);
+        const response = await itemsGetListAPI(
+          pageNum,
+          10,
+          undefined,
+          undefined,
+          lat,
+          lng,
+          radiusKm,
+        );
 
         if (response.resultType === "SUCCESS" && response.data) {
           const { content } = response.data;
@@ -562,11 +573,14 @@ export default function ExchangeScreen() {
       setIsMapMoved(false);
 
       // 현재 지도 중심 좌표로 아이템 목록 새로고침
-      // TODO: 백엔드 API에 좌표 기반 검색 파라미터 전달 (현재는 전체 새로고침)
       setRefreshing(true);
 
       if (activeTab === "items") {
-        await fetchItems(loadItems(0, true));
+        // 지도 중심 좌표와 반경 계산하여 API 호출
+        const radius = mapRegion.latitudeDelta * 111; // 대략적인 반경 계산 (1도 ≈ 111km)
+        await fetchItems(
+          loadItems(0, true, mapRegion.latitude, mapRegion.longitude, radius),
+        );
       } else {
         await loadExchangeRequests(0, true);
       }
