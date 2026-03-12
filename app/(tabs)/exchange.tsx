@@ -290,6 +290,9 @@ export default function ExchangeScreen() {
   // 탭 상태 관리
   const [activeTab, setActiveTab] = useState<"items" | "requests">("items");
 
+  // Map-First 초기 로딩 상태 관리
+  const [isInitialFetched, setIsInitialFetched] = useState(false);
+
   // useAsyncState 훅으로 기본 상태 관리
   const [itemsState, fetchItems] = useAsyncState<Item[]>([]);
   const [requestsState, fetchRequests] = useAsyncState<ExchangeRequest[]>([]);
@@ -754,34 +757,69 @@ export default function ExchangeScreen() {
     </TouchableOpacity>
   );
 
-  // 초기 데이터 로드 - 무한 리렌더링 방지
+  // 1. 컴포넌트 마운트 시 최초 1회만 실행 (위치 조회)
+  React.useEffect(() => {
+    getCurrentLocationOnMount();
+  }, []); // 의존성 배열을 비워 마운트 시 1회만 실행 보장
+
+  // 1. 탭 전환 관리 (이제 아이템 목록은 탭 전환 시 새로고침하지 않음!)
   React.useEffect(() => {
     let isMounted = true;
 
-    const loadData = async () => {
+    const fetchTabData = async () => {
       if (!isMounted) return;
 
-      // 컴포넌트 마운트 시 현재 위치 가져오기
-      getCurrentLocationOnMount();
-
-      if (activeTab === "items") {
-        // 🚨 수정된 부분: 초기 로딩 시에도 반드시 지도 중심 좌표와 반경을 전달!
-        const radius = mapRegion.latitudeDelta * 111; // 1도 ≈ 111km
-        fetchItems(
-          loadItems(0, true, mapRegion.latitude, mapRegion.longitude, radius),
-        );
-      } else {
-        loadExchangeRequests(0, true);
+      if (activeTab === "requests") {
+        // 받은 요청 탭에 진입할 때만 독립적인 API 호출
+        await loadExchangeRequests(0, true);
       }
+      // 주의: activeTab === "items" 일 때는 아무것도 하지 않음! (지도의 데이터를 그대로 렌더링)
     };
 
-    loadData();
+    fetchTabData();
 
     return () => {
       isMounted = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]); // activeTab만 의존성으로 설정
+  }, [activeTab, loadExchangeRequests]);
+
+  // 2. Map-First 초기 데이터 로딩 (GPS 좌표가 잡히는 즉시 실행)
+  React.useEffect(() => {
+    let isMounted = true;
+
+    const fetchInitialMapData = async () => {
+      // 마운트 해제됨, 이미 로딩됨, 혹은 GPS 아직 못 잡음 ➔ 대기
+      if (!isMounted || isInitialFetched || !userLocation) return;
+
+      // GPS 좌표가 들어왔다! ➔ 지도 기반 반경 계산 후 즉시 아이템 페칭
+      const radius = mapRegion.latitudeDelta * 111;
+      await fetchItems(
+        loadItems(
+          0,
+          true,
+          userLocation.latitude,
+          userLocation.longitude,
+          radius,
+        ),
+      );
+
+      // 최초 1회 로딩 완료 플래그 세팅 (이후에는 '현 지도에서 재검색' 버튼으로만 수동 갱신)
+      setIsInitialFetched(true);
+      Logger.debug(" [Map-First] 초기 GPS 기반 아이템 로딩 완료", userLocation);
+    };
+
+    fetchInitialMapData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    userLocation,
+    isInitialFetched,
+    mapRegion.latitudeDelta,
+    fetchItems,
+    loadItems,
+  ]);
 
   return (
     <SafeLayout style={styles.container}>
