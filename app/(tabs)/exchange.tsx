@@ -11,7 +11,9 @@ import {
   ExchangeRequestStatus,
   Item,
 } from "@/src/features/exchange/types";
+import { useLocationTracker } from "@/src/hooks/useLocationTracker";
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
+import { useLocationStore } from "@/src/store/useLocationStore";
 import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
 import BottomSheet, {
@@ -281,6 +283,10 @@ export default function ExchangeScreen() {
   const mapRef = useRef<MapView>(null);
   const listRef = useRef<BottomSheetFlatListMethods>(null); // Phase 4: 리스트 스크롤 제어용
 
+  // Phase 3: 위치 추적 훅 연동
+  const { userLocation } = useLocationStore();
+  const { errorMsg: locationError } = useLocationTracker();
+
   // 탭 상태 관리
   const [activeTab, setActiveTab] = useState<"items" | "requests">("items");
 
@@ -466,64 +472,29 @@ export default function ExchangeScreen() {
     router.push("/exchange/create");
   };
 
-  // 현재 위치로 이동
-  const moveToCurrentLocation = async () => {
-    try {
-      // 위치 권한 요청
-      const { status } = await Location.requestForegroundPermissionsAsync();
-
-      if (status !== "granted") {
-        Alert.alert(
-          "위치 권한 필요",
-          "현재 위치로 이동하려면 위치 권한이 필요합니다.\n설정에서 권한을 허용해주세요.",
-        );
-        return;
-      }
-
-      // 현재 위치 가져오기
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-
-      const { latitude, longitude } = location.coords;
-      const userLocation = { latitude, longitude };
-
-      setCurrentLocation(userLocation);
-
-      // 지도를 현재 위치로 이동 (1km 반경)
-      if (mapRef.current) {
-        mapRef.current.animateToRegion(
-          {
-            ...userLocation,
-            latitudeDelta: 0.009, // 약 1km 반경
-            longitudeDelta: 0.009, // 약 1km 반경
-          },
-          1000,
-        );
-      }
-
-      Logger.debug("[현재 위치로 이동]", userLocation);
-    } catch (error) {
-      Logger.error(
-        "현재 위치로 이동 실패:",
-        error instanceof Error ? error.message : String(error),
+  // 현재 위치로 이동 (Phase 3: 즉각 반응)
+  const moveToCurrentLocation = () => {
+    if (userLocation && mapRef.current) {
+      // GPS 로딩 대기 없이 메모리 좌표로 즉시 이동!
+      mapRef.current.animateToRegion(
+        {
+          latitude: userLocation.latitude,
+          longitude: userLocation.longitude,
+          latitudeDelta: 0.009, // 약 1km 반경
+          longitudeDelta: 0.009, // 약 1km 반경
+        },
+        500, // 0.5초 동안 부드럽게 이동
       );
 
-      // 에러 메시지에 따른 처리
-      if (
-        error instanceof Error &&
-        error.message.includes("location services are enabled")
-      ) {
-        Alert.alert(
-          "위치 서비스 비활성화",
-          "기기의 위치 서비스가 비활성화되어 있습니다.\n에뮬레이터 확장 제어에서 Location을 ON으로 설정해주세요.",
-        );
-      } else {
-        Alert.alert(
-          "위치 정보 오류",
-          "현재 위치를 가져올 수 없습니다.\n에뮬레이터 확장 제어에서 가상 위치를 설정해주세요.",
-        );
-      }
+      Logger.debug("[즉각 위치 이동 완료]", userLocation);
+    } else {
+      // 권한 거부 상태이거나 아직 첫 좌표를 못 잡은 경우의 예외 처리
+      Alert.alert(
+        "알림",
+        locationError
+          ? "위치 권한이 거부되었습니다.\n설정에서 권한을 허용해주세요."
+          : "현재 위치를 확인하는 중입니다.\n잠시 후 다시 시도해주세요.",
+      );
     }
   };
 
