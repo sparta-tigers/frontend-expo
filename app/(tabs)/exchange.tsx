@@ -421,6 +421,15 @@ export default function ExchangeScreen() {
     router.push(`/exchange/${itemId}`);
   };
 
+  // 마커 클릭 핸들러 (Phase 3)
+  const handleMarkerPress = (itemId: number) => {
+    // 아이템 상세 페이지로 이동
+    navigateToDetail(itemId);
+
+    // TODO: 바텀시트에서 해당 아이템을 최상단으로 스크롤하는 로직 추가 가능
+    Logger.debug("마커 클릭:", { itemId, timestamp: new Date().toISOString() });
+  };
+
   // 아이템 생성 페이지로 이동
   const navigateToCreate = () => {
     router.push("/exchange/create");
@@ -782,17 +791,31 @@ export default function ExchangeScreen() {
         )}
 
         {/* 아이템 마커 */}
-        {itemsState.data?.map((item: Item) => (
-          <Marker
-            key={item.id}
-            coordinate={{
-              latitude: item.location?.latitude || 37.5665,
-              longitude: item.location?.longitude || 126.978,
-            }}
-            title={item.title}
-            onPress={() => router.push(`/exchange/${item.id}`)}
-          />
-        ))}
+        {itemsState.data?.map((item: Item) => {
+          // Phase 3: 방어 로직 - 유효한 좌표만 마커 렌더링
+          if (!item.location?.latitude || !item.location?.longitude) {
+            Logger.debug("무효한 좌표의 아이템 마커 제외:", {
+              itemId: item.id,
+              title: item.title,
+              location: item.location,
+            });
+            return null;
+          }
+
+          return (
+            <Marker
+              key={`item-${item.id}`}
+              coordinate={{
+                latitude: item.location.latitude,
+                longitude: item.location.longitude,
+              }}
+              title={item.title}
+              description={item.category === "TICKET" ? "티켓" : "굿즈"}
+              onPress={() => handleMarkerPress(item.id)}
+              // TODO: 커스텀 아이콘으로 마커 디자인 개선 가능
+            />
+          );
+        })}
       </MapView>
 
       {/* 2. 스와이프업 리스트 뷰 (바텀시트) */}
