@@ -208,6 +208,9 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
+    // 🚨 네트워크 에러 즉시 로깅
+    Logger.networkError("API 응답 에러 발생", error);
+
     const originalRequest = error.config as AxiosRequestConfig & {
       _retry?: boolean;
     };
@@ -313,6 +316,8 @@ export const apiClient = {
       const response = await axiosInstance.get(url, { params });
       return response.data;
     } catch (error) {
+      // 🚨 네트워크 에러 강제 로깅
+      Logger.networkError(`GET ${url} 요청 실패`, error);
       Logger.error(
         `GET ${url} 요청 실패:`,
         error instanceof Error ? error.message : String(error),
@@ -334,6 +339,8 @@ export const apiClient = {
       const response = await axiosInstance.post(url, data, config);
       return response.data;
     } catch (error) {
+      // 🚨 네트워크 에러 강제 로깅
+      Logger.networkError(`POST ${url} 요청 실패`, error);
       Logger.error(
         `POST ${url} 요청 실패:`,
         error instanceof Error ? error.message : String(error),
@@ -351,6 +358,8 @@ export const apiClient = {
       const response = await axiosInstance.put(url, data);
       return response.data;
     } catch (error) {
+      // 🚨 네트워크 에러 강제 로깅
+      Logger.networkError(`PUT ${url} 요청 실패`, error);
       Logger.error(
         `PUT ${url} 요청 실패:`,
         error instanceof Error ? error.message : String(error),
@@ -368,6 +377,8 @@ export const apiClient = {
       const response = await axiosInstance.delete(url);
       return response.data;
     } catch (error) {
+      // 🚨 네트워크 에러 강제 로깅
+      Logger.networkError(`DELETE ${url} 요청 실패`, error);
       Logger.error(
         `DELETE ${url} 요청 실패:`,
         error instanceof Error ? error.message : String(error),
@@ -388,6 +399,8 @@ export const apiClient = {
       const response = await axiosInstance.patch(url, data);
       return response.data;
     } catch (error) {
+      // 🚨 네트워크 에러 강제 로깅
+      Logger.networkError(`PATCH ${url} 요청 실패`, error);
       Logger.error(
         `PATCH ${url} 요청 실패:`,
         error instanceof Error ? error.message : String(error),

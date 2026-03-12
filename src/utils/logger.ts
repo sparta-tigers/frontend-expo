@@ -51,4 +51,24 @@ export const Logger = {
     // Error는 프로덕션에서도 트래킹 툴 연동을 위해 남기거나 포맷팅
     console.error(`🚨 [ERROR] ${message}`, error || "");
   },
+
+  /**
+   * 네트워크 에러 강제 출력
+   * 개발 환경에서 네트워크 관련 에러를 강제로 출력
+   */
+  networkError: (message: string, error?: any) => {
+    if (__DEV__) {
+      console.error(`🌐 [NETWORK ERROR] ${message}`, error || "");
+      // 네트워크 에러는 추가 정보 출력
+      if (error?.code) console.error(`🌐 [ERROR CODE] ${error.code}`);
+      if (error?.message) console.error(`🌐 [ERROR MESSAGE] ${error.message}`);
+      if (error?.response?.status)
+        console.error(`🌐 [HTTP STATUS] ${error.response.status}`);
+      if (error?.config?.url)
+        console.error(`🌐 [REQUEST URL] ${error.config.url}`);
+    }
+  },
 };
+
+// networkError 함수도 export 추가
+export const networkError = Logger.networkError;
