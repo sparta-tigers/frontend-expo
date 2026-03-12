@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { useTheme } from "@/hooks/useTheme";
 import {
-    exchangeGetReceivedAPI,
+    exchangeGetMyRequestsAPI,
     exchangeUpdateStatusAPI,
 } from "@/src/features/exchange/api";
 import {
@@ -36,6 +36,7 @@ export default function ExchangeRequestsScreen() {
   const router = useRouter();
 
   const [refreshing, setRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState<"receiver" | "sender">("receiver");
 
   // useAsyncState 훅으로 교환 요청 목록 상태 관리
   const [requestsState, loadRequests] = useAsyncState<ExchangeRequest[]>([]);
@@ -44,7 +45,7 @@ export default function ExchangeRequestsScreen() {
   const fetchExchangeRequests = useCallback(async () => {
     if (!user?.accessToken) throw new Error("로그인이 필요합니다.");
 
-    const response = await exchangeGetReceivedAPI(0, 20);
+    const response = await exchangeGetMyRequestsAPI(activeTab, 0, 20);
 
     if (response.resultType === "SUCCESS" && response.data) {
       const requestData = response.data.content || [];
@@ -56,12 +57,12 @@ export default function ExchangeRequestsScreen() {
         ? response.error
         : "교환 요청 목록을 불러올 수 없습니다.",
     );
-  }, [user?.accessToken]);
+  }, [user?.accessToken, activeTab]);
 
-  // 초기 데이터 로드
+  // 초기 데이터 로드 및 탭 변경 시 데이터 로드
   useEffect(() => {
     loadRequests(fetchExchangeRequests());
-  }, [loadRequests, fetchExchangeRequests]);
+  }, [loadRequests, fetchExchangeRequests, activeTab]);
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
@@ -243,6 +244,52 @@ export default function ExchangeRequestsScreen() {
     [colors, handleAcceptRequest, handleRejectRequest],
   );
 
+  // ----------------------------------------------------------------------
+  // [5페이지] 보낸 제안 렌더링 (대기중, 수락됨, 거절됨 상태 표출만)
+  // ----------------------------------------------------------------------
+  const renderSentRequestItem = useCallback(
+    ({ item }: { item: ExchangeRequest }) => (
+      <View
+        style={[
+          styles.requestItem,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
+        <View style={styles.requestHeader}>
+          <Text style={[styles.itemTitle, { color: colors.text }]}>
+            {item.item?.title}
+          </Text>
+          <Text style={[styles.statusText, { color: colors.muted }]}>
+            상태: {getStatusText(item.status)}
+          </Text>
+        </View>
+
+        <View style={styles.requestInfo}>
+          <Text style={[styles.requesterText, { color: colors.muted }]}>
+            대상: {item.item?.user?.nickname || "알 수 없음"}
+          </Text>
+          <Text style={[styles.dateText, { color: colors.muted }]}>
+            {new Date(item.createdAt).toLocaleDateString()}
+          </Text>
+        </View>
+
+        {item.status === ExchangeRequestStatus.ACCEPTED && (
+            <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={[styles.acceptButton, { backgroundColor: colors.primary }]}
+              onPress={() => item.roomId && router.push(`/exchange/chat/${item.roomId}`)}
+            >
+              <Text style={[styles.buttonText, { color: colors.background }]}>
+                채팅방 입장
+              </Text>
+            </TouchableOpacity>
+            </View>
+        )}
+      </View>
+    ),
+    [colors, router],
+  );
+
   // 상태 텍스트 변환
   const getStatusText = (status: ExchangeRequestStatus): string => {
     switch (status) {
@@ -291,13 +338,29 @@ export default function ExchangeRequestsScreen() {
   return (
     <SafeLayout style={{ backgroundColor: colors.background }}>
       <View style={styles.container}>
-        <Text style={[styles.title, { color: colors.text }]}>
-          받은 교환 요청
-        </Text>
+        
+        {/* 4~5 페이지 탭 컨트롤러 */}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity 
+            style={styles.tabArrowButton} 
+            onPress={() => setActiveTab(activeTab === "receiver" ? "sender" : "receiver")}
+          >
+            <Text style={[styles.tabArrowIcon, { color: colors.text }]}>{"<"}</Text>
+          </TouchableOpacity>
+          <Text style={[styles.tabTitle, { color: colors.text }]}>
+            {activeTab === "receiver" ? "받은 제안" : "보낸 제안"}
+          </Text>
+          <TouchableOpacity 
+            style={styles.tabArrowButton} 
+            onPress={() => setActiveTab(activeTab === "receiver" ? "sender" : "receiver")}
+          >
+            <Text style={[styles.tabArrowIcon, { color: colors.text }]}>{">"}</Text>
+          </TouchableOpacity>
+        </View>
 
         <FlatList
           data={requestsState.data}
-          renderItem={renderRequestItem}
+          renderItem={activeTab === "receiver" ? renderRequestItem : renderSentRequestItem}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
@@ -311,7 +374,7 @@ export default function ExchangeRequestsScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={[styles.emptyText, { color: colors.muted }]}>
-                받은 교환 요청이 없습니다.
+                {activeTab === "receiver" ? "받은 교환 요청이 없습니다." : "보낸 교환 요청이 없습니다."}
               </Text>
             </View>
           }
@@ -326,10 +389,25 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: SPACING.SCREEN,
   },
-  title: {
+  tabTitle: {
     fontSize: 24,
     fontWeight: "bold",
+    textAlign: "center",
+    flex: 1,
+  },
+  tabContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: SPACING.SECTION,
+    paddingHorizontal: SPACING.COMPONENT,
+  },
+  tabArrowButton: {
+    padding: SPACING.SMALL,
+  },
+  tabArrowIcon: {
+    fontSize: 24,
+    fontWeight: "bold",
   },
   listContainer: {
     gap: SPACING.COMPONENT,

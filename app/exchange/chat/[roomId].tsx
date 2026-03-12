@@ -378,7 +378,7 @@ export default function ChatRoomScreen() {
                         { color: colors.background },
                       ]}
                     >
-                      교환 확정
+                      교환 완료하기
                     </Text>
                   </Button>
                   <Button
@@ -391,7 +391,7 @@ export default function ChatRoomScreen() {
                         { color: colors.background },
                       ]}
                     >
-                      교환 취소
+                      거절하기
                     </Text>
                   </Button>
                 </>

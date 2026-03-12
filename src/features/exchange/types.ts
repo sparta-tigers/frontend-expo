@@ -87,6 +87,7 @@ export enum ExchangeRequestStatus {
  */
 export interface ExchangeRequest {
   id: number;
+  roomId?: number; // 채팅방 ID (수락된 경우 서버에서 포함 가능)
   itemId: number;
   requesterId: number;
   providerId: number;

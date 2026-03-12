@@ -193,6 +193,26 @@ export async function exchangeGetReceivedAPI(
 }
 
 /**
+ * 나의 교환 요청 목록 조회 API (받은 제안 / 보낸 제안)
+ * role 파라미터를 통해 분기 (sender: 보낸 제안, receiver: 받은 제안)
+ *
+ * @param role - 요청자 구분 ('sender' | 'receiver')
+ * @param page - 페이지 번호
+ * @param size - 페이지 크기
+ * @param status - (옵션) 상태 필터 문자열
+ */
+export async function exchangeGetMyRequestsAPI(
+  role: "sender" | "receiver",
+  page: number = 0,
+  size: number = 20,
+  status?: string,
+): Promise<ApiResponse<ExchangeRequestListResponse>> {
+  const params: Record<string, any> = { role, page, size };
+  if (status) params.status = status;
+  return apiClient.get("/api/exchanges/my", params);
+}
+
+/**
  * 교환 요청 상태 업데이트 API
  * 교환 요청을 수락 또는 거절 처리
  *

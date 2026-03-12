@@ -131,7 +131,7 @@ export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
   // 바텀시트 열림/닫힘 감지
   React.useEffect(() => {
     if (isOpen && bottomSheetRef.current) {
-      bottomSheetRef.current.snapToIndex(0);
+      bottomSheetRef.current.snapToIndex(1); // snapToIndex(1)로 수정
     } else if (!isOpen && bottomSheetRef.current) {
       bottomSheetRef.current.close();
     }
@@ -187,7 +187,7 @@ export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
     <BottomSheet
       ref={bottomSheetRef}
       index={-1} // 기본적으로 닫힘
-      snapPoints={["80%"]} // 화면 높이의 80%
+      snapPoints={["40%", "80%"]} // 여러 snap point 추가
       enablePanDownToClose={true}
       onClose={onClose}
       backgroundStyle={{ backgroundColor: colors.background }}
