@@ -1,4 +1,4 @@
-import { Logger } from "@/src/utils/logger";
+import { Logger, maskSensitive } from "@/src/utils/logger";
 import {
   clearTokens,
   getAccessToken,
@@ -157,7 +157,7 @@ axiosInstance.interceptors.request.use(
         if (!isTokenValid) {
           Logger.error(
             "🚨 [Invalid Token Format] 비정상 형식의 토큰:",
-            accessToken.substring(0, 50),
+            maskSensitive(accessToken),
           );
           // 토큰 형식이 비정상이면 요청 중단 및 토큰 클리어
           await clearTokens();
@@ -168,7 +168,13 @@ axiosInstance.interceptors.request.use(
 
         // 🚨 앙드레 카파시: 조건부 디버깅 로그
         if (__DEV__ && shouldLogTokenValidation(config.url)) {
-          Logger.debug("[Authorization Header]", config.headers.Authorization);
+          Logger.debug(
+            "[Authorization Header]",
+            config.headers.Authorization.replace(
+              /Bearer\s+(.+)/,
+              "Bearer [MASKED]",
+            ),
+          );
           Logger.debug("[Token Length]", accessToken.length);
           Logger.debug(
             "[Token Format]",
@@ -269,7 +275,12 @@ axiosInstance.interceptors.response.use(
           throw new Error("Refresh token response invalid");
         }
       } catch (refreshError) {
-        Logger.error("토큰 갱신 실패:", refreshError);
+        Logger.error(
+          "토큰 갱신 실패:",
+          refreshError instanceof Error
+            ? refreshError.message
+            : String(refreshError),
+        );
 
         // 토큰 삭제
         await clearTokens();
@@ -302,7 +313,10 @@ export const apiClient = {
       const response = await axiosInstance.get(url, { params });
       return response.data;
     } catch (error) {
-      Logger.error(`GET ${url} 요청 실패:`, error);
+      Logger.error(
+        `GET ${url} 요청 실패:`,
+        error instanceof Error ? error.message : String(error),
+      );
       // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
       throw error;
     }
@@ -320,7 +334,10 @@ export const apiClient = {
       const response = await axiosInstance.post(url, data, config);
       return response.data;
     } catch (error) {
-      Logger.error(`POST ${url} 요청 실패:`, error);
+      Logger.error(
+        `POST ${url} 요청 실패:`,
+        error instanceof Error ? error.message : String(error),
+      );
       // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
       throw error;
     }
@@ -334,7 +351,10 @@ export const apiClient = {
       const response = await axiosInstance.put(url, data);
       return response.data;
     } catch (error) {
-      Logger.error(`PUT ${url} 요청 실패:`, error);
+      Logger.error(
+        `PUT ${url} 요청 실패:`,
+        error instanceof Error ? error.message : String(error),
+      );
       // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
       throw error;
     }
@@ -348,7 +368,10 @@ export const apiClient = {
       const response = await axiosInstance.delete(url);
       return response.data;
     } catch (error) {
-      Logger.error(`DELETE ${url} 요청 실패:`, error);
+      Logger.error(
+        `DELETE ${url} 요청 실패:`,
+        error instanceof Error ? error.message : String(error),
+      );
       // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
       throw error;
     }
@@ -365,7 +388,10 @@ export const apiClient = {
       const response = await axiosInstance.patch(url, data);
       return response.data;
     } catch (error) {
-      Logger.error(`PATCH ${url} 요청 실패:`, error);
+      Logger.error(
+        `PATCH ${url} 요청 실패:`,
+        error instanceof Error ? error.message : String(error),
+      );
       // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
       throw error;
     }
