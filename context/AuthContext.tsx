@@ -326,8 +326,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
    */
   const signout = async (): Promise<void> => {
     try {
-      // 서버에 로그아웃 통보 (실패하더라도 로컬 정리는 진행)
-      await authSignoutAPI();
+      // 현재 리프레시 토큰 가져오기
+      const currentRefreshToken = await getRefreshToken();
+
+      if (currentRefreshToken) {
+        // 서버에 로그아웃 통보 (실패하더라도 로컬 정리는 진행)
+        await authSignoutAPI(currentRefreshToken);
+      }
     } catch (error) {
       console.error("서버 로그아웃 통보 실패:", error);
     } finally {
