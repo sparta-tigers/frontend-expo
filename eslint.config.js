@@ -9,7 +9,7 @@ module.exports = defineConfig([
     ignores: ["dist/*", ".expo/**"],
   },
   {
-    files: ["src/utils/logger.ts"],
+    files: ["src/utils/logger.ts", "scripts/*.js"],
     rules: {
       "no-console": "off",
     },
