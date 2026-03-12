@@ -419,9 +419,7 @@ export default function ExchangeScreen() {
         );
       }
 
-      if (__DEV__) {
-        Logger.debug("[현재 위치로 이동]", userLocation);
-      }
+      Logger.debug("[현재 위치로 이동]", userLocation);
     } catch (error) {
       Logger.error("현재 위치로 이동 실패:", error);
 
@@ -476,9 +474,7 @@ export default function ExchangeScreen() {
         );
       }
 
-      if (__DEV__) {
-        Logger.debug("[초기 위치 설정]", userLocation);
-      }
+      Logger.debug("[초기 위치 설정]", userLocation);
     } catch (error) {
       Logger.error("초기 위치 가져오기 실패:", error);
     }

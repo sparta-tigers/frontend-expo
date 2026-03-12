@@ -1,25 +1,25 @@
 import {
-    authSigninAPI,
-    authSignoutAPI,
-    authSignupAPI,
+  authSigninAPI,
+  authSignoutAPI,
+  authSignupAPI,
 } from "@/src/features/auth/api";
 import {
-    AuthSigninRequest,
-    AuthSignupRequest,
+  AuthSigninRequest,
+  AuthSignupRequest,
 } from "@/src/features/auth/types";
-import { Logger } from "@/src/utils/logger";
+import { Logger, maskSensitive } from "@/src/utils/logger";
 import {
-    clearTokens,
-    getAccessToken,
-    getRefreshToken,
-    setTokens,
+  clearTokens,
+  getAccessToken,
+  getRefreshToken,
+  setTokens,
 } from "@/src/utils/tokenStore";
 import {
-    ReactNode,
-    createContext,
-    useContext,
-    useEffect,
-    useState,
+  ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
 } from "react";
 
 /**
@@ -145,6 +145,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       if (__DEV__) {
         Logger.debug("[AuthContext] 토큰 로드 시도");
         Logger.debug("- Access Token 존재 여부:", !!accessToken);
+        Logger.debug("- Access Token:", maskSensitive(accessToken));
       }
 
       if (accessToken) {
@@ -152,6 +153,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
         if (__DEV__) {
           Logger.debug("- Refresh Token 존재 여부:", !!refreshToken);
+          Logger.debug("- Refresh Token:", maskSensitive(refreshToken));
         }
 
         if (refreshToken) {
@@ -171,6 +173,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           if (__DEV__) {
             Logger.debug(
               "✅ [AuthContext] 토큰 로드 성공 - 사용자 상태 설정 완료",
+              maskSensitive(accessToken),
             );
           }
         } else {
@@ -242,12 +245,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           return false;
         }
 
-        // 🚨 디버깅 로그: 토큰 저장 상태 확인
-        if (__DEV__) {
-          Logger.debug("✅ [AuthContext] 토큰 저장 성공");
-          Logger.debug("- Access Token 길이:", tokenData.accessToken.length);
-          Logger.debug("- Refresh Token 길이:", tokenData.refreshToken.length);
-        }
+        // 디버깅 로그: 토큰 저장 상태 확인
+        Logger.debug(
+          "✅ [AuthContext] 토큰 저장 성공",
+          maskSensitive(tokenData.accessToken),
+        );
+        Logger.debug("- Access Token 길이:", tokenData.accessToken.length);
+        Logger.debug("- Refresh Token 길이:", tokenData.refreshToken.length);
 
         // 상태 업데이트
         const claim = getTokenClaimFromAccessToken(tokenData.accessToken);

@@ -291,10 +291,7 @@ export default function CreateItemScreen() {
         } as any); // RN의 FormData 타입 에러 우회
       });
 
-      if (__DEV__) {
-        Logger.debug("멀티파트 전송 준비 완료:", requestFormData);
-      }
-
+      Logger.debug("멀티파트 전송 준비 완료:", requestFormData);
       // 3. API 호출
       return createExchangeItem(requestFormData);
     },
@@ -360,9 +357,7 @@ export default function CreateItemScreen() {
 
       setCurrentLocation(locationData);
 
-      if (__DEV__) {
-        Logger.debug("[위치 정보 가져오기]", locationData);
-      }
+      Logger.debug("[위치 정보 가져오기]", locationData);
     } catch (error) {
       Logger.error("위치 정보 가져오기 실패:", error);
 
@@ -414,10 +409,7 @@ export default function CreateItemScreen() {
         const newImages = result.assets.map((asset) => asset.uri || "");
         const updatedImages = [...selectedImages, ...newImages].slice(0, 5); // 최대 5장
         setSelectedImages(updatedImages);
-
-        if (__DEV__) {
-          Logger.debug("[이미지 선택]", `${updatedImages.length}장 선택됨`);
-        }
+        Logger.debug("[이미지 선택]", `${updatedImages.length}장 선택됨`);
       }
     } catch {
       Alert.alert("오류", "이미지 선택에 실패했습니다.");

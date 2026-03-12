@@ -1,4 +1,4 @@
-import { Logger } from "@/src/utils/logger";
+import { Logger, maskSensitive } from "@/src/utils/logger";
 import * as SecureStore from "expo-secure-store";
 
 /**
@@ -132,11 +132,6 @@ export async function initializeTokenCache(): Promise<void> {
   _accessToken = null;
   _refreshToken = null;
 
-  // 🚨 디버깅 로그: 초기화 상태 확인
-  if (__DEV__) {
-    Logger.debug("[Token Cache] 메모리 캐시 초기화 완료");
-  }
-
   // SecureStore에서 토큰 미리 로드
   try {
     const accessToken = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
@@ -148,8 +143,8 @@ export async function initializeTokenCache(): Promise<void> {
 
       if (__DEV__) {
         Logger.debug("[Token Cache] SecureStore에서 토큰 로드 완료");
-        Logger.debug("- Access Token:", accessToken.substring(0, 20) + "...");
-        Logger.debug("- Refresh Token:", refreshToken.substring(0, 20) + "...");
+        Logger.debug("- Access Token:", maskSensitive(accessToken));
+        Logger.debug("- Refresh Token:", maskSensitive(refreshToken));
       }
     } else {
       if (__DEV__) {
@@ -172,14 +167,8 @@ export function getDebugTokenState(): {
 } {
   if (__DEV__) {
     Logger.debug("[Token Cache State]");
-    Logger.debug(
-      "- Access Token:",
-      _accessToken ? `${_accessToken.substring(0, 20)}...` : "null",
-    );
-    Logger.debug(
-      "- Refresh Token:",
-      _refreshToken ? `${_refreshToken.substring(0, 20)}...` : "null",
-    );
+    Logger.debug("- Access Token:", maskSensitive(_accessToken));
+    Logger.debug("- Refresh Token:", maskSensitive(_refreshToken));
     Logger.debug(
       "- Access Token Format:",
       _accessToken?.startsWith("eyJ") ? "JWT" : "Invalid",

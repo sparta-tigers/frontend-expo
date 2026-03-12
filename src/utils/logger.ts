@@ -1,10 +1,21 @@
 /**
  * 중앙 통제형 로거 유틸리티
- * 
+ *
  * 모든 로그의 단일 진입점(SSOT)으로,
  * 개발 환경에서만 로그가 출력되도록 제어합니다.
  * 프로덕션 환경에서는 error 레벨만 출력됩니다.
  */
+
+/**
+ * 민감 정보(토큰, 비밀번호 등)를 안전하게 마스킹하는 유틸리티 함수
+ * @param sensitive 민감 정보 문자열
+ * @returns 마스킹된 문자열
+ */
+export const maskSensitive = (sensitive?: string | null): string => {
+  if (!sensitive) return "null/undefined";
+  if (sensitive.length < 10) return "***";
+  return `${sensitive.substring(0, 6)}...${sensitive.substring(sensitive.length - 4)}`;
+};
 
 export const Logger = {
   /**

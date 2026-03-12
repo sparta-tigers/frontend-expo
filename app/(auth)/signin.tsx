@@ -29,9 +29,7 @@ export default function SigninScreen() {
   useEffect(() => {
     const timer = setTimeout(() => {
       navigationReady.current = true;
-      if (__DEV__) {
-        Logger.debug("[Signin] 네비게이터 준비 완료");
-      }
+      Logger.debug("[Signin] 네비게이터 준비 완료");
     }, 100);
 
     return () => {
@@ -46,17 +44,13 @@ export default function SigninScreen() {
   const safeRedirect = (href: string) => {
     if (!navigationReady.current) {
       redirectTimeoutRef.current = setTimeout(() => {
-        if (__DEV__) {
-          Logger.debug("[Signin] 지연된 리디렉션 실행:", href);
-        }
+        Logger.debug("[Signin] 지연된 리디렉션 실행:", href);
         router.replace(href as any);
       }, 200);
       return;
     }
 
-    if (__DEV__) {
-      Logger.debug("[Signin] 즉시 리디렉션 실행:", href);
-    }
+    Logger.debug("[Signin] 즉시 리디렉션 실행:", href);
     router.replace(href as any);
   };
 

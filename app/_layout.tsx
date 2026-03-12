@@ -69,9 +69,7 @@ function RootLayoutInner() {
     // 네비게이션이 준비되었음을 표시
     const timer = setTimeout(() => {
       navigationReady.current = true;
-      if (__DEV__) {
-        Logger.debug("[Navigation] 네비게이터 준비 완료");
-      }
+      Logger.debug("[Navigation] 네비게이터 준비 완료");
     }, 100); // 100ms 지연으로 안정화
 
     return () => {
@@ -87,9 +85,7 @@ function RootLayoutInner() {
     if (!navigationReady.current) {
       // 네비게이터가 준비되지 않았으면 지연 실행
       redirectTimeoutRef.current = setTimeout(() => {
-        if (__DEV__) {
-          Logger.debug("[Navigation] 지연된 리디렉션 실행:", href);
-        }
+        Logger.debug("[Navigation] 지연된 리디렉션 실행:", href);
         // @ts-ignore
         router.replace(href);
       }, 200);
@@ -97,9 +93,7 @@ function RootLayoutInner() {
     }
 
     // 네비게이터가 준비되었으면 즉시 실행
-    if (__DEV__) {
-      Logger.debug("[Navigation] 즉시 리디렉션 실행:", href);
-    }
+    Logger.debug("[Navigation] 즉시 리디렉션 실행:", href);
     // @ts-ignore
     router.replace(href);
   };
