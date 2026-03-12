@@ -14,6 +14,7 @@ import {
 } from "@/src/features/user/favorite-team-api";
 import { useAuth } from "@/src/hooks/useAuth";
 import { SPACING } from "@/src/styles/unified-design";
+import { Logger } from "@/src/utils/logger";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -41,7 +42,7 @@ export default function ProfileScreen() {
         setFavoriteTeams(response.data);
       }
     } catch (error) {
-      console.error("즐겨찾기 팀 목록 로딩 실패:", error);
+      Logger.error("즐겨찾기 팀 목록 로딩 실패:", error);
     }
   }, [user?.accessToken]);
 
@@ -99,7 +100,7 @@ export default function ProfileScreen() {
                 Alert.alert("오류", "프로필 수정에 실패했습니다.");
               }
             } catch (error) {
-              console.error("프로필 수정 실패:", error);
+              Logger.error("프로필 수정 실패:", error);
               Alert.alert("오류", "네트워크 에러가 발생했습니다.");
             } finally {
               setLoading(false);
@@ -161,7 +162,7 @@ export default function ProfileScreen() {
                         Alert.alert("오류", "회원 탈퇴에 실패했습니다.");
                       }
                     } catch (error) {
-                      console.error("회원 탈퇴 실패:", error);
+                      Logger.error("회원 탈퇴 실패:", error);
                       Alert.alert("오류", "네트워크 에러가 발생했습니다.");
                     } finally {
                       setLoading(false);
@@ -212,7 +213,7 @@ export default function ProfileScreen() {
             Alert.alert("오류", "즐겨찾기 추가에 실패했습니다.");
           }
         } catch (error) {
-          console.error("즐겨찾기 팀 추가 실패:", error);
+          Logger.error("즐겨찾기 팀 추가 실패:", error);
           Alert.alert("오류", "네트워크 에러가 발생했습니다.");
         }
       },
@@ -251,7 +252,7 @@ export default function ProfileScreen() {
                 Alert.alert("오류", "즐겨찾기 삭제에 실패했습니다.");
               }
             } catch (error) {
-              console.error("즐겨찾기 팀 삭제 실패:", error);
+              Logger.error("즐겨찾기 팀 삭제 실패:", error);
               Alert.alert("오류", "네트워크 에러가 발생했습니다.");
             }
           },

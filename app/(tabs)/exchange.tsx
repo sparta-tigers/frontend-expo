@@ -13,6 +13,7 @@ import {
 } from "@/src/features/exchange/types";
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import { theme } from "@/src/styles/theme";
+import { Logger } from "@/src/utils/logger";
 import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
@@ -289,7 +290,7 @@ export default function ExchangeScreen() {
 
         // setIsLast(responseData?.last || false);
       } catch (error) {
-        console.error("교환 요청 목록 로딩 실패:", error);
+        Logger.error("교환 요청 목록 로딩 실패:", error);
         Alert.alert("오류", "교환 요청 목록을 불러올 수 없습니다.");
         await fetchRequests(Promise.resolve([]));
       }
@@ -333,7 +334,7 @@ export default function ExchangeScreen() {
 
         return itemsState.data || [];
       } catch (error) {
-        console.error("아이템 목록 로딩 실패:", error);
+        Logger.error("아이템 목록 로딩 실패:", error);
         throw error;
       } finally {
         if (isRefresh) setRefreshing(false);
@@ -365,7 +366,7 @@ export default function ExchangeScreen() {
           Alert.alert("오류", "상태 변경에 실패했습니다.");
         }
       } catch (error) {
-        console.error("교환 요청 상태 변경 실패:", error);
+        Logger.error("교환 요청 상태 변경 실패:", error);
         Alert.alert("오류", "네트워크 에러가 발생했습니다.");
       }
     },
@@ -419,10 +420,10 @@ export default function ExchangeScreen() {
       }
 
       if (__DEV__) {
-        console.log("🔍 [현재 위치로 이동]", userLocation);
+        Logger.debug("[현재 위치로 이동]", userLocation);
       }
     } catch (error) {
-      console.error("현재 위치로 이동 실패:", error);
+      Logger.error("현재 위치로 이동 실패:", error);
 
       // 에러 메시지에 따른 처리
       if (
@@ -449,7 +450,7 @@ export default function ExchangeScreen() {
       const { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status !== "granted") {
-        console.log("위치 권한이 거부됨");
+        Logger.debug("위치 권한이 거부됨");
         return;
       }
 
@@ -476,10 +477,10 @@ export default function ExchangeScreen() {
       }
 
       if (__DEV__) {
-        console.log("🔍 [초기 위치 설정]", userLocation);
+        Logger.debug("[초기 위치 설정]", userLocation);
       }
     } catch (error) {
-      console.error("초기 위치 가져오기 실패:", error);
+      Logger.error("초기 위치 가져오기 실패:", error);
     }
   };
 

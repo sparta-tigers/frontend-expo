@@ -1,4 +1,4 @@
-import { useColorScheme as useReactNativeColorScheme } from "react-native";
+import { Logger } from "@/src/utils/logger";
 
 /**
  * 시스템 컬러 스킴을 가져오는 훅
@@ -13,8 +13,8 @@ export const useColorScheme = () => {
 
   // 안전장치: colorScheme이 undefined일 경우 기본값 'light' 반환
   if (!colorScheme) {
-    console.log(
-      "🔍 useColorScheme: colorScheme is undefined, defaulting to light",
+    Logger.debug(
+      "useColorScheme: colorScheme is undefined, defaulting to light",
     );
     return "light";
   }

@@ -19,6 +19,7 @@ import { SafeLayout } from "@/components/ui/safe-layout";
 import { createExchangeItem } from "@/src/features/exchange/api";
 import { ItemCategory, LocationDto } from "@/src/features/exchange/types";
 import { theme } from "@/src/styles/theme";
+import { Logger } from "@/src/utils/logger";
 
 // Location 모듈 타입 단언
 const LocationModule = Location as any;
@@ -291,7 +292,7 @@ export default function CreateItemScreen() {
       });
 
       if (__DEV__) {
-        console.log("🚀 멀티파트 전송 준비 완료:", requestFormData);
+        Logger.debug("멀티파트 전송 준비 완료:", requestFormData);
       }
 
       // 3. API 호출
@@ -305,7 +306,7 @@ export default function CreateItemScreen() {
     },
     onError: (error) => {
       Alert.alert("업로드 실패", "게시글 등록 중 문제가 발생했습니다.");
-      console.error(error);
+      Logger.error(error);
     },
   });
 
@@ -331,7 +332,7 @@ export default function CreateItemScreen() {
       let { status } = await LocationModule.requestForegroundPermissionsAsync();
 
       if (status !== "granted") {
-        console.log("위치 권한이 거부됨");
+        Logger.debug("위치 권한이 거부됨");
         Alert.alert("권한 필요", "위치 정보를 사용하려면 권한이 필요합니다.");
         setLocationLoading(false);
         return;
@@ -360,10 +361,10 @@ export default function CreateItemScreen() {
       setCurrentLocation(locationData);
 
       if (__DEV__) {
-        console.log("🔍 [위치 정보 가져오기]", locationData);
+        Logger.debug("[위치 정보 가져오기]", locationData);
       }
     } catch (error) {
-      console.error("위치 정보 가져오기 실패:", error);
+      Logger.error("위치 정보 가져오기 실패:", error);
 
       // 에러 메시지에 따라 처리
       if (
@@ -415,7 +416,7 @@ export default function CreateItemScreen() {
         setSelectedImages(updatedImages);
 
         if (__DEV__) {
-          console.log("🔍 [이미지 선택]", `${updatedImages.length}장 선택됨`);
+          Logger.debug("[이미지 선택]", `${updatedImages.length}장 선택됨`);
         }
       }
     } catch {

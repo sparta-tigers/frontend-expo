@@ -1,5 +1,6 @@
 import { useTheme as useThemeContext } from "@/context/ThemeContext";
 import { getThemeColors, type ThemePalette } from "@/src/styles/theme";
+import { Logger } from "@/src/utils/logger";
 import { useColorScheme } from "react-native";
 
 /**
@@ -20,7 +21,7 @@ export const useTheme = () => {
 
   // 디버깅: theme가 undefined일 경우 로그 출력
   if (!theme) {
-    console.log("🔍 useTheme: theme is undefined, using system theme");
+    Logger.debug("useTheme: theme is undefined, using system theme");
   }
 
   return {

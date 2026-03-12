@@ -17,6 +17,7 @@ import { apiClient } from "@/src/core/client";
 import { Item } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/unified-design";
+import { Logger } from "@/src/utils/logger";
 
 /**
  * 교환 리스트 컴포넌트
@@ -291,7 +292,7 @@ export default function MyExchangesScreen() {
 
   // 🚨 앙드레 카파시: 상태 동기화 테스트 함수
   const handleTestSync = () => {
-    console.log("🔄 [Test] 상태 동기화 테스트");
+    Logger.debug("[Test] 상태 동기화 테스트");
 
     // 채팅방에서 거래가 완료되었을 때 한 번으로 모든 탭의 데이터가 일관되게 갱신되도록 설계
     queryClient.invalidateQueries({ queryKey: ["myExchanges"] });

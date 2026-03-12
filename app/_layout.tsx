@@ -5,6 +5,7 @@ import { ErrorBoundaryFallback } from "@/src/components/shared/ErrorBoundaryFall
 import { OfflineBanner } from "@/src/components/shared/OfflineBanner";
 import { usePushNotifications } from "@/src/hooks/usePushNotifications";
 import { FONT_SIZE, SPACING } from "@/src/styles/unified-design";
+import { Logger } from "@/src/utils/logger";
 import { useNetInfo } from "@react-native-community/netinfo";
 import * as Notifications from "expo-notifications";
 import { router, Slot, useSegments } from "expo-router";
@@ -60,7 +61,7 @@ function RootLayoutInner() {
 
   // 토큰 발급 확인 (실제 전송 로직은 usePushNotifications 훅에서 처리)
   if (expoPushToken) {
-    console.log("Expo Push Token 발급 완료:", expoPushToken);
+    Logger.debug("Expo Push Token 발급 완료:", expoPushToken);
   }
 
   // 🚨 앙드레 카파시: 네비게이터 준비 상태 관리
@@ -69,7 +70,7 @@ function RootLayoutInner() {
     const timer = setTimeout(() => {
       navigationReady.current = true;
       if (__DEV__) {
-        console.log("🔍 [Navigation] 네비게이터 준비 완료");
+        Logger.debug("[Navigation] 네비게이터 준비 완료");
       }
     }, 100); // 100ms 지연으로 안정화
 
@@ -87,7 +88,7 @@ function RootLayoutInner() {
       // 네비게이터가 준비되지 않았으면 지연 실행
       redirectTimeoutRef.current = setTimeout(() => {
         if (__DEV__) {
-          console.log("🔍 [Navigation] 지연된 리디렉션 실행:", href);
+          Logger.debug("[Navigation] 지연된 리디렉션 실행:", href);
         }
         // @ts-ignore
         router.replace(href);
@@ -97,7 +98,7 @@ function RootLayoutInner() {
 
     // 네비게이터가 준비되었으면 즉시 실행
     if (__DEV__) {
-      console.log("🔍 [Navigation] 즉시 리디렉션 실행:", href);
+      Logger.debug("[Navigation] 즉시 리디렉션 실행:", href);
     }
     // @ts-ignore
     router.replace(href);
