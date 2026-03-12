@@ -7,6 +7,7 @@ import {
     AuthSigninRequest,
     AuthSignupRequest,
 } from "@/src/features/auth/types";
+import { Logger } from "@/src/utils/logger";
 import {
     clearTokens,
     getAccessToken,
@@ -142,15 +143,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       const accessToken = await getAccessToken();
 
       if (__DEV__) {
-        console.log("🔍 [AuthContext] 토큰 로드 시도");
-        console.log("- Access Token 존재 여부:", !!accessToken);
+        Logger.debug("[AuthContext] 토큰 로드 시도");
+        Logger.debug("- Access Token 존재 여부:", !!accessToken);
       }
 
       if (accessToken) {
         const refreshToken = await getRefreshToken();
 
         if (__DEV__) {
-          console.log("- Refresh Token 존재 여부:", !!refreshToken);
+          Logger.debug("- Refresh Token 존재 여부:", !!refreshToken);
         }
 
         if (refreshToken) {
@@ -168,13 +169,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           setUser(tokenPayload);
 
           if (__DEV__) {
-            console.log(
+            Logger.debug(
               "✅ [AuthContext] 토큰 로드 성공 - 사용자 상태 설정 완료",
             );
           }
         } else {
           if (__DEV__) {
-            console.warn(
+            Logger.warn(
               "⚠️ [AuthContext] Access Token만 존재 - Refresh Token 없음",
             );
           }
@@ -182,11 +183,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         }
       } else {
         if (__DEV__) {
-          console.log("ℹ️ [AuthContext] 저장된 토큰 없음 - 비로그인 상태");
+          Logger.info("ℹ️ [AuthContext] 저장된 토큰 없음 - 비로그인 상태");
         }
       }
     } catch (error) {
-      console.error("❌ [AuthContext] 토큰 로드 실패:", error);
+      Logger.error("[AuthContext] 토큰 로드 실패:", error);
       await clearTokens();
     } finally {
       setIsLoading(false);
@@ -214,7 +215,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
       // 🚨 방어 로직 추가: 통신 실패나 네트워크 에러로 undefined가 들어왔을 때 크래시 방지
       if (!response) {
-        console.error(
+        Logger.error(
           "로그인 실패: 서버로부터 응답을 받지 못했습니다 (API 에러 로그 확인).",
         );
         return false;
@@ -224,7 +225,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         const tokenData = response.data;
 
         if (!tokenData.accessToken || !tokenData.refreshToken) {
-          console.error(
+          Logger.error(
             "🚨 [파싱 실패] 토큰 정보가 불완전합니다. 현재 구조:",
             JSON.stringify(response, null, 2),
           );
@@ -237,15 +238,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           tokenData.refreshToken,
         );
         if (!success) {
-          console.error("토큰 저장 실패");
+          Logger.error("토큰 저장 실패");
           return false;
         }
 
         // 🚨 디버깅 로그: 토큰 저장 상태 확인
         if (__DEV__) {
-          console.log("✅ [AuthContext] 토큰 저장 성공");
-          console.log("- Access Token 길이:", tokenData.accessToken.length);
-          console.log("- Refresh Token 길이:", tokenData.refreshToken.length);
+          Logger.debug("✅ [AuthContext] 토큰 저장 성공");
+          Logger.debug("- Access Token 길이:", tokenData.accessToken.length);
+          Logger.debug("- Refresh Token 길이:", tokenData.refreshToken.length);
         }
 
         // 상태 업데이트
@@ -257,18 +258,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         });
 
         if (__DEV__) {
-          console.log(
+          Logger.debug(
             "✅ [AuthContext] 사용자 상태 업데이트 완료 - 로그인 성공",
           );
         }
 
         return true;
       } else {
-        console.error("로그인 실패:", response.error?.message);
+        Logger.error("로그인 실패:", response.error?.message);
         return false;
       }
     } catch (error) {
-      console.error("로그인 에러:", error);
+      Logger.error("로그인 에러:", error);
       return false;
     } finally {
       setIsLoading(false);
@@ -289,7 +290,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
       // 🚨 방어 로직 추가: 통신 실패나 네트워크 에러로 undefined가 들어왔을 때 크래시 방지
       if (!response) {
-        console.error(
+        Logger.error(
           "API 통신 실패: response가 반환되지 않았습니다. 네트워크 연결을 확인하세요.",
         );
         return false;
@@ -305,15 +306,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         if (loginSuccess) {
           return true;
         } else {
-          console.error("회원가입 후 자동 로그인 실패");
+          Logger.error("회원가입 후 자동 로그인 실패");
           return false;
         }
       } else {
-        console.error("회원가입 실패:", response.error?.message);
+        Logger.error("회원가입 실패:", response.error?.message);
         return false;
       }
     } catch (error) {
-      console.error("회원가입 에러:", error);
+      Logger.error("회원가입 에러:", error);
       return false;
     } finally {
       setIsLoading(false);
@@ -334,7 +335,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         await authSignoutAPI(currentRefreshToken);
       }
     } catch (error) {
-      console.error("서버 로그아웃 통보 실패:", error);
+      Logger.error("서버 로그아웃 통보 실패:", error);
     } finally {
       // TokenStore에서 토큰 삭제
       await clearTokens();

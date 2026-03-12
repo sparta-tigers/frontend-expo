@@ -1,3 +1,4 @@
+import { Logger } from "@/src/utils/logger";
 import {
   clearTokens,
   getAccessToken,
@@ -154,7 +155,7 @@ axiosInstance.interceptors.request.use(
         const isTokenValid = validateTokenFormatCached(accessToken);
 
         if (!isTokenValid) {
-          console.error(
+          Logger.error(
             "🚨 [Invalid Token Format] 비정상 형식의 토큰:",
             accessToken.substring(0, 50),
           );
@@ -167,28 +168,25 @@ axiosInstance.interceptors.request.use(
 
         // 🚨 앙드레 카파시: 조건부 디버깅 로그
         if (__DEV__ && shouldLogTokenValidation(config.url)) {
-          console.log(
-            "🔍 [Authorization Header]",
-            config.headers.Authorization,
-          );
-          console.log("🔍 [Token Length]", accessToken.length);
-          console.log(
-            "🔍 [Token Format]",
+          Logger.debug("[Authorization Header]", config.headers.Authorization);
+          Logger.debug("[Token Length]", accessToken.length);
+          Logger.debug(
+            "[Token Format]",
             accessToken.startsWith("eyJ") ? "JWT 형식" : "비정상 형식",
           );
-          console.log(
-            "🔍 [Token Validation]",
+          Logger.debug(
+            "[Token Validation]",
             isTokenValid ? "✅ 유효" : "❌ 무효",
           );
         }
       } else {
         // 🚨 토큰 없음 경고 (중요 API 호출 시만)
         if (__DEV__ && shouldLogTokenValidation(config.url)) {
-          console.warn("⚠️ [Token Missing] 액세스 토큰이 없습니다.");
+          Logger.warn("⚠️ [Token Missing] 액세스 토큰이 없습니다.");
         }
       }
     } catch (error) {
-      console.error("토큰 조회 실패:", error);
+      Logger.error("토큰 조회 실패:", error);
       return Promise.reject(error);
     }
     return config;
@@ -271,7 +269,7 @@ axiosInstance.interceptors.response.use(
           throw new Error("Refresh token response invalid");
         }
       } catch (refreshError) {
-        console.error("토큰 갱신 실패:", refreshError);
+        Logger.error("토큰 갱신 실패:", refreshError);
 
         // 토큰 삭제
         await clearTokens();
@@ -304,7 +302,7 @@ export const apiClient = {
       const response = await axiosInstance.get(url, { params });
       return response.data;
     } catch (error) {
-      console.error(`GET ${url} 요청 실패:`, error);
+      Logger.error(`GET ${url} 요청 실패:`, error);
       // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
       throw error;
     }
@@ -322,7 +320,7 @@ export const apiClient = {
       const response = await axiosInstance.post(url, data, config);
       return response.data;
     } catch (error) {
-      console.error(`POST ${url} 요청 실패:`, error);
+      Logger.error(`POST ${url} 요청 실패:`, error);
       // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
       throw error;
     }
@@ -336,7 +334,7 @@ export const apiClient = {
       const response = await axiosInstance.put(url, data);
       return response.data;
     } catch (error) {
-      console.error(`PUT ${url} 요청 실패:`, error);
+      Logger.error(`PUT ${url} 요청 실패:`, error);
       // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
       throw error;
     }
@@ -350,7 +348,7 @@ export const apiClient = {
       const response = await axiosInstance.delete(url);
       return response.data;
     } catch (error) {
-      console.error(`DELETE ${url} 요청 실패:`, error);
+      Logger.error(`DELETE ${url} 요청 실패:`, error);
       // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
       throw error;
     }
@@ -367,7 +365,7 @@ export const apiClient = {
       const response = await axiosInstance.patch(url, data);
       return response.data;
     } catch (error) {
-      console.error(`PATCH ${url} 요청 실패:`, error);
+      Logger.error(`PATCH ${url} 요청 실패:`, error);
       // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
       throw error;
     }

@@ -5,6 +5,7 @@ import { SafeLayout } from "@/components/ui/safe-layout";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/src/hooks/useAuth";
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/unified-design";
+import { Logger } from "@/src/utils/logger";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
@@ -29,7 +30,7 @@ export default function SigninScreen() {
     const timer = setTimeout(() => {
       navigationReady.current = true;
       if (__DEV__) {
-        console.log("🔍 [Signin] 네비게이터 준비 완료");
+        Logger.debug("[Signin] 네비게이터 준비 완료");
       }
     }, 100);
 
@@ -46,7 +47,7 @@ export default function SigninScreen() {
     if (!navigationReady.current) {
       redirectTimeoutRef.current = setTimeout(() => {
         if (__DEV__) {
-          console.log("🔍 [Signin] 지연된 리디렉션 실행:", href);
+          Logger.debug("[Signin] 지연된 리디렉션 실행:", href);
         }
         router.replace(href as any);
       }, 200);
@@ -54,7 +55,7 @@ export default function SigninScreen() {
     }
 
     if (__DEV__) {
-      console.log("🔍 [Signin] 즉시 리디렉션 실행:", href);
+      Logger.debug("[Signin] 즉시 리디렉션 실행:", href);
     }
     router.replace(href as any);
   };
@@ -75,7 +76,7 @@ export default function SigninScreen() {
         Alert.alert("실패", "로그인에 실패했습니다");
       }
     } catch (error) {
-      console.error("로그인 에러:", error);
+      Logger.error("로그인 에러:", error);
       Alert.alert("오류", "로그인 중 오류가 발생했습니다");
     }
   };
