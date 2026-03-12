@@ -2,14 +2,14 @@ import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { useTheme } from "@/hooks/useTheme";
 import {
-    exchangeGetReceivedAPI,
-    exchangeUpdateStatusAPI,
-    itemsGetListAPI,
+  exchangeGetReceivedAPI,
+  exchangeUpdateStatusAPI,
+  itemsGetListAPI,
 } from "@/src/features/exchange/api";
 import {
-    ExchangeRequest,
-    ExchangeRequestStatus,
-    Item,
+  ExchangeRequest,
+  ExchangeRequestStatus,
+  Item,
 } from "@/src/features/exchange/types";
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import { theme } from "@/src/styles/theme";
@@ -19,14 +19,14 @@ import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 
@@ -233,6 +233,34 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: theme.colors.background,
   },
+  // 재검색 버튼 스타일 (Phase 1)
+  reSearchButton: {
+    position: "absolute",
+    top: theme.spacing.xxl + theme.spacing.SCREEN, // Safe Area 아래 상단 중앙
+    left: "50%",
+    transform: [{ translateX: -100 }], // 너비 200의 중앙 정렬
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: 20, // 알약 모양
+    flexDirection: "row",
+    alignItems: "center",
+    shadowColor: theme.colors.text.primary,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 1000, // 최상단에 표시
+  },
+  reSearchText: {
+    color: theme.colors.background,
+    fontSize: theme.typography.size.sm,
+    fontWeight: theme.typography.weight.semibold,
+    marginLeft: theme.spacing.xs,
+  },
 });
 
 /**
@@ -266,6 +294,15 @@ export default function ExchangeScreen() {
     latitude: number;
     longitude: number;
   } | null>(null);
+
+  // 지도 이동 감지 상태 (Phase 1)
+  const [isMapMoved, setIsMapMoved] = useState(false);
+  const [mapRegion, setMapRegion] = useState({
+    latitude: 37.5665, // 서울 디폴트 좌표
+    longitude: 126.978,
+    latitudeDelta: 0.009, // 약 1km 반경
+    longitudeDelta: 0.009, // 약 1km 반경
+  });
 
   // 받은 교환 요청 목록 가져오기
   const loadExchangeRequests = useCallback(
@@ -503,6 +540,12 @@ export default function ExchangeScreen() {
     setRefreshing(false);
   };
 
+  // 지도 이동 완료 핸들러 (Phase 1)
+  const handleRegionChangeComplete = (region: any) => {
+    setMapRegion(region);
+    setIsMapMoved(true); // 재검색 버튼 표시
+  };
+
   // 다음 페이지 로드 (현재 미사용 - BottomSheetFlatList에서 onEndReached 제거)
   // const loadMore = () => {
   //   // 에러 상태에서는 자동 로드를 차단하여 무한 루프 방지
@@ -696,6 +739,7 @@ export default function ExchangeScreen() {
           latitudeDelta: 0.009, // 약 1km 반경
           longitudeDelta: 0.009, // 약 1km 반경
         }}
+        onRegionChangeComplete={handleRegionChangeComplete} // Phase 1: 지도 이동 감지
       >
         {/* 현재 위치 마커 */}
         {currentLocation && (
@@ -865,6 +909,19 @@ export default function ExchangeScreen() {
 
       {/* 3. 플로팅 버튼 그룹 (바텀시트 위에 떠있어야 함) */}
       <View style={styles.fabContainer}>
+        {/* 현 지도에서 재검색 버튼 (Phase 1) */}
+        {isMapMoved && (
+          <TouchableOpacity
+            style={styles.reSearchButton}
+            onPress={() => {
+              // Phase 2에서 구현할 재검색 로직
+              Logger.debug("현 지도에서 재검색 클릭", mapRegion);
+            }}
+          >
+            <Text style={styles.reSearchText}>↻ 현 지도에서 재검색</Text>
+          </TouchableOpacity>
+        )}
+
         {/* 현재 위치 버튼 */}
         <TouchableOpacity
           style={[styles.fabButton, styles.locationButton]}
