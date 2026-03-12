@@ -22,6 +22,9 @@ type ExchangeRoomResponseDto = {
  * @param size - 페이지당 데이터 크기 (기본값: 20)
  * @param category - 아이템 카테고리 필터 (선택사항)
  * @param status - 아이템 상태 필터 (선택사항)
+ * @param lat - 위도 좌표 (선택사항, 공간 검색용)
+ * @param lng - 경도 좌표 (선택사항, 공간 검색용)
+ * @param radiusKm - 검색 반경 (기본값: 2km)
  * @returns 페이징 처리된 아이템 목록
  */
 export async function itemsGetListAPI(
@@ -29,10 +32,20 @@ export async function itemsGetListAPI(
   size: number = 20,
   category?: ItemCategory,
   status?: string,
+  lat?: number,
+  lng?: number,
+  radiusKm?: number,
 ): Promise<ApiResponse<any>> {
   const params: any = { page, size };
   if (category) params.category = category;
   if (status) params.status = status;
+
+  // 좌표 기반 검색 파라미터 추가
+  if (lat && lng) {
+    params.latitude = lat;
+    params.longitude = lng;
+    params.radius = radiusKm || 2; // 기본 반경 2km
+  }
 
   // try-catch 제거하고 바로 리턴
   return apiClient.get("/api/items", params);
