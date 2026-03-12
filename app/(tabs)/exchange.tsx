@@ -720,7 +720,23 @@ export default function ExchangeScreen() {
         })}
       </MapView>
 
-      {/* 2. 스와이프업 리스트 뷰 (바텀시트) */}
+      {/* 1. 바텀시트 아래에 깔릴 우하단 플로팅 버튼 (위치 및 프로필) */}
+      <View style={styles.fabContainer}>
+        {/* 현재 위치 버튼 */}
+        <TouchableOpacity
+          style={[styles.fabButton, styles.locationButton]}
+          onPress={moveToCurrentLocation}
+        >
+          <Text style={styles.fabText}>📍</Text>
+        </TouchableOpacity>
+
+        {/* 8페이지 진입: 내 정보 모달 오픈 */}
+        <TouchableOpacity style={styles.fabButton} onPress={() => setProfileModalVisible(true)}>
+          <Text style={styles.fabText}>👤</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* 2. 스와이프업 리스트 뷰 (바텀시트) - React Native 특성상 나중에 렌더링되어야 플로팅 요소들을 위로 덮음 */}
       <BottomSheet
         ref={bottomSheetRef}
         snapPoints={["15%", "85%"]}
@@ -759,7 +775,6 @@ export default function ExchangeScreen() {
                 </Text>
                 <Button
                   onPress={() => {
-                    // 🚨 수정된 부분: 다시 시도 버튼에서도 좌표 전달!
                     const radius = mapRegion.latitudeDelta * 111; // 1도 ≈ 111km
                     fetchItems(
                       loadItems(
@@ -793,7 +808,7 @@ export default function ExchangeScreen() {
         </View>
       </BottomSheet>
 
-      {/* 1페이지 디자인: 지도 상단 플로팅 오버레이 버튼들 */}
+      {/* 3. 지도 상단 플로팅 오버레이 버튼들 (항상 바텀시트보다 위에 있어야 하므로 더 나중에 렌더링) */}
       <View style={styles.topOverlayContainer}>
         <TouchableOpacity style={styles.topOverlayButton} onPress={navigateToCreate}>
           <Text style={styles.topOverlayButtonText}>+ 등록하기</Text>
@@ -803,34 +818,18 @@ export default function ExchangeScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* 3. 플로팅 버튼 그룹 (바텀시트 위에 떠있어야 함) */}
-      <View style={styles.fabContainer}>
-        {/* 현 지도에서 재검색 버튼 (Phase 1) */}
-        {isMapMoved && (
-          <TouchableOpacity
-            style={[
-              styles.reSearchButton,
-              { top: insets.top + 16 }, // 🚨 Safe Area를 고려하여 동적 여백 할당
-            ]}
-            onPress={handleSearchCurrentLocation}
-          >
-            <Text style={styles.reSearchText}>↻ 현 지도에서 재검색</Text>
-          </TouchableOpacity>
-        )}
-
-        {/* 현재 위치 버튼 */}
+      {/* 4. 현 지도에서 재검색 버튼 (Phase 1) - 최상단 고정 */}
+      {isMapMoved && (
         <TouchableOpacity
-          style={[styles.fabButton, styles.locationButton]}
-          onPress={moveToCurrentLocation}
+          style={[
+            styles.reSearchButton,
+            { top: Math.max(insets.top, 20) + 70 }, // topOverlay 버튼 영역 아래로 동적 할당
+          ]}
+          onPress={handleSearchCurrentLocation}
         >
-          <Text style={styles.fabText}>📍</Text>
+          <Text style={styles.reSearchText}>↻ 현 지도에서 재검색</Text>
         </TouchableOpacity>
-
-        {/* 8페이지 진입: 내 정보 모달 오픈 */}
-        <TouchableOpacity style={styles.fabButton} onPress={() => setProfileModalVisible(true)}>
-          <Text style={styles.fabText}>👤</Text>
-        </TouchableOpacity>
-      </View>
+      )}
 
       {/* Profile Modal (8-11페이지 연결) */}
       <Modal

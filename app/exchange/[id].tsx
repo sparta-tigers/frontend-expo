@@ -8,6 +8,7 @@ import {
 import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
@@ -200,6 +201,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: theme.spacing.COMPONENT,
   },
+  headerLeftButton: {
+    marginLeft: 0,
+    marginRight: 16,
+  },
 });
 
 /**
@@ -239,7 +244,7 @@ export default function ItemDetailScreen() {
   });
 
   // 작성자 여부 확인 (권한 기반 UI 분리용)
-  const isOwner = item?.data?.user?.id === user?.userId;
+  const isOwner = item?.data?.userId === user?.userId || item?.data?.user?.id === user?.userId;
 
   // 이미지 캐러셀 렌더링
   const renderImageCarousel = useCallback(() => {
@@ -467,7 +472,12 @@ export default function ItemDetailScreen() {
           headerShown: true,
           headerTitle: "아이템 상세",
           headerBackTitleVisible: false,
-          headerBackVisible: true, // 뒤로가기 버튼 명시적 강제 활성화 (iOS/Android 최적화)
+          headerBackVisible: true, // 안드로이드 기본 지원
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()} style={styles.headerLeftButton}>
+              <Ionicons name="chevron-back" size={24} color={colors.text} />
+            </TouchableOpacity>
+          ),
           headerRight: () =>
             isOwner ? (
               <View style={styles.headerRightContainer}>
@@ -665,7 +675,7 @@ export default function ItemDetailScreen() {
                   { color: colors.background },
                 ]}
               >
-                교환 요청하기
+                교환 제안하기
               </Text>
             </TouchableOpacity>
           )}
