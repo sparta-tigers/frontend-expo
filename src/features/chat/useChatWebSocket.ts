@@ -51,9 +51,6 @@ export function useChatWebSocket({
           // 인증 토큰이 필요한 경우 여기에 추가
           // 'Authorization': `Bearer ${token}`
         },
-        debug: (str) => {
-          Logger.debug("STOMP Debug:", str);
-        },
         reconnectDelay: 5000,
         heartbeatIncoming: 4000,
         heartbeatOutgoing: 4000,

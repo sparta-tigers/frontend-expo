@@ -140,9 +140,6 @@ export function useWebSocket(
             Authorization: `Bearer ${accessToken || ""}`,
             ChatDomain: chatDomain,
           },
-          debug: (str) => {
-            Logger.debug("STOMP Debug (SockJS):", str);
-          },
         });
       } else {
         // 직접 WebSocket 연결
@@ -151,9 +148,6 @@ export function useWebSocket(
           connectHeaders: {
             Authorization: `Bearer ${accessToken || ""}`,
             ChatDomain: chatDomain,
-          },
-          debug: (str) => {
-            Logger.debug("STOMP Debug (Direct):", str);
           },
         });
       }

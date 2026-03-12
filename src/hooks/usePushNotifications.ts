@@ -6,7 +6,7 @@ import { Platform } from "react-native";
 
 import { apiClient } from "@/src/core/client";
 import { useAuth } from "@/src/hooks/useAuth";
-import { Logger } from "@/src/utils/logger";
+import { Logger, maskSensitive } from "@/src/utils/logger";
 
 // 타입 정의
 interface NotificationType {
@@ -101,7 +101,7 @@ export function usePushNotifications() {
       if (!token) return;
 
       setExpoPushToken(token);
-      Logger.debug("Expo Push Token:", token);
+      Logger.debug("Expo Push Token:", maskSensitive(token));
     });
 
     // 채널 설정 (Android)
