@@ -4,15 +4,15 @@ import * as Location from "expo-location";
 import { router } from "expo-router";
 import React from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 import { SafeLayout } from "@/components/ui/safe-layout";
@@ -262,29 +262,31 @@ export default function CreateItemScreen() {
     mutationFn: async (data: typeof formData) => {
       const requestFormData = new FormData();
 
-      // 1. JSON 데이터를 문자열로 직렬화하여 'request' 파트에 추가 (백엔드 @RequestPart("request") 매핑)
+      // 1. JSON 데이터 구조를 백엔드 ItemCreateRequest DTO에 완벽히 매핑
       const requestData = {
-        itemDto: {
-          category: data.itemCategory,
-          title: data.title.trim(),
-          description: data.content.trim(),
-          desiredItem: data.desiredItem?.trim() || "",
-        },
-        locationDto: {
+        category: data.itemCategory, // 백엔드 ItemCategory Enum 매핑
+        title: data.title.trim(),
+        description: data.content.trim(),
+        // 프론트엔드의 desiredItem 필드가 백엔드 DTO에 없다면 무시되지만 함께 전송
+        desiredItem: data.desiredItem?.trim() || "",
+        location: {
           latitude: currentLocation.latitude,
           longitude: currentLocation.longitude,
+          address: currentLocation.address,
         },
       };
-      requestFormData.append("request", JSON.stringify(requestData));
 
-      // 2. 선택된 이미지 파일들을 'itemImage' (또는 백엔드 배열명) 파트에 추가
+      // 파트 이름을 "itemRequest"로 변경 (백엔드 @RequestPart("itemRequest") 대응)
+      requestFormData.append("itemRequest", JSON.stringify(requestData));
+
+      // 2. 파트 이름을 "images"로 변경 (백엔드 @RequestPart("images") 대응)
       selectedImages.forEach((uri, index) => {
         const filename = uri.split("/").pop() || `image_${index}.jpg`;
         const match = /\.(\w+)$/.exec(filename);
-        const type = match ? `image/${match[1]}` : `image/jpeg`;
+        const type = match ? `image/${match[1]}` : "image/jpeg";
 
-        requestFormData.append("itemImage", {
-          // 다중 업로드 시 백엔드 파라미터명(itemImages 등) 확인 필요
+        requestFormData.append("images", {
+          // itemImage -> images 로 수정
           uri: uri,
           name: filename,
           type,
