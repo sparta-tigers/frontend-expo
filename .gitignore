@@ -47,6 +47,7 @@ app-example
 docs/context/*.md
 docs/qa-reports/*.md
 docs/reports/*.md
+docs/issues/*.md
 
 .windsurf/
 
