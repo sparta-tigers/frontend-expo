@@ -60,7 +60,10 @@ export default function SignupScreen() {
         Alert.alert("실패", "회원가입에 실패했습니다");
       }
     } catch (error) {
-      Logger.error("회원가입 에러:", error);
+      Logger.error(
+        "회원가입 에러:",
+        error instanceof Error ? error.message : String(error),
+      );
       Alert.alert("오류", "회원가입 중 오류가 발생했습니다");
     }
   };

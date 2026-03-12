@@ -228,10 +228,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         const tokenData = response.data;
 
         if (!tokenData.accessToken || !tokenData.refreshToken) {
-          Logger.error(
-            "🚨 [파싱 실패] 토큰 정보가 불완전합니다. 현재 구조:",
-            JSON.stringify(response, null, 2),
-          );
+          Logger.error("🚨 [파싱 실패] 토큰 정보가 불완전합니다.");
           return false;
         }
 
