@@ -546,6 +546,36 @@ export default function ExchangeScreen() {
     setIsMapMoved(true); // 재검색 버튼 표시
   };
 
+  // 현 지도에서 재검색 핸들러 (Phase 2)
+  const handleSearchCurrentLocation = async () => {
+    try {
+      // 재검색 버튼 즉시 숨김
+      setIsMapMoved(false);
+
+      // 현재 지도 중심 좌표로 아이템 목록 새로고침
+      // TODO: 백엔드 API에 좌표 기반 검색 파라미터 전달 (현재는 전체 새로고침)
+      setRefreshing(true);
+
+      if (activeTab === "items") {
+        await fetchItems(loadItems(0, true));
+      } else {
+        await loadExchangeRequests(0, true);
+      }
+
+      setRefreshing(false);
+
+      Logger.debug("현 지도에서 재검색 완료", {
+        center: mapRegion,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      Logger.error("현 지도에서 재검색 실패:", error);
+      setRefreshing(false);
+      // 에러 발생 시 버튼 다시 표시
+      setIsMapMoved(true);
+    }
+  };
+
   // 다음 페이지 로드 (현재 미사용 - BottomSheetFlatList에서 onEndReached 제거)
   // const loadMore = () => {
   //   // 에러 상태에서는 자동 로드를 차단하여 무한 루프 방지
@@ -913,10 +943,7 @@ export default function ExchangeScreen() {
         {isMapMoved && (
           <TouchableOpacity
             style={styles.reSearchButton}
-            onPress={() => {
-              // Phase 2에서 구현할 재검색 로직
-              Logger.debug("현 지도에서 재검색 클릭", mapRegion);
-            }}
+            onPress={handleSearchCurrentLocation}
           >
             <Text style={styles.reSearchText}>↻ 현 지도에서 재검색</Text>
           </TouchableOpacity>
