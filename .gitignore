@@ -45,6 +45,8 @@ app-example
 
 # 문서 파일 (Git 추적 제외)
 docs/context/*.md
+docs/qa-reports/*.md
+docs/reports/*.md
 
 .windsurf/
 
@@ -52,6 +54,7 @@ docs/context/*.md
 
 *.backup
 *.bk
+*.bak
 *.tmp
 *.temp
 *.cache
