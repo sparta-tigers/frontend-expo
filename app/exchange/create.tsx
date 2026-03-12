@@ -4,15 +4,15 @@ import * as Location from "expo-location";
 import { router } from "expo-router";
 import React from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import { SafeLayout } from "@/components/ui/safe-layout";
@@ -306,7 +306,7 @@ export default function CreateItemScreen() {
     },
     onError: (error) => {
       Alert.alert("업로드 실패", "게시글 등록 중 문제가 발생했습니다.");
-      Logger.error(error);
+      Logger.error("아이템 생성 실패:", error?.message || String(error));
     },
   });
 
