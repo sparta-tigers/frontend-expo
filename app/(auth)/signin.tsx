@@ -70,7 +70,10 @@ export default function SigninScreen() {
         Alert.alert("실패", "로그인에 실패했습니다");
       }
     } catch (error) {
-      Logger.error("로그인 에러:", error);
+      Logger.error(
+        "로그인 에러:",
+        error instanceof Error ? error.message : String(error),
+      );
       Alert.alert("오류", "로그인 중 오류가 발생했습니다");
     }
   };

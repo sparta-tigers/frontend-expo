@@ -303,7 +303,10 @@ export default function CreateItemScreen() {
     },
     onError: (error) => {
       Alert.alert("업로드 실패", "게시글 등록 중 문제가 발생했습니다.");
-      Logger.error("아이템 생성 실패:", error?.message || String(error));
+      Logger.error(
+        "아이템 생성 실패:",
+        error instanceof Error ? error.message : String(error),
+      );
     },
   });
 
@@ -359,7 +362,10 @@ export default function CreateItemScreen() {
 
       Logger.debug("[위치 정보 가져오기]", locationData);
     } catch (error) {
-      Logger.error("위치 정보 가져오기 실패:", error);
+      Logger.error(
+        "위치 정보 가져오기 실패:",
+        error instanceof Error ? error.message : String(error),
+      );
 
       // 에러 메시지에 따라 처리
       if (

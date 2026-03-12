@@ -334,7 +334,10 @@ export default function ExchangeScreen() {
 
         return itemsState.data || [];
       } catch (error) {
-        Logger.error("아이템 목록 로딩 실패:", error);
+        Logger.error(
+          "아이템 목록 로딩 실패:",
+          error instanceof Error ? error.message : String(error),
+        );
         throw error;
       } finally {
         if (isRefresh) setRefreshing(false);
@@ -366,7 +369,10 @@ export default function ExchangeScreen() {
           Alert.alert("오류", "상태 변경에 실패했습니다.");
         }
       } catch (error) {
-        Logger.error("교환 요청 상태 변경 실패:", error);
+        Logger.error(
+          "교환 요청 상태 변경 실패:",
+          error instanceof Error ? error.message : String(error),
+        );
         Alert.alert("오류", "네트워크 에러가 발생했습니다.");
       }
     },
@@ -421,7 +427,10 @@ export default function ExchangeScreen() {
 
       Logger.debug("[현재 위치로 이동]", userLocation);
     } catch (error) {
-      Logger.error("현재 위치로 이동 실패:", error);
+      Logger.error(
+        "현재 위치로 이동 실패:",
+        error instanceof Error ? error.message : String(error),
+      );
 
       // 에러 메시지에 따른 처리
       if (
@@ -476,7 +485,10 @@ export default function ExchangeScreen() {
 
       Logger.debug("[초기 위치 설정]", userLocation);
     } catch (error) {
-      Logger.error("초기 위치 가져오기 실패:", error);
+      Logger.error(
+        "초기 위치 가져오기 실패:",
+        error instanceof Error ? error.message : String(error),
+      );
     }
   };
 

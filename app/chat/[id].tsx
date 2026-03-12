@@ -148,7 +148,10 @@ export default function ChatRoomScreen() {
       loadMessages(Promise.resolve([myMessage, ...(messagesState.data || [])]));
       setInputMessage("");
     } catch (error) {
-      Logger.error("메시지 전송 에러:", error);
+      Logger.error(
+        "메시지 전송 에러:",
+        error instanceof Error ? error.message : String(error),
+      );
     }
   }, [
     inputMessage,

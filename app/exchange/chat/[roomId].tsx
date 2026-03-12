@@ -1,24 +1,24 @@
 import {
-    InfiniteData,
-    useInfiniteQuery,
-    useMutation,
-    useQuery,
-    useQueryClient,
+  InfiniteData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
 } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    AppState,
-    FlatList,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  AppState,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import { Button } from "@/components/ui/button";
@@ -205,7 +205,10 @@ export default function ChatRoomScreen() {
         }),
       });
     } catch (error) {
-      Logger.error("[ChatRoom] send message error:", error);
+      Logger.error(
+        "[ChatRoom] send message error:",
+        error instanceof Error ? error.message : String(error),
+      );
       Alert.alert("전송 실패", "메시지 전송에 실패했습니다.");
     }
   }, [
