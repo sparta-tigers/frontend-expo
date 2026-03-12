@@ -30,6 +30,7 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { useWebSocket } from "@/src/hooks/useWebSocket";
 import { theme } from "@/src/styles/theme";
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/unified-design";
+import { Logger } from "@/src/utils/logger";
 
 /**
  * 교환 채팅방 화면 컴포넌트
@@ -204,7 +205,7 @@ export default function ChatRoomScreen() {
         }),
       });
     } catch (error) {
-      console.error("[ChatRoom] send message error:", error);
+      Logger.error("[ChatRoom] send message error:", error);
       Alert.alert("전송 실패", "메시지 전송에 실패했습니다.");
     }
   }, [
@@ -252,7 +253,7 @@ export default function ChatRoomScreen() {
 
           handleMessageReceived(normalized);
         } catch (error) {
-          console.error("[ChatRoom] message parse error:", error);
+          Logger.error("[ChatRoom] message parse error:", error);
         }
       },
     );
@@ -267,7 +268,7 @@ export default function ChatRoomScreen() {
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       if (nextAppState === "active") {
         // 포그라운드 복귀 시 STOMP 재연결
-        console.log("📱 [AppState] 앱이 활성화되었습니다.");
+        Logger.debug("📱 [AppState] 앱이 활성화되었습니다.");
         void connect();
 
         // 백그라운드 중 누락된 메시지 REST 패칭
@@ -276,7 +277,7 @@ export default function ChatRoomScreen() {
         });
       } else if (nextAppState === "background") {
         // 백그라운드 전환 시 STOMP 비활성화 (배터리 최적화)
-        console.log("📱 [AppState] 앱이 백그라운드로 전환되었습니다.");
+        Logger.debug("📱 [AppState] 앱이 백그라운드로 전환되었습니다.");
         void client?.deactivate();
       }
     });

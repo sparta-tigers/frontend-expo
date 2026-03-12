@@ -1,3 +1,4 @@
+import { Logger } from "@/src/utils/logger";
 import { getAccessToken } from "@/src/utils/tokenStore";
 import { Client } from "@stomp/stompjs";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -32,7 +33,7 @@ type ChatDomain = "liveboard" | "directroom" | "location";
  */
 const checkPolyfills = () => {
   if (!global.TextEncoder) {
-    console.warn(
+    Logger.warn(
       "TextEncoder polyfill missing. WebSocket connection may fail. " +
         "Ensure 'fast-text-encoding' is imported in app/_layout.tsx",
     );
@@ -112,7 +113,7 @@ export function useWebSocket(
 
     // 이미 연결된 경우
     if (clientRef.current?.connected) {
-      console.log("WebSocket already connected");
+      Logger.debug("WebSocket already connected");
       return;
     }
 
@@ -140,7 +141,7 @@ export function useWebSocket(
             ChatDomain: chatDomain,
           },
           debug: (str) => {
-            console.log("STOMP Debug (SockJS):", str);
+            Logger.debug("STOMP Debug (SockJS):", str);
           },
         });
       } else {
@@ -152,24 +153,24 @@ export function useWebSocket(
             ChatDomain: chatDomain,
           },
           debug: (str) => {
-            console.log("STOMP Debug (Direct):", str);
+            Logger.debug("STOMP Debug (Direct):", str);
           },
         });
       }
 
       // State-Driven 콜백들
       stompClient.onConnect = () => {
-        console.log("WebSocket CONNECTED");
+        Logger.debug("WebSocket CONNECTED");
         setStatus("CONNECTED");
       };
 
       stompClient.onStompError = (frame) => {
-        console.error("STOMP Error:", frame);
+        Logger.error("STOMP Error:", frame);
         setStatus("ERROR");
       };
 
       stompClient.onDisconnect = () => {
-        console.log("WebSocket DISCONNECTED");
+        Logger.debug("WebSocket DISCONNECTED");
         setStatus("DISCONNECTED");
       };
 
@@ -179,7 +180,7 @@ export function useWebSocket(
       // 연결 활성화
       stompClient.activate();
     } catch (error) {
-      console.error("WebSocket connection error:", error);
+      Logger.error("WebSocket connection error:", error);
       setStatus("ERROR");
     }
   }, [chatDomain, url]);
@@ -190,7 +191,7 @@ export function useWebSocket(
   const disconnect = useCallback(() => {
     if (clientRef.current?.connected) {
       clientRef.current.deactivate();
-      console.log("WebSocket disconnected");
+      Logger.debug("WebSocket disconnected");
       setStatus("DISCONNECTED");
     }
   }, []);
@@ -207,7 +208,7 @@ export function useWebSocket(
         body: typeof body === "string" ? body : JSON.stringify(body),
       });
     } else {
-      console.warn("WebSocket not connected. Cannot send message.");
+      Logger.warn("WebSocket not connected. Cannot send message.");
     }
   }, []);
 
@@ -219,10 +220,10 @@ export function useWebSocket(
     return () => {
       if (clientRef.current?.connected) {
         clientRef.current.deactivate();
-        console.log("WebSocket cleanup: deactivated");
+        Logger.debug("WebSocket cleanup: deactivated");
       }
       setStatus("DISCONNECTED");
-      console.log("WebSocket cleanup: state reset");
+      Logger.debug("WebSocket cleanup: state reset");
     };
   }, [connect]);
 

@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Logger } from "@/src/utils/logger";
 import { Client } from "@stomp/stompjs";
+import { useCallback, useEffect, useRef, useState } from "react";
 import SockJS from "sockjs-client";
 import { SendMessageRequest } from "./types";
 
@@ -26,7 +27,9 @@ export function useChatWebSocket({
   onError,
 }: UseChatWebSocketProps) {
   const [isConnected, setIsConnected] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
+  const [connectionStatus, setConnectionStatus] = useState<
+    "disconnected" | "connecting" | "connected" | "error"
+  >("disconnected");
   const clientRef = useRef<Client | null>(null);
 
   /**
@@ -37,11 +40,11 @@ export function useChatWebSocket({
       return;
     }
 
-    setConnectionStatus('connecting');
+    setConnectionStatus("connecting");
 
     try {
       // SockJS를 통한 WebSocket 연결
-      const socket = new SockJS('http://localhost:8080/ws');
+      const socket = new SockJS("http://localhost:8080/ws");
       const stompClient = new Client({
         webSocketFactory: () => socket,
         connectHeaders: {
@@ -49,7 +52,7 @@ export function useChatWebSocket({
           // 'Authorization': `Bearer ${token}`
         },
         debug: (str) => {
-          console.log('STOMP Debug:', str);
+          Logger.debug("STOMP Debug:", str);
         },
         reconnectDelay: 5000,
         heartbeatIncoming: 4000,
@@ -58,18 +61,18 @@ export function useChatWebSocket({
 
       // 연결 성공 콜백
       stompClient.onConnect = (frame) => {
-        console.log('WebSocket 연결 성공:', frame);
+        Logger.debug("WebSocket 연결 성공:", frame);
         setIsConnected(true);
-        setConnectionStatus('connected');
-        
+        setConnectionStatus("connected");
+
         // 채팅방 구독
         stompClient.subscribe(`/topic/directRoom/${roomId}`, (message) => {
           try {
             const parsedMessage = JSON.parse(message.body);
-            console.log('메시지 수신:', parsedMessage);
+            Logger.debug("메시지 수신:", parsedMessage);
             onMessageReceived?.(parsedMessage);
           } catch (error) {
-            console.error('메시지 파싱 에러:', error);
+            Logger.error("메시지 파싱 에러:", error);
           }
         });
 
@@ -78,26 +81,25 @@ export function useChatWebSocket({
 
       // 연결 에러 콜백
       stompClient.onStompError = (frame) => {
-        console.error('WebSocket STOMP 에러:', frame);
+        Logger.error("WebSocket STOMP 에러:", frame);
         setIsConnected(false);
-        setConnectionStatus('error');
+        setConnectionStatus("error");
         onError?.(frame);
       };
 
       // 연결 해제 콜백
       stompClient.onDisconnect = () => {
-        console.log('WebSocket 연결 해제');
+        Logger.debug("WebSocket 연결 해제");
         setIsConnected(false);
-        setConnectionStatus('disconnected');
+        setConnectionStatus("disconnected");
         onDisconnect?.();
       };
 
       clientRef.current = stompClient;
       stompClient.activate();
-
     } catch (error) {
-      console.error('WebSocket 연결 설정 에러:', error);
-      setConnectionStatus('error');
+      Logger.error("WebSocket 연결 설정 에러:", error);
+      setConnectionStatus("error");
       onError?.(error);
     }
   }, [roomId, onMessageReceived, onConnect, onDisconnect, onError]);
@@ -105,30 +107,33 @@ export function useChatWebSocket({
   /**
    * 메시지 전송 함수
    */
-  const sendMessage = useCallback((messageData: SendMessageRequest) => {
-    if (!clientRef.current?.connected) {
-      console.error('WebSocket이 연결되지 않음');
-      return false;
-    }
+  const sendMessage = useCallback(
+    (messageData: SendMessageRequest) => {
+      if (!clientRef.current?.connected) {
+        Logger.error("WebSocket이 연결되지 않음");
+        return false;
+      }
 
-    try {
-      clientRef.current.publish({
-        destination: '/client/directRoom/send',
-        body: JSON.stringify({
-          ...messageData,
-          senderId: userId,
-          roomId: roomId,
-          timestamp: new Date().toISOString(),
-        }),
-      });
+      try {
+        clientRef.current.publish({
+          destination: "/client/directRoom/send",
+          body: JSON.stringify({
+            ...messageData,
+            senderId: userId,
+            roomId: roomId,
+            timestamp: new Date().toISOString(),
+          }),
+        });
 
-      console.log('메시지 전송 완료:', messageData);
-      return true;
-    } catch (error) {
-      console.error('메시지 전송 에러:', error);
-      return false;
-    }
-  }, [userId, roomId]);
+        Logger.debug("메시지 전송 완료:", messageData);
+        return true;
+      } catch (error) {
+        Logger.error("메시지 전송 에러:", error);
+        return false;
+      }
+    },
+    [userId, roomId],
+  );
 
   /**
    * WebSocket 연결 해제
@@ -169,7 +174,11 @@ export function useChatWebSocket({
 /**
  * WebSocket 연결 상태를 위한 타입
  */
-export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
+export type ConnectionStatus =
+  | "disconnected"
+  | "connecting"
+  | "connected"
+  | "error";
 
 /**
  * 채팅 메시지 타입 (백엔드 스펙 기반)
@@ -180,5 +189,5 @@ export interface ChatMessage {
   senderId: number;
   content: string;
   timestamp: string;
-  messageType: 'TEXT' | 'IMAGE' | 'SYSTEM';
+  messageType: "TEXT" | "IMAGE" | "SYSTEM";
 }
