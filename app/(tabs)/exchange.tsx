@@ -34,6 +34,7 @@ import {
   View,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // 정적 스타일 정의
 const styles = StyleSheet.create({
@@ -241,9 +242,7 @@ const styles = StyleSheet.create({
   // 재검색 버튼 스타일 (Phase 1)
   reSearchButton: {
     position: "absolute",
-    top: theme.spacing.xxl + theme.spacing.SCREEN, // Safe Area 아래 상단 중앙
-    left: "50%",
-    transform: [{ translateX: -100 }], // 너비 200의 중앙 정렬
+    alignSelf: "center", // left 50%, translateX 대체
     backgroundColor: theme.colors.primary,
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.sm,
@@ -279,6 +278,7 @@ const styles = StyleSheet.create({
 export default function ExchangeScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const mapRef = useRef<MapView>(null);
   const listRef = useRef<BottomSheetFlatListMethods>(null); // Phase 4: 리스트 스크롤 제어용
@@ -307,6 +307,7 @@ export default function ExchangeScreen() {
 
   // 지도 이동 감지 상태 (Phase 1)
   const [isMapMoved, setIsMapMoved] = useState(false);
+  const [isMapReady, setIsMapReady] = useState(false);
   const [mapRegion, setMapRegion] = useState({
     latitude: 37.5665, // 서울 디폴트 좌표
     longitude: 126.978,
@@ -544,7 +545,11 @@ export default function ExchangeScreen() {
   const handleRefresh = () => {
     setRefreshing(true);
     if (activeTab === "items") {
-      fetchItems(loadItems(0, true));
+      // 🚨 수정된 부분: 새로고침 시에도 반드시 지도 중심 좌표와 반경을 전달!
+      const radius = mapRegion.latitudeDelta * 111; // 1도 ≈ 111km
+      fetchItems(
+        loadItems(0, true, mapRegion.latitude, mapRegion.longitude, radius),
+      );
     } else {
       loadExchangeRequests(0, true);
     }
@@ -554,7 +559,10 @@ export default function ExchangeScreen() {
   // 지도 이동 완료 핸들러 (Phase 1)
   const handleRegionChangeComplete = (region: any) => {
     setMapRegion(region);
-    setIsMapMoved(true); // 재검색 버튼 표시
+    // 지도가 완전히 로딩된 이후의 유저 드래그만 이동으로 간주
+    if (isMapReady) {
+      setIsMapMoved(true);
+    }
   };
 
   // 현 지도에서 재검색 핸들러 (Phase 2)
@@ -757,7 +765,11 @@ export default function ExchangeScreen() {
       getCurrentLocationOnMount();
 
       if (activeTab === "items") {
-        fetchItems(loadItems(0, true));
+        // 🚨 수정된 부분: 초기 로딩 시에도 반드시 지도 중심 좌표와 반경을 전달!
+        const radius = mapRegion.latitudeDelta * 111; // 1도 ≈ 111km
+        fetchItems(
+          loadItems(0, true, mapRegion.latitude, mapRegion.longitude, radius),
+        );
       } else {
         loadExchangeRequests(0, true);
       }
@@ -783,6 +795,7 @@ export default function ExchangeScreen() {
           latitudeDelta: 0.009, // 약 1km 반경
           longitudeDelta: 0.009, // 약 1km 반경
         }}
+        onMapReady={() => setIsMapReady(true)} // 지도 로딩 완료 플래그
         onRegionChangeComplete={handleRegionChangeComplete} // Phase 1: 지도 이동 감지
       >
         {/* 현재 위치 마커 */}
@@ -918,7 +931,19 @@ export default function ExchangeScreen() {
                   {itemsState.error || "아이템 목록을 불러올 수 없습니다."}
                 </Text>
                 <Button
-                  onPress={() => fetchItems(loadItems(0, true))}
+                  onPress={() => {
+                    // 🚨 수정된 부분: 다시 시도 버튼에서도 좌표 전달!
+                    const radius = mapRegion.latitudeDelta * 111; // 1도 ≈ 111km
+                    fetchItems(
+                      loadItems(
+                        0,
+                        true,
+                        mapRegion.latitude,
+                        mapRegion.longitude,
+                        radius,
+                      ),
+                    );
+                  }}
                   style={styles.emptyButton}
                 >
                   다시 시도
@@ -981,7 +1006,10 @@ export default function ExchangeScreen() {
         {/* 현 지도에서 재검색 버튼 (Phase 1) */}
         {isMapMoved && (
           <TouchableOpacity
-            style={styles.reSearchButton}
+            style={[
+              styles.reSearchButton,
+              { top: insets.top + 16 }, // 🚨 Safe Area를 고려하여 동적 여백 할당
+            ]}
             onPress={handleSearchCurrentLocation}
           >
             <Text style={styles.reSearchText}>↻ 현 지도에서 재검색</Text>
