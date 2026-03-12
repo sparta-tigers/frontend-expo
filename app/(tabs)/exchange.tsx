@@ -797,12 +797,22 @@ export default function ExchangeScreen() {
 
         {/* 아이템 마커 */}
         {itemsState.data?.map((item: Item) => {
-          // Phase 3: 방어 로직 - 유효한 좌표만 마커 렌더링
-          if (!item.location?.latitude || !item.location?.longitude) {
+          // Phase 3: 강화된 방어 로직 - 유효한 좌표만 마커 렌더링
+          if (
+            typeof item.latitude !== "number" ||
+            typeof item.longitude !== "number" ||
+            isNaN(item.latitude) ||
+            isNaN(item.longitude) ||
+            item.latitude === 0 ||
+            item.longitude === 0
+          ) {
             Logger.debug("무효한 좌표의 아이템 마커 제외:", {
               itemId: item.id,
               title: item.title,
-              location: item.location,
+              latitude: item.latitude,
+              longitude: item.longitude,
+              latType: typeof item.latitude,
+              lngType: typeof item.longitude,
             });
             return null;
           }
@@ -811,8 +821,8 @@ export default function ExchangeScreen() {
             <Marker
               key={`item-${item.id}`}
               coordinate={{
-                latitude: item.location.latitude,
-                longitude: item.location.longitude,
+                latitude: item.latitude,
+                longitude: item.longitude,
               }}
               title={item.title}
               description={item.category === "TICKET" ? "티켓" : "굿즈"}

@@ -46,7 +46,9 @@ export interface Item {
   category: ItemCategory;
   title: string;
   description: string;
-  location: LocationDto;
+  latitude: number; // 백엔드에서 개별 필드로 옴
+  longitude: number; // 백엔드에서 개별 필드로 옴
+  address: string; // 백엔드에서 개별 필드로 옴
   imageUrl?: string;
   images?: string[]; // 이미지 배열 추가
   desiredItem?: string; // 희망 교환 물품 추가
@@ -58,6 +60,13 @@ export interface Item {
     id: number;
     nickname: string;
     profileImage?: string; // 프로필 이미지 추가
+  };
+
+  // 호환성을 위한 computed 속성
+  location?: {
+    latitude: number;
+    longitude: number;
+    address: string;
   };
 }
 
