@@ -276,6 +276,7 @@ export default function ExchangeScreen() {
   const { colors } = useTheme();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const mapRef = useRef<MapView>(null);
+  const listRef = useRef<BottomSheetFlatList<any>>(null); // Phase 4: 리스트 스크롤 제어용
 
   // 탭 상태 관리
   const [activeTab, setActiveTab] = useState<"items" | "requests">("items");
@@ -432,13 +433,29 @@ export default function ExchangeScreen() {
     router.push(`/exchange/${itemId}`);
   };
 
-  // 마커 클릭 핸들러 (Phase 3)
+  // 마커 클릭 핸들러 (Phase 4)
   const handleMarkerPress = (itemId: number) => {
-    // 아이템 상세 페이지로 이동
-    navigateToDetail(itemId);
+    // 아이템 리스트에서 해당 아이템의 인덱스 찾기
+    const index = itemsState.data?.findIndex((item) => item.id === itemId);
 
-    // TODO: 바텀시트에서 해당 아이템을 최상단으로 스크롤하는 로직 추가 가능
-    Logger.debug("마커 클릭:", { itemId, timestamp: new Date().toISOString() });
+    if (index !== undefined && index !== -1) {
+      // 1. 바텀시트가 닫혀있다면 올리기
+      bottomSheetRef.current?.snapToIndex(1);
+
+      // 2. 리스트 스크롤 이동
+      setTimeout(() => {
+        listRef.current?.scrollToIndex({
+          index,
+          animated: true,
+          viewPosition: 0.5, // 아이템을 화면 중앙에 위치
+        });
+      }, 300); // 바텀시트 애니메이션 대기
+
+      Logger.debug("마커 연동 스크롤 완료:", { itemId, index });
+    } else {
+      // 아이템을 찾을 수 없으면 상세 페이지로 이동 (기존 동작)
+      navigateToDetail(itemId);
+    }
   };
 
   // 아이템 생성 페이지로 이동
@@ -925,6 +942,7 @@ export default function ExchangeScreen() {
               </View>
             ) : (
               <BottomSheetFlatList
+                ref={listRef} // Phase 4: 리스트 스크롤 제어용 ref 연결
                 data={itemsState.data}
                 renderItem={renderItem}
                 keyExtractor={(item: Item) => item.id.toString()}
