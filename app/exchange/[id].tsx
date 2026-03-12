@@ -7,8 +7,8 @@ import {
 } from "@/src/features/exchange/api";
 import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
@@ -25,8 +25,6 @@ import ImageViewing from "react-native-image-viewing";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/button";
-import { Logger } from "@/src/utils/logger";
-
 
 // 정적 스타일 정의
 const styles = StyleSheet.create({
@@ -263,17 +261,11 @@ export default function ItemDetailScreen() {
   });
 
   // \ubc31\uc5d4\ub4dc DTO \ud544\ub4dc \ud63c\uc6a9 \uac00\ub2a5\uc131(userId vs id)\uc5d0 \ub300\ube44\ud558\uc5ec \ud0c4\ub825\uc801\uc73c\ub85c \ucd94\ucd9c
-  const itemUserObjId = item?.data?.user?.userId ?? (item?.data?.user as any)?.id ?? item?.data?.userId;
+  const itemUserObjId =
+    item?.data?.user?.userId ??
+    (item?.data?.user as any)?.id ??
+    item?.data?.userId;
   const myUserId = user?.userId;
-
-  // [Bug 1 DEBUG] 로그: isOwner 판단에 사용되는 값 확인 (테스트 후 제거)
-  if (__DEV__ && item?.data) {
-    Logger.debug('[isOwner DEBUG]', JSON.stringify({
-      itemUserObjId,
-      myUserId,
-      isOwnerResult: Number(itemUserObjId) === Number(myUserId),
-    }));
-  }
 
   // 항상 Number() 변환으로 타입 불일치 방지
   const isOwner = Number(itemUserObjId) === Number(myUserId) && !!myUserId;
@@ -500,11 +492,13 @@ export default function ItemDetailScreen() {
     <>
       {/* headerShown: false + 컴포넌트 내부 커스텀 헤더로 iOS 뒤로가기 해결 */}
       <Stack.Screen
-        options={{
-          headerShown: false, // iOS/Android 모두 시스템 헤더 비활화
-          gestureEnabled: true,      // iOS 스와이프 제스처 허용
-          gestureDirection: "horizontal", // 왕포와이프 방향
-        } as any}
+        options={
+          {
+            headerShown: false, // iOS/Android 모두 시스템 헤더 비활화
+            gestureEnabled: true, // iOS 스와이프 제스처 허용
+            gestureDirection: "horizontal", // 왕포와이프 방향
+          } as any
+        }
       />
 
       {/* 컴포넌트 내부 커스텀 헤더 (항상 보임) */}
@@ -513,23 +507,52 @@ export default function ItemDetailScreen() {
         <View
           style={[
             styles.customHeader,
-            { backgroundColor: colors.background, borderBottomColor: colors.border },
+            {
+              backgroundColor: colors.background,
+              borderBottomColor: colors.border,
+            },
           ]}
         >
-          <TouchableOpacity onPress={() => router.back()} style={styles.headerLeftButton}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.headerLeftButton}
+          >
             <Ionicons name="chevron-back" size={28} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>
+          <Text
+            style={[styles.headerTitle, { color: colors.text }]}
+            numberOfLines={1}
+          >
             아이템 상세
           </Text>
           <View style={styles.headerRightContainer}>
             {isOwner && (
               <>
-                <TouchableOpacity onPress={() => router.push(`/exchange/edit/${id}` as any)} style={styles.headerActionButton}>
-                  <Text style={{ fontSize: theme.typography.size.BODY, color: colors.primary }}>수정</Text>
+                <TouchableOpacity
+                  onPress={() => router.push(`/exchange/edit/${id}` as any)}
+                  style={styles.headerActionButton}
+                >
+                  <Text
+                    style={{
+                      fontSize: theme.typography.size.BODY,
+                      color: colors.primary,
+                    }}
+                  >
+                    수정
+                  </Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleDelete} style={styles.headerActionButton}>
-                  <Text style={{ fontSize: theme.typography.size.BODY, color: colors.destructive }}>삭제</Text>
+                <TouchableOpacity
+                  onPress={handleDelete}
+                  style={styles.headerActionButton}
+                >
+                  <Text
+                    style={{
+                      fontSize: theme.typography.size.BODY,
+                      color: colors.destructive,
+                    }}
+                  >
+                    삭제
+                  </Text>
                 </TouchableOpacity>
               </>
             )}
@@ -583,88 +606,88 @@ export default function ItemDetailScreen() {
           </View>
 
           {/* 하단 고정 바 (본문 영역 내부로 이동) */}
-        <View style={[styles.bottomBar, { borderColor: colors.border }]}>
-          <View style={styles.desiredItemContainer}>
-            <Text style={[styles.desiredItemLabel, { color: colors.muted }]}>
-              희망 아이템
-            </Text>
-            <Text style={[styles.desiredItemText, { color: colors.text }]}>
-              {item.data.desiredItem || "없음"}
-            </Text>
-          </View>
+          <View style={[styles.bottomBar, { borderColor: colors.border }]}>
+            <View style={styles.desiredItemContainer}>
+              <Text style={[styles.desiredItemLabel, { color: colors.muted }]}>
+                희망 아이템
+              </Text>
+              <Text style={[styles.desiredItemText, { color: colors.text }]}>
+                {item.data.desiredItem || "없음"}
+              </Text>
+            </View>
 
-          {/* 권한 기반 버튼 분기 */}
-          {isOwner && (
-            <View style={styles.buttonRow}>
-              <View style={styles.statusSection}>
-                <View style={styles.statusInfoRow}>
-                  <Text style={[styles.statusLabel, { color: colors.muted }]}>
-                    현재 상태
-                  </Text>
-                  <Text
-                    style={[
-                      styles.statusValue,
-                      {
-                        color:
-                          item.data.status === "COMPLETED"
-                            ? colors.primary
-                            : item.data.status === "FAILED"
-                              ? colors.destructive
-                              : colors.text,
-                      },
-                    ]}
-                  >
-                    {item.data.status === "REGISTERED"
-                      ? "교환 대기"
-                      : item.data.status === "COMPLETED"
-                        ? "교환 완료"
-                        : item.data.status === "FAILED"
-                          ? "교환 취소"
-                          : item.data.status === "DELETED"
-                            ? "삭제됨"
-                            : item.data.status}
-                  </Text>
-                </View>
-
-                <View style={styles.statusActionsRow}>
-                  <Button
-                    style={styles.statusActionButton}
-                    disabled={
-                      item.data.status !== "REGISTERED" || isUpdatingStatus
-                    }
-                    onPress={() => handleStatusChange("COMPLETED")}
-                  >
+            {/* 권한 기반 버튼 분기 */}
+            {isOwner && (
+              <View style={styles.buttonRow}>
+                <View style={styles.statusSection}>
+                  <View style={styles.statusInfoRow}>
+                    <Text style={[styles.statusLabel, { color: colors.muted }]}>
+                      현재 상태
+                    </Text>
                     <Text
                       style={[
-                        styles.statusActionText,
-                        { color: colors.background },
+                        styles.statusValue,
+                        {
+                          color:
+                            item.data.status === "COMPLETED"
+                              ? colors.primary
+                              : item.data.status === "FAILED"
+                                ? colors.destructive
+                                : colors.text,
+                        },
                       ]}
                     >
-                      교환 완료로 표시
+                      {item.data.status === "REGISTERED"
+                        ? "교환 대기"
+                        : item.data.status === "COMPLETED"
+                          ? "교환 완료"
+                          : item.data.status === "FAILED"
+                            ? "교환 취소"
+                            : item.data.status === "DELETED"
+                              ? "삭제됨"
+                              : item.data.status}
                     </Text>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    style={styles.statusActionButton}
-                    disabled={
-                      item.data.status !== "REGISTERED" || isUpdatingStatus
-                    }
-                    onPress={() => handleStatusChange("FAILED")}
-                  >
-                    <Text
-                      style={[
-                        styles.statusActionText,
-                        { color: colors.destructive },
-                      ]}
+                  </View>
+
+                  <View style={styles.statusActionsRow}>
+                    <Button
+                      style={styles.statusActionButton}
+                      disabled={
+                        item.data.status !== "REGISTERED" || isUpdatingStatus
+                      }
+                      onPress={() => handleStatusChange("COMPLETED")}
                     >
-                      교환 취소로 표시
-                    </Text>
-                  </Button>
+                      <Text
+                        style={[
+                          styles.statusActionText,
+                          { color: colors.background },
+                        ]}
+                      >
+                        교환 완료로 표시
+                      </Text>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      style={styles.statusActionButton}
+                      disabled={
+                        item.data.status !== "REGISTERED" || isUpdatingStatus
+                      }
+                      onPress={() => handleStatusChange("FAILED")}
+                    >
+                      <Text
+                        style={[
+                          styles.statusActionText,
+                          { color: colors.destructive },
+                        ]}
+                      >
+                        교환 취소로 표시
+                      </Text>
+                    </Button>
+                  </View>
                 </View>
               </View>
-            </View>
-          )}
-        </View>
+            )}
+          </View>
         </ScrollView>
 
         {/* 하단 고정 버튼 영역 */}
