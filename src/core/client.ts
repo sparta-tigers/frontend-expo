@@ -66,7 +66,7 @@ const bareAxios = axios.create({
  * 메인 axios 인스턴스
  * 토큰 자동 관리 및 갱신 로직 포함
  */
-const axiosInstance: AxiosInstance = axios.create({
+export const axiosInstance: AxiosInstance = axios.create({
   baseURL: getDynamicBaseURL(),
   timeout: 10000,
   headers: {

@@ -304,7 +304,13 @@ export default function CreateItemScreen() {
       router.replace("/(tabs)/exchange");
     },
     onError: (error) => {
-      Alert.alert("업로드 실패", "게시글 등록 중 문제가 발생했습니다.");
+      let errorMessage = "게시글 등록 중 문제가 발생했습니다.";
+      
+      if (error instanceof Error && (error as any).response?.status === 409) {
+        errorMessage = "이미 등록된 아이템이 있습니다. 하나의 계정당 하나의 아이템만 등록 가능합니다.";
+      }
+
+      Alert.alert("등록 실패", errorMessage);
       Logger.error(
         "아이템 생성 실패:",
         error instanceof Error ? error.message : String(error),

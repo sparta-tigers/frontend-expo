@@ -7,6 +7,7 @@ import { UpdateItemRequest } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
 import { SPACING } from "@/src/styles/unified-design";
 import { Logger } from "@/src/utils/logger";
+import { getImageUrl } from "@/src/utils/url";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
@@ -185,7 +186,7 @@ export default function EditItemScreen() {
         {item.imageUrl && (
           <Card style={styles.imageCard}>
             <Image
-              source={{ uri: item.imageUrl }}
+              source={{ uri: getImageUrl(item.imageUrl) }}
               style={styles.itemImage}
               resizeMode="cover"
             />

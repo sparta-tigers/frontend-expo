@@ -12,6 +12,7 @@ import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import { useLocationStore } from "@/src/store/useLocationStore";
 import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
+import { getImageUrl } from "@/src/utils/url";
 import BottomSheet, {
   BottomSheetFlatList,
   BottomSheetFlatListMethods,
@@ -578,7 +579,7 @@ export default function ExchangeScreen() {
     >
       {/* 아이템 이미지 */}
       {item.imageUrl ? (
-        <Image source={{ uri: item.imageUrl }} style={styles.itemImage} />
+        <Image source={{ uri: getImageUrl(item.imageUrl) }} style={styles.itemImage} />
       ) : (
         <View style={[styles.itemImage, styles.emptyImageContainer]}>
           <Text style={styles.emptyText}>이미지 없음</Text>

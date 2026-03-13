@@ -8,6 +8,7 @@ import {
 import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
 import { Ionicons } from "@expo/vector-icons";
+import { getImageUrl } from "@/src/utils/url";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
@@ -314,7 +315,7 @@ export default function ItemDetailScreen() {
                 setIsImageViewerVisible(true);
               }}
             >
-              <Image source={{ uri: imageUrl }} style={styles.image} />
+              <Image source={{ uri: getImageUrl(imageUrl) }} style={styles.image} />
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -570,7 +571,7 @@ export default function ItemDetailScreen() {
           <View style={styles.profileRow}>
             {item.data.user?.profileImage ? (
               <Image
-                source={{ uri: item.data.user.profileImage }}
+                source={{ uri: getImageUrl(item.data.user.profileImage) }}
                 style={styles.profileImage}
               />
             ) : (
