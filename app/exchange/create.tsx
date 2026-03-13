@@ -17,6 +17,7 @@ import {
 
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { createExchangeItem } from "@/src/features/exchange/api";
+import { useCheckActiveItem } from "@/src/features/exchange/queries";
 import { ItemCategory, LocationDto } from "@/src/features/exchange/types";
 import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
@@ -303,18 +304,22 @@ export default function CreateItemScreen() {
       queryClient.invalidateQueries({ queryKey: ["items"] });
       router.replace("/(tabs)/exchange");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       let errorMessage = "게시글 등록 중 문제가 발생했습니다.";
+      const status = error?.response?.status;
       
-      if (error instanceof Error && (error as any).response?.status === 409) {
+      if (status === 409) {
         errorMessage = "이미 등록된 아이템이 있습니다. 하나의 계정당 하나의 아이템만 등록 가능합니다.";
+        // 409 Conflict는 예상된 비즈니스 에러이므로 WARN으로 기록하여 콘솔 에러 노이즈 제거
+        Logger.warn("아이템 중복 등록 시도 차단 (409)");
+      } else {
+        Logger.error(
+          "아이템 생성 실패:",
+          error instanceof Error ? error.message : String(error)
+        );
       }
 
       Alert.alert("등록 실패", errorMessage);
-      Logger.error(
-        "아이템 생성 실패:",
-        error instanceof Error ? error.message : String(error),
-      );
     },
   });
 
@@ -403,10 +408,27 @@ export default function CreateItemScreen() {
     }
   };
 
-  // 컴포넌트 마운트 시 위치 정보 가져오기
+  const { data: hasActiveItem } = useCheckActiveItem();
+
+  // 컴포넌트 마운트 시 위치 정보 및 활성 아이템 체크
   React.useEffect(() => {
-    getCurrentLocation();
+    const init = async () => {
+      await getCurrentLocation();
+    };
+    
+    init();
   }, []);
+
+  // 활성 아이템 감지 시 즉시 차단 (Redundant check)
+  React.useEffect(() => {
+    if (hasActiveItem === true) {
+      Alert.alert(
+        "접근 제한", 
+        "이미 등록된 아이템이 있어 작성 페이지를 이용할 수 없습니다.",
+        [{ text: "확인", onPress: () => router.back() }]
+      );
+    }
+  }, [hasActiveItem]);
 
   // 이미지 선택
   const handleImagePicker = async () => {

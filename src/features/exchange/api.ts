@@ -241,3 +241,13 @@ export async function itemsUpdateStatusAPI(
 ): Promise<ApiResponse<void>> {
   return apiClient.patch(`/api/items/${itemId}/status`, { status });
 }
+
+/**
+ * 활성 아이템 존재 여부 확인 API
+ * 현재 로그인한 사용자가 등록한 아이템 중 'REGISTERED' 상태인 아이템이 있는지 확인
+ * 
+ * @returns 활성 아이템 존재 여부 (true/false)
+ */
+export async function checkHasActiveItemAPI(): Promise<ApiResponse<boolean>> {
+  return apiClient.get("/api/items/check-active");
+}

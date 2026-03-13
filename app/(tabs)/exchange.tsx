@@ -4,6 +4,7 @@ import { useTheme } from "@/hooks/useTheme";
 import {
   itemsGetListAPI,
 } from "@/src/features/exchange/api";
+import { useCheckActiveItem } from "@/src/features/exchange/queries";
 import {
   Item,
 } from "@/src/features/exchange/types";
@@ -321,6 +322,9 @@ export default function ExchangeScreen() {
   // 추가 상태 (페이지네이션용 - 현재 미사용)
   // const [page, setPage] = useState(0);
   // const [isLast, setIsLast] = useState(false);
+  // 활성 아이템 체크 쿼리 (Navigation Guard용)
+  const { data: hasActiveItem, isLoading: isCheckingActive } = useCheckActiveItem();
+
   const [refreshing, setRefreshing] = useState(false);
 
   // 현재 위치 상태
@@ -427,8 +431,18 @@ export default function ExchangeScreen() {
     }
   };
 
-  // 아이템 생성 페이지로 이동
+  // 아이템 생성 페이지로 이동 (Navigation Guard 적용 - React Query 기반)
   const navigateToCreate = () => {
+    if (isCheckingActive) return; // 아직 체크 중이면 무시
+
+    if (hasActiveItem === true) {
+      Alert.alert(
+        "등록 제한",
+        "이미 등록된 아이템이 있습니다. 하나의 계정당 하나의 아이템만 등록 가능합니다.\n\n기존 아이템을 삭제하거나 교환 완료 후 새 아이템을 등록해주세요."
+      );
+      return;
+    }
+    
     router.push("/exchange/create");
   };
 
