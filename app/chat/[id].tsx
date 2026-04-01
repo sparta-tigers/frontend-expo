@@ -8,6 +8,8 @@ import {
     TextInput,
     TouchableOpacity,
     View,
+    KeyboardAvoidingView,
+    Platform,
 } from "react-native";
 
 import { SafeLayout } from "@/components/ui/safe-layout";
@@ -226,7 +228,12 @@ export default function ChatRoomScreen() {
 
   return (
     <SafeLayout edges={["top", "bottom"]} style={styles.safeLayout}>
-      <ChatHeader nickname={"상대방 닉네임"} />
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      >
+        <ChatHeader nickname={"상대방 닉네임"} />
 
       {/* 아이템 요약 정보 (스크롤 시 고정) */}
       <View style={styles.itemSummaryContainer}>
@@ -300,6 +307,7 @@ export default function ChatRoomScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+      </KeyboardAvoidingView>
     </SafeLayout>
   );
 }
@@ -324,6 +332,9 @@ const styles = StyleSheet.create({
   safeLayout: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   listContent: {
     paddingTop: theme.spacing.lg,

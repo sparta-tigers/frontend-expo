@@ -15,13 +15,13 @@ import {
     ActivityIndicator,
     Alert,
     Image,
-    ScrollView,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
     View,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 /**
  * 아이템 수정 페이지 컴포넌트
@@ -172,7 +172,12 @@ export default function EditItemScreen() {
 
   return (
     <SafeLayout style={{ backgroundColor: colors.background }}>
-      <ScrollView style={styles.container}>
+      <KeyboardAwareScrollView
+        style={styles.container}
+        enableOnAndroid={true}
+        keyboardShouldPersistTaps="handled"
+        extraScrollHeight={20}
+      >
         {/* 헤더 */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
@@ -308,7 +313,7 @@ export default function EditItemScreen() {
             아이템 수정
           </Button>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeLayout>
   );
 }

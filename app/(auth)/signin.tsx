@@ -8,7 +8,8 @@ import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/unified-design";
 import { Logger } from "@/src/utils/logger";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, Text } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 /**
  * 로그인 페이지
@@ -80,7 +81,12 @@ export default function SigninScreen() {
 
   return (
     <SafeLayout style={{ backgroundColor: colors.background }}>
-      <View style={styles.contentContainer}>
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.contentContainer}
+        enableOnAndroid={true}
+        keyboardShouldPersistTaps="handled"
+        extraScrollHeight={20}
+      >
         <Card style={styles.card}>
           <Text style={[styles.title, { color: colors.text }]}>로그인</Text>
 
@@ -118,7 +124,7 @@ export default function SigninScreen() {
             회원가입하기
           </Button>
         </Card>
-      </View>
+      </KeyboardAwareScrollView>
     </SafeLayout>
   );
 }
