@@ -14,8 +14,8 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import { SPACING } from "@/src/styles/unified-design";
 import { Logger } from "@/src/utils/logger";
-import { useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import {
     Alert,
     FlatList,
@@ -56,6 +56,8 @@ export default function ExchangeRequestsScreen() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<"receiver" | "sender">("receiver");
+  /** [RC-2] 수락/거절 처리 중인 requestId — null이면 처리 중 아님 */
+  const [processingId, setProcessingId] = useState<number | null>(null);
 
   // [P2-1] useAsyncState 에서 reset 함수 추가 — 탭 전환 시 이전 상태 안전하게 시각적 제거
   const [requestsState, loadRequests, resetRequests] = useAsyncState<ReceiveExchangeRequest[]>([]);
@@ -77,52 +79,52 @@ export default function ExchangeRequestsScreen() {
     );
   }, [user?.accessToken]);
 
-  // [P2-1] 탭 변경 시 reset 후 재요청 — loading 상태 차단 버그 해결
-  useEffect(() => {
-    resetRequests();
-    loadRequests(fetchExchangeRequests(activeTab));
-    // eslint는 fetchExchangeRequests를 dep으로 요구하지만, 여기서는 activeTab만으로
-    // 제한하여 의존성 배열 틀른 순환 방지
+  // [ML-1] useFocusEffect — 탭 복귀 시에도 목록 자동 갱신
+  // 기존 useEffect(처음 로드)를 useFocusEffect 하나로 통합
+  useFocusEffect(
+    useCallback(() => {
+      resetRequests();
+      loadRequests(fetchExchangeRequests(activeTab));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, user?.accessToken]);
+    }, [activeTab, user?.accessToken]),
+  );
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
     loadRequests(fetchExchangeRequests(activeTab)).finally(() => setRefreshing(false));
   }, [activeTab, fetchExchangeRequests, loadRequests]);
 
-  // 교환 요청 수락
+  // [RC-2] 교환 요청 수락 — processingId guard로 광클 방어
   const handleAcceptRequest = useCallback(
     async (requestId: number) => {
+      // 이미 다른 요청 처리 중이면 무시
+      if (processingId !== null) return;
+
       Alert.alert(
         "교환 요청 수락",
         "이 교환 요청을 수락하시겠습니까? 수락하면 1:1 채팅으로 이동합니다.",
         [
-          {
-            text: "취소",
-            style: "cancel",
-          },
+          { text: "취소", style: "cancel" },
           {
             text: "수락",
             style: "default",
             onPress: async () => {
+              // Alert 확인 시점에 처리 잠금
+              setProcessingId(requestId);
               try {
                 const updateData: UpdateExchangeStatusDto = {
                   status: ExchangeRequestStatus.ACCEPTED,
                   message: "교환 요청을 수락했습니다.",
                 };
 
-                const response = await exchangeUpdateStatusAPI(
-                  requestId,
-                  updateData,
-                );
+                const response = await exchangeUpdateStatusAPI(requestId, updateData);
 
                 if (response.resultType === "SUCCESS") {
-                  // 백엔드 ExchangeRoomResponseDto: { directRoomId, exchangeRequestId }
-                  const responseData = response.data as { directRoomId?: number; roomId?: number } | null;
-                  const roomId = responseData?.directRoomId ?? responseData?.roomId;
+                  const roomId =
+                    response.data?.directRoomId ?? response.data?.roomId;
 
-                  // [P1-2] 수락 성공 후 목록 갱신 (이전에는 갱신 누락)
+                  // 수락 성공 후 목록 갱신
+                  resetRequests();
                   loadRequests(fetchExchangeRequests(activeTab));
 
                   if (!roomId) {
@@ -136,14 +138,7 @@ export default function ExchangeRequestsScreen() {
                   Alert.alert(
                     "수락 완료",
                     "교환 요청을 수락했습니다. 채팅으로 이동합니다.",
-                    [
-                      {
-                        text: "확인",
-                        onPress: () => {
-                          router.push(`/exchange/chat/${roomId}`);
-                        },
-                      },
-                    ],
+                    [{ text: "확인", onPress: () => router.push(`/exchange/chat/${roomId}`) }],
                   );
                 } else {
                   Alert.alert("오류", "교환 요청 수락에 실패했습니다.");
@@ -151,41 +146,41 @@ export default function ExchangeRequestsScreen() {
               } catch (error) {
                 Logger.error("교환 요청 수락 실패:", error);
                 Alert.alert("오류", "네트워크 에러가 발생했습니다.");
+              } finally {
+                // 처리 완료 후 잠금 해제
+                setProcessingId(null);
               }
             },
           },
         ],
       );
     },
-    [router, loadRequests, fetchExchangeRequests, activeTab],
+    [router, loadRequests, resetRequests, fetchExchangeRequests, activeTab, processingId],
   );
 
-  // 교환 요청 거절
+  // [RC-2] 교환 요청 거절 — processingId guard로 광클 방어
   const handleRejectRequest = useCallback(
     async (requestId: number) => {
+      if (processingId !== null) return;
+
       Alert.alert("교환 요청 거절", "이 교환 요청을 거절하시겠습니까?", [
-        {
-          text: "취소",
-          style: "cancel",
-        },
+        { text: "취소", style: "cancel" },
         {
           text: "거절",
           style: "destructive",
           onPress: async () => {
+            setProcessingId(requestId);
             try {
               const updateData: UpdateExchangeStatusDto = {
                 status: ExchangeRequestStatus.REJECTED,
                 message: "교환 요청을 거절했습니다.",
               };
 
-              const response = await exchangeUpdateStatusAPI(
-                requestId,
-                updateData,
-              );
+              const response = await exchangeUpdateStatusAPI(requestId, updateData);
 
               if (response.resultType === "SUCCESS") {
                 Alert.alert("거절 완료", "교환 요청을 거절했습니다.");
-                // 목록 새로고침
+                resetRequests();
                 loadRequests(fetchExchangeRequests(activeTab));
               } else {
                 Alert.alert("오류", "교환 요청 거절에 실패했습니다.");
@@ -193,12 +188,14 @@ export default function ExchangeRequestsScreen() {
             } catch (error) {
               Logger.error("교환 요청 거절 실패:", error);
               Alert.alert("오류", "네트워크 에러가 발생했습니다.");
+            } finally {
+              setProcessingId(null);
             }
           },
         },
       ]);
     },
-    [loadRequests, fetchExchangeRequests, activeTab],
+    [loadRequests, resetRequests, fetchExchangeRequests, activeTab, processingId],
   );
 
   // [P1-1] 받은 교환 요청 아이템 렌더링 — ReceiveExchangeRequest flat 구조 접근
@@ -231,30 +228,36 @@ export default function ExchangeRequestsScreen() {
         {/* 아이템이 아직 REGISTERED 상태일 때만 수락/거절 버튼 노출 */}
         {item.status === "REGISTERED" && (
           <View style={styles.actionButtons}>
+            {/* [RC-2] processingId guard — 처리 중에는 모든 버튼 비활성 */}
             <TouchableOpacity
-              style={[styles.acceptButton, { backgroundColor: colors.primary }]}
+              style={[
+                styles.acceptButton,
+                { backgroundColor: processingId !== null ? colors.muted : colors.primary },
+              ]}
               onPress={() => handleAcceptRequest(item.exchangeRequestId)}
+              disabled={processingId !== null}
             >
               <Text style={[styles.buttonText, { color: colors.background }]}>
-                수락
+                {processingId === item.exchangeRequestId ? "처리 중..." : "수락"}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
                 styles.rejectButton,
-                { backgroundColor: colors.destructive },
+                { backgroundColor: processingId !== null ? colors.muted : colors.destructive },
               ]}
               onPress={() => handleRejectRequest(item.exchangeRequestId)}
+              disabled={processingId !== null}
             >
               <Text style={[styles.buttonText, { color: colors.background }]}>
-                거절
+                {processingId === item.exchangeRequestId ? "처리 중..." : "거절"}
               </Text>
             </TouchableOpacity>
           </View>
         )}
       </View>
     ),
-    [colors, handleAcceptRequest, handleRejectRequest],
+    [colors, handleAcceptRequest, handleRejectRequest, processingId],
   );
 
   // [P1-1] 보낸 교환 요청 렌더링 (대기중, 수락됨, 거절됨 상태 표출만)
@@ -347,6 +350,11 @@ export default function ExchangeRequestsScreen() {
           keyExtractor={(item) => item.exchangeRequestId.toString()}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
+          // [ML-3] FlatList 렌더링 최적화 속성 추가
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          removeClippedSubviews={true}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}

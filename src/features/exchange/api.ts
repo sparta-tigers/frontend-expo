@@ -10,8 +10,10 @@ import {
   UserLocation,
 } from "./types";
 
-type ExchangeRoomResponseDto = {
-  roomId: number;
+export type ExchangeRoomResponseDto = {
+  roomId?: number;
+  directRoomId?: number;
+  exchangeRequestId?: number;
 };
 
 /**

@@ -9,6 +9,7 @@ export const useLocationTracker = () => {
 
   useEffect(() => {
     let subscriber: Location.LocationSubscription | null = null;
+    let isCancelled = false;
 
     const startTracking = async () => {
       try {
@@ -35,12 +36,13 @@ export const useLocationTracker = () => {
         }
 
         // 2. 백그라운드 실시간 구독 (Cache Updating)
-        subscriber = await Location.watchPositionAsync(
-          {
-            accuracy: Location.Accuracy.Balanced,
-            distanceInterval: 10, // 10미터 이동 시 갱신
-            timeInterval: 5000, // 최소 5초 간격
-          },
+        if (!isCancelled) {
+          subscriber = await Location.watchPositionAsync(
+            {
+              accuracy: Location.Accuracy.Balanced,
+              distanceInterval: 10, // 10미터 이동 시 갱신
+              timeInterval: 5000, // 최소 5초 간격
+            },
           (location) => {
             setUserLocation({
               latitude: location.coords.latitude,
@@ -51,8 +53,15 @@ export const useLocationTracker = () => {
               longitude: location.coords.longitude,
               timestamp: new Date().toISOString(),
             });
-          },
+          }
         );
+        }
+
+        // [ML-2] 구독 완료 직후에 이미 언마운트된 경우 (Race Condition 방어)
+        if (isCancelled && subscriber) {
+          subscriber.remove();
+          subscriber = null;
+        }
       } catch (error) {
         Logger.error("위치 추적 초기화 실패:", error);
         setErrorMsg("위치 추적을 시작할 수 없습니다.");
@@ -63,6 +72,7 @@ export const useLocationTracker = () => {
     startTracking();
 
     return () => {
+      isCancelled = true;
       if (subscriber) {
         subscriber.remove(); // 언마운트 시 구독 해제
         Logger.debug("위치 추적 구독 해제 완료");

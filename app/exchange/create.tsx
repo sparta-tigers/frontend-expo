@@ -14,6 +14,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { createExchangeItem } from "@/src/features/exchange/api";
@@ -481,7 +482,15 @@ export default function CreateItemScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollView}>
+      {/* [KB-1] KeyboardAwareScrollView — TextInput 포커스 시 키보드가 내용을 가리지 않도록 자동 스크롤 */}
+      <KeyboardAwareScrollView
+        style={styles.scrollView}
+        keyboardShouldPersistTaps="handled"
+        extraScrollHeight={24}
+        enableOnAndroid
+        enableAutomaticScroll
+        showsVerticalScrollIndicator={false}
+      >
         {/* 이미지 첨부 가로 스크롤 */}
         <ScrollView
           horizontal
@@ -615,7 +624,7 @@ export default function CreateItemScreen() {
             onChangeText={(text) => setFormData({ ...formData, content: text })}
           />
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeLayout>
   );
 }

@@ -258,18 +258,19 @@ export default function ItemDetailScreen() {
     queryKey: ["item", id],
     queryFn: () => itemsGetDetailAPI(itemIdNumber),
     staleTime: 0, // 항상 최신 상태 유지
-    enabled: !!id,
+    // [EB-1] 비로그인 상태에서는 쿼리 비활성화 (401 에러 방지)
+    enabled: !!id && user !== null,
   });
 
-  // \ubc31\uc5d4\ub4dc DTO \ud544\ub4dc \ud63c\uc6a9 \uac00\ub2a5\uc131(userId vs id)\uc5d0 \ub300\ube44\ud558\uc5ec \ud0c4\ub825\uc801\uc73c\ub85c \ucd94\ucd9c
-  const itemUserObjId =
-    item?.data?.user?.userId ??
-    (item?.data?.user as any)?.id ??
-    item?.data?.userId;
+  // [EB-1/SEC-2] 백엔드 DTO 필드 혼용 가능성에 대비하여 탄력적으로 추출 (as any 제거)
+  const itemUserObjId = item?.data?.user?.userId ?? item?.data?.userId;
   const myUserId = user?.userId;
 
-  // 항상 Number() 변환으로 타입 불일치 방지
-  const isOwner = Number(itemUserObjId) === Number(myUserId) && !!myUserId;
+  // [SEC-2] 항상 Number() 변환으로 안전하게 비교
+  const isOwner =
+    typeof itemUserObjId !== "undefined" &&
+    typeof myUserId !== "undefined" &&
+    Number(itemUserObjId) === Number(myUserId);
 
   // 이미지 캐러셀 렌더링
   const renderImageCarousel = useCallback(() => {
@@ -457,6 +458,25 @@ export default function ItemDetailScreen() {
   }, [deleteItem]);
 
   // 로딩 상태
+  // [EB-1] 비로그인 상태일 때 접근 차단 UI 렌더링
+  if (user === null && !isLoading) {
+    return (
+      <SafeLayout style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            교환 물품 정보를 보려면 로그인이 필요합니다.
+          </Text>
+          <Button
+            onPress={() => router.back()}
+            variant="outline"
+          >
+            돌아가기
+          </Button>
+        </View>
+      </SafeLayout>
+    );
+  }
+
   if (isLoading) {
     return (
       <SafeLayout

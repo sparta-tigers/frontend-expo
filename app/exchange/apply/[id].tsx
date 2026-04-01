@@ -5,12 +5,12 @@ import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -19,6 +19,7 @@ import { SafeLayout } from "@/components/ui/safe-layout";
 import { useTheme } from "@/hooks/useTheme";
 import { exchangeCreateAPI, itemsGetDetailAPI } from "@/src/features/exchange/api";
 import { CreateExchangeDto } from "@/src/features/exchange/types";
+import { useAuth } from "@/src/hooks/useAuth";
 import { FONT_SIZE, SPACING } from "@/src/styles/unified-design";
 import { Logger } from "@/src/utils/logger";
 
@@ -124,23 +125,33 @@ export default function ApplyExchangeScreen() {
   const queryClient = useQueryClient();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const { user } = useAuth(); // [EB-1] 로그인 정보 가져오기
 
   const targetItemId = Number(id);
 
   /** 내가 제안하는 교환 물건 설명 (필수, 백엔드 have 필드) */
   const [have, setHave] = useState("");
 
+  // [EB-1] 마운트 시 딥링크로 비로그인 접근 시 즉각 차단
+  React.useEffect(() => {
+    if (user === null) {
+      Alert.alert("인증 오류", "로그인 후 이용해주세요.", [
+        { text: "확인", onPress: () => router.back() }
+      ]);
+    }
+  }, [user, router]);
+
   // 교환 대상 아이템 조회 (receiverId 추출용)
   const { data: targetItem, isLoading: isItemLoading } = useQuery({
     queryKey: ["item", id],
     queryFn: () => itemsGetDetailAPI(targetItemId),
-    enabled: !!id,
+    enabled: !!id && user !== null, // [EB-1] 비로그인 시 401 에러 방지
   });
 
   const { mutate: requestExchange, isPending } = useMutation({
     mutationFn: async () => {
-      // \ubc31\uc5d4\ub4dc DTO \ud544\ub4dc \ud63c\uc6a9 \uac00\ub2a5\uc131 \ub300\ube44 (userId ?? id ?? topLevel userId)
-      const receiverId = targetItem?.data?.user?.userId ?? (targetItem?.data?.user as any)?.id ?? targetItem?.data?.userId;
+      // [SEC-2] \ubc31\uc5d4\ub4dc DTO \ud544\ub4dc \ud63c\uc6a9 \uac00\ub2a5\uc131 \ub300\ube44 (as any 제거)
+      const receiverId = targetItem?.data?.user?.userId ?? targetItem?.data?.userId;
 
       if (!receiverId) {
         throw new Error("상대방 정보를 가져올 수 없습니다.");
@@ -241,9 +252,14 @@ export default function ApplyExchangeScreen() {
         } as any}
       />
       <SafeLayout edges={["top", "bottom"]} style={{ ...styles.container, backgroundColor: colors.background }}>
-        <ScrollView
+        {/* [KB-1] KeyboardAwareScrollView — have 입력 포커스 시 키보드가 버튼을 가리지 않도록 자동 스크롤 */}
+        <KeyboardAwareScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          extraScrollHeight={80}
+          enableOnAndroid
+          enableAutomaticScroll
           showsVerticalScrollIndicator={false}
         >
           {/* 교환 대상 아이템 표시 */}
@@ -278,7 +294,7 @@ export default function ApplyExchangeScreen() {
               style={styles.haveInput}
             />
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
 
         {/* 하단 고정 제출 영역 */}
         <View
