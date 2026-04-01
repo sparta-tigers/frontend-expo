@@ -169,10 +169,11 @@ export default function ApplyExchangeScreen() {
       return response.data;
     },
     onSuccess: (data) => {
+      // 백엔드 ExchangeRoomResponseDto: { directRoomId, exchangeRequestId }
+      // directRoomId 를 우선 참조하고 roomId 는 fallback으로만 사용
       const roomId =
-        typeof data === "object" && data !== null
-          ? ((data as { roomId?: number }).roomId)
-          : undefined;
+        (data as { directRoomId?: number; roomId?: number })?.directRoomId ??
+        (data as { directRoomId?: number; roomId?: number })?.roomId;
 
       queryClient.invalidateQueries({ queryKey: ["item", id] });
 
@@ -180,7 +181,7 @@ export default function ApplyExchangeScreen() {
         Alert.alert("성공", "교환 제안이 전달되었습니다!");
         router.replace(`/exchange/chat/${roomId}`);
       } else {
-        Alert.alert("성공", "교환 제안이 전달되었습니다.");
+        Alert.alert("성공", "교환 제안이 전달되었습니다. 상대가 수락하면 채팅이 시작됩니다.");
         router.back();
       }
     },

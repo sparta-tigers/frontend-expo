@@ -1,11 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/src/hooks/useAuth";
 import { checkHasActiveItemAPI } from "./api";
 
 /**
  * 현재 사용자의 활성 아이템 존재 여부를 확인하는 훅
  * React Query를 사용하여 캐싱 및 상태 관리를 최적화함
+ *
+ * [보안] 비로그인 상태에서 인증 필요 API 호출을 차단한다.
+ * `enabled: isLoggedIn` 조건으로 로그인된 사용자만 쿼리 활성화.
  */
 export const useCheckActiveItem = () => {
+  const { isLoggedIn } = useAuth();
+
   return useQuery({
     queryKey: ["activeItemCheck"],
     queryFn: async () => {
@@ -15,6 +21,8 @@ export const useCheckActiveItem = () => {
       }
       return false;
     },
+    // 비로그인 상태에서는 쿼리 비활성화 (401 에러 + retry loop 방지)
+    enabled: isLoggedIn,
     // 자주 바뀌는 정보가 아니므로 적절한 캐시 시간 설정
     staleTime: 1000 * 60 * 5, // 5분
   });

@@ -50,7 +50,12 @@ export interface Item {
   longitude: number; // 백엔드에서 개별 필드로 옴
   address: string; // 백엔드에서 개별 필드로 옴
   imageUrl?: string;
-  images?: string[]; // 이미지 배열 추가
+  /**
+   * 백엔드 ReadItemResponseDto.imageUrls 와 매핑되는 표준 필드
+   * 이미지 캐러셀 렌더링 시 반드시 이 필드를 우선 사용할 것
+   */
+  imageUrls?: string[];
+  images?: string[]; // 하위 호환 유지 (imageUrls를 우선 사용)
   desiredItem?: string; // 희망 교환 물품 추가
   status: "REGISTERED" | "COMPLETED" | "FAILED" | "DELETED";
   createdAt: string;
@@ -130,21 +135,45 @@ export interface UpdateExchangeStatusDto {
 }
 
 /**
- * 받은 교환 요청 응답 모델
- * 백엔드 ReceiveRequestResponseDto 스펙 매칭
- * 현재는 ExchangeRequest와 동일한 구조
+ * 받은/보낸 교환 요청 응답 모델 — 백엔드 ReceiveRequestResponseDto 정확 매핑
+ *
+ * 백엔드는 ExchangeRequest Entity가 아닌 별도 DTO를 반환:
+ * - `exchangeRequestId` (NOT `id`)
+ * - `sender` = 요청 보낸 사람 (NOT `requester`)
+ * - `title`, `category`, `status` 는 item 중첩 없이 flat 구조
  */
-// export interface ReceiveRequestResponseDto extends ExchangeRequest {
-//   // 추가 필드가 있다면 여기에 확장
-// }
-// 현재는 ExchangeRequest 타입을 그대로 사용
-export type ReceiveRequestResponseDto = ExchangeRequest;
+export interface ReceiveExchangeRequest {
+  /** 교환 요청 고유 ID (백엔드 exchangeRequestId 필드) */
+  exchangeRequestId: number;
+  /** 교환 대상 아이템 ID */
+  itemId: number;
+  /**
+   * 교환을 요청한 사람 정보 (백엔드 UserResponseDto)
+   * 주의: requester가 아닌 sender 필드명 사용
+   */
+  sender: {
+    userId: number;
+    userNickname: string;
+  };
+  /** 아이템 카테고리 (flat — item.category 로 접근하지 말 것) */
+  category: ItemCategory;
+  /** 아이템 제목 (flat — item.title 로 접근하지 말 것) */
+  title: string;
+  /**
+   * 아이템 상태 (ItemStatus 기반)
+   * 교환 요청 상태(ExchangeStatus)와 다름!
+   */
+  status: "REGISTERED" | "COMPLETED" | "FAILED" | "DELETED";
+  /** 교환 요청 생성 시각 */
+  createdAt: string;
+}
 
 /**
  * 교환 요청 목록 페이징 응답
+ * content 항목은 ReceiveExchangeRequest 구조임
  */
 export interface ExchangeRequestListResponse {
-  content: ExchangeRequest[];
+  content: ReceiveExchangeRequest[];
   totalElements: number;
   totalPages: number;
   size: number;

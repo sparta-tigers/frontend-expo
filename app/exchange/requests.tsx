@@ -6,8 +6,8 @@ import {
     exchangeUpdateStatusAPI,
 } from "@/src/features/exchange/api";
 import {
-    ExchangeRequest,
     ExchangeRequestStatus,
+    ReceiveExchangeRequest,
     UpdateExchangeStatusDto,
 } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
@@ -27,6 +27,25 @@ import {
 } from "react-native";
 
 /**
+ * 아이템 상태 텍스트 변환 (ItemStatus 기반)
+ * 콴포넌트 밖으로 분리 — 리렌더마다 재생성 방지
+ */
+const getItemStatusText = (status: string): string => {
+  switch (status) {
+    case "REGISTERED":
+      return "대기 중";
+    case "COMPLETED":
+      return "거래 완료";
+    case "FAILED":
+      return "거래 취소";
+    case "DELETED":
+      return "삭제됨";
+    default:
+      return '알 수 없음';
+  }
+};
+
+/**
  * 받은 교환 요청 목록 화면
  * 유저가 받은 교환 요청을 수락/거절할 수 있는 화면
  */
@@ -38,18 +57,17 @@ export default function ExchangeRequestsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<"receiver" | "sender">("receiver");
 
-  // useAsyncState 훅으로 교환 요청 목록 상태 관리
-  const [requestsState, loadRequests] = useAsyncState<ExchangeRequest[]>([]);
+  // [P2-1] useAsyncState 에서 reset 함수 추가 — 탭 전환 시 이전 상태 안전하게 시각적 제거
+  const [requestsState, loadRequests, resetRequests] = useAsyncState<ReceiveExchangeRequest[]>([]);
 
-  // 교환 요청 목록 로드
-  const fetchExchangeRequests = useCallback(async () => {
+  // [P1-1] ReceiveExchangeRequest 기반 데이터 페치 함수
+  const fetchExchangeRequests = useCallback(async (tab: "receiver" | "sender") => {
     if (!user?.accessToken) throw new Error("로그인이 필요합니다.");
 
-    const response = await exchangeGetMyRequestsAPI(activeTab, 0, 20);
+    const response = await exchangeGetMyRequestsAPI(tab, 0, 20);
 
     if (response.resultType === "SUCCESS" && response.data) {
-      const requestData = response.data.content || [];
-      return requestData;
+      return response.data.content || [];
     }
 
     throw new Error(
@@ -57,17 +75,21 @@ export default function ExchangeRequestsScreen() {
         ? response.error
         : "교환 요청 목록을 불러올 수 없습니다.",
     );
-  }, [user?.accessToken, activeTab]);
+  }, [user?.accessToken]);
 
-  // 초기 데이터 로드 및 탭 변경 시 데이터 로드
+  // [P2-1] 탭 변경 시 reset 후 재요청 — loading 상태 차단 버그 해결
   useEffect(() => {
-    loadRequests(fetchExchangeRequests());
-  }, [loadRequests, fetchExchangeRequests, activeTab]);
+    resetRequests();
+    loadRequests(fetchExchangeRequests(activeTab));
+    // eslint는 fetchExchangeRequests를 dep으로 요구하지만, 여기서는 activeTab만으로
+    // 제한하여 의존성 배열 틀른 순환 방지
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, user?.accessToken]);
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
-    loadRequests(fetchExchangeRequests()).finally(() => setRefreshing(false));
-  }, [fetchExchangeRequests, loadRequests]);
+    loadRequests(fetchExchangeRequests(activeTab)).finally(() => setRefreshing(false));
+  }, [activeTab, fetchExchangeRequests, loadRequests]);
 
   // 교환 요청 수락
   const handleAcceptRequest = useCallback(
@@ -96,27 +118,17 @@ export default function ExchangeRequestsScreen() {
                 );
 
                 if (response.resultType === "SUCCESS") {
-                  const responseData = response.data as unknown;
-                  const roomId =
-                    typeof responseData === "object" && responseData !== null
-                      ? ((
-                          responseData as {
-                            roomId?: number;
-                            directRoomId?: number;
-                          }
-                        ).roomId ??
-                        (
-                          responseData as {
-                            roomId?: number;
-                            directRoomId?: number;
-                          }
-                        ).directRoomId)
-                      : undefined;
+                  // 백엔드 ExchangeRoomResponseDto: { directRoomId, exchangeRequestId }
+                  const responseData = response.data as { directRoomId?: number; roomId?: number } | null;
+                  const roomId = responseData?.directRoomId ?? responseData?.roomId;
+
+                  // [P1-2] 수락 성공 후 목록 갱신 (이전에는 갱신 누락)
+                  loadRequests(fetchExchangeRequests(activeTab));
 
                   if (!roomId) {
                     Alert.alert(
-                      "오류",
-                      "채팅방 ID를 가져올 수 없습니다. 잠시 후 다시 시도해주세요.",
+                      "수락 완료",
+                      "교환 요청을 수락했습니다. 채팅방이 생성되면 교환현황에서 확인하세요.",
                     );
                     return;
                   }
@@ -145,7 +157,7 @@ export default function ExchangeRequestsScreen() {
         ],
       );
     },
-    [router],
+    [router, loadRequests, fetchExchangeRequests, activeTab],
   );
 
   // 교환 요청 거절
@@ -174,7 +186,7 @@ export default function ExchangeRequestsScreen() {
               if (response.resultType === "SUCCESS") {
                 Alert.alert("거절 완료", "교환 요청을 거절했습니다.");
                 // 목록 새로고침
-                loadRequests(fetchExchangeRequests());
+                loadRequests(fetchExchangeRequests(activeTab));
               } else {
                 Alert.alert("오류", "교환 요청 거절에 실패했습니다.");
               }
@@ -186,12 +198,12 @@ export default function ExchangeRequestsScreen() {
         },
       ]);
     },
-    [loadRequests, fetchExchangeRequests],
+    [loadRequests, fetchExchangeRequests, activeTab],
   );
 
-  // 교환 요청 아이템 렌더링
+  // [P1-1] 받은 교환 요청 아이템 렌더링 — ReceiveExchangeRequest flat 구조 접근
   const renderRequestItem = useCallback(
-    ({ item }: { item: ExchangeRequest }) => (
+    ({ item }: { item: ReceiveExchangeRequest }) => (
       <View
         style={[
           styles.requestItem,
@@ -200,27 +212,28 @@ export default function ExchangeRequestsScreen() {
       >
         <View style={styles.requestHeader}>
           <Text style={[styles.itemTitle, { color: colors.text }]}>
-            {item.item?.title}
+            {item.title}
           </Text>
           <Text style={[styles.statusText, { color: colors.muted }]}>
-            상태: {getStatusText(item.status)}
+            {getItemStatusText(item.status)}
           </Text>
         </View>
 
         <View style={styles.requestInfo}>
           <Text style={[styles.requesterText, { color: colors.text }]}>
-            요청자: {item.requester?.nickname}
+            요청자: {item.sender.userNickname}
           </Text>
           <Text style={[styles.dateText, { color: colors.muted }]}>
             {new Date(item.createdAt).toLocaleDateString()}
           </Text>
         </View>
 
-        {item.status === ExchangeRequestStatus.PENDING && (
+        {/* 아이템이 아직 REGISTERED 상태일 때만 수락/거절 버튼 노출 */}
+        {item.status === "REGISTERED" && (
           <View style={styles.actionButtons}>
             <TouchableOpacity
               style={[styles.acceptButton, { backgroundColor: colors.primary }]}
-              onPress={() => handleAcceptRequest(item.id)}
+              onPress={() => handleAcceptRequest(item.exchangeRequestId)}
             >
               <Text style={[styles.buttonText, { color: colors.background }]}>
                 수락
@@ -231,7 +244,7 @@ export default function ExchangeRequestsScreen() {
                 styles.rejectButton,
                 { backgroundColor: colors.destructive },
               ]}
-              onPress={() => handleRejectRequest(item.id)}
+              onPress={() => handleRejectRequest(item.exchangeRequestId)}
             >
               <Text style={[styles.buttonText, { color: colors.background }]}>
                 거절
@@ -244,11 +257,9 @@ export default function ExchangeRequestsScreen() {
     [colors, handleAcceptRequest, handleRejectRequest],
   );
 
-  // ----------------------------------------------------------------------
-  // [5페이지] 보낸 제안 렌더링 (대기중, 수락됨, 거절됨 상태 표출만)
-  // ----------------------------------------------------------------------
+  // [P1-1] 보낸 교환 요청 렌더링 (대기중, 수락됨, 거절됨 상태 표출만)
   const renderSentRequestItem = useCallback(
-    ({ item }: { item: ExchangeRequest }) => (
+    ({ item }: { item: ReceiveExchangeRequest }) => (
       <View
         style={[
           styles.requestItem,
@@ -257,54 +268,26 @@ export default function ExchangeRequestsScreen() {
       >
         <View style={styles.requestHeader}>
           <Text style={[styles.itemTitle, { color: colors.text }]}>
-            {item.item?.title}
+            {item.title}
           </Text>
           <Text style={[styles.statusText, { color: colors.muted }]}>
-            상태: {getStatusText(item.status)}
+            {getItemStatusText(item.status)}
           </Text>
         </View>
 
         <View style={styles.requestInfo}>
+          {/* 보낸 제안에서는 요청받은 상대방 정보가 없으므로 아이템 카테고리 표시 */}
           <Text style={[styles.requesterText, { color: colors.muted }]}>
-            대상: {item.item?.user?.userNickname || "알 수 없음"}
+            카테고리: {item.category === "TICKET" ? "티켓" : "굿즈"}
           </Text>
           <Text style={[styles.dateText, { color: colors.muted }]}>
             {new Date(item.createdAt).toLocaleDateString()}
           </Text>
         </View>
-
-        {item.status === ExchangeRequestStatus.ACCEPTED && (
-            <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={[styles.acceptButton, { backgroundColor: colors.primary }]}
-              onPress={() => item.roomId && router.push(`/exchange/chat/${item.roomId}`)}
-            >
-              <Text style={[styles.buttonText, { color: colors.background }]}>
-                채팅방 입장
-              </Text>
-            </TouchableOpacity>
-            </View>
-        )}
       </View>
     ),
-    [colors, router],
+    [colors],
   );
-
-  // 상태 텍스트 변환
-  const getStatusText = (status: ExchangeRequestStatus): string => {
-    switch (status) {
-      case ExchangeRequestStatus.PENDING:
-        return "대기 중";
-      case ExchangeRequestStatus.ACCEPTED:
-        return "수락됨";
-      case ExchangeRequestStatus.REJECTED:
-        return "거절됨";
-      case ExchangeRequestStatus.COMPLETED:
-        return "완료됨";
-      default:
-        return "알 수 없음";
-    }
-  };
 
   // 로딩 상태
   if (requestsState.status === "loading") {
@@ -327,7 +310,7 @@ export default function ExchangeRequestsScreen() {
           <Text style={[styles.errorText, { color: colors.destructive }]}>
             {requestsState.error || "데이터를 불러오는데 실패했습니다."}
           </Text>
-          <Button onPress={() => loadRequests(fetchExchangeRequests())}>
+          <Button onPress={() => loadRequests(fetchExchangeRequests(activeTab))}>
             다시 시도
           </Button>
         </View>
@@ -361,7 +344,7 @@ export default function ExchangeRequestsScreen() {
         <FlatList
           data={requestsState.data}
           renderItem={activeTab === "receiver" ? renderRequestItem : renderSentRequestItem}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.exchangeRequestId.toString()}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
           refreshControl={

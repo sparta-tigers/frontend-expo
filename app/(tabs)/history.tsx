@@ -7,8 +7,8 @@ import {
   exchangeUpdateStatusAPI,
 } from "@/src/features/exchange/api";
 import {
-  ExchangeRequest,
   ExchangeRequestStatus,
+  ReceiveExchangeRequest,
   UpdateExchangeStatusDto,
 } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
@@ -20,9 +20,7 @@ import { Alert, FlatList, StyleSheet, Text, View } from "react-native";
 export default function HistoryScreen() {
   const { colors } = useTheme();
   const { user } = useAuth();
-  const [exchangeRequests, setExchangeRequests] = useState<ExchangeRequest[]>(
-    [],
-  );
+  const [exchangeRequests, setExchangeRequests] = useState<ReceiveExchangeRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
 
@@ -96,49 +94,49 @@ export default function HistoryScreen() {
     fetchExchangeRequests();
   }, [fetchExchangeRequests]);
 
-  const renderExchangeRequest = ({ item }: { item: ExchangeRequest }) => (
+  const renderExchangeRequest = ({ item }: { item: ReceiveExchangeRequest }) => (
     <Card style={styles.requestCard}>
       <View style={styles.requestHeader}>
         <Text style={[styles.itemTitle, { color: colors.text }]}>
-          {item.item?.title || "아이템 정보 없음"}
+          {item.title || "아이템 정보 없음"}
         </Text>
         <Text
           style={[
             styles.status,
             {
               color:
-                item.status === ExchangeRequestStatus.PENDING
+                item.status === "REGISTERED"
                   ? colors.warning
-                  : item.status === ExchangeRequestStatus.ACCEPTED
+                  : item.status === "COMPLETED"
                     ? colors.success
                     : colors.destructive,
             },
           ]}
         >
-          {item.status === ExchangeRequestStatus.PENDING
+          {item.status === "REGISTERED"
             ? "대기 중"
-            : item.status === ExchangeRequestStatus.ACCEPTED
+            : item.status === "COMPLETED"
               ? "수락됨"
               : "거절됨"}
         </Text>
       </View>
 
       <Text style={[styles.requester, { color: colors.text }]}>
-        요청자: {item.requester?.nickname || "알 수 없음"}
+        요청자: {item.sender.userNickname || "알 수 없음"}
       </Text>
 
       <Text style={[styles.date, { color: colors.muted }]}>
         요청일: {new Date(item.createdAt).toLocaleDateString()}
       </Text>
 
-      {item.status === ExchangeRequestStatus.PENDING && (
+      {item.status === "REGISTERED" && (
         <View style={styles.actionButtons}>
           <Button
             variant="primary"
             size="sm"
-            loading={actionLoading === item.id}
+            loading={actionLoading === item.exchangeRequestId}
             onPress={() =>
-              handleUpdateStatus(item.id, ExchangeRequestStatus.ACCEPTED)
+              handleUpdateStatus(item.exchangeRequestId, ExchangeRequestStatus.ACCEPTED)
             }
             style={styles.acceptButton}
           >
@@ -147,9 +145,9 @@ export default function HistoryScreen() {
           <Button
             variant="outline"
             size="sm"
-            loading={actionLoading === item.id}
+            loading={actionLoading === item.exchangeRequestId}
             onPress={() =>
-              handleUpdateStatus(item.id, ExchangeRequestStatus.REJECTED)
+              handleUpdateStatus(item.exchangeRequestId, ExchangeRequestStatus.REJECTED)
             }
             style={styles.rejectButton}
           >
@@ -189,7 +187,7 @@ export default function HistoryScreen() {
           <FlatList
             data={exchangeRequests}
             renderItem={renderExchangeRequest}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => item.exchangeRequestId.toString()}
             contentContainerStyle={styles.listContainer}
             showsVerticalScrollIndicator={false}
           />

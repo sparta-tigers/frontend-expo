@@ -273,7 +273,10 @@ export default function ItemDetailScreen() {
 
   // 이미지 캐러셀 렌더링
   const renderImageCarousel = useCallback(() => {
-    if (!item?.data?.images || item.data.images.length === 0) {
+    // [P1-3] 백엔드는 imageUrls로 반환 — imageUrls 우선, images 하위 호환 fallback
+    const images = item?.data?.imageUrls ?? item?.data?.images ?? [];
+
+    if (images.length === 0) {
       return (
         <View
           style={[styles.imageContainer, { backgroundColor: colors.border }]}
@@ -290,7 +293,7 @@ export default function ItemDetailScreen() {
     }
 
     // ImageViewing을 위한 이미지 포맷 변환
-    const formattedImages = item.data.images.map((url: string) => ({
+    const formattedImages = images.map((url: string) => ({
       uri: url,
     }));
 
@@ -306,7 +309,7 @@ export default function ItemDetailScreen() {
             setCurrentImageIndex(index);
           }}
         >
-          {item.data.images?.map((imageUrl: string, index: number) => (
+          {images.map((imageUrl: string, index: number) => (
             <TouchableOpacity
               key={index}
               style={styles.imageContainer}
@@ -321,9 +324,9 @@ export default function ItemDetailScreen() {
         </ScrollView>
 
         {/* 이미지 인디케이터 */}
-        {item.data.images.length > 1 && (
+        {images.length > 1 && (
           <View style={styles.indicatorContainer}>
-            {item.data.images?.map((_: string, index: number) => (
+            {images.map((_: string, index: number) => (
               <View
                 key={index}
                 style={[

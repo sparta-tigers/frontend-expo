@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTheme } from "@/hooks/useTheme";
 import { exchangeGetMyRequestsAPI } from "@/src/features/exchange/api";
-import { ExchangeRequest } from "@/src/features/exchange/types";
+import { ReceiveExchangeRequest } from "@/src/features/exchange/types";
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/unified-design";
 import { Logger } from "@/src/utils/logger";
 
@@ -21,7 +21,7 @@ export default function ExchangeHistoryScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const [historyItems, setHistoryItems] = useState<ExchangeRequest[]>([]);
+  const [historyItems, setHistoryItems] = useState<ReceiveExchangeRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -43,9 +43,9 @@ export default function ExchangeHistoryScreen() {
         ["COMPLETED", "FAILED", "REJECTED"].includes(req.status)
       );
 
-      // 중복 제거 (id 기준)
+      // 중복 제거 (exchangeRequestId 기준)
       const uniqueFinalized = Array.from(
-        new Map(finalized.map((item) => [item.id, item])).values()
+        new Map(finalized.map((item) => [item.exchangeRequestId, item])).values()
       );
 
       // 최신순 정렬
@@ -71,9 +71,9 @@ export default function ExchangeHistoryScreen() {
     setRefreshing(false);
   };
 
-  const renderItem = ({ item }: { item: ExchangeRequest }) => {
+  const renderItem = ({ item }: { item: ReceiveExchangeRequest }) => {
     const isCompleted = item.status === "COMPLETED";
-    
+
     return (
       <TouchableOpacity
         style={[
@@ -83,13 +83,13 @@ export default function ExchangeHistoryScreen() {
             borderColor: colors.border,
           },
         ]}
-        onPress={() => item.roomId && router.push(`/exchange/chat/${item.roomId}`)}
+        // ReceiveExchangeRequest에는 roomId가 없으므로 상세 이동은 비활성화
         activeOpacity={0.8}
-        disabled={!item.roomId} // 채팅방 ID가 없으면 비활성
+        disabled
       >
         <View style={styles.itemHeader}>
           <Text style={[styles.itemTitle, { color: colors.text }]} numberOfLines={1}>
-            {item.item?.title || "삭제된 교환 게시글"}
+            {item.title || "삭제된 교환 게시글"}  
           </Text>
           <View
             style={[
@@ -104,13 +104,13 @@ export default function ExchangeHistoryScreen() {
             </Text>
           </View>
         </View>
-        
+
         <View style={styles.itemFooter}>
           <Text style={[styles.itemDate, { color: colors.muted }]}>
             {new Date(item.createdAt).toLocaleDateString()}
           </Text>
-          <Text style={[styles.roomIdLabel, { color: colors.primary }]}>
-            {item.roomId ? "채팅 내역 보기 >" : ""}
+          <Text style={[styles.roomIdLabel, { color: colors.muted }]}>
+            {item.sender.userNickname}
           </Text>
         </View>
       </TouchableOpacity>
@@ -141,7 +141,7 @@ export default function ExchangeHistoryScreen() {
         <FlatList
           data={historyItems}
           renderItem={renderItem}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.exchangeRequestId.toString()}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
           refreshControl={

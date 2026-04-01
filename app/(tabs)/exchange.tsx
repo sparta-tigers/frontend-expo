@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
   // 1페이지: 지도 뷰 상단 오버레이 버튼들
   topOverlayContainer: {
     position: "absolute",
-    top: 60,
+    // [Bonus-2] top 제거 — JSX에서 insets.top 기반으로 동적 주입
     left: 0,
     right: 0,
     flexDirection: "row",
@@ -514,15 +514,17 @@ export default function ExchangeScreen() {
     }
   };
 
-  // 새로고침 핸들러
-  const handleRefresh = () => {
+  // [P2-2] 새로고침 핸들러 — async/await 누락로 refresh 인디케이터가 즉시 쪬히젠 버그 수정
+  const handleRefresh = async () => {
     setRefreshing(true);
-    // 🚨 지도 좌표 연동
-    const radius = mapRegion.latitudeDelta * 111; // 1도 ≈ 111km
-    fetchItems(
-      loadItems(0, true, mapRegion.latitude, mapRegion.longitude, radius),
-    );
-    setRefreshing(false);
+    try {
+      const radius = mapRegion.latitudeDelta * 111; // 1도 ≈ 111km
+      await fetchItems(
+        loadItems(0, true, mapRegion.latitude, mapRegion.longitude, radius),
+      );
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   // 지도 이동 완료 핸들러 (Phase 1)
@@ -638,6 +640,15 @@ export default function ExchangeScreen() {
     return itemsState.data.filter(item => item.category === selectedCategory);
   }, [itemsState.data, selectedCategory]);
 
+  // [P2-3] loadItems ref 패턴 — loadItems가 itemsState에 의존하여
+  // 렌더마다 재생성되는 함수이며, 이를 useEffect dep에 넣으면
+  // itemsState 변경 → loadItems 재생성 → useEffect 재실행 순환에 진입.
+  // ref로 관리하면 dep 없이 항상 최신 함수를 호출할 수 있다.
+  const loadItemsRef = React.useRef(loadItems);
+  React.useEffect(() => {
+    loadItemsRef.current = loadItems;
+  });
+
   // 2. Map-First 초기 데이터 로딩 (GPS 좌표가 잡히는 즉시 실행)
   React.useEffect(() => {
     let isMounted = true;
@@ -646,10 +657,10 @@ export default function ExchangeScreen() {
       // 마운트 해제됨, 이미 로딩됨, 혹은 GPS 아직 못 잡음 ➔ 대기
       if (!isMounted || isInitialFetched || !userLocation) return;
 
-      // GPS 좌표가 들어왔다! ➔ 지도 기반 반경 계산 후 즉시 아이템 페칭
+      // GPS 좌표가 들어왔다! → 지도 기반 반경 계산 후 즉시 아이템 페칭
       const radius = mapRegion.latitudeDelta * 111;
       await fetchItems(
-        loadItems(
+        loadItemsRef.current( // ← loadItems 대신 ref 사용 — dep 제거
           0,
           true,
           userLocation.latitude,
@@ -668,13 +679,8 @@ export default function ExchangeScreen() {
     return () => {
       isMounted = false;
     };
-  }, [
-    userLocation,
-    isInitialFetched,
-    mapRegion.latitudeDelta,
-    fetchItems,
-    loadItems,
-  ]);
+    // [P2-3] loadItems는 loadItemsRef로 관리하므로 deps 불필요
+  }, [userLocation, isInitialFetched, mapRegion.latitudeDelta, fetchItems]);
 
   return (
     <SafeLayout style={[styles.container, { backgroundColor: colors.background }]}>
@@ -829,7 +835,8 @@ export default function ExchangeScreen() {
       </BottomSheet>
 
       {/* 3. 지도 상단 플로팅 오버레이 버튼들 (항상 바텀시트보다 위에 있어야 하므로 더 나중에 렌더링) */}
-      <View style={styles.topOverlayContainer}>
+      {/* [Bonus-2] top: insets.top + 8 으로 SafeArea 노치 높이 대응 */}
+      <View style={[styles.topOverlayContainer, { top: insets.top + 8 }]}>
         <TouchableOpacity style={styles.topOverlayButton} onPress={navigateToCreate}>
           <Text style={styles.topOverlayButtonText}>+ 등록하기</Text>
         </TouchableOpacity>
@@ -843,7 +850,11 @@ export default function ExchangeScreen() {
         <TouchableOpacity
           style={[
             styles.reSearchButton,
-            { top: insets.top + 120 }, // topOverlay(top:60) + 버튼높이(약 44) + 여백(16)
+            {
+              // [Bonus-2] topOverlay = insets.top + 8 + 버튼화면 높이(약 44px) + 여백(12px)
+              // 이로써 노치 크기에 관계없이 topOverlay 아래에 정확히 위치
+              top: insets.top + 64,
+            },
           ]}
           onPress={handleSearchCurrentLocation}
         >
