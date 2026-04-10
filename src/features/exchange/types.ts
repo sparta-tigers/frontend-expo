@@ -131,7 +131,6 @@ export interface CreateExchangeDto {
  */
 export interface UpdateExchangeStatusDto {
   status: ExchangeRequestStatus;
-  message?: string; // 선택적 응답 메시지
 }
 
 /**

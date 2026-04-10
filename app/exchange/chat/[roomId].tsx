@@ -58,15 +58,13 @@ interface ChatMessagesPage {
 }
 
 interface ExchangeItem {
-  id: number;
+  itemId: number;
   title: string;
   description: string;
   category: "TICKET" | "GOODS";
   status: "REGISTERED" | "COMPLETED" | "FAILED" | "DELETED";
-  user: {
-    id: number;
-    nickname: string;
-  };
+  ownerId: number;
+  ownerNickname: string;
 }
 
 export default function ChatRoomScreen() {
@@ -293,8 +291,8 @@ export default function ChatRoomScreen() {
   // 🚨 앙드레 카파시: 상태 변경 Mutation
   const { mutate: updateItemStatus } = useMutation({
     mutationFn: async (newStatus: "COMPLETED" | "FAILED") => {
-      if (!exchangeItem?.id) throw new Error("itemId missing");
-      const response = await itemsUpdateStatusAPI(exchangeItem.id, newStatus);
+      if (!exchangeItem?.itemId) throw new Error("itemId missing");
+      const response = await itemsUpdateStatusAPI(exchangeItem.itemId, newStatus);
       if (response.resultType !== "SUCCESS") {
         throw new Error("status update failed");
       }
@@ -360,7 +358,7 @@ export default function ChatRoomScreen() {
           {/* Target 14: 채팅방 상태 제어 UI - 소유자/요청자 화면 분기 */}
           {exchangeItem.status === "REGISTERED" && (
             <View style={styles.statusButtons}>
-              {exchangeItem.user.id === user?.userId ? (
+              {exchangeItem.ownerId === user?.userId ? (
                 // 아이템 소유자(Seller) 화면
                 <>
                   <Button

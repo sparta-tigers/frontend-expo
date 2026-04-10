@@ -114,7 +114,6 @@ export default function ExchangeRequestsScreen() {
               try {
                 const updateData: UpdateExchangeStatusDto = {
                   status: ExchangeRequestStatus.ACCEPTED,
-                  message: "교환 요청을 수락했습니다.",
                 };
 
                 const response = await exchangeUpdateStatusAPI(requestId, updateData);
@@ -173,7 +172,6 @@ export default function ExchangeRequestsScreen() {
             try {
               const updateData: UpdateExchangeStatusDto = {
                 status: ExchangeRequestStatus.REJECTED,
-                message: "교환 요청을 거절했습니다.",
               };
 
               const response = await exchangeUpdateStatusAPI(requestId, updateData);

@@ -51,10 +51,6 @@ export default function HistoryScreen() {
     async (requestId: number, status: ExchangeRequestStatus) => {
       const request: UpdateExchangeStatusDto = {
         status,
-        message:
-          status === ExchangeRequestStatus.ACCEPTED
-            ? "교환을 수락합니다."
-            : "교환을 거절합니다.",
       };
 
       try {
