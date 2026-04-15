@@ -234,14 +234,14 @@ export async function exchangeUpdateStatusAPI(
  * 아이템의 상태를 변경 (예: REGISTERED -> EXCHANGE_RESERVED)
  *
  * @param itemId - 아이템 고유 ID
- * @param status - 변경할 상태
+ * @param action - 변경할 상태 액션 (COMPLETE, CANCEL, DELETE)
  * @returns 상태 변경 처리 결과
  */
 export async function itemsUpdateStatusAPI(
   itemId: number,
-  status: string,
+  action: string,
 ): Promise<ApiResponse<void>> {
-  return apiClient.patch(`/api/items/${itemId}/status`, { status });
+  return apiClient.patch(`/api/items/${itemId}/status`, { action });
 }
 
 /**

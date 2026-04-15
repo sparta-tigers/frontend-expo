@@ -160,9 +160,19 @@ export interface ReceiveExchangeRequest {
   title: string;
   /**
    * 아이템 상태 (ItemStatus 기반)
-   * 교환 요청 상태(ExchangeStatus)와 다름!
+   * ⚠️ 교환 요청 상태(exchangeStatus)와 다름!
+   * 수락 후에도 아이템 상태는 REGISTERED로 유지되므로
+   * 교환 진행 여부 판단에는 반드시 exchangeStatus를 사용할 것.
    */
   status: "REGISTERED" | "COMPLETED" | "FAILED" | "DELETED";
+  /**
+   * 교환 요청 자체의 진행 상태 (ExchangeStatus 기반)
+   * PENDING = 대기 중 (수락/거절 대기)
+   * ACCEPTED = 수락됨 (채팅 진행 중)
+   * REJECTED = 거절됨
+   * COMPLETED = 거래 완료
+   */
+  exchangeStatus: ExchangeRequestStatus;
   /** 교환 요청 생성 시각 */
   createdAt: string;
 }

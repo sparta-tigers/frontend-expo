@@ -47,7 +47,7 @@ const checkPolyfills = () => {
  * 개발 환경의 안드로이드 에뮬레이터에서는 10.0.2.2로 강제 설정
  */
 const getDynamicWebSocketURL = (url?: string): string => {
-  const defaultUrl = "ws://localhost:8080/ws";
+  const defaultUrl = "http://localhost:8080/ws";
 
   if (!url) {
     // 개발 환경의 안드로이드 에뮬레이터용 핫픽스
@@ -99,6 +99,12 @@ export function useWebSocket(
   chatDomain: ChatDomain = "directroom",
 ): UseWebSocketReturn {
   const [status, setStatus] = useState<ConnectionState>("DISCONNECTED");
+  /**
+   * [BUG FIX] clientRef와 별도로 client 상태를 useState로 관리
+   * clientRef.current는 ref 변경 시 리렌더를 트리거하지 않아 컴포넌트가
+   * 항상 null을 받는 문제가 있었음. useState와 병행 관리로 해결.
+   */
+  const [client, setClient] = useState<Client | null>(null);
   const clientRef = useRef<Client | null>(null);
 
   /**
@@ -168,8 +174,11 @@ export function useWebSocket(
         setStatus("DISCONNECTED");
       };
 
-      // Ref에 저장
+      // [BUG FIX] Ref와 State 양쪽에 모두 저장
+      // Ref: 안정적인 참조 보장 (disconnect, cleanup에서 사용)
+      // State: 컴포넌트 리렌더 트리거 (onConnect 콜백 후 컴포넌트에 전달)
       clientRef.current = stompClient;
+      setClient(stompClient);
 
       // 연결 활성화
       stompClient.activate();
@@ -187,6 +196,7 @@ export function useWebSocket(
       clientRef.current.deactivate();
       Logger.debug("WebSocket disconnected");
       setStatus("DISCONNECTED");
+      setClient(null);
     }
   }, []);
 
@@ -216,6 +226,8 @@ export function useWebSocket(
         clientRef.current.deactivate();
         Logger.debug("WebSocket cleanup: deactivated");
       }
+      clientRef.current = null;
+      setClient(null);
       setStatus("DISCONNECTED");
       Logger.debug("WebSocket cleanup: state reset");
     };
@@ -223,7 +235,7 @@ export function useWebSocket(
 
   return {
     status,
-    client: clientRef.current,
+    client,
     connect,
     disconnect,
     sendMessage,

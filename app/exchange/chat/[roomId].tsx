@@ -5,7 +5,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -110,17 +110,28 @@ export default function ChatRoomScreen() {
         roomIdNumber,
         pageParam as number,
       );
-      const messages = response.data?.messages ?? [];
+      /**
+       * [BUG FIX] 백엔드 Page<DirectRoomMessageResponse> 파스 수정
+       * 개선 전: response.data?.messages (ChatMessageListResponse.messages)
+       * 개선 후: response.data?.content (Page.content) — 백엔드 Page 구조 실제 필드명
+       */
+      const messages = response.data?.content ?? [];
 
       const mapped: ChatMessage[] = messages.map((message) => ({
-        id: message.id,
+        /**
+         * [BUG FIX] DirectRoomMessageResponse 필드명 정합
+         * - messageId (NOT id)
+         * - message 필드를 content로 매핑 (NOT message.content)
+         * - senderNickname (NOT sender?.nickname / senderNickName)
+         */
+        id: message.messageId,
         roomId: roomIdNumber,
         senderId: message.senderId,
-        senderName: message.sender?.nickname ?? message.senderNickName,
-        content: message.content,
-        timestamp: message.sentAt || message.createdAt,
-        isMine: message.isMyMessage,
-        type: "CHAT",
+        senderName: message.senderNickname,
+        content: message.message,
+        timestamp: message.sentAt,
+        isMine: message.isMyMessage ?? false,
+        type: "CHAT" as const,
       }));
 
       const hasNext = mapped.length > 0;
@@ -290,7 +301,7 @@ export default function ChatRoomScreen() {
 
   // 🚨 앙드레 카파시: 상태 변경 Mutation
   const { mutate: updateItemStatus } = useMutation({
-    mutationFn: async (newStatus: "COMPLETED" | "FAILED") => {
+    mutationFn: async (newStatus: "COMPLETE" | "CANCEL") => {
       if (!exchangeItem?.itemId) throw new Error("itemId missing");
       const response = await itemsUpdateStatusAPI(exchangeItem.itemId, newStatus);
       if (response.resultType !== "SUCCESS") {
@@ -316,10 +327,10 @@ export default function ChatRoomScreen() {
 
   // 상태 변경 버튼 핸들러
   const handleStatusChange = useCallback(
-    (newStatus: "COMPLETED" | "FAILED") => {
+    (newStatus: "COMPLETE" | "CANCEL") => {
       Alert.alert(
         "확인",
-        newStatus === "COMPLETED"
+        newStatus === "COMPLETE"
           ? "교환을 확정하시겠습니까?"
           : "교환을 취소하시겠습니까?",
         [
@@ -362,7 +373,7 @@ export default function ChatRoomScreen() {
                 // 아이템 소유자(Seller) 화면
                 <>
                   <Button
-                    onPress={() => handleStatusChange("COMPLETED")}
+                    onPress={() => handleStatusChange("COMPLETE")}
                     style={[
                       styles.statusButton,
                       {
@@ -380,7 +391,7 @@ export default function ChatRoomScreen() {
                     </Text>
                   </Button>
                   <Button
-                    onPress={() => handleStatusChange("FAILED")}
+                    onPress={() => handleStatusChange("CANCEL")}
                     style={styles.statusButtonError}
                   >
                     <Text
@@ -427,7 +438,14 @@ export default function ChatRoomScreen() {
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: colors.background }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
+      <Stack.Screen
+        options={{
+          title: "교환 채팅",
+          headerShown: true,
+        }}
+      />
       {/* 아이템 정보 헤더 */}
       {renderExchangeItemHeader()}
 

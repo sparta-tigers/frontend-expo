@@ -46,6 +46,26 @@ const getItemStatusText = (status: string): string => {
 };
 
 /**
+ * 교환 요청 진행 상태 텍스트 변환 (ExchangeStatus 기반)
+ * [BUG FIX] 보낸 제안 탭에서 ItemStatus 대신 이 함수를 사용해야 함.
+ * 수락 후에도 ItemStatus는 REGISTERED 유지 → "대기 중"으로 오표시되는 원인이었음.
+ */
+const getExchangeStatusText = (exchangeStatus: string): string => {
+  switch (exchangeStatus) {
+    case "PENDING":
+      return "검토 중 (대기)";
+    case "ACCEPTED":
+      return "채팅 진행 중 ✔️";
+    case "REJECTED":
+      return "거절됨";
+    case "COMPLETED":
+      return "거래 완료";
+    default:
+      return '알 수 없음';
+  }
+};
+
+/**
  * 받은 교환 요청 목록 화면
  * 유저가 받은 교환 요청을 수락/거절할 수 있는 화면
  */
@@ -271,8 +291,22 @@ export default function ExchangeRequestsScreen() {
           <Text style={[styles.itemTitle, { color: colors.text }]}>
             {item.title}
           </Text>
-          <Text style={[styles.statusText, { color: colors.muted }]}>
-            {getItemStatusText(item.status)}
+          {/*
+           * [BUG FIX] 보낸 제안 탭에서 ExchangeStatus를 기반으로 상태 표시
+           * 기존: item.status (ItemStatus) — 수락 후에도 REGISTERED라 항상 "대기 중"로 표시됨
+           * 수정: item.exchangeStatus (ExchangeStatus) — ACCEPTED/REJECTED/PENDING 실제 진행 상태 표시
+           */}
+          <Text style={[
+            styles.statusText,
+            {
+              color: item.exchangeStatus === "ACCEPTED"
+                ? colors.primary
+                : item.exchangeStatus === "REJECTED"
+                  ? colors.destructive
+                  : colors.muted,
+            },
+          ]}>
+            {getExchangeStatusText(item.exchangeStatus)}
           </Text>
         </View>
 
