@@ -89,7 +89,11 @@ export default function ExchangeRequestsScreen() {
     const response = await exchangeGetMyRequestsAPI(tab, 0, 20);
 
     if (response.resultType === "SUCCESS" && response.data) {
-      return response.data.content || [];
+      let list = response.data.content || [];
+      if (tab === "receiver") {
+        list = list.filter((req) => req.exchangeStatus !== "REJECTED");
+      }
+      return list;
     }
 
     throw new Error(
@@ -243,8 +247,8 @@ export default function ExchangeRequestsScreen() {
           </Text>
         </View>
 
-        {/* 아이템이 아직 REGISTERED 상태일 때만 수락/거절 버튼 노출 */}
-        {item.status === "REGISTERED" && (
+        {/* 교환 요청이 등록 상태이면서 PENDING 상태일 때만 수락/거절 버튼 노출 */}
+        {item.exchangeStatus === "PENDING" && item.status === "REGISTERED" && (
           <View style={styles.actionButtons}>
             {/* [RC-2] processingId guard — 처리 중에는 모든 버튼 비활성 */}
             <TouchableOpacity
@@ -319,9 +323,22 @@ export default function ExchangeRequestsScreen() {
             {new Date(item.createdAt).toLocaleDateString()}
           </Text>
         </View>
+
+        {item.directRoomId && (
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={[styles.acceptButton, { backgroundColor: colors.primary }]}
+              onPress={() => router.push(`/exchange/chat/${item.directRoomId}`)}
+            >
+              <Text style={[styles.buttonText, { color: colors.background }]}>
+                채팅방 가기
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     ),
-    [colors],
+    [colors, router],
   );
 
   // 로딩 상태
@@ -357,6 +374,16 @@ export default function ExchangeRequestsScreen() {
     <SafeLayout style={{ backgroundColor: colors.background }}>
       <View style={styles.container}>
         
+        {/* 뒤로가기 버튼 */}
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => router.back()}
+        >
+          <Text style={[styles.backButtonText, { color: colors.text }]}>
+            ← 뒤로가기
+          </Text>
+        </TouchableOpacity>
+
         {/* 4~5 페이지 탭 컨트롤러 */}
         <View style={styles.tabContainer}>
           <TouchableOpacity 
@@ -411,6 +438,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: SPACING.SCREEN,
+  },
+  backButton: {
+    paddingVertical: SPACING.SMALL,
+    marginBottom: SPACING.SMALL,
+  },
+  backButtonText: {
+    fontSize: 16,
+    fontWeight: "500",
   },
   tabTitle: {
     fontSize: 24,

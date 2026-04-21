@@ -65,6 +65,7 @@ interface ExchangeItem {
   status: "REGISTERED" | "COMPLETED" | "FAILED" | "DELETED";
   ownerId: number;
   ownerNickname: string;
+  exchangeStatus: "PENDING" | "ACCEPTED" | "REJECTED" | "COMPLETED";
 }
 
 export default function ChatRoomScreen() {
@@ -93,9 +94,12 @@ export default function ChatRoomScreen() {
 
   const isInputDisabled = useMemo(() => {
     return (
-      exchangeItem?.status === "COMPLETED" || exchangeItem?.status === "DELETED"
+      exchangeItem?.status === "COMPLETED" ||
+      exchangeItem?.status === "DELETED" ||
+      exchangeItem?.exchangeStatus === "PENDING" ||
+      exchangeItem?.exchangeStatus === "REJECTED"
     );
-  }, [exchangeItem?.status]);
+  }, [exchangeItem?.status, exchangeItem?.exchangeStatus]);
 
   // 🚨 앙드레 카파시: 과거 메시지 조회
   const {
@@ -468,7 +472,7 @@ export default function ChatRoomScreen() {
       <FlatList
         inverted={true}
         data={flattenedMessages}
-        keyExtractor={(item) => String(item.id)}
+        keyExtractor={(item, index) => String(item.id ?? item.timestamp ?? index)}
         contentContainerStyle={styles.messageListContent}
         renderItem={({ item }) => (
           <View
@@ -517,7 +521,13 @@ export default function ChatRoomScreen() {
           value={messageText}
           onChangeText={setMessageText}
           placeholder={
-            isInputDisabled ? "종료된 교환입니다" : "메시지를 입력하세요"
+            exchangeItem?.exchangeStatus === "PENDING"
+              ? "아직 수락 대기 중인 교환 요청입니다"
+              : exchangeItem?.exchangeStatus === "REJECTED"
+                ? "거절된 교환 요청입니다"
+                : isInputDisabled
+                  ? "종료된 교환입니다"
+                  : "메시지를 입력하세요"
           }
           placeholderTextColor={colors.muted}
           editable={!isInputDisabled}
