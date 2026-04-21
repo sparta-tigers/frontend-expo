@@ -14,6 +14,7 @@ import {
 import { useAuth } from "@/src/hooks/useAuth";
 import { SPACING } from "@/src/styles/unified-design";
 import { Logger } from "@/src/utils/logger";
+import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { Alert, FlatList, StyleSheet, Text, View } from "react-native";
 
@@ -101,17 +102,17 @@ export default function HistoryScreen() {
             styles.status,
             {
               color:
-                item.status === "REGISTERED"
+                item.exchangeStatus === ExchangeRequestStatus.PENDING
                   ? colors.warning
-                  : item.status === "COMPLETED"
+                  : item.exchangeStatus === ExchangeRequestStatus.ACCEPTED
                     ? colors.success
                     : colors.destructive,
             },
           ]}
         >
-          {item.status === "REGISTERED"
+          {item.exchangeStatus === ExchangeRequestStatus.PENDING
             ? "대기 중"
-            : item.status === "COMPLETED"
+            : item.exchangeStatus === ExchangeRequestStatus.ACCEPTED
               ? "수락됨"
               : "거절됨"}
         </Text>
@@ -125,7 +126,7 @@ export default function HistoryScreen() {
         요청일: {new Date(item.createdAt).toLocaleDateString()}
       </Text>
 
-      {item.status === "REGISTERED" && (
+      {item.exchangeStatus === ExchangeRequestStatus.PENDING && (
         <View style={styles.actionButtons}>
           <Button
             variant="primary"
@@ -148,6 +149,19 @@ export default function HistoryScreen() {
             style={styles.rejectButton}
           >
             거절
+          </Button>
+        </View>
+      )}
+
+      {item.exchangeStatus === ExchangeRequestStatus.ACCEPTED && item.directRoomId && (
+        <View style={styles.actionButtons}>
+          <Button
+            variant="primary"
+            size="sm"
+            onPress={() => router.push(`/chat/${item.directRoomId}`)}
+            style={styles.chatButton}
+          >
+            채팅방 가기
           </Button>
         </View>
       )}
@@ -261,6 +275,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   rejectButton: {
+    flex: 1,
+  },
+  chatButton: {
     flex: 1,
   },
 });

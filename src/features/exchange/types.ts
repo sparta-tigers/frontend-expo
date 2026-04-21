@@ -175,6 +175,8 @@ export interface ReceiveExchangeRequest {
   exchangeStatus: ExchangeRequestStatus;
   /** 교환 요청 생성 시각 */
   createdAt: string;
+  /** 연결된 채팅방 식별자 */
+  directRoomId?: number;
 }
 
 /**

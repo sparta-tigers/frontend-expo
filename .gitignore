@@ -61,3 +61,7 @@ docs/issues/*.md
 *.cache
 *.tmp.*
 *.temp.*
+
+# Repomix
+repomix.config.json
+**/frontend-context**.txt

@@ -1,4 +1,5 @@
 import { Logger } from "@/src/utils/logger";
+import { getAccessToken } from "@/src/utils/tokenStore";
 import { Client } from "@stomp/stompjs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import SockJS from "sockjs-client";
@@ -35,21 +36,22 @@ export function useChatWebSocket({
   /**
    * WebSocket 연결 설정
    */
-  const connect = useCallback(() => {
-    if (clientRef.current?.connected) {
+  const connect = useCallback(async () => {
+    if (clientRef.current?.connected || connectionStatus === "connecting") {
       return;
     }
 
     setConnectionStatus("connecting");
 
     try {
+      const token = await getAccessToken();
+
       // SockJS를 통한 WebSocket 연결
       const socket = new SockJS("http://localhost:8080/ws");
       const stompClient = new Client({
         webSocketFactory: () => socket,
         connectHeaders: {
-          // 인증 토큰이 필요한 경우 여기에 추가
-          // 'Authorization': `Bearer ${token}`
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         reconnectDelay: 5000,
         heartbeatIncoming: 4000,
@@ -99,7 +101,7 @@ export function useChatWebSocket({
       setConnectionStatus("error");
       onError?.(error);
     }
-  }, [roomId, onMessageReceived, onConnect, onDisconnect, onError]);
+  }, [roomId, onMessageReceived, onConnect, onDisconnect, onError, connectionStatus]);
 
   /**
    * 메시지 전송 함수
