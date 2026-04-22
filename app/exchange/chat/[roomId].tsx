@@ -1,24 +1,24 @@
 import {
-    InfiniteData,
-    useInfiniteQuery,
-    useMutation,
-    useQuery,
-    useQueryClient,
+  InfiniteData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
 } from "@tanstack/react-query";
-import { useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    AppState,
-    FlatList,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  AppState,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { useWebSocket } from "@/src/hooks/useWebSocket";
 import { theme } from "@/src/styles/theme";
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/unified-design";
+import { Logger } from "@/src/utils/logger";
 
 /**
  * 교환 채팅방 화면 컴포넌트
@@ -57,15 +58,14 @@ interface ChatMessagesPage {
 }
 
 interface ExchangeItem {
-  id: number;
+  itemId: number;
   title: string;
   description: string;
   category: "TICKET" | "GOODS";
   status: "REGISTERED" | "COMPLETED" | "FAILED" | "DELETED";
-  user: {
-    id: number;
-    nickname: string;
-  };
+  ownerId: number;
+  ownerNickname: string;
+  exchangeStatus: "PENDING" | "ACCEPTED" | "REJECTED" | "COMPLETED";
 }
 
 export default function ChatRoomScreen() {
@@ -74,9 +74,16 @@ export default function ChatRoomScreen() {
   const { user } = useAuth();
   const { colors } = useTheme();
 
+  // [DEBUG] 컴포넌트 마운트 로그 - 라우팅 성공 여부 증명
+  Logger.debug("[ChatRoomScreen] 마운트 됨. 전달받은 파라미터:", roomId);
+
   const [messageText, setMessageText] = useState("");
 
   const roomIdNumber = Number(roomId);
+
+  // [FAIL-FAST] roomId 유효성 검증 - 에러 상태 관리
+  const isRoomIdInvalid =
+    !roomId || !Number.isFinite(roomIdNumber) || roomIdNumber <= 0;
 
   // 상태 관리: 메시지 입력 기능 확장 시 활용 예정
 
@@ -94,9 +101,12 @@ export default function ChatRoomScreen() {
 
   const isInputDisabled = useMemo(() => {
     return (
-      exchangeItem?.status === "COMPLETED" || exchangeItem?.status === "DELETED"
+      exchangeItem?.status === "COMPLETED" ||
+      exchangeItem?.status === "DELETED" ||
+      exchangeItem?.exchangeStatus === "PENDING" ||
+      exchangeItem?.exchangeStatus === "REJECTED"
     );
-  }, [exchangeItem?.status]);
+  }, [exchangeItem?.status, exchangeItem?.exchangeStatus]);
 
   // 🚨 앙드레 카파시: 과거 메시지 조회
   const {
@@ -111,17 +121,28 @@ export default function ChatRoomScreen() {
         roomIdNumber,
         pageParam as number,
       );
-      const messages = response.data?.messages ?? [];
+      /**
+       * [BUG FIX] 백엔드 Page<DirectRoomMessageResponse> 파스 수정
+       * 개선 전: response.data?.messages (ChatMessageListResponse.messages)
+       * 개선 후: response.data?.content (Page.content) — 백엔드 Page 구조 실제 필드명
+       */
+      const messages = response.data?.content ?? [];
 
       const mapped: ChatMessage[] = messages.map((message) => ({
-        id: message.id,
+        /**
+         * [BUG FIX] DirectRoomMessageResponse 필드명 정합
+         * - messageId (NOT id)
+         * - message 필드를 content로 매핑 (NOT message.content)
+         * - senderNickname (NOT sender?.nickname / senderNickName)
+         */
+        id: message.messageId,
         roomId: roomIdNumber,
         senderId: message.senderId,
-        senderName: message.sender?.nickname ?? message.senderNickName,
-        content: message.content,
-        timestamp: message.sentAt || message.createdAt,
-        isMine: message.isMyMessage,
-        type: "CHAT",
+        senderName: message.senderNickname,
+        content: message.message,
+        timestamp: message.sentAt,
+        isMine: message.isMyMessage ?? false,
+        type: "CHAT" as const,
       }));
 
       const hasNext = mapped.length > 0;
@@ -143,7 +164,7 @@ export default function ChatRoomScreen() {
     client,
     connect,
     status: wsStatus,
-  } = useWebSocket(undefined, "directroom");
+  } = useWebSocket(roomId, "directroom");
   const isConnected = wsStatus === "CONNECTED";
 
   const handleMessageReceived = useCallback(
@@ -152,10 +173,35 @@ export default function ChatRoomScreen() {
         ["chatMessages", roomIdNumber],
         (oldData: InfiniteData<ChatMessagesPage, number> | undefined) => {
           if (!oldData || oldData.pages.length === 0) return oldData;
+
+          const prevContent = oldData.pages[0].content;
+
+          // 1단계: 낙관적 찌꺼기 청소 (임시 ID(음수)를 가진 메시지 제거)
+          // 조건: 음수 ID이고 senderId와 content가 수신된 메시지와 일치하면 제거
+          const cleanList = prevContent.filter(
+            (msg) =>
+              !(
+                msg.id < 0 &&
+                msg.senderId === newMessage.senderId &&
+                msg.content === newMessage.content
+              ),
+          );
+
+          // 2단계: 이중 구독 방어 (동일한 DB ID 존재 시 무시)
+          // 조건: 수신된 메시지의 ID가 이미 리스트에 존재하면 무시
+          if (cleanList.some((msg) => msg.id === newMessage.id)) {
+            Logger.debug(
+              "[ChatRoom] 이중 구독 방어 - 동일한 DB ID 이미 존재:",
+              newMessage.id,
+            );
+            return oldData;
+          }
+
+          // 3단계: 안전한 병합
           const nextPages = [...oldData.pages];
           nextPages[0] = {
             ...nextPages[0],
-            content: [newMessage, ...nextPages[0].content],
+            content: [newMessage, ...cleanList],
           };
           return { ...oldData, pages: nextPages };
         },
@@ -182,7 +228,7 @@ export default function ChatRoomScreen() {
 
     const now = new Date().toISOString();
     const optimistic: ChatMessage = {
-      id: Date.now(),
+      id: -Date.now(),
       roomId: roomIdNumber,
       senderId: user.userId,
       senderName: user.nickname ?? "",
@@ -204,7 +250,10 @@ export default function ChatRoomScreen() {
         }),
       });
     } catch (error) {
-      console.error("[ChatRoom] send message error:", error);
+      Logger.error(
+        "[ChatRoom] send message error:",
+        error instanceof Error ? error.message : String(error),
+      );
       Alert.alert("전송 실패", "메시지 전송에 실패했습니다.");
     }
   }, [
@@ -223,24 +272,32 @@ export default function ChatRoomScreen() {
       `/server/directRoom/${roomIdNumber}`,
       (message) => {
         try {
+          /**
+           * [BUG FIX] 백엔드 ChatMessageResponse 필드명 정합
+           * 백엔드 실제 전송 필드: roomId, senderId, messageId, senderNickname, message, sentAt
+           * 기존 코드: id, content, senderName으로 파싱 → 모두 undefined
+           */
           const parsed = JSON.parse(message.body) as {
-            id: number;
+            messageId?: number;
+            id?: number;
             roomId: number;
             senderId: number;
+            senderNickname?: string;
             senderName?: string;
-            content: string;
-            timestamp?: string;
+            message?: string;
+            content?: string;
             sentAt?: string;
+            timestamp?: string;
             createdAt?: string;
             type?: "CHAT" | "SYSTEM";
           };
 
           const normalized: ChatMessage = {
-            id: parsed.id,
+            id: parsed.messageId ?? parsed.id ?? Date.now(),
             roomId: roomIdNumber,
             senderId: parsed.senderId,
-            senderName: parsed.senderName ?? "",
-            content: parsed.content,
+            senderName: parsed.senderNickname ?? parsed.senderName ?? "",
+            content: parsed.message ?? parsed.content ?? "",
             timestamp:
               parsed.sentAt ??
               parsed.timestamp ??
@@ -252,13 +309,16 @@ export default function ChatRoomScreen() {
 
           handleMessageReceived(normalized);
         } catch (error) {
-          console.error("[ChatRoom] message parse error:", error);
+          Logger.error("[ChatRoom] message parse error:", error);
         }
       },
     );
 
     return () => {
-      subscription.unsubscribe();
+      if (subscription) {
+        subscription.unsubscribe();
+        Logger.debug("[ChatRoom] WebSocket 구독 해제 완료");
+      }
     };
   }, [client, handleMessageReceived, isConnected, roomIdNumber, user?.userId]);
 
@@ -267,7 +327,7 @@ export default function ChatRoomScreen() {
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       if (nextAppState === "active") {
         // 포그라운드 복귀 시 STOMP 재연결
-        console.log("📱 [AppState] 앱이 활성화되었습니다.");
+        Logger.debug("📱 [AppState] 앱이 활성화되었습니다.");
         void connect();
 
         // 백그라운드 중 누락된 메시지 REST 패칭
@@ -276,7 +336,7 @@ export default function ChatRoomScreen() {
         });
       } else if (nextAppState === "background") {
         // 백그라운드 전환 시 STOMP 비활성화 (배터리 최적화)
-        console.log("📱 [AppState] 앱이 백그라운드로 전환되었습니다.");
+        Logger.debug("📱 [AppState] 앱이 백그라운드로 전환되었습니다.");
         void client?.deactivate();
       }
     });
@@ -288,9 +348,12 @@ export default function ChatRoomScreen() {
 
   // 🚨 앙드레 카파시: 상태 변경 Mutation
   const { mutate: updateItemStatus } = useMutation({
-    mutationFn: async (newStatus: "COMPLETED" | "FAILED") => {
-      if (!exchangeItem?.id) throw new Error("itemId missing");
-      const response = await itemsUpdateStatusAPI(exchangeItem.id, newStatus);
+    mutationFn: async (newStatus: "COMPLETE" | "CANCEL") => {
+      if (!exchangeItem?.itemId) throw new Error("itemId missing");
+      const response = await itemsUpdateStatusAPI(
+        exchangeItem.itemId,
+        newStatus,
+      );
       if (response.resultType !== "SUCCESS") {
         throw new Error("status update failed");
       }
@@ -314,10 +377,10 @@ export default function ChatRoomScreen() {
 
   // 상태 변경 버튼 핸들러
   const handleStatusChange = useCallback(
-    (newStatus: "COMPLETED" | "FAILED") => {
+    (newStatus: "COMPLETE" | "CANCEL") => {
       Alert.alert(
         "확인",
-        newStatus === "COMPLETED"
+        newStatus === "COMPLETE"
           ? "교환을 확정하시겠습니까?"
           : "교환을 취소하시겠습니까?",
         [
@@ -356,11 +419,11 @@ export default function ChatRoomScreen() {
           {/* Target 14: 채팅방 상태 제어 UI - 소유자/요청자 화면 분기 */}
           {exchangeItem.status === "REGISTERED" && (
             <View style={styles.statusButtons}>
-              {exchangeItem.user.id === user?.userId ? (
+              {exchangeItem.ownerId === user?.userId ? (
                 // 아이템 소유자(Seller) 화면
                 <>
                   <Button
-                    onPress={() => handleStatusChange("COMPLETED")}
+                    onPress={() => handleStatusChange("COMPLETE")}
                     style={[
                       styles.statusButton,
                       {
@@ -374,11 +437,11 @@ export default function ChatRoomScreen() {
                         { color: colors.background },
                       ]}
                     >
-                      교환 확정
+                      교환 완료하기
                     </Text>
                   </Button>
                   <Button
-                    onPress={() => handleStatusChange("FAILED")}
+                    onPress={() => handleStatusChange("CANCEL")}
                     style={styles.statusButtonError}
                   >
                     <Text
@@ -387,7 +450,7 @@ export default function ChatRoomScreen() {
                         { color: colors.background },
                       ]}
                     >
-                      교환 취소
+                      거절하기
                     </Text>
                   </Button>
                 </>
@@ -421,11 +484,46 @@ export default function ChatRoomScreen() {
     </View>
   );
 
+  // [FAIL-FAST] roomId 유효성 검증 - 명시적 에러 UI 노출
+  if (isRoomIdInvalid) {
+    return (
+      <KeyboardAvoidingView
+        style={[styles.container, { backgroundColor: colors.background }]}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      >
+        <Stack.Screen
+          options={{
+            title: "교환 채팅",
+            headerShown: true,
+          }}
+        />
+        <View
+          style={[
+            styles.errorContainer,
+            { backgroundColor: colors.background },
+          ]}
+        >
+          <Text style={[styles.errorText, { color: colors.text }]}>
+            채팅방 연결 오류: ID 없음
+          </Text>
+        </View>
+      </KeyboardAvoidingView>
+    );
+  }
+
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: colors.background }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
+      <Stack.Screen
+        options={{
+          title: "교환 채팅",
+          headerShown: true,
+        }}
+      />
       {/* 아이템 정보 헤더 */}
       {renderExchangeItemHeader()}
 
@@ -460,6 +558,11 @@ export default function ChatRoomScreen() {
               },
             ]}
           >
+            {!item.isMine && (
+              <Text style={[styles.senderName, { color: colors.muted }]}>
+                {item.senderName}
+              </Text>
+            )}
             <Text
               style={[
                 styles.messageText,
@@ -497,7 +600,13 @@ export default function ChatRoomScreen() {
           value={messageText}
           onChangeText={setMessageText}
           placeholder={
-            isInputDisabled ? "종료된 교환입니다" : "메시지를 입력하세요"
+            exchangeItem?.exchangeStatus === "PENDING"
+              ? "아직 수락 대기 중인 교환 요청입니다"
+              : exchangeItem?.exchangeStatus === "REJECTED"
+                ? "거절된 교환 요청입니다"
+                : isInputDisabled
+                  ? "종료된 교환입니다"
+                  : "메시지를 입력하세요"
           }
           placeholderTextColor={colors.muted}
           editable={!isInputDisabled}
@@ -536,6 +645,16 @@ export default function ChatRoomScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: SPACING.SCREEN,
+  },
+  errorText: {
+    fontSize: FONT_SIZE.BODY,
+    textAlign: "center",
   },
   itemHeader: {
     padding: SPACING.COMPONENT,
@@ -613,6 +732,11 @@ const styles = StyleSheet.create({
   },
   messageText: {
     fontSize: FONT_SIZE.BODY,
+  },
+  senderName: {
+    fontSize: FONT_SIZE.SMALL,
+    fontWeight: "600",
+    marginBottom: SPACING.TINY,
   },
   paginationLoading: {
     paddingVertical: SPACING.SMALL,

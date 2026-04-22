@@ -13,12 +13,12 @@ export interface AuthSigninRequest {
 }
 
 export interface AuthSigninResponse {
-  user: {
-    id: number;
-    email: string;
-    nickname: string;
-  };
-  token: Token;
+  accessToken: string;
+  accessTokenIssuedAt: Date;
+  accessTokenExpiredAt: Date;
+  refreshToken: string;
+  refreshTokenIssuedAt: Date;
+  refreshTokenExpiredAt: Date;
 }
 
 export interface AuthSignupRequest {
@@ -28,12 +28,14 @@ export interface AuthSignupRequest {
 }
 
 export interface AuthSignupResponse {
-  user: {
-    id: number;
-    email: string;
-    nickname: string;
-  };
-  token: Token;
+  id: number;
+  email: string;
+  password: string;
+  nickname: string;
+  profileImageUrl: string;
+  role: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface User {

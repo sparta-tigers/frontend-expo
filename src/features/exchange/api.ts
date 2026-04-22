@@ -10,8 +10,10 @@ import {
   UserLocation,
 } from "./types";
 
-type ExchangeRoomResponseDto = {
-  roomId: number;
+export type ExchangeRoomResponseDto = {
+  roomId?: number;
+  directRoomId?: number;
+  exchangeRequestId?: number;
 };
 
 /**
@@ -22,6 +24,9 @@ type ExchangeRoomResponseDto = {
  * @param size - 페이지당 데이터 크기 (기본값: 20)
  * @param category - 아이템 카테고리 필터 (선택사항)
  * @param status - 아이템 상태 필터 (선택사항)
+ * @param lat - 위도 좌표 (선택사항, 공간 검색용)
+ * @param lng - 경도 좌표 (선택사항, 공간 검색용)
+ * @param radiusKm - 검색 반경 (기본값: 2km)
  * @returns 페이징 처리된 아이템 목록
  */
 export async function itemsGetListAPI(
@@ -29,10 +34,20 @@ export async function itemsGetListAPI(
   size: number = 20,
   category?: ItemCategory,
   status?: string,
+  lat?: number,
+  lng?: number,
+  radiusKm?: number,
 ): Promise<ApiResponse<any>> {
   const params: any = { page, size };
   if (category) params.category = category;
   if (status) params.status = status;
+
+  // 좌표 기반 검색 파라미터 추가
+  if (lat && lng) {
+    params.latitude = lat;
+    params.longitude = lng;
+    params.radius = radiusKm || 2; // 기본 반경 2km
+  }
 
   // try-catch 제거하고 바로 리턴
   return apiClient.get("/api/items", params);
@@ -180,6 +195,26 @@ export async function exchangeGetReceivedAPI(
 }
 
 /**
+ * 나의 교환 요청 목록 조회 API (받은 제안 / 보낸 제안)
+ * role 파라미터를 통해 분기 (sender: 보낸 제안, receiver: 받은 제안)
+ *
+ * @param role - 요청자 구분 ('sender' | 'receiver')
+ * @param page - 페이지 번호
+ * @param size - 페이지 크기
+ * @param status - (옵션) 상태 필터 문자열
+ */
+export async function exchangeGetMyRequestsAPI(
+  role: "sender" | "receiver",
+  page: number = 0,
+  size: number = 20,
+  status?: string,
+): Promise<ApiResponse<ExchangeRequestListResponse>> {
+  const params: Record<string, any> = { role, page, size };
+  if (status) params.status = status;
+  return apiClient.get("/api/exchanges/my", params);
+}
+
+/**
  * 교환 요청 상태 업데이트 API
  * 교환 요청을 수락 또는 거절 처리
  *
@@ -199,12 +234,22 @@ export async function exchangeUpdateStatusAPI(
  * 아이템의 상태를 변경 (예: REGISTERED -> EXCHANGE_RESERVED)
  *
  * @param itemId - 아이템 고유 ID
- * @param status - 변경할 상태
+ * @param action - 변경할 상태 액션 (COMPLETE, CANCEL, DELETE)
  * @returns 상태 변경 처리 결과
  */
 export async function itemsUpdateStatusAPI(
   itemId: number,
-  status: string,
+  action: string,
 ): Promise<ApiResponse<void>> {
-  return apiClient.patch(`/api/items/${itemId}/status`, { status });
+  return apiClient.patch(`/api/items/${itemId}/status`, { action });
+}
+
+/**
+ * 활성 아이템 존재 여부 확인 API
+ * 현재 로그인한 사용자가 등록한 아이템 중 'REGISTERED' 상태인 아이템이 있는지 확인
+ * 
+ * @returns 활성 아이템 존재 여부 (true/false)
+ */
+export async function checkHasActiveItemAPI(): Promise<ApiResponse<boolean>> {
+  return apiClient.get("/api/items/check-active");
 }

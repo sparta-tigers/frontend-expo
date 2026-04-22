@@ -1,5 +1,16 @@
+import { SafeLayout } from "@/components/ui/safe-layout";
+import { useTheme } from "@/hooks/useTheme";
+import {
+  itemsDeleteAPI,
+  itemsGetDetailAPI,
+  itemsUpdateStatusAPI,
+} from "@/src/features/exchange/api";
+import { useAuth } from "@/src/hooks/useAuth";
+import { theme } from "@/src/styles/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { getImageUrl } from "@/src/utils/url";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -12,18 +23,9 @@ import {
   View,
 } from "react-native";
 import ImageViewing from "react-native-image-viewing";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/button";
-import { SafeLayout } from "@/components/ui/safe-layout";
-import { useTheme } from "@/hooks/useTheme";
-import { ExchangeBottomSheet } from "@/src/components/domain/exchange/ExchangeBottomSheet";
-import {
-  itemsDeleteAPI,
-  itemsGetDetailAPI,
-  itemsUpdateStatusAPI,
-} from "@/src/features/exchange/api";
-import { useAuth } from "@/src/hooks/useAuth";
-import { theme } from "@/src/styles/theme";
 
 // 정적 스타일 정의
 const styles = StyleSheet.create({
@@ -32,6 +34,9 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 120, // 🚨 하단 버튼 높이만큼 여백 확보
   },
   imageContainer: {
     width: "100%",
@@ -135,17 +140,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
   },
-  errorButton: {
-    backgroundColor: theme.colors.error,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-  exchangeButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
   exchangeButtonText: {
     fontWeight: "bold",
     fontSize: 15,
@@ -187,9 +181,47 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  deleteButtonText: {
-    fontWeight: "bold",
-    fontSize: 15,
+  bottomContainer: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingTop: 12,
+    paddingHorizontal: 20,
+    borderTopWidth: 1,
+    zIndex: 100,
+    elevation: 5, // 안드로이드 그림자
+  },
+  applyButton: {
+    height: 52,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  headerRightContainer: {
+    flexDirection: "row",
+    gap: theme.spacing.COMPONENT,
+  },
+  headerLeftButton: {
+    padding: 8,
+    marginRight: 4,
+  },
+  customHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 52,
+    paddingHorizontal: theme.spacing.COMPONENT,
+    borderBottomWidth: 1,
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: theme.typography.size.md,
+    fontWeight: theme.typography.weight.bold,
+    textAlign: "center",
+  },
+  headerActionButton: {
+    paddingHorizontal: theme.spacing.SMALL,
+    paddingVertical: 4,
   },
 });
 
@@ -206,12 +238,11 @@ export default function ItemDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors } = useTheme();
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const itemIdNumber = Number(id);
-
-  const [isExchangeSheetOpen, setIsExchangeSheetOpen] = useState(false);
 
   // 라이트박스 상태 관리
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
@@ -227,15 +258,26 @@ export default function ItemDetailScreen() {
     queryKey: ["item", id],
     queryFn: () => itemsGetDetailAPI(itemIdNumber),
     staleTime: 0, // 항상 최신 상태 유지
-    enabled: !!id,
+    // [EB-1] 비로그인 상태에서는 쿼리 비활성화 (401 에러 방지)
+    enabled: !!id && user !== null,
   });
 
-  // 작성자 여부 확인 (권한 기반 UI 분리용)
-  const isOwner = item?.data?.user?.id === user?.userId;
+  // [EB-1/SEC-2] 백엔드 DTO 필드 혼용 가능성에 대비하여 탄력적으로 추출 (as any 제거)
+  const itemUserObjId = item?.data?.user?.userId ?? item?.data?.userId;
+  const myUserId = user?.userId;
+
+  // [SEC-2] 항상 Number() 변환으로 안전하게 비교
+  const isOwner =
+    typeof itemUserObjId !== "undefined" &&
+    typeof myUserId !== "undefined" &&
+    Number(itemUserObjId) === Number(myUserId);
 
   // 이미지 캐러셀 렌더링
   const renderImageCarousel = useCallback(() => {
-    if (!item?.data?.images || item.data.images.length === 0) {
+    // [P1-3] 백엔드는 imageUrls로 반환 — imageUrls 우선, images 하위 호환 fallback
+    const images = item?.data?.imageUrls ?? item?.data?.images ?? [];
+
+    if (images.length === 0) {
       return (
         <View
           style={[styles.imageContainer, { backgroundColor: colors.border }]}
@@ -252,7 +294,7 @@ export default function ItemDetailScreen() {
     }
 
     // ImageViewing을 위한 이미지 포맷 변환
-    const formattedImages = item.data.images.map((url: string) => ({
+    const formattedImages = images.map((url: string) => ({
       uri: url,
     }));
 
@@ -268,7 +310,7 @@ export default function ItemDetailScreen() {
             setCurrentImageIndex(index);
           }}
         >
-          {item.data.images?.map((imageUrl: string, index: number) => (
+          {images.map((imageUrl: string, index: number) => (
             <TouchableOpacity
               key={index}
               style={styles.imageContainer}
@@ -277,15 +319,15 @@ export default function ItemDetailScreen() {
                 setIsImageViewerVisible(true);
               }}
             >
-              <Image source={{ uri: imageUrl }} style={styles.image} />
+              <Image source={{ uri: getImageUrl(imageUrl) }} style={styles.image} />
             </TouchableOpacity>
           ))}
         </ScrollView>
 
         {/* 이미지 인디케이터 */}
-        {item.data.images.length > 1 && (
+        {images.length > 1 && (
           <View style={styles.indicatorContainer}>
-            {item.data.images?.map((_: string, index: number) => (
+            {images.map((_: string, index: number) => (
               <View
                 key={index}
                 style={[
@@ -315,15 +357,15 @@ export default function ItemDetailScreen() {
     );
   }, [item, colors, currentImageIndex, imageViewerIndex, isImageViewerVisible]);
 
-  // 교환 신청 핸들러 (타인 전용)
+  // 교환 신청 핸들러 (타인 전용) - 전용 페이지로 라우팅
   const handleExchangeRequest = useCallback(() => {
     if (!user?.accessToken) {
       Alert.alert("로그인 필요", "교환 신청을 위해 로그인이 필요합니다.");
       return;
     }
 
-    setIsExchangeSheetOpen(true);
-  }, [user]);
+    router.push(`/exchange/apply/${id}` as any);
+  }, [user, id, router]);
 
   // 상태 변경 핸들러 (작성자 전용) - 기존 구현 제거됨
   // const handleStatusChange = useCallback(
@@ -342,29 +384,31 @@ export default function ItemDetailScreen() {
   //   },
 
   // 상태 변경 Mutation (작성자 전용)
-  const { mutate: updateItemStatus, isPending: isUpdatingStatus } = useMutation({
-    mutationFn: async (newStatus: "COMPLETED" | "FAILED") => {
-      const targetId = item?.data?.id;
-      if (!targetId) {
-        throw new Error("itemId가 없습니다.");
-      }
-      const response = await itemsUpdateStatusAPI(targetId, newStatus);
-      if (response.resultType !== "SUCCESS") {
-        throw new Error("status update failed");
-      }
-      return true;
+  const { mutate: updateItemStatus, isPending: isUpdatingStatus } = useMutation(
+    {
+      mutationFn: async (newStatus: "COMPLETED" | "FAILED") => {
+        const targetId = item?.data?.id;
+        if (!targetId) {
+          throw new Error("itemId가 없습니다.");
+        }
+        const response = await itemsUpdateStatusAPI(targetId, newStatus);
+        if (response.resultType !== "SUCCESS") {
+          throw new Error("status update failed");
+        }
+        return true;
+      },
+      onSuccess: () => {
+        Alert.alert("성공", "상태가 변경되었습니다.");
+        queryClient.invalidateQueries({ queryKey: ["item", id] });
+        queryClient.invalidateQueries({ queryKey: ["items"] });
+        queryClient.invalidateQueries({ queryKey: ["myItems"] });
+        queryClient.invalidateQueries({ queryKey: ["myExchanges"] });
+      },
+      onError: () => {
+        Alert.alert("오류", "상태 변경에 실패했습니다.");
+      },
     },
-    onSuccess: () => {
-      Alert.alert("성공", "상태가 변경되었습니다.");
-      queryClient.invalidateQueries({ queryKey: ["item", id] });
-      queryClient.invalidateQueries({ queryKey: ["items"] });
-      queryClient.invalidateQueries({ queryKey: ["myItems"] });
-      queryClient.invalidateQueries({ queryKey: ["myExchanges"] });
-    },
-    onError: () => {
-      Alert.alert("오류", "상태 변경에 실패했습니다.");
-    },
-  });
+  );
 
   // 상태 변경 핸들러 (작성자 전용)
   const handleStatusChange = useCallback(
@@ -414,6 +458,25 @@ export default function ItemDetailScreen() {
   }, [deleteItem]);
 
   // 로딩 상태
+  // [EB-1] 비로그인 상태일 때 접근 차단 UI 렌더링
+  if (user === null && !isLoading) {
+    return (
+      <SafeLayout style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            교환 물품 정보를 보려면 로그인이 필요합니다.
+          </Text>
+          <Button
+            onPress={() => router.back()}
+            variant="outline"
+          >
+            돌아가기
+          </Button>
+        </View>
+      </SafeLayout>
+    );
+  }
+
   if (isLoading) {
     return (
       <SafeLayout
@@ -450,151 +513,227 @@ export default function ItemDetailScreen() {
   }
 
   return (
-    <SafeLayout edges={["top", "bottom"]} style={styles.container}>
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* 이미지 캐러셀 */}
-        {renderImageCarousel()}
+    <>
+      {/* headerShown: false + 컴포넌트 내부 커스텀 헤더로 iOS 뒤로가기 해결 */}
+      <Stack.Screen
+        options={
+          {
+            headerShown: false, // iOS/Android 모두 시스템 헤더 비활화
+            gestureEnabled: true, // iOS 스와이프 제스처 허용
+            gestureDirection: "horizontal", // 왕포와이프 방향
+          } as any
+        }
+      />
 
-        {/* 작성자 프로필 영역 */}
-        <View style={styles.profileRow}>
-          {item.data.user?.profileImage ? (
-            <Image
-              source={{ uri: item.data.user.profileImage }}
-              style={styles.profileImage}
-            />
-          ) : (
-            <View
-              style={[styles.profileImage, { backgroundColor: colors.border }]}
-            >
-              <Text
-                style={[styles.profileInitialText, { color: colors.muted }]}
+      {/* 컴포넌트 내부 커스텀 헤더 (항상 보임) */}
+      <SafeLayout edges={["top", "bottom"]} style={styles.container}>
+        {/* 커스텀 헤더 영역 */}
+        <View
+          style={[
+            styles.customHeader,
+            {
+              backgroundColor: colors.background,
+              borderBottomColor: colors.border,
+            },
+          ]}
+        >
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.headerLeftButton}
+          >
+            <Ionicons name="chevron-back" size={28} color={colors.text} />
+          </TouchableOpacity>
+          <Text
+            style={[styles.headerTitle, { color: colors.text }]}
+            numberOfLines={1}
+          >
+            아이템 상세
+          </Text>
+          <View style={styles.headerRightContainer}>
+            {isOwner && (
+              <>
+                <TouchableOpacity
+                  onPress={() => router.push(`/exchange/edit/${id}` as any)}
+                  style={styles.headerActionButton}
+                >
+                  <Text
+                    style={{
+                      fontSize: theme.typography.size.BODY,
+                      color: colors.primary,
+                    }}
+                  >
+                    수정
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleDelete}
+                  style={styles.headerActionButton}
+                >
+                  <Text
+                    style={{
+                      fontSize: theme.typography.size.BODY,
+                      color: colors.destructive,
+                    }}
+                  >
+                    삭제
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent} // 🚨 하단 버튼 높이만큼 여백 확보
+          showsVerticalScrollIndicator={false}
+        >
+          {/* 이미지 캐러셀 */}
+          {renderImageCarousel()}
+
+          {/* 작성자 프로필 영역 */}
+          <View style={styles.profileRow}>
+            {item.data.user?.profileImage ? (
+              <Image
+                source={{ uri: getImageUrl(item.data.user.profileImage) }}
+                style={styles.profileImage}
+              />
+            ) : (
+              <View
+                style={[
+                  styles.profileImage,
+                  { backgroundColor: colors.border },
+                ]}
               >
-                {item.data.user?.nickname?.[0]?.toUpperCase() || "U"}
+                <Text
+                  style={[styles.profileInitialText, { color: colors.muted }]}
+                >
+                  {item.data.user?.userNickname?.[0]?.toUpperCase() || "U"}
+                </Text>
+              </View>
+            )}
+            <Text style={[styles.nickname, { color: colors.text }]}>
+              {item.data.user?.userNickname || "알 수 없음"}
+            </Text>
+          </View>
+
+          {/* 본문 영역 */}
+          <View style={styles.contentContainer}>
+            {/* 제목 */}
+            <Text style={[styles.title, { color: colors.text }]}>
+              {item.data.title}
+            </Text>
+
+            {/* 내용 */}
+            <Text style={[styles.description, { color: colors.text }]}>
+              {item.data.description}
+            </Text>
+          </View>
+
+          {/* 하단 고정 바 (본문 영역 내부로 이동) */}
+          <View style={[styles.bottomBar, { borderColor: colors.border }]}>
+            <View style={styles.desiredItemContainer}>
+              <Text style={[styles.desiredItemLabel, { color: colors.muted }]}>
+                희망 아이템
+              </Text>
+              <Text style={[styles.desiredItemText, { color: colors.text }]}>
+                {item.data.desiredItem || "없음"}
               </Text>
             </View>
-          )}
-          <Text style={[styles.nickname, { color: colors.text }]}>
-            {item.data.user?.nickname || "알 수 없음"}
-          </Text>
-        </View>
 
-        {/* 본문 영역 */}
-        <View style={styles.contentContainer}>
-          {/* 제목 */}
-          <Text style={[styles.title, { color: colors.text }]}>
-            {item.data.title}
-          </Text>
-
-          {/* 내용 */}
-          <Text style={[styles.description, { color: colors.text }]}>
-            {item.data.description}
-          </Text>
-        </View>
-      </ScrollView>
-
-      {/* 하단 고정 바 */}
-      <View style={[styles.bottomBar, { borderColor: colors.border }]}>
-        <View style={styles.desiredItemContainer}>
-          <Text style={[styles.desiredItemLabel, { color: colors.muted }]}>
-            희망 아이템
-          </Text>
-          <Text style={[styles.desiredItemText, { color: colors.text }]}>
-            {item.data.desiredItem || "없음"}
-          </Text>
-        </View>
-
-        {/* 권한 기반 버튼 분기 */}
-        {isOwner ? (
-          <View style={styles.buttonRow}>
-            <View style={styles.statusSection}>
-              <View style={styles.statusInfoRow}>
-                <Text
-                  style={[styles.statusLabel, { color: colors.muted }]}
-                >
-                  현재 상태
-                </Text>
-                <Text
-                  style={[
-                    styles.statusValue,
-                    {
-                      color:
-                        item.data.status === "COMPLETED"
-                          ? colors.primary
+            {/* 권한 기반 버튼 분기 */}
+            {isOwner && (
+              <View style={styles.buttonRow}>
+                <View style={styles.statusSection}>
+                  <View style={styles.statusInfoRow}>
+                    <Text style={[styles.statusLabel, { color: colors.muted }]}>
+                      현재 상태
+                    </Text>
+                    <Text
+                      style={[
+                        styles.statusValue,
+                        {
+                          color:
+                            item.data.status === "COMPLETED"
+                              ? colors.primary
+                              : item.data.status === "FAILED"
+                                ? colors.destructive
+                                : colors.text,
+                        },
+                      ]}
+                    >
+                      {item.data.status === "REGISTERED"
+                        ? "교환 대기"
+                        : item.data.status === "COMPLETED"
+                          ? "교환 완료"
                           : item.data.status === "FAILED"
-                            ? colors.destructive
-                            : colors.text,
-                    },
-                  ]}
-                >
-                  {item.data.status === "REGISTERED"
-                    ? "교환 대기"
-                    : item.data.status === "COMPLETED"
-                      ? "교환 완료"
-                      : item.data.status === "FAILED"
-                        ? "교환 취소"
-                        : item.data.status === "DELETED"
-                          ? "삭제됨"
-                          : item.data.status}
-                </Text>
-              </View>
+                            ? "교환 취소"
+                            : item.data.status === "DELETED"
+                              ? "삭제됨"
+                              : item.data.status}
+                    </Text>
+                  </View>
 
-              <View style={styles.statusActionsRow}>
-                <Button
-                  style={styles.statusActionButton}
-                  disabled={
-                    item.data.status !== "REGISTERED" ||
-                    isUpdatingStatus
-                  }
-                  onPress={() => handleStatusChange("COMPLETED")}
-                >
-                  <Text
-                    style={[
-                      styles.statusActionText,
-                      { color: colors.background },
-                    ]}
-                  >
-                    교환 완료로 표시
-                  </Text>
-                </Button>
-                <Button
-                  variant="outline"
-                  style={styles.statusActionButton}
-                  disabled={
-                    item.data.status !== "REGISTERED" ||
-                    isUpdatingStatus
-                  }
-                  onPress={() => handleStatusChange("FAILED")}
-                >
-                  <Text
-                    style={[
-                      styles.statusActionText,
-                      { color: colors.destructive },
-                    ]}
-                  >
-                    교환 취소로 표시
-                  </Text>
-                </Button>
+                  <View style={styles.statusActionsRow}>
+                    <Button
+                      style={styles.statusActionButton}
+                      disabled={
+                        item.data.status !== "REGISTERED" || isUpdatingStatus
+                      }
+                      onPress={() => handleStatusChange("COMPLETED")}
+                    >
+                      <Text
+                        style={[
+                          styles.statusActionText,
+                          { color: colors.background },
+                        ]}
+                      >
+                        교환 완료로 표시
+                      </Text>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      style={styles.statusActionButton}
+                      disabled={
+                        item.data.status !== "REGISTERED" || isUpdatingStatus
+                      }
+                      onPress={() => handleStatusChange("FAILED")}
+                    >
+                      <Text
+                        style={[
+                          styles.statusActionText,
+                          { color: colors.destructive },
+                        ]}
+                      >
+                        교환 취소로 표시
+                      </Text>
+                    </Button>
+                  </View>
+                </View>
               </View>
-            </View>
+            )}
+          </View>
+        </ScrollView>
 
-            <TouchableOpacity style={styles.errorButton} onPress={handleDelete}>
-              <Text
-                style={[styles.deleteButtonText, { color: colors.background }]}
-              >
-                삭제하기
-              </Text>
-            </TouchableOpacity>
+        {/* 하단 고정 버튼 영역 */}
+        <View
+          style={[
+            styles.bottomContainer,
+            {
+              backgroundColor: colors.background, // theme 동적 색상
+              borderTopColor: colors.border,
+              paddingBottom: Math.max(insets.bottom, 20), // 🚨 Safe Area 동적 할당 (핵심)
+            },
+          ]}
+        >
+          {isOwner ? (
             <TouchableOpacity
               style={[
-                styles.exchangeButton,
+                styles.applyButton,
                 {
-                  backgroundColor: colors.primary,
+                  backgroundColor: colors.primary, // 주도적인 컬러 사용
                 },
               ]}
-              onPress={() => router.push(`/exchange/edit/${id}` as any)}
+              onPress={() => router.push("/exchange/requests")}
             >
               <Text
                 style={[
@@ -602,38 +741,35 @@ export default function ItemDetailScreen() {
                   { color: colors.background },
                 ]}
               >
-                수정하기
+                대화중인 채팅
               </Text>
             </TouchableOpacity>
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={[
-              styles.exchangeButton,
-              {
-                backgroundColor:
-                  item.data.status === "REGISTERED"
-                    ? colors.primary
-                    : colors.muted,
-              },
-            ]}
-            onPress={handleExchangeRequest}
-            disabled={item.data.status !== "REGISTERED"}
-          >
-            <Text
-              style={[styles.exchangeButtonText, { color: colors.background }]}
+          ) : (
+            <TouchableOpacity
+              style={[
+                styles.applyButton,
+                {
+                  backgroundColor:
+                    item.data.status === "REGISTERED"
+                      ? colors.primary
+                      : colors.muted,
+                },
+              ]}
+              onPress={handleExchangeRequest}
+              disabled={item.data.status !== "REGISTERED"}
             >
-              교환 신청하기
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      <ExchangeBottomSheet
-        isOpen={isExchangeSheetOpen}
-        onClose={() => setIsExchangeSheetOpen(false)}
-        targetItemId={itemIdNumber}
-      />
-    </SafeLayout>
+              <Text
+                style={[
+                  styles.exchangeButtonText,
+                  { color: colors.background },
+                ]}
+              >
+                교환 제안하기
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </SafeLayout>
+    </>
   );
 }

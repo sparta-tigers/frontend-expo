@@ -159,7 +159,7 @@ export default function ChatListScreen() {
             borderBottomColor: colors.border,
           },
         ]}
-        onPress={() => router.push(`/chat/${item.directRoomId}`)}
+        onPress={() => router.push(`/exchange/chat/${item.directRoomId}`)}
         activeOpacity={0.7}
       >
         {/* 아바타 */}
