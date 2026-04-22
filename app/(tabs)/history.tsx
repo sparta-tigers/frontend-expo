@@ -3,25 +3,25 @@ import { Card } from "@/components/ui/card";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { useTheme } from "@/hooks/useTheme";
 import {
-  exchangeGetReceivedAPI,
-  exchangeUpdateStatusAPI,
+    exchangeGetReceivedAPI,
+    exchangeUpdateStatusAPI,
 } from "@/src/features/exchange/api";
 import {
-  ExchangeRequestStatus,
-  ReceiveExchangeRequest,
-  UpdateExchangeStatusDto,
+    ExchangeRequest,
+    ExchangeRequestStatus,
+    UpdateExchangeStatusDto,
 } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
 import { SPACING } from "@/src/styles/unified-design";
-import { Logger } from "@/src/utils/logger";
-import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { Alert, FlatList, StyleSheet, Text, View } from "react-native";
 
 export default function HistoryScreen() {
   const { colors } = useTheme();
   const { user } = useAuth();
-  const [exchangeRequests, setExchangeRequests] = useState<ReceiveExchangeRequest[]>([]);
+  const [exchangeRequests, setExchangeRequests] = useState<ExchangeRequest[]>(
+    [],
+  );
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
 
@@ -37,10 +37,7 @@ export default function HistoryScreen() {
         setExchangeRequests(response.data.content);
       }
     } catch (error) {
-      Logger.error(
-        "교환 요청 목록 로딩 실패:",
-        error instanceof Error ? error.message : String(error),
-      );
+      console.error("교환 요청 목록 로딩 실패:", error);
       Alert.alert("오류", "교환 요청 목록을 불러올 수 없습니다.");
     } finally {
       setLoading(false);
@@ -52,6 +49,10 @@ export default function HistoryScreen() {
     async (requestId: number, status: ExchangeRequestStatus) => {
       const request: UpdateExchangeStatusDto = {
         status,
+        message:
+          status === ExchangeRequestStatus.ACCEPTED
+            ? "교환을 수락합니다."
+            : "교환을 거절합니다.",
       };
 
       try {
@@ -73,13 +74,8 @@ export default function HistoryScreen() {
           Alert.alert("오류", "상태 업데이트에 실패했습니다.");
         }
       } catch (error) {
-        if (error instanceof Error) {
-          Logger.error("상태 업데이트 실패:", error.message);
-          Alert.alert("오류", "네트워크 에러가 발생했습니다.");
-        } else {
-          Logger.error("상태 업데이트 실패:", String(error));
-          Alert.alert("오류", "알 수 없는 에러가 발생했습니다.");
-        }
+        console.error("상태 업데이트 실패:", error);
+        Alert.alert("오류", "네트워크 에러가 발생했습니다.");
       } finally {
         setActionLoading(null);
       }
@@ -91,49 +87,49 @@ export default function HistoryScreen() {
     fetchExchangeRequests();
   }, [fetchExchangeRequests]);
 
-  const renderExchangeRequest = ({ item }: { item: ReceiveExchangeRequest }) => (
+  const renderExchangeRequest = ({ item }: { item: ExchangeRequest }) => (
     <Card style={styles.requestCard}>
       <View style={styles.requestHeader}>
         <Text style={[styles.itemTitle, { color: colors.text }]}>
-          {item.title || "아이템 정보 없음"}
+          {item.item?.title || "아이템 정보 없음"}
         </Text>
         <Text
           style={[
             styles.status,
             {
               color:
-                item.exchangeStatus === ExchangeRequestStatus.PENDING
+                item.status === ExchangeRequestStatus.PENDING
                   ? colors.warning
-                  : item.exchangeStatus === ExchangeRequestStatus.ACCEPTED
+                  : item.status === ExchangeRequestStatus.ACCEPTED
                     ? colors.success
                     : colors.destructive,
             },
           ]}
         >
-          {item.exchangeStatus === ExchangeRequestStatus.PENDING
+          {item.status === ExchangeRequestStatus.PENDING
             ? "대기 중"
-            : item.exchangeStatus === ExchangeRequestStatus.ACCEPTED
+            : item.status === ExchangeRequestStatus.ACCEPTED
               ? "수락됨"
               : "거절됨"}
         </Text>
       </View>
 
       <Text style={[styles.requester, { color: colors.text }]}>
-        요청자: {item.sender.userNickname || "알 수 없음"}
+        요청자: {item.requester?.nickname || "알 수 없음"}
       </Text>
 
       <Text style={[styles.date, { color: colors.muted }]}>
         요청일: {new Date(item.createdAt).toLocaleDateString()}
       </Text>
 
-      {item.exchangeStatus === ExchangeRequestStatus.PENDING && (
+      {item.status === ExchangeRequestStatus.PENDING && (
         <View style={styles.actionButtons}>
           <Button
             variant="primary"
             size="sm"
-            loading={actionLoading === item.exchangeRequestId}
+            loading={actionLoading === item.id}
             onPress={() =>
-              handleUpdateStatus(item.exchangeRequestId, ExchangeRequestStatus.ACCEPTED)
+              handleUpdateStatus(item.id, ExchangeRequestStatus.ACCEPTED)
             }
             style={styles.acceptButton}
           >
@@ -142,26 +138,13 @@ export default function HistoryScreen() {
           <Button
             variant="outline"
             size="sm"
-            loading={actionLoading === item.exchangeRequestId}
+            loading={actionLoading === item.id}
             onPress={() =>
-              handleUpdateStatus(item.exchangeRequestId, ExchangeRequestStatus.REJECTED)
+              handleUpdateStatus(item.id, ExchangeRequestStatus.REJECTED)
             }
             style={styles.rejectButton}
           >
             거절
-          </Button>
-        </View>
-      )}
-
-      {item.exchangeStatus === ExchangeRequestStatus.ACCEPTED && item.directRoomId && (
-        <View style={styles.actionButtons}>
-          <Button
-            variant="primary"
-            size="sm"
-            onPress={() => router.push(`/exchange/chat/${item.directRoomId}`)}
-            style={styles.chatButton}
-          >
-            채팅방 가기
           </Button>
         </View>
       )}
@@ -197,7 +180,7 @@ export default function HistoryScreen() {
           <FlatList
             data={exchangeRequests}
             renderItem={renderExchangeRequest}
-            keyExtractor={(item) => item.exchangeRequestId.toString()}
+            keyExtractor={(item) => item.id.toString()}
             contentContainerStyle={styles.listContainer}
             showsVerticalScrollIndicator={false}
           />
@@ -275,9 +258,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   rejectButton: {
-    flex: 1,
-  },
-  chatButton: {
     flex: 1,
   },
 });

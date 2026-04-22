@@ -1,28 +1,12 @@
 import { Tabs } from "expo-router";
 import React from "react";
 
-import { useQuery } from "@tanstack/react-query";
-import { View, StyleSheet } from "react-native";
-
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useTheme } from "@/hooks/useTheme";
-import { theme } from "@/src/styles/theme";
-import { useAuth } from "@/src/hooks/useAuth";
-import { exchangeGetMyRequestsAPI } from "@/src/features/exchange/api";
 
 export default function TabLayout() {
   const { colors } = useTheme();
-  const { user } = useAuth();
-
-  const { data: receiveResponse } = useQuery({
-    queryKey: ["exchangeRequests", "receiver", "PENDING"],
-    queryFn: () => exchangeGetMyRequestsAPI("receiver", 0, 1, "PENDING"),
-    enabled: !!user?.userId,
-    refetchInterval: 10000,
-  });
-
-  const hasNewExchangeRequest = (receiveResponse?.data?.totalElements ?? 0) > 0;
 
   return (
     <Tabs
@@ -46,12 +30,7 @@ export default function TabLayout() {
         options={{
           title: "교환",
           tabBarIcon: ({ color }) => (
-            <View>
-              <IconSymbol size={28} name="arrow.left.arrow.right" color={color} />
-              {hasNewExchangeRequest && (
-                <View style={styles.badge} />
-              )}
-            </View>
+            <IconSymbol size={28} name="arrow.left.arrow.right" color={color} />
           ),
         }}
       />
@@ -85,15 +64,3 @@ export default function TabLayout() {
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  badge: {
-    position: "absolute",
-    right: -2,
-    top: -2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: theme.colors.error,
-  },
-});

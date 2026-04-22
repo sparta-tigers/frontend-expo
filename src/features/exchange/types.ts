@@ -46,32 +46,18 @@ export interface Item {
   category: ItemCategory;
   title: string;
   description: string;
-  latitude: number; // 백엔드에서 개별 필드로 옴
-  longitude: number; // 백엔드에서 개별 필드로 옴
-  address: string; // 백엔드에서 개별 필드로 옴
+  location: LocationDto;
   imageUrl?: string;
-  /**
-   * 백엔드 ReadItemResponseDto.imageUrls 와 매핑되는 표준 필드
-   * 이미지 캐러셀 렌더링 시 반드시 이 필드를 우선 사용할 것
-   */
-  imageUrls?: string[];
-  images?: string[]; // 하위 호환 유지 (imageUrls를 우선 사용)
+  images?: string[]; // 이미지 배열 추가
   desiredItem?: string; // 희망 교환 물품 추가
   status: "REGISTERED" | "COMPLETED" | "FAILED" | "DELETED";
   createdAt: string;
   updatedAt: string;
-  userId?: number; // 체인을 위한 호환 필드
+  userId: number;
   user: {
-    userId: number;       // UserResponseDto.userId (백엔드 스펙)
-    userNickname: string;  // UserResponseDto.userNickname (백엔드 스펙)
-    profileImage?: string;
-  };
-
-  // 호환성을 위한 computed 속성
-  location?: {
-    latitude: number;
-    longitude: number;
-    address: string;
+    id: number;
+    nickname: string;
+    profileImage?: string; // 프로필 이미지 추가
   };
 }
 
@@ -92,7 +78,6 @@ export enum ExchangeRequestStatus {
  */
 export interface ExchangeRequest {
   id: number;
-  roomId?: number; // 채팅방 ID (수락된 경우 서버에서 포함 가능)
   itemId: number;
   requesterId: number;
   providerId: number;
@@ -113,16 +98,11 @@ export interface ExchangeRequest {
 
 /**
  * 교환 요청 생성 페이로드
- * 백엔드 `ExchangeRequestDto` 스펙 정확히 매칭
- *
- * @field receiverId - 아이템 등록자의 userId (필수)
- * @field itemId - 교환을 원하는 아이템 ID (필수)
- * @field have - 렬요청자가 제안하는 교환 물건 설명 (필수, @NotBlank)
+ * 백엔드 CreateExchangeRequestDto 스펙 매칭
  */
 export interface CreateExchangeDto {
-  receiverId: number;
   itemId: number;
-  have: string; // 내가 제안하는 교환 물건 설명 (필수)
+  message?: string; // 선택적 메시지
 }
 
 /**
@@ -131,60 +111,25 @@ export interface CreateExchangeDto {
  */
 export interface UpdateExchangeStatusDto {
   status: ExchangeRequestStatus;
+  message?: string; // 선택적 응답 메시지
 }
 
 /**
- * 받은/보낸 교환 요청 응답 모델 — 백엔드 ReceiveRequestResponseDto 정확 매핑
- *
- * 백엔드는 ExchangeRequest Entity가 아닌 별도 DTO를 반환:
- * - `exchangeRequestId` (NOT `id`)
- * - `sender` = 요청 보낸 사람 (NOT `requester`)
- * - `title`, `category`, `status` 는 item 중첩 없이 flat 구조
+ * 받은 교환 요청 응답 모델
+ * 백엔드 ReceiveRequestResponseDto 스펙 매칭
+ * 현재는 ExchangeRequest와 동일한 구조
  */
-export interface ReceiveExchangeRequest {
-  /** 교환 요청 고유 ID (백엔드 exchangeRequestId 필드) */
-  exchangeRequestId: number;
-  /** 교환 대상 아이템 ID */
-  itemId: number;
-  /**
-   * 교환을 요청한 사람 정보 (백엔드 UserResponseDto)
-   * 주의: requester가 아닌 sender 필드명 사용
-   */
-  sender: {
-    userId: number;
-    userNickname: string;
-  };
-  /** 아이템 카테고리 (flat — item.category 로 접근하지 말 것) */
-  category: ItemCategory;
-  /** 아이템 제목 (flat — item.title 로 접근하지 말 것) */
-  title: string;
-  /**
-   * 아이템 상태 (ItemStatus 기반)
-   * ⚠️ 교환 요청 상태(exchangeStatus)와 다름!
-   * 수락 후에도 아이템 상태는 REGISTERED로 유지되므로
-   * 교환 진행 여부 판단에는 반드시 exchangeStatus를 사용할 것.
-   */
-  status: "REGISTERED" | "COMPLETED" | "FAILED" | "DELETED";
-  /**
-   * 교환 요청 자체의 진행 상태 (ExchangeStatus 기반)
-   * PENDING = 대기 중 (수락/거절 대기)
-   * ACCEPTED = 수락됨 (채팅 진행 중)
-   * REJECTED = 거절됨
-   * COMPLETED = 거래 완료
-   */
-  exchangeStatus: ExchangeRequestStatus;
-  /** 교환 요청 생성 시각 */
-  createdAt: string;
-  /** 연결된 채팅방 식별자 */
-  directRoomId?: number;
-}
+// export interface ReceiveRequestResponseDto extends ExchangeRequest {
+//   // 추가 필드가 있다면 여기에 확장
+// }
+// 현재는 ExchangeRequest 타입을 그대로 사용
+export type ReceiveRequestResponseDto = ExchangeRequest;
 
 /**
  * 교환 요청 목록 페이징 응답
- * content 항목은 ReceiveExchangeRequest 구조임
  */
 export interface ExchangeRequestListResponse {
-  content: ReceiveExchangeRequest[];
+  content: ExchangeRequest[];
   totalElements: number;
   totalPages: number;
   size: number;

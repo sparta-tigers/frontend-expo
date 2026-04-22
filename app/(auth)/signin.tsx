@@ -5,11 +5,9 @@ import { SafeLayout } from "@/components/ui/safe-layout";
 import { useTheme } from "@/hooks/useTheme";
 import { useAuth } from "@/src/hooks/useAuth";
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/unified-design";
-import { Logger } from "@/src/utils/logger";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Alert, StyleSheet, Text } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { Alert, StyleSheet, Text, View } from "react-native";
 
 /**
  * 로그인 페이지
@@ -30,7 +28,9 @@ export default function SigninScreen() {
   useEffect(() => {
     const timer = setTimeout(() => {
       navigationReady.current = true;
-      Logger.debug("[Signin] 네비게이터 준비 완료");
+      if (__DEV__) {
+        console.log("🔍 [Signin] 네비게이터 준비 완료");
+      }
     }, 100);
 
     return () => {
@@ -45,13 +45,17 @@ export default function SigninScreen() {
   const safeRedirect = (href: string) => {
     if (!navigationReady.current) {
       redirectTimeoutRef.current = setTimeout(() => {
-        Logger.debug("[Signin] 지연된 리디렉션 실행:", href);
+        if (__DEV__) {
+          console.log("🔍 [Signin] 지연된 리디렉션 실행:", href);
+        }
         router.replace(href as any);
       }, 200);
       return;
     }
 
-    Logger.debug("[Signin] 즉시 리디렉션 실행:", href);
+    if (__DEV__) {
+      console.log("🔍 [Signin] 즉시 리디렉션 실행:", href);
+    }
     router.replace(href as any);
   };
 
@@ -71,22 +75,14 @@ export default function SigninScreen() {
         Alert.alert("실패", "로그인에 실패했습니다");
       }
     } catch (error) {
-      Logger.error(
-        "로그인 에러:",
-        error instanceof Error ? error.message : String(error),
-      );
+      console.error("로그인 에러:", error);
       Alert.alert("오류", "로그인 중 오류가 발생했습니다");
     }
   };
 
   return (
     <SafeLayout style={{ backgroundColor: colors.background }}>
-      <KeyboardAwareScrollView
-        contentContainerStyle={styles.contentContainer}
-        enableOnAndroid={true}
-        keyboardShouldPersistTaps="handled"
-        extraScrollHeight={20}
-      >
+      <View style={styles.contentContainer}>
         <Card style={styles.card}>
           <Text style={[styles.title, { color: colors.text }]}>로그인</Text>
 
@@ -124,7 +120,7 @@ export default function SigninScreen() {
             회원가입하기
           </Button>
         </Card>
-      </KeyboardAwareScrollView>
+      </View>
     </SafeLayout>
   );
 }

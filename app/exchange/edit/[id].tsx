@@ -6,8 +6,6 @@ import { itemsGetDetailAPI, itemsUpdateAPI } from "@/src/features/exchange/api";
 import { UpdateItemRequest } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
 import { SPACING } from "@/src/styles/unified-design";
-import { Logger } from "@/src/utils/logger";
-import { getImageUrl } from "@/src/utils/url";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
@@ -15,13 +13,13 @@ import {
     ActivityIndicator,
     Alert,
     Image,
+    ScrollView,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
     View,
 } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 /**
  * 아이템 수정 페이지 컴포넌트
@@ -77,7 +75,7 @@ export default function EditItemScreen() {
       ]);
     },
     onError: (error) => {
-      Logger.error("아이템 수정 실패:", error);
+      console.error("아이템 수정 실패:", error);
       Alert.alert("오류", "아이템 수정에 실패했습니다.");
     },
   });
@@ -97,10 +95,10 @@ export default function EditItemScreen() {
 
     if (item.userId !== user.userId) {
       Alert.alert("오류", "본인의 아이템만 수정할 수 있습니다.");
-      Logger.debug("[권한 오류] 아이템 소유자 불일치:", {
+      console.log("🚨 [권한 오류] 아이템 소유자 불일치:", {
         itemUserId: item.userId,
         currentUserId: user.userId,
-        itemUserNickname: item.user?.userNickname,
+        itemUserNickname: item.user?.nickname,
         currentUserEmail: user?.email,
       });
       return;
@@ -172,12 +170,7 @@ export default function EditItemScreen() {
 
   return (
     <SafeLayout style={{ backgroundColor: colors.background }}>
-      <KeyboardAwareScrollView
-        style={styles.container}
-        enableOnAndroid={true}
-        keyboardShouldPersistTaps="handled"
-        extraScrollHeight={20}
-      >
+      <ScrollView style={styles.container}>
         {/* 헤더 */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
@@ -191,7 +184,7 @@ export default function EditItemScreen() {
         {item.imageUrl && (
           <Card style={styles.imageCard}>
             <Image
-              source={{ uri: getImageUrl(item.imageUrl) }}
+              source={{ uri: item.imageUrl }}
               style={styles.itemImage}
               resizeMode="cover"
             />
@@ -313,7 +306,7 @@ export default function EditItemScreen() {
             아이템 수정
           </Button>
         </View>
-      </KeyboardAwareScrollView>
+      </ScrollView>
     </SafeLayout>
   );
 }

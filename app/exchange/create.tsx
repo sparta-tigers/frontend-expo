@@ -14,14 +14,11 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { createExchangeItem } from "@/src/features/exchange/api";
-import { useCheckActiveItem } from "@/src/features/exchange/queries";
 import { ItemCategory, LocationDto } from "@/src/features/exchange/types";
 import { theme } from "@/src/styles/theme";
-import { Logger } from "@/src/utils/logger";
 
 // Location 모듈 타입 단언
 const LocationModule = Location as any;
@@ -264,38 +261,39 @@ export default function CreateItemScreen() {
     mutationFn: async (data: typeof formData) => {
       const requestFormData = new FormData();
 
-      // 1. JSON 데이터 구조를 백엔드 ItemCreateRequest DTO에 완벽히 매핑
+      // 1. JSON 데이터를 문자열로 직렬화하여 'request' 파트에 추가 (백엔드 @RequestPart("request") 매핑)
       const requestData = {
-        category: data.itemCategory, // 백엔드 ItemCategory Enum 매핑
-        title: data.title.trim(),
-        description: data.content.trim(),
-        // 프론트엔드의 desiredItem 필드가 백엔드 DTO에 없다면 무시되지만 함께 전송
-        desiredItem: data.desiredItem?.trim() || "",
-        location: {
+        itemDto: {
+          category: data.itemCategory,
+          title: data.title.trim(),
+          description: data.content.trim(),
+          desiredItem: data.desiredItem?.trim() || "",
+        },
+        locationDto: {
           latitude: currentLocation.latitude,
           longitude: currentLocation.longitude,
-          address: currentLocation.address,
         },
       };
+      requestFormData.append("request", JSON.stringify(requestData));
 
-      // 파트 이름을 "itemRequest"로 변경 (백엔드 @RequestPart("itemRequest") 대응)
-      requestFormData.append("itemRequest", JSON.stringify(requestData));
-
-      // 2. 파트 이름을 "images"로 변경 (백엔드 @RequestPart("images") 대응)
+      // 2. 선택된 이미지 파일들을 'itemImage' (또는 백엔드 배열명) 파트에 추가
       selectedImages.forEach((uri, index) => {
         const filename = uri.split("/").pop() || `image_${index}.jpg`;
         const match = /\.(\w+)$/.exec(filename);
-        const type = match ? `image/${match[1]}` : "image/jpeg";
+        const type = match ? `image/${match[1]}` : `image/jpeg`;
 
-        requestFormData.append("images", {
-          // itemImage -> images 로 수정
+        requestFormData.append("itemImage", {
+          // 다중 업로드 시 백엔드 파라미터명(itemImages 등) 확인 필요
           uri: uri,
           name: filename,
           type,
         } as any); // RN의 FormData 타입 에러 우회
       });
 
-      Logger.debug("멀티파트 전송 준비 완료:", requestFormData);
+      if (__DEV__) {
+        console.log("🚀 멀티파트 전송 준비 완료:", requestFormData);
+      }
+
       // 3. API 호출
       return createExchangeItem(requestFormData);
     },
@@ -305,22 +303,9 @@ export default function CreateItemScreen() {
       queryClient.invalidateQueries({ queryKey: ["items"] });
       router.replace("/(tabs)/exchange");
     },
-    onError: (error: any) => {
-      let errorMessage = "게시글 등록 중 문제가 발생했습니다.";
-      const status = error?.response?.status;
-      
-      if (status === 409) {
-        errorMessage = "이미 등록된 아이템이 있습니다. 하나의 계정당 하나의 아이템만 등록 가능합니다.";
-        // 409 Conflict는 예상된 비즈니스 에러이므로 WARN으로 기록하여 콘솔 에러 노이즈 제거
-        Logger.warn("아이템 중복 등록 시도 차단 (409)");
-      } else {
-        Logger.error(
-          "아이템 생성 실패:",
-          error instanceof Error ? error.message : String(error)
-        );
-      }
-
-      Alert.alert("등록 실패", errorMessage);
+    onError: (error) => {
+      Alert.alert("업로드 실패", "게시글 등록 중 문제가 발생했습니다.");
+      console.error(error);
     },
   });
 
@@ -346,7 +331,7 @@ export default function CreateItemScreen() {
       let { status } = await LocationModule.requestForegroundPermissionsAsync();
 
       if (status !== "granted") {
-        Logger.debug("위치 권한이 거부됨");
+        console.log("위치 권한이 거부됨");
         Alert.alert("권한 필요", "위치 정보를 사용하려면 권한이 필요합니다.");
         setLocationLoading(false);
         return;
@@ -374,12 +359,11 @@ export default function CreateItemScreen() {
 
       setCurrentLocation(locationData);
 
-      Logger.debug("[위치 정보 가져오기]", locationData);
+      if (__DEV__) {
+        console.log("🔍 [위치 정보 가져오기]", locationData);
+      }
     } catch (error) {
-      Logger.error(
-        "위치 정보 가져오기 실패:",
-        error instanceof Error ? error.message : String(error),
-      );
+      console.error("위치 정보 가져오기 실패:", error);
 
       // 에러 메시지에 따라 처리
       if (
@@ -409,27 +393,10 @@ export default function CreateItemScreen() {
     }
   };
 
-  const { data: hasActiveItem } = useCheckActiveItem();
-
-  // 컴포넌트 마운트 시 위치 정보 및 활성 아이템 체크
+  // 컴포넌트 마운트 시 위치 정보 가져오기
   React.useEffect(() => {
-    const init = async () => {
-      await getCurrentLocation();
-    };
-    
-    init();
+    getCurrentLocation();
   }, []);
-
-  // 활성 아이템 감지 시 즉시 차단 (Redundant check)
-  React.useEffect(() => {
-    if (hasActiveItem === true) {
-      Alert.alert(
-        "접근 제한", 
-        "이미 등록된 아이템이 있어 작성 페이지를 이용할 수 없습니다.",
-        [{ text: "확인", onPress: () => router.back() }]
-      );
-    }
-  }, [hasActiveItem]);
 
   // 이미지 선택
   const handleImagePicker = async () => {
@@ -446,7 +413,10 @@ export default function CreateItemScreen() {
         const newImages = result.assets.map((asset) => asset.uri || "");
         const updatedImages = [...selectedImages, ...newImages].slice(0, 5); // 최대 5장
         setSelectedImages(updatedImages);
-        Logger.debug("[이미지 선택]", `${updatedImages.length}장 선택됨`);
+
+        if (__DEV__) {
+          console.log("🔍 [이미지 선택]", `${updatedImages.length}장 선택됨`);
+        }
       }
     } catch {
       Alert.alert("오류", "이미지 선택에 실패했습니다.");
@@ -482,15 +452,7 @@ export default function CreateItemScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* [KB-1] KeyboardAwareScrollView — TextInput 포커스 시 키보드가 내용을 가리지 않도록 자동 스크롤 */}
-      <KeyboardAwareScrollView
-        style={styles.scrollView}
-        keyboardShouldPersistTaps="handled"
-        extraScrollHeight={24}
-        enableOnAndroid
-        enableAutomaticScroll
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.scrollView}>
         {/* 이미지 첨부 가로 스크롤 */}
         <ScrollView
           horizontal
@@ -624,7 +586,7 @@ export default function CreateItemScreen() {
             onChangeText={(text) => setFormData({ ...formData, content: text })}
           />
         </View>
-      </KeyboardAwareScrollView>
+      </ScrollView>
     </SafeLayout>
   );
 }

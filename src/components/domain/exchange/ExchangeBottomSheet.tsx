@@ -14,7 +14,6 @@ import {
 import { CreateExchangeDto, Item } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/unified-design";
-import { Logger } from "@/src/utils/logger";
 
 /**
  * 교환 신청 바텀시트 컴포넌트
@@ -47,7 +46,7 @@ export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
 
   // 상태 관리
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
-  const [have, setHave] = useState("");
+  const [message, setMessage] = useState("");
 
   // 🚨 앙드레 카파시: Lazy Loading - 바텀시트 활성화 시점에만 데이터 페칭
   const { data: myItems, isLoading } = useQuery({
@@ -65,9 +64,8 @@ export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
   const { mutate: requestExchange, isPending } = useMutation({
     mutationFn: async () => {
       const payload: CreateExchangeDto = {
-        receiverId: 0, // TODO: 이 컴포넌트는 레거시. apply/[id].tsx 사용 권장
         itemId: targetItemId,
-        have: have.trim() || "교환 제안",
+        message: message.trim(),
       };
       const response = await exchangeCreateAPI(payload);
       if (response.resultType !== "SUCCESS") {
@@ -105,7 +103,7 @@ export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
     },
     onError: (error) => {
       Alert.alert("오류", "교환 신청에 실패했습니다.");
-      Logger.error("교환 신청 실패:", error);
+      console.error("교환 신청 실패:", error);
     },
   });
 
@@ -121,18 +119,18 @@ export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
       return;
     }
 
-    if (!have.trim()) {
+    if (!message.trim()) {
       Alert.alert("알림", "교환 제안 메시지를 입력해주세요.");
       return;
     }
 
     requestExchange();
-  }, [selectedItemId, have, requestExchange]);
+  }, [selectedItemId, message, requestExchange]);
 
   // 바텀시트 열림/닫힘 감지
   React.useEffect(() => {
     if (isOpen && bottomSheetRef.current) {
-      bottomSheetRef.current.snapToIndex(1); // snapToIndex(1)로 수정
+      bottomSheetRef.current.snapToIndex(0);
     } else if (!isOpen && bottomSheetRef.current) {
       bottomSheetRef.current.close();
     }
@@ -188,7 +186,7 @@ export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
     <BottomSheet
       ref={bottomSheetRef}
       index={-1} // 기본적으로 닫힘
-      snapPoints={["40%", "80%"]} // 여러 snap point 추가
+      snapPoints={["80%"]} // 화면 높이의 80%
       enablePanDownToClose={true}
       onClose={onClose}
       backgroundStyle={{ backgroundColor: colors.background }}
@@ -236,8 +234,8 @@ export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
           </Text>
           <Input
             placeholder="교환하고 싶은 이유를 알려주세요"
-            value={have}
-            onChangeText={setHave}
+            value={message}
+            onChangeText={setMessage}
             multiline
             numberOfLines={3}
             style={styles.messageInput}
@@ -248,12 +246,12 @@ export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
         <View style={styles.buttonContainer}>
           <Button
             onPress={handleSubmit}
-            disabled={!selectedItemId || !have.trim() || isPending}
+            disabled={!selectedItemId || !message.trim() || isPending}
             style={[
               styles.submitButton,
               {
                 backgroundColor:
-                  !selectedItemId || !have.trim() || isPending
+                  !selectedItemId || !message.trim() || isPending
                     ? colors.muted
                     : colors.primary,
               },
@@ -264,7 +262,7 @@ export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
                 styles.submitButtonText,
                 {
                   color:
-                    !selectedItemId || !have.trim() || isPending
+                    !selectedItemId || !message.trim() || isPending
                       ? colors.background
                       : colors.background,
                 },

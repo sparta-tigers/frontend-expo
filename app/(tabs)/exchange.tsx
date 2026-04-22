@@ -2,39 +2,32 @@ import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { useTheme } from "@/hooks/useTheme";
 import {
-  itemsGetListAPI,
+    exchangeGetReceivedAPI,
+    exchangeUpdateStatusAPI,
+    itemsGetListAPI,
 } from "@/src/features/exchange/api";
-import { useCheckActiveItem } from "@/src/features/exchange/queries";
 import {
-  Item,
+    ExchangeRequest,
+    ExchangeRequestStatus,
+    Item,
 } from "@/src/features/exchange/types";
-import { useLocationTracker } from "@/src/hooks/useLocationTracker";
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
-import { useLocationStore } from "@/src/store/useLocationStore";
 import { theme } from "@/src/styles/theme";
-import { Logger } from "@/src/utils/logger";
-import { getImageUrl } from "@/src/utils/url";
-import BottomSheet, {
-  BottomSheetFlatList,
-  BottomSheetFlatListMethods,
-} from "@gorhom/bottom-sheet";
+import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  Modal,
-  Pressable,
+    ActivityIndicator,
+    Alert,
+    Image,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // 정적 스타일 정의
 const styles = StyleSheet.create({
@@ -42,11 +35,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   map: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    flex: 1,
   },
   bottomSheetContainer: {
     backgroundColor: theme.colors.background,
@@ -60,6 +49,28 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 5,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    height: theme.spacing.xxl,
+    borderBottomWidth: 2,
+    borderColor: theme.colors.primary,
+  },
+  tabContainer: {
+    flexDirection: "row",
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: theme.typography.size.xl,
+    fontWeight: theme.typography.weight.bold,
+  },
+  tabButton: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
   },
   listContainer: {
     flex: 1,
@@ -136,6 +147,66 @@ const styles = StyleSheet.create({
   emptyButton: {
     minWidth: 120,
   },
+  activeTabIndicator: {
+    borderBottomWidth: 2,
+    borderBottomColor: theme.colors.text.primary,
+  },
+  tabTextActive: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: theme.colors.text.primary,
+  },
+  tabTextInactive: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: theme.colors.text.secondary,
+  },
+  // 교환 요청 관련 스타일
+  requestContainer: {
+    borderRadius: theme.radius.CARD,
+    padding: theme.spacing.COMPONENT,
+    marginBottom: theme.spacing.SMALL,
+    ...theme.shadow.card,
+  },
+  requestContent: {
+    flex: 1,
+  },
+  requestTitle: {
+    fontSize: theme.typography.size.BODY,
+    fontWeight: theme.typography.weight.semibold,
+    marginBottom: theme.spacing.SMALL,
+  },
+  requester: {
+    fontSize: theme.typography.size.SMALL,
+    marginBottom: theme.spacing.SMALL,
+  },
+  requestDate: {
+    fontSize: theme.typography.size.CAPTION,
+    marginBottom: theme.spacing.SMALL,
+  },
+  statusBadge: {
+    paddingHorizontal: theme.spacing.SMALL,
+    paddingVertical: theme.spacing.SMALL,
+    borderRadius: theme.radius.sm,
+    alignSelf: "flex-start",
+    marginBottom: theme.spacing.SMALL,
+  },
+  statusText: {
+    fontSize: theme.typography.size.SMALL,
+    fontWeight: theme.typography.weight.semibold,
+  },
+  requestActions: {
+    flexDirection: "row",
+    gap: theme.spacing.SMALL,
+    marginTop: theme.spacing.SMALL,
+  },
+  actionButton: {
+    flex: 1,
+  },
+  actionButtonText: {
+    fontSize: theme.typography.size.SMALL,
+    fontWeight: theme.typography.weight.semibold,
+  },
   fabButton: {
     position: "absolute",
     bottom: theme.spacing.xxl,
@@ -156,134 +227,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     right: 0,
-    elevation: 5,      // Android 레이어
   },
   fabText: {
     fontSize: 24,
     color: theme.colors.background,
-  },
-  // 재검색 버튼 스타일 (Phase 1)
-  reSearchButton: {
-    position: "absolute",
-    alignSelf: "center",
-    backgroundColor: theme.colors.primary,
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    shadowColor: theme.colors.text.primary,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 10, // 더 위로
-    zIndex: 2000, // 모든 요소 위에 표시
-  },
-  reSearchText: {
-    color: theme.colors.background,
-    fontSize: theme.typography.size.sm,
-    fontWeight: theme.typography.weight.semibold,
-    marginLeft: theme.spacing.xs,
-  },
-  // 1페이지: 지도 뷰 상단 오버레이 버튼들
-  topOverlayContainer: {
-    position: "absolute",
-    // [Bonus-2] top 제거 — JSX에서 insets.top 기반으로 동적 주입
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: theme.spacing.COMPONENT,
-    zIndex: 10,
-  },
-  topOverlayButton: {
-    backgroundColor: theme.colors.surface,
-    paddingHorizontal: theme.spacing.COMPONENT,
-    paddingVertical: theme.spacing.SMALL,
-    borderRadius: 24,
-    flexDirection: "row",
-    alignItems: "center",
-    ...theme.shadow.card,
-  },
-  topOverlayButtonText: {
-    fontSize: theme.typography.size.BODY,
-    fontWeight: theme.typography.weight.semibold,
-    color: theme.colors.text.primary,
-  },
-  // 2페이지: 바텀시트 필터
-  filterContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    paddingVertical: theme.spacing.SMALL,
-    gap: theme.spacing.SMALL,
-  },
-  filterButton: {
-    paddingHorizontal: theme.spacing.COMPONENT,
-    paddingVertical: theme.spacing.TINY,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: theme.colors.border.medium,
-  },
-  filterButtonActive: {
-    backgroundColor: theme.colors.text.secondary,
-    borderColor: theme.colors.text.secondary,
-  },
-  filterButtonText: {
-    fontSize: theme.typography.size.SMALL,
-    color: theme.colors.text.secondary,
-  },
-  filterButtonTextActive: {
-    color: theme.colors.background,
-    fontWeight: theme.typography.weight.bold,
-  },
-  // Profile Modal 스타일
-  // eslint-disable-next-line react-native/no-color-literals
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: theme.colors.background,
-    borderTopLeftRadius: theme.radius.lg,
-    borderTopRightRadius: theme.radius.lg,
-    paddingBottom: theme.spacing.xxl,
-    paddingHorizontal: theme.spacing.SCREEN,
-  },
-  modalHeader: {
-    alignItems: "center",
-    paddingVertical: theme.spacing.COMPONENT,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
-    marginBottom: theme.spacing.COMPONENT,
-  },
-  modalHandle: {
-    width: 40,
-    height: 4,
-    backgroundColor: theme.colors.text.tertiary,
-    borderRadius: 2,
-    marginBottom: theme.spacing.COMPONENT,
-  },
-  modalTitle: {
-    fontSize: theme.typography.size.SECTION_TITLE,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.text.primary,
-  },
-  modalMenuButton: {
-    paddingVertical: theme.spacing.COMPONENT,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  modalMenuButtonText: {
-    fontSize: theme.typography.size.BODY,
-    color: theme.colors.text.primary,
-    fontWeight: theme.typography.weight.medium,
   },
 });
 
@@ -298,33 +245,19 @@ const styles = StyleSheet.create({
 export default function ExchangeScreen() {
   const router = useRouter();
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const mapRef = useRef<MapView>(null);
-  const listRef = useRef<BottomSheetFlatListMethods>(null); // Phase 4: 리스트 스크롤 제어용
 
-  // 위치 추적 훅 연동
-  const { userLocation } = useLocationStore();
-  const { errorMsg: locationError } = useLocationTracker();
-
-  // 바텀시트 카테고리 필터 상태
-  const [selectedCategory, setSelectedCategory] = useState<"ALL" | "TICKET" | "GOODS">("ALL");
-
-  // 프로필 모달 상태 (8페이지 대응)
-  const [isProfileModalVisible, setProfileModalVisible] = useState(false);
-
-  // Map-First 초기 로딩 상태 관리
-  const [isInitialFetched, setIsInitialFetched] = useState(false);
+  // 탭 상태 관리
+  const [activeTab, setActiveTab] = useState<"items" | "requests">("items");
 
   // useAsyncState 훅으로 기본 상태 관리
   const [itemsState, fetchItems] = useAsyncState<Item[]>([]);
+  const [requestsState, fetchRequests] = useAsyncState<ExchangeRequest[]>([]);
 
   // 추가 상태 (페이지네이션용 - 현재 미사용)
   // const [page, setPage] = useState(0);
   // const [isLast, setIsLast] = useState(false);
-  // 활성 아이템 체크 쿼리 (Navigation Guard용)
-  const { data: hasActiveItem, isLoading: isCheckingActive } = useCheckActiveItem();
-
   const [refreshing, setRefreshing] = useState(false);
 
   // 현재 위치 상태
@@ -333,23 +266,42 @@ export default function ExchangeScreen() {
     longitude: number;
   } | null>(null);
 
-  // 지도 이동 감지 상태 (Phase 1)
-  const [isMapMoved, setIsMapMoved] = useState(false);
-  const [isMapReady, setIsMapReady] = useState(false);
-  const [mapRegion, setMapRegion] = useState({
-    latitude: 37.5665, // 서울 디폴트 좌표
-    longitude: 126.978,
-    latitudeDelta: 0.009, // 약 1km 반경
-    longitudeDelta: 0.009, // 약 1km 반경
-  });
+  // 받은 교환 요청 목록 가져오기
+  const loadExchangeRequests = useCallback(
+    async (pageNum: number = 0, isRefresh: boolean = false) => {
+      if (requestsState.status === "loading" && !isRefresh) return;
+
+      try {
+        const response = await exchangeGetReceivedAPI(pageNum, 10);
+
+        const requests =
+          response.resultType === "SUCCESS" && response.data
+            ? response.data.content
+            : [];
+
+        if (pageNum === 0 || isRefresh) {
+          await fetchRequests(Promise.resolve(requests));
+        } else {
+          await fetchRequests(
+            Promise.resolve([...(requestsState.data || []), ...requests]),
+          );
+        }
+
+        // setIsLast(responseData?.last || false);
+      } catch (error) {
+        console.error("교환 요청 목록 로딩 실패:", error);
+        Alert.alert("오류", "교환 요청 목록을 불러올 수 없습니다.");
+        await fetchRequests(Promise.resolve([]));
+      }
+    },
+    [requestsState.status, fetchRequests, requestsState.data],
+  );
+
   // 아이템 목록 가져오기 (교환 완료된 아이템 필터링)
   const loadItems = useCallback(
     async (
       pageNum: number = 0,
       isRefresh: boolean = false,
-      lat?: number,
-      lng?: number,
-      radiusKm?: number,
     ): Promise<Item[]> => {
       if (itemsState.status === "loading" && !isRefresh) return [];
 
@@ -359,15 +311,7 @@ export default function ExchangeScreen() {
       if (isRefresh) setRefreshing(true);
 
       try {
-        const response = await itemsGetListAPI(
-          pageNum,
-          10,
-          undefined,
-          undefined,
-          lat,
-          lng,
-          radiusKm,
-        );
+        const response = await itemsGetListAPI(pageNum, 10);
 
         if (response.resultType === "SUCCESS" && response.data) {
           const { content } = response.data;
@@ -389,10 +333,7 @@ export default function ExchangeScreen() {
 
         return itemsState.data || [];
       } catch (error) {
-        Logger.error(
-          "아이템 목록 로딩 실패:",
-          error instanceof Error ? error.message : String(error),
-        );
+        console.error("아이템 목록 로딩 실패:", error);
         throw error;
       } finally {
         if (isRefresh) setRefreshing(false);
@@ -401,85 +342,57 @@ export default function ExchangeScreen() {
     [itemsState.data, itemsState.status],
   );
 
+  // 교환 요청 상태 변경 (수락/거절)
+  const handleUpdateRequestStatus = useCallback(
+    async (requestId: number, status: ExchangeRequestStatus) => {
+      try {
+        const response = await exchangeUpdateStatusAPI(requestId, { status });
+
+        if (response.resultType === "SUCCESS") {
+          Alert.alert(
+            "성공",
+            status === ExchangeRequestStatus.ACCEPTED
+              ? "교환 요청을 수락했습니다."
+              : "교환 요청을 거절했습니다.",
+            [
+              {
+                text: "확인",
+                onPress: () => loadExchangeRequests(0, true), // 목록 새로고침
+              },
+            ],
+          );
+        } else {
+          Alert.alert("오류", "상태 변경에 실패했습니다.");
+        }
+      } catch (error) {
+        console.error("교환 요청 상태 변경 실패:", error);
+        Alert.alert("오류", "네트워크 에러가 발생했습니다.");
+      }
+    },
+    [loadExchangeRequests],
+  );
+
   // 아이템 상세 페이지로 이동
   const navigateToDetail = (itemId: number) => {
     router.push(`/exchange/${itemId}`);
   };
 
-  // 마커 클릭 핸들러 (Phase 4)
-  const handleMarkerPress = (itemId: number) => {
-    // 아이템 리스트에서 해당 아이템의 인덱스 찾기
-    const index = itemsState.data?.findIndex((item) => item.id === itemId);
-
-    if (index !== undefined && index !== -1) {
-      // 1. 바텀시트가 닫혀있다면 올리기
-      bottomSheetRef.current?.snapToIndex(1);
-
-      // 2. 리스트 스크롤 이동
-      setTimeout(() => {
-        listRef.current?.scrollToIndex({
-          index,
-          animated: true,
-          viewPosition: 0.5, // 아이템을 화면 중앙에 위치
-        });
-      }, 300); // 바텀시트 애니메이션 대기
-
-      Logger.debug("마커 연동 스크롤 완료:", { itemId, index });
-    } else {
-      // 아이템을 찾을 수 없으면 상세 페이지로 이동 (기존 동작)
-      navigateToDetail(itemId);
-    }
-  };
-
-  // 아이템 생성 페이지로 이동 (Navigation Guard 적용 - React Query 기반)
+  // 아이템 생성 페이지로 이동
   const navigateToCreate = () => {
-    if (isCheckingActive) return; // 아직 체크 중이면 무시
-
-    if (hasActiveItem === true) {
-      Alert.alert(
-        "등록 제한",
-        "이미 등록된 아이템이 있습니다. 하나의 계정당 하나의 아이템만 등록 가능합니다.\n\n기존 아이템을 삭제하거나 교환 완료 후 새 아이템을 등록해주세요."
-      );
-      return;
-    }
-    
     router.push("/exchange/create");
   };
 
-  // 현재 위치로 이동 (Phase 3: 즉각 반응)
-  const moveToCurrentLocation = () => {
-    if (userLocation && mapRef.current) {
-      // GPS 로딩 대기 없이 메모리 좌표로 즉시 이동!
-      mapRef.current.animateToRegion(
-        {
-          latitude: userLocation.latitude,
-          longitude: userLocation.longitude,
-          latitudeDelta: 0.009, // 약 1km 반경
-          longitudeDelta: 0.009, // 약 1km 반경
-        },
-        500, // 0.5초 동안 부드럽게 이동
-      );
-
-      Logger.debug("[즉각 위치 이동 완료]", userLocation);
-    } else {
-      // 권한 거부 상태이거나 아직 첫 좌표를 못 잡은 경우의 예외 처리
-      Alert.alert(
-        "알림",
-        locationError
-          ? "위치 권한이 거부되었습니다.\n설정에서 권한을 허용해주세요."
-          : "현재 위치를 확인하는 중입니다.\n잠시 후 다시 시도해주세요.",
-      );
-    }
-  };
-
-  // 현재 위치 가져오기 (컴포넌트 마운트 시 자동 실행)
-  const getCurrentLocationOnMount = async () => {
+  // 현재 위치로 이동
+  const moveToCurrentLocation = async () => {
     try {
       // 위치 권한 요청
       const { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status !== "granted") {
-        Logger.debug("위치 권한이 거부됨");
+        Alert.alert(
+          "위치 권한 필요",
+          "현재 위치로 이동하려면 위치 권한이 필요합니다.\n설정에서 권한을 허용해주세요.",
+        );
         return;
       }
 
@@ -505,66 +418,80 @@ export default function ExchangeScreen() {
         );
       }
 
-      Logger.debug("[초기 위치 설정]", userLocation);
+      if (__DEV__) {
+        console.log("🔍 [현재 위치로 이동]", userLocation);
+      }
     } catch (error) {
-      Logger.error(
-        "초기 위치 가져오기 실패:",
-        error instanceof Error ? error.message : String(error),
-      );
+      console.error("현재 위치로 이동 실패:", error);
+
+      // 에러 메시지에 따른 처리
+      if (
+        error instanceof Error &&
+        error.message.includes("location services are enabled")
+      ) {
+        Alert.alert(
+          "위치 서비스 비활성화",
+          "기기의 위치 서비스가 비활성화되어 있습니다.\n에뮬레이터 확장 제어에서 Location을 ON으로 설정해주세요.",
+        );
+      } else {
+        Alert.alert(
+          "위치 정보 오류",
+          "현재 위치를 가져올 수 없습니다.\n에뮬레이터 확장 제어에서 가상 위치를 설정해주세요.",
+        );
+      }
     }
   };
 
-  // [P2-2] 새로고침 핸들러 — async/await 누락로 refresh 인디케이터가 즉시 쪬히젠 버그 수정
-  const handleRefresh = async () => {
-    setRefreshing(true);
+  // 현재 위치 가져오기 (컴포넌트 마운트 시 자동 실행)
+  const getCurrentLocationOnMount = async () => {
     try {
-      const radius = mapRegion.latitudeDelta * 111; // 1도 ≈ 111km
-      await fetchItems(
-        loadItems(0, true, mapRegion.latitude, mapRegion.longitude, radius),
-      );
-    } finally {
-      setRefreshing(false);
-    }
-  };
+      // 위치 권한 요청
+      const { status } = await Location.requestForegroundPermissionsAsync();
 
-  // 지도 이동 완료 핸들러 (Phase 1)
-  const handleRegionChangeComplete = (region: any) => {
-    setMapRegion(region);
-    // Bug 2: 초기 데이터가 1회 로딩된 이후의 유저 이동만 지도 이동으로 간주
-    if (isMapReady && isInitialFetched) {
-      setIsMapMoved(true);
-    }
-  };
+      if (status !== "granted") {
+        console.log("위치 권한이 거부됨");
+        return;
+      }
 
-  // 현 지도에서 재검색 핸들러 (Phase 2)
-  const handleSearchCurrentLocation = async () => {
-    try {
-      // 재검색 버튼 즉시 숨김
-      setIsMapMoved(false);
+      // 현재 위치 가져오기
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
 
-      // 현재 지도 중심 좌표로 아이템 목록 새로고침
-      setRefreshing(true);
+      const { latitude, longitude } = location.coords;
+      const userLocation = { latitude, longitude };
 
-      if (true) {
-        // 지도 중심 좌표와 반경 계산하여 API 호출
-        const radius = mapRegion.latitudeDelta * 111; // 대략적인 반경 계산 (1도 ≈ 111km)
-        await fetchItems(
-          loadItems(0, true, mapRegion.latitude, mapRegion.longitude, radius),
+      setCurrentLocation(userLocation);
+
+      // 지도를 현재 위치로 이동 (1km 반경)
+      if (mapRef.current) {
+        mapRef.current.animateToRegion(
+          {
+            ...userLocation,
+            latitudeDelta: 0.009, // 약 1km 반경
+            longitudeDelta: 0.009, // 약 1km 반경
+          },
+          1000,
         );
       }
 
-      setRefreshing(false);
-
-      Logger.debug("현 지도에서 재검색 완료", {
-        center: mapRegion,
-        timestamp: new Date().toISOString(),
-      });
+      if (__DEV__) {
+        console.log("🔍 [초기 위치 설정]", userLocation);
+      }
     } catch (error) {
-      Logger.error("현 지도에서 재검색 실패:", error);
-      setRefreshing(false);
-      // 에러 발생 시 버튼 다시 표시
-      setIsMapMoved(true);
+      console.error("초기 위치 가져오기 실패:", error);
     }
+  };
+
+  // 새로고침 핸들러
+  const handleRefresh = () => {
+    setRefreshing(true);
+    if (activeTab === "items") {
+      fetchItems(loadItems(0, true));
+    } else {
+      loadExchangeRequests(0, true);
+    }
+    setRefreshing(false);
   };
 
   // 다음 페이지 로드 (현재 미사용 - BottomSheetFlatList에서 onEndReached 제거)
@@ -581,6 +508,101 @@ export default function ExchangeScreen() {
   //   }
   // };
 
+  // 교환 요청 렌더 함수
+  const renderExchangeRequest = ({ item }: { item: ExchangeRequest }) => (
+    <View
+      style={[
+        styles.requestContainer,
+        {
+          backgroundColor: colors.surface,
+          shadowColor: colors.border,
+        },
+      ]}
+    >
+      {/* 요청 정보 */}
+      <View style={styles.requestContent}>
+        <Text style={[styles.requestTitle, { color: colors.text }]}>
+          {item.item?.title || "아이템 정보 없음"}
+        </Text>
+        <Text style={[styles.requester, { color: colors.muted }]}>
+          요청자: {item.requester?.nickname || "알 수 없음"}
+        </Text>
+        <Text style={[styles.requestDate, { color: colors.muted }]}>
+          {new Date(item.createdAt).toLocaleDateString()}
+        </Text>
+
+        {/* 상태 배지 */}
+        <View
+          style={[
+            styles.statusBadge,
+            {
+              backgroundColor:
+                item.status === ExchangeRequestStatus.PENDING
+                  ? colors.warning + "20"
+                  : item.status === ExchangeRequestStatus.ACCEPTED
+                    ? colors.success + "20"
+                    : colors.destructive + "20",
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.statusText,
+              {
+                color:
+                  item.status === ExchangeRequestStatus.PENDING
+                    ? colors.warning
+                    : item.status === ExchangeRequestStatus.ACCEPTED
+                      ? colors.success
+                      : colors.destructive,
+              },
+            ]}
+          >
+            {item.status === ExchangeRequestStatus.PENDING
+              ? "대기 중"
+              : item.status === ExchangeRequestStatus.ACCEPTED
+                ? "수락됨"
+                : "거절됨"}
+          </Text>
+        </View>
+      </View>
+
+      {/* 액션 버튼 */}
+      {item.status === ExchangeRequestStatus.PENDING && (
+        <View style={styles.requestActions}>
+          <Button
+            style={[styles.actionButton, { backgroundColor: colors.success }]}
+            onPress={() =>
+              handleUpdateRequestStatus(item.id, ExchangeRequestStatus.ACCEPTED)
+            }
+          >
+            <Text
+              style={[styles.actionButtonText, { color: colors.background }]}
+            >
+              수락
+            </Text>
+          </Button>
+          <Button
+            style={[
+              styles.actionButton,
+              { backgroundColor: colors.destructive },
+            ]}
+            variant="outline"
+            onPress={() =>
+              handleUpdateRequestStatus(item.id, ExchangeRequestStatus.REJECTED)
+            }
+          >
+            <Text
+              style={[styles.actionButtonText, { color: colors.destructive }]}
+            >
+              거절
+            </Text>
+          </Button>
+        </View>
+      )}
+    </View>
+  );
+
   // 아이템 렌더 함수
   const renderItem = ({ item }: { item: Item }) => (
     <TouchableOpacity
@@ -595,7 +617,7 @@ export default function ExchangeScreen() {
     >
       {/* 아이템 이미지 */}
       {item.imageUrl ? (
-        <Image source={{ uri: getImageUrl(item.imageUrl) }} style={styles.itemImage} />
+        <Image source={{ uri: item.imageUrl }} style={styles.itemImage} />
       ) : (
         <View style={[styles.itemImage, styles.emptyImageContainer]}>
           <Text style={styles.emptyText}>이미지 없음</Text>
@@ -628,62 +650,33 @@ export default function ExchangeScreen() {
     </TouchableOpacity>
   );
 
-  // 1. 컴포넌트 마운트 시 최초 1회만 실행 (위치 조회)
-  React.useEffect(() => {
-    getCurrentLocationOnMount();
-  }, []); // 의존성 배열을 비워 마운트 시 1회만 실행 보장
-
-  // 필터링 적용된 목록 도출
-  const filteredItemsData = React.useMemo(() => {
-    if (!itemsState.data) return [];
-    if (selectedCategory === "ALL") return itemsState.data;
-    return itemsState.data.filter(item => item.category === selectedCategory);
-  }, [itemsState.data, selectedCategory]);
-
-  // [P2-3] loadItems ref 패턴 — loadItems가 itemsState에 의존하여
-  // 렌더마다 재생성되는 함수이며, 이를 useEffect dep에 넣으면
-  // itemsState 변경 → loadItems 재생성 → useEffect 재실행 순환에 진입.
-  // ref로 관리하면 dep 없이 항상 최신 함수를 호출할 수 있다.
-  const loadItemsRef = React.useRef(loadItems);
-  React.useEffect(() => {
-    loadItemsRef.current = loadItems;
-  });
-
-  // 2. Map-First 초기 데이터 로딩 (GPS 좌표가 잡히는 즉시 실행)
+  // 초기 데이터 로드 - 무한 리렌더링 방지
   React.useEffect(() => {
     let isMounted = true;
 
-    const fetchInitialMapData = async () => {
-      // 마운트 해제됨, 이미 로딩됨, 혹은 GPS 아직 못 잡음 ➔ 대기
-      if (!isMounted || isInitialFetched || !userLocation) return;
+    const loadData = async () => {
+      if (!isMounted) return;
 
-      // GPS 좌표가 들어왔다! → 지도 기반 반경 계산 후 즉시 아이템 페칭
-      const radius = mapRegion.latitudeDelta * 111;
-      await fetchItems(
-        loadItemsRef.current( // ← loadItems 대신 ref 사용 — dep 제거
-          0,
-          true,
-          userLocation.latitude,
-          userLocation.longitude,
-          radius,
-        ),
-      );
+      // 컴포넌트 마운트 시 현재 위치 가져오기
+      getCurrentLocationOnMount();
 
-      // 최초 1회 로딩 완료 플래그 세팅 (이후에는 '현 지도에서 재검색' 버튼으로만 수동 갱신)
-      setIsInitialFetched(true);
-      Logger.debug(" [Map-First] 초기 GPS 기반 아이템 로딩 완료", userLocation);
+      if (activeTab === "items") {
+        fetchItems(loadItems(0, true));
+      } else {
+        loadExchangeRequests(0, true);
+      }
     };
 
-    fetchInitialMapData();
+    loadData();
 
     return () => {
       isMounted = false;
     };
-    // [P2-3] loadItems는 loadItemsRef로 관리하므로 deps 불필요
-  }, [userLocation, isInitialFetched, mapRegion.latitudeDelta, fetchItems]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]); // activeTab만 의존성으로 설정
 
   return (
-    <SafeLayout style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeLayout style={styles.container}>
       {/* 1. 백그라운드 지도 뷰 */}
       <MapView
         ref={mapRef}
@@ -694,9 +687,6 @@ export default function ExchangeScreen() {
           latitudeDelta: 0.009, // 약 1km 반경
           longitudeDelta: 0.009, // 약 1km 반경
         }}
-        showsUserLocation={false}
-        onMapReady={() => setIsMapReady(true)} // 지도 로딩 완료 플래그
-        onRegionChangeComplete={handleRegionChangeComplete} // Phase 1: 지도 이동 감지
       >
         {/* 현재 위치 마커 */}
         {currentLocation && (
@@ -709,85 +699,92 @@ export default function ExchangeScreen() {
         )}
 
         {/* 아이템 마커 */}
-        {itemsState.data?.map((item: Item) => {
-          // Phase 3: 강화된 방어 로직 - 유효한 좌표만 마커 렌더링
-          if (
-            typeof item.latitude !== "number" ||
-            typeof item.longitude !== "number" ||
-            isNaN(item.latitude) ||
-            isNaN(item.longitude) ||
-            item.latitude === 0 ||
-            item.longitude === 0
-          ) {
-            Logger.debug("무효한 좌표의 아이템 마커 제외:", {
-              itemId: item.id,
-              title: item.title,
-              latitude: item.latitude,
-              longitude: item.longitude,
-              latType: typeof item.latitude,
-              lngType: typeof item.longitude,
-            });
-            return null;
-          }
-
-          return (
-            <Marker
-              key={`item-${item.id}`}
-              coordinate={{
-                latitude: item.latitude,
-                longitude: item.longitude,
-              }}
-              title={item.title}
-              description={item.category === "TICKET" ? "티켓" : "굿즈"}
-              onPress={() => handleMarkerPress(item.id)}
-              // TODO: 커스텀 아이콘으로 마커 디자인 개선 가능
-            />
-          );
-        })}
+        {itemsState.data?.map((item: Item) => (
+          <Marker
+            key={item.id}
+            coordinate={{
+              latitude: item.location?.latitude || 37.5665,
+              longitude: item.location?.longitude || 126.978,
+            }}
+            title={item.title}
+            onPress={() => router.push(`/exchange/${item.id}`)}
+          />
+        ))}
       </MapView>
 
-      {/* Bug 3 Fix: BottomSheet 다음에 렌뤈링하여 항상 위에 표시 */}
-      {!isProfileModalVisible && (
-        <View style={styles.fabContainer}>
-          <TouchableOpacity
-            style={[styles.fabButton, styles.locationButton]}
-            onPress={moveToCurrentLocation}
-          >
-            <Text style={styles.fabText}>📍</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.fabButton} onPress={() => setProfileModalVisible(true)}>
-            <Text style={styles.fabText}>👤</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
+      {/* 2. 스와이프업 리스트 뷰 (바텀시트) */}
       <BottomSheet
         ref={bottomSheetRef}
         snapPoints={["15%", "85%"]}
         style={styles.bottomSheetContainer}
-        backgroundStyle={{ backgroundColor: colors.background }}
       >
-        {/* 2페이지 디자인: TICKET / ITEM 필터 */}
-        <View style={[styles.filterContainer, { backgroundColor: colors.background }]}>
-          <TouchableOpacity 
-            style={[styles.filterButton, selectedCategory === "TICKET" && styles.filterButtonActive]}
-            onPress={() => setSelectedCategory(selectedCategory === "TICKET" ? "ALL" : "TICKET")}
+        {/* 바텀시트 헤더 */}
+        <View
+          style={[
+            styles.header,
+            {
+              borderBottomColor: colors.border,
+              backgroundColor: colors.background,
+            },
+          ]}
+        >
+          <Text style={[styles.headerTitle, { color: colors.text }]}>교환</Text>
+          <Button onPress={navigateToCreate} size="sm">
+            + 등록
+          </Button>
+        </View>
+
+        {/* 탭 전환 */}
+        <View
+          style={[
+            styles.tabContainer,
+            {
+              borderBottomColor: colors.border,
+              backgroundColor: colors.background,
+            },
+          ]}
+        >
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === "items" && styles.activeTabIndicator,
+            ]}
+            onPress={() => setActiveTab("items")}
           >
-            <Text style={[styles.filterButtonText, selectedCategory === "TICKET" && styles.filterButtonTextActive]}>TICKET</Text>
+            <Text
+              style={[
+                activeTab === "items"
+                  ? styles.tabTextActive
+                  : styles.tabTextInactive,
+              ]}
+            >
+              아이템 목록
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.filterButton, selectedCategory === "GOODS" && styles.filterButtonActive]}
-            onPress={() => setSelectedCategory(selectedCategory === "GOODS" ? "ALL" : "GOODS")}
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === "requests" && styles.activeTabIndicator,
+            ]}
+            onPress={() => setActiveTab("requests")}
           >
-            <Text style={[styles.filterButtonText, selectedCategory === "GOODS" && styles.filterButtonTextActive]}>ITEM</Text>
+            <Text
+              style={[
+                activeTab === "requests"
+                  ? styles.tabTextActive
+                  : styles.tabTextInactive,
+              ]}
+            >
+              받은 요청
+            </Text>
           </TouchableOpacity>
         </View>
 
         {/* 콘텐츠 영역 */}
         <View style={styles.listContainer}>
           {/* 아이템 목록 */}
-          {itemsState.status === "loading" && itemsState.data?.length === 0 ? (
+          {activeTab === "items" &&
+            (itemsState.status === "loading" && 0 ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={colors.primary} />
                 <Text style={[styles.loadingText, { color: colors.text }]}>
@@ -800,27 +797,15 @@ export default function ExchangeScreen() {
                   {itemsState.error || "아이템 목록을 불러올 수 없습니다."}
                 </Text>
                 <Button
-                  onPress={() => {
-                    const radius = mapRegion.latitudeDelta * 111; // 1도 ≈ 111km
-                    fetchItems(
-                      loadItems(
-                        0,
-                        true,
-                        mapRegion.latitude,
-                        mapRegion.longitude,
-                        radius,
-                      ),
-                    );
-                  }}
+                  onPress={() => fetchItems(loadItems(0, true))}
                   style={styles.emptyButton}
                 >
                   다시 시도
                 </Button>
               </View>
             ) : (
-                <BottomSheetFlatList
-                ref={listRef} // 리스트 스크롤 제어용 ref 연결
-                data={filteredItemsData}
+              <BottomSheetFlatList
+                data={itemsState.data}
                 renderItem={renderItem}
                 keyExtractor={(item: Item) => item.id.toString()}
                 refreshControl={
@@ -830,79 +815,60 @@ export default function ExchangeScreen() {
                   />
                 }
               />
-            )}
+            ))}
+
+          {/* 교환 요청 목록 */}
+          {activeTab === "requests" &&
+            (requestsState.status === "loading" && 0 ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={[styles.loadingText, { color: colors.text }]}>
+                  요청 목록 로딩 중...
+                </Text>
+              </View>
+            ) : requestsState.status === "error" && 0 ? (
+              <View style={styles.emptyContainer}>
+                <Text style={[styles.emptyText, { color: colors.text }]}>
+                  {requestsState.error || "요청 목록을 불러올 수 없습니다."}
+                </Text>
+                <Button
+                  onPress={() => loadExchangeRequests(0, true)}
+                  style={styles.emptyButton}
+                >
+                  다시 시도
+                </Button>
+              </View>
+            ) : (
+              <BottomSheetFlatList
+                data={requestsState.data}
+                renderItem={renderExchangeRequest}
+                keyExtractor={(item: ExchangeRequest) => item.id.toString()}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={handleRefresh}
+                  />
+                }
+              />
+            ))}
         </View>
       </BottomSheet>
 
-      {/* 3. 지도 상단 플로팅 오버레이 버튼들 (항상 바텀시트보다 위에 있어야 하므로 더 나중에 렌더링) */}
-      {/* [Bonus-2] top: insets.top + 8 으로 SafeArea 노치 높이 대응 */}
-      <View style={[styles.topOverlayContainer, { top: insets.top + 8 }]}>
-        <TouchableOpacity style={styles.topOverlayButton} onPress={navigateToCreate}>
-          <Text style={styles.topOverlayButtonText}>+ 등록하기</Text>
+      {/* 3. 플로팅 버튼 그룹 (바텀시트 위에 떠있어야 함) */}
+      <View style={styles.fabContainer}>
+        {/* 현재 위치 버튼 */}
+        <TouchableOpacity
+          style={[styles.fabButton, styles.locationButton]}
+          onPress={moveToCurrentLocation}
+        >
+          <Text style={styles.fabText}>📍</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.topOverlayButton} onPress={() => router.push("/exchange/requests")}>
-          <Text style={styles.topOverlayButtonText}>💬 교환현황</Text>
+
+        {/* 등록 버튼 */}
+        <TouchableOpacity style={styles.fabButton} onPress={navigateToCreate}>
+          <Text style={styles.fabText}>+</Text>
         </TouchableOpacity>
       </View>
-
-      {/* Bug 1 Fix: 재검색 버튼을 topOverlay 아래에 위치시키고 모든 요소 위에 표시 */}
-      {isMapMoved && (
-        <TouchableOpacity
-          style={[
-            styles.reSearchButton,
-            {
-              // [Bonus-2] topOverlay = insets.top + 8 + 버튼화면 높이(약 44px) + 여백(12px)
-              // 이로써 노치 크기에 관계없이 topOverlay 아래에 정확히 위치
-              top: insets.top + 64,
-            },
-          ]}
-          onPress={handleSearchCurrentLocation}
-        >
-          <Text style={styles.reSearchText}>↻ 현 지도에서 재검색</Text>
-        </TouchableOpacity>
-      )}
-
-      {/* Profile Modal (8-11페이지 연결) */}
-      <Modal
-        visible={isProfileModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setProfileModalVisible(false)}
-      >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setProfileModalVisible(false)}
-        >
-          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
-            <View style={styles.modalHeader}>
-              <View style={styles.modalHandle} />
-              <Text style={styles.modalTitle}>내 활동 관리</Text>
-            </View>
-
-            <TouchableOpacity
-              style={styles.modalMenuButton}
-              onPress={() => {
-                setProfileModalVisible(false);
-                router.push("/exchange/my-items");
-              }}
-            >
-              <Text style={styles.modalMenuButtonText}>내가 등록한 물건</Text>
-              <Text style={[{ color: colors.muted }]}>{">"}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.modalMenuButton}
-              onPress={() => {
-                setProfileModalVisible(false);
-                router.push("/exchange/history");
-              }}
-            >
-              <Text style={styles.modalMenuButtonText}>종료된 교환 내역</Text>
-              <Text style={[{ color: colors.muted }]}>{">"}</Text>
-            </TouchableOpacity>
-          </Pressable>
-        </Pressable>
-      </Modal>
     </SafeLayout>
   );
 }

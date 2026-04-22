@@ -1,16 +1,16 @@
 import { SPACING, useUnifiedDesign } from "@/src/styles/unified-design";
 import React from "react";
-import { StyleSheet, View, ViewStyle, StyleProp } from "react-native";
+import { StyleSheet, View, ViewStyle } from "react-native";
 import { SafeAreaView, type Edge } from "react-native-safe-area-context";
 
 /**
- * SafeLayout \ucef4\ud3ec\ub10c\ud2b8 Props
+ * SafeLayout 컴포넌트 Props
  */
 interface SafeLayoutProps {
   children: React.ReactNode;
-  /** \ucd94\uac00 \uc2a4\ud0c0\uc77c (\uc120\ud0dd\uc0ac\ud56d) */
-  style?: StyleProp<ViewStyle>;
-  /** SafeAreaView edges \uc124\uc815 (\uc120\ud0dd\uc0ac\ud56d) */
+  /** 추가 스타일 (선택사항) */
+  style?: ViewStyle;
+  /** SafeAreaView edges 설정 (선택사항) */
   edges?: Edge[];
   /** 내부 콘텐츠에 기본 패딩 적용 여부 */
   withPadding?: boolean;
