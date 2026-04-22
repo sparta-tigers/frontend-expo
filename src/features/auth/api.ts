@@ -44,10 +44,13 @@ export async function authSignupAPI(
  * 로그아웃 API
  * 현재 사용자 세션 종료
  *
+ * @param refreshToken - 리프레시 토큰
  * @returns 로그아웃 성공 응답
  */
-export async function authSignoutAPI(): Promise<ApiResponse<null>> {
-  return apiClient.post("/api/auth/logout");
+export async function authSignoutAPI(
+  refreshToken: string,
+): Promise<ApiResponse<null>> {
+  return apiClient.post("/api/auth/logout", { refreshToken });
 }
 
 /**

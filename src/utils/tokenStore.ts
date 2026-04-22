@@ -1,3 +1,4 @@
+import { Logger, maskSensitive } from "@/src/utils/logger";
 import * as SecureStore from "expo-secure-store";
 
 /**
@@ -36,7 +37,7 @@ export async function getAccessToken(): Promise<string | null> {
     _accessToken = token; // 메모리 캐시 저장
     return token;
   } catch (error) {
-    console.error("Failed to load access token from SecureStore:", error);
+    Logger.error("Failed to load access token from SecureStore:", error);
     return null;
   }
 }
@@ -59,7 +60,7 @@ export async function getRefreshToken(): Promise<string | null> {
     _refreshToken = token; // 메모리 캐시 저장
     return token;
   } catch (error) {
-    console.error("Failed to load refresh token from SecureStore:", error);
+    Logger.error("Failed to load refresh token from SecureStore:", error);
     return null;
   }
 }
@@ -87,7 +88,7 @@ export async function setTokens(
 
     return true;
   } catch (error) {
-    console.error("Failed to save tokens to SecureStore:", error);
+    Logger.error("Failed to save tokens to SecureStore:", error);
 
     // SecureStore 저장 실패 시 메모리도 롤백
     _accessToken = null;
@@ -115,7 +116,7 @@ export async function clearTokens(): Promise<boolean> {
 
     return true;
   } catch (error) {
-    console.error("Failed to clear tokens from SecureStore:", error);
+    Logger.error("Failed to clear tokens from SecureStore:", error);
     return false;
   }
 }
@@ -131,11 +132,6 @@ export async function initializeTokenCache(): Promise<void> {
   _accessToken = null;
   _refreshToken = null;
 
-  // 🚨 디버깅 로그: 초기화 상태 확인
-  if (__DEV__) {
-    console.log("🔍 [Token Cache] 메모리 캐시 초기화 완료");
-  }
-
   // SecureStore에서 토큰 미리 로드
   try {
     const accessToken = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
@@ -146,17 +142,17 @@ export async function initializeTokenCache(): Promise<void> {
       _refreshToken = refreshToken;
 
       if (__DEV__) {
-        console.log("🔍 [Token Cache] SecureStore에서 토큰 로드 완료");
-        console.log("- Access Token:", accessToken.substring(0, 20) + "...");
-        console.log("- Refresh Token:", refreshToken.substring(0, 20) + "...");
+        Logger.debug("[Token Cache] SecureStore에서 토큰 로드 완료");
+        Logger.debug("- Access Token:", maskSensitive(accessToken));
+        Logger.debug("- Refresh Token:", maskSensitive(refreshToken));
       }
     } else {
       if (__DEV__) {
-        console.log("🔍 [Token Cache] SecureStore에 토큰이 없습니다");
+        Logger.debug("[Token Cache] SecureStore에 토큰이 없습니다");
       }
     }
   } catch (error) {
-    console.error("토큰 캐시 초기화 실패:", error);
+    Logger.error("토큰 캐시 초기화 실패:", error);
   }
 }
 
@@ -170,20 +166,14 @@ export function getDebugTokenState(): {
   refreshToken: string | null;
 } {
   if (__DEV__) {
-    console.log("🔍 [Token Cache State]");
-    console.log(
-      "- Access Token:",
-      _accessToken ? `${_accessToken.substring(0, 20)}...` : "null",
-    );
-    console.log(
-      "- Refresh Token:",
-      _refreshToken ? `${_refreshToken.substring(0, 20)}...` : "null",
-    );
-    console.log(
+    Logger.debug("[Token Cache State]");
+    Logger.debug("- Access Token:", maskSensitive(_accessToken));
+    Logger.debug("- Refresh Token:", maskSensitive(_refreshToken));
+    Logger.debug(
       "- Access Token Format:",
       _accessToken?.startsWith("eyJ") ? "JWT" : "Invalid",
     );
-    console.log(
+    Logger.debug(
       "- Refresh Token Format:",
       _refreshToken?.startsWith("eyJ") ? "JWT" : "Invalid",
     );

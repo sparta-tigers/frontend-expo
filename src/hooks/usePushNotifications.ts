@@ -6,6 +6,7 @@ import { Platform } from "react-native";
 
 import { apiClient } from "@/src/core/client";
 import { useAuth } from "@/src/hooks/useAuth";
+import { Logger, maskSensitive } from "@/src/utils/logger";
 
 // 타입 정의
 interface NotificationType {
@@ -29,7 +30,7 @@ try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   Notifications = require("expo-notifications");
 } catch (error) {
-  console.warn("expo-notifications를 임포트할 수 없습니다:", error);
+  Logger.warn("expo-notifications를 임포트할 수 없습니다:", error);
 }
 
 /**
@@ -47,7 +48,7 @@ export function usePushNotifications() {
   useEffect(() => {
     // 안드로이드 Expo Go 환경에서는 푸시 알림 기능 스킵
     if (Platform.OS === "android" && __DEV__ && !Notifications) {
-      console.log("안드로이드 Expo Go 환경: 푸시 알림 기능이 제한됩니다.");
+      Logger.debug("안드로이드 Expo Go 환경: 푸시 알림 기능이 제한됩니다.");
       return;
     }
 
@@ -58,14 +59,14 @@ export function usePushNotifications() {
     const registerForPushNotificationsAsync = async () => {
       try {
         if (!Notifications) {
-          console.log("푸시 알림 모듈을 사용할 수 없습니다.");
+          Logger.debug("푸시 알림 모듈을 사용할 수 없습니다.");
           return null;
         }
 
         // 1. 권한 요청
         const { status } = await Notifications.requestPermissionsAsync();
         if (status !== "granted") {
-          console.log("알림 권한이 거부되었습니다.");
+          Logger.debug("알림 권한이 거부되었습니다.");
           return null;
         }
 
@@ -74,7 +75,7 @@ export function usePushNotifications() {
           const projectId = Constants.expoConfig?.extra?.eas?.projectId;
 
           if (!projectId) {
-            console.warn(
+            Logger.warn(
               "EAS Project ID를 찾을 수 없습니다. app.json을 확인하세요.",
             );
             return null;
@@ -86,11 +87,11 @@ export function usePushNotifications() {
 
           return token.data;
         } else {
-          console.log("실제 기기가 아닙니다.");
+          Logger.debug("실제 기기가 아닙니다.");
           return null;
         }
       } catch (error) {
-        console.error("푸시 알림 설정 에러:", error);
+        Logger.error("푸시 알림 설정 에러:", error);
         return null;
       }
     };
@@ -100,7 +101,7 @@ export function usePushNotifications() {
       if (!token) return;
 
       setExpoPushToken(token);
-      console.log("Expo Push Token:", token);
+      Logger.debug("Expo Push Token:", maskSensitive(token));
     });
 
     // 채널 설정 (Android)
@@ -114,7 +115,7 @@ export function usePushNotifications() {
             sound: "default",
           });
         } catch (error) {
-          console.error("알림 채널 설정 에러:", error);
+          Logger.error("알림 채널 설정 에러:", error);
         }
       }
     };
@@ -125,7 +126,7 @@ export function usePushNotifications() {
     if (Notifications) {
       notificationListener = Notifications.addNotificationReceivedListener(
         (receivedNotification: NotificationType) => {
-          console.log("알림 수신:", receivedNotification);
+          Logger.debug("알림 수신:", receivedNotification);
           setNotification(receivedNotification);
         },
       );
@@ -133,15 +134,15 @@ export function usePushNotifications() {
       // 🚨 앙드레 카파시: 알림 응답 리스너 (딥링킹)
       responseListener = Notifications.addNotificationResponseReceivedListener(
         (response: NotificationResponse) => {
-          console.log("알림 응답:", response);
+          Logger.debug("알림 응답:", response);
 
           // 🚨 앙드레 카파시: 딥링킹 처리
           const { roomId } = response.notification.request.content.data || {};
           if (roomId) {
-            console.log("🔗 [Deep Link] 채팅방으로 이동:", roomId);
+            Logger.debug("🔗 [Deep Link] 채팅방으로 이동:", roomId);
             router.push(`/exchange/chat/${roomId}`);
           } else {
-            console.log("🔗 [Deep Link] roomId가 없어 기본 화면으로 이동");
+            Logger.debug("🔗 [Deep Link] roomId가 없어 기본 화면으로 이동");
             router.push("/(tabs)");
           }
         },
@@ -169,9 +170,9 @@ export function usePushNotifications() {
           token: expoPushToken,
           deviceType: Device.osName ?? "UNKNOWN",
         });
-        console.log("디바이스 토큰 등록 결과:", response);
+        Logger.debug("디바이스 토큰 등록 결과:", response);
       } catch (error) {
-        console.error("디바이스 토큰 등록 실패:", error);
+        Logger.error("디바이스 토큰 등록 실패:", error);
       }
     };
 

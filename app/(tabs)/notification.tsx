@@ -13,6 +13,7 @@ import {
 } from "@/src/features/notification/types";
 import { useAuth } from "@/src/hooks/useAuth";
 import { SPACING } from "@/src/styles/unified-design";
+import { Logger } from "@/src/utils/logger";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -40,10 +41,13 @@ export default function NotificationScreen() {
       if (response.resultType === "SUCCESS") {
         setAlarms(response.data || []);
       } else {
-        console.error("티켓 알림 목록 조회 실패:", response.error);
+        Logger.error("티켓 알림 목록 조회 실패:", response.error);
       }
     } catch (error) {
-      console.error("네트워크 에러:", error);
+      Logger.error(
+        "네트워크 에러:",
+        error instanceof Error ? error.message : String(error),
+      );
     } finally {
       setLoading(false);
     }
@@ -92,7 +96,10 @@ export default function NotificationScreen() {
                 Alert.alert("오류", "티켓 알림 추가에 실패했습니다.");
               }
             } catch (error) {
-              console.error("티켓 알림 추가 실패:", error);
+              Logger.error(
+                "티켓 알림 추가 실패:",
+                error instanceof Error ? error.message : String(error),
+              );
               Alert.alert("오류", "네트워크 에러가 발생했습니다.");
             } finally {
               setLoading(false);
@@ -128,7 +135,10 @@ export default function NotificationScreen() {
                 Alert.alert("오류", "티켓 알림 삭제에 실패했습니다.");
               }
             } catch (error) {
-              console.error("티켓 알림 삭제 실패:", error);
+              Logger.error(
+                "티켓 알림 삭제 실패:",
+                error instanceof Error ? error.message : String(error),
+              );
               Alert.alert("오류", "네트워크 에러가 발생했습니다.");
             } finally {
               setLoading(false);
