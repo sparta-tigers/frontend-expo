@@ -74,9 +74,16 @@ export default function ChatRoomScreen() {
   const { user } = useAuth();
   const { colors } = useTheme();
 
+  // [DEBUG] 컴포넌트 마운트 로그 - 라우팅 성공 여부 증명
+  Logger.debug("[ChatRoomScreen] 마운트 됨. 전달받은 파라미터:", roomId);
+
   const [messageText, setMessageText] = useState("");
 
   const roomIdNumber = Number(roomId);
+
+  // [FAIL-FAST] roomId 유효성 검증 - 에러 상태 관리
+  const isRoomIdInvalid =
+    !roomId || !Number.isFinite(roomIdNumber) || roomIdNumber <= 0;
 
   // 상태 관리: 메시지 입력 기능 확장 시 활용 예정
 
@@ -315,7 +322,10 @@ export default function ChatRoomScreen() {
   const { mutate: updateItemStatus } = useMutation({
     mutationFn: async (newStatus: "COMPLETE" | "CANCEL") => {
       if (!exchangeItem?.itemId) throw new Error("itemId missing");
-      const response = await itemsUpdateStatusAPI(exchangeItem.itemId, newStatus);
+      const response = await itemsUpdateStatusAPI(
+        exchangeItem.itemId,
+        newStatus,
+      );
       if (response.resultType !== "SUCCESS") {
         throw new Error("status update failed");
       }
@@ -446,6 +456,34 @@ export default function ChatRoomScreen() {
     </View>
   );
 
+  // [FAIL-FAST] roomId 유효성 검증 - 명시적 에러 UI 노출
+  if (isRoomIdInvalid) {
+    return (
+      <KeyboardAvoidingView
+        style={[styles.container, { backgroundColor: colors.background }]}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      >
+        <Stack.Screen
+          options={{
+            title: "교환 채팅",
+            headerShown: true,
+          }}
+        />
+        <View
+          style={[
+            styles.errorContainer,
+            { backgroundColor: colors.background },
+          ]}
+        >
+          <Text style={[styles.errorText, { color: colors.text }]}>
+            채팅방 연결 오류: ID 없음
+          </Text>
+        </View>
+      </KeyboardAvoidingView>
+    );
+  }
+
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: colors.background }]}
@@ -480,7 +518,9 @@ export default function ChatRoomScreen() {
       <FlatList
         inverted={true}
         data={flattenedMessages}
-        keyExtractor={(item, index) => String(item.id ?? item.timestamp ?? index)}
+        keyExtractor={(item, index) =>
+          String(item.id ?? item.timestamp ?? index)
+        }
         contentContainerStyle={styles.messageListContent}
         renderItem={({ item }) => (
           <View
@@ -574,6 +614,16 @@ export default function ChatRoomScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: SPACING.SCREEN,
+  },
+  errorText: {
+    fontSize: FONT_SIZE.BODY,
+    textAlign: "center",
   },
   itemHeader: {
     padding: SPACING.COMPONENT,
