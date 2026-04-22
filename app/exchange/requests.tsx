@@ -277,9 +277,23 @@ export default function ExchangeRequestsScreen() {
             </TouchableOpacity>
           </View>
         )}
+
+        {/* [UX FIX] ACCEPTED 상태: 채팅방 이동 버튼 노출 */}
+        {item.exchangeStatus === "ACCEPTED" && item.directRoomId && (
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={[styles.acceptButton, { backgroundColor: colors.primary }]}
+              onPress={() => router.push(`/exchange/chat/${item.directRoomId}`)}
+            >
+              <Text style={[styles.buttonText, { color: colors.background }]}>
+                채팅방 가기
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     ),
-    [colors, handleAcceptRequest, handleRejectRequest, processingId],
+    [colors, handleAcceptRequest, handleRejectRequest, processingId, router],
   );
 
   // [P1-1] 보낸 교환 요청 렌더링 (대기중, 수락됨, 거절됨 상태 표출만)

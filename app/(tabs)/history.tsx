@@ -158,7 +158,7 @@ export default function HistoryScreen() {
           <Button
             variant="primary"
             size="sm"
-            onPress={() => router.push(`/chat/${item.directRoomId}`)}
+            onPress={() => router.push(`/exchange/chat/${item.directRoomId}`)}
             style={styles.chatButton}
           >
             채팅방 가기

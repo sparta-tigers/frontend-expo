@@ -240,24 +240,32 @@ export default function ChatRoomScreen() {
       `/server/directRoom/${roomIdNumber}`,
       (message) => {
         try {
+          /**
+           * [BUG FIX] 백엔드 ChatMessageResponse 필드명 정합
+           * 백엔드 실제 전송 필드: roomId, senderId, messageId, senderNickname, message, sentAt
+           * 기존 코드: id, content, senderName으로 파싱 → 모두 undefined
+           */
           const parsed = JSON.parse(message.body) as {
-            id: number;
+            messageId?: number;
+            id?: number;
             roomId: number;
             senderId: number;
+            senderNickname?: string;
             senderName?: string;
-            content: string;
-            timestamp?: string;
+            message?: string;
+            content?: string;
             sentAt?: string;
+            timestamp?: string;
             createdAt?: string;
             type?: "CHAT" | "SYSTEM";
           };
 
           const normalized: ChatMessage = {
-            id: parsed.id,
+            id: parsed.messageId ?? parsed.id ?? Date.now(),
             roomId: roomIdNumber,
             senderId: parsed.senderId,
-            senderName: parsed.senderName ?? "",
-            content: parsed.content,
+            senderName: parsed.senderNickname ?? parsed.senderName ?? "",
+            content: parsed.message ?? parsed.content ?? "",
             timestamp:
               parsed.sentAt ??
               parsed.timestamp ??

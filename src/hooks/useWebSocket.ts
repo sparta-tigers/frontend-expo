@@ -22,16 +22,23 @@ interface UseWebSocketReturn {
   client: Client | null;
   connect: () => Promise<void>;
   disconnect: () => void;
-  sendMessage: (destination: string, body: any) => void;
+  sendMessage: (destination: string, body: unknown) => void;
 }
 
+/**
+ * 채팅 도메인 타입
+ * 백엔드 StompInterceptor의 ChatDomain 헤더와 정확히 매칭되어야 함
+ * - "liveboard" → ChatDomainType.LIVEBOARD
+ * - "directroom" → ChatDomainType.EXCHANGE
+ * - "location" → ChatDomainType.LOCATION
+ */
 type ChatDomain = "liveboard" | "directroom" | "location";
 
 /**
  * Polyfill 방어 코드
  * React Native 환경에서 TextEncoder 확인
  */
-const checkPolyfills = () => {
+const checkPolyfills = (): boolean => {
   if (!global.TextEncoder) {
     Logger.warn(
       "TextEncoder polyfill missing. WebSocket connection may fail. " +
@@ -46,53 +53,27 @@ const checkPolyfills = () => {
  * 동적 WebSocket URL 설정
  * 개발 환경의 안드로이드 에뮬레이터에서는 10.0.2.2로 강제 설정
  */
-const getDynamicWebSocketURL = (url?: string): string => {
+const getWebSocketURL = (url?: string): string => {
   const defaultUrl = "http://localhost:8080/ws";
+  const resolved = url || defaultUrl;
 
-  if (!url) {
-    // 개발 환경의 안드로이드 에뮬레이터용 핫픽스
-    if (__DEV__ && Platform.OS === "android") {
-      return "http://10.0.2.2:8080/ws";
-    }
-    return defaultUrl;
+  // 개발 환경 + 안드로이드 에뮬레이터 → localhost를 10.0.2.2로 치환
+  if (__DEV__ && Platform.OS === "android") {
+    return resolved.replace(/localhost|127\.0\.0\.1/, "10.0.2.2");
   }
 
-  // http/https로 시작하면 SockJS 사용 (백엔드 핸드셰이크 호환)
-  if (url.startsWith("http://") || url.startsWith("https://")) {
-    // 개발 환경의 안드로이드 에뮬레이터용 핫픽스
-    if (__DEV__ && Platform.OS === "android") {
-      return url.replace(/:\/\/[^:]+:\d+/, "://10.0.2.2:8080");
-    }
-    return url;
-  }
-
-  // ws/wss로 시작하면 그대로 사용 (직접 WebSocket)
-  if (url.startsWith("ws://") || url.startsWith("wss://")) {
-    // 개발 환경의 안드로이드 에뮬레이터용 핫픽스
-    if (__DEV__ && Platform.OS === "android") {
-      return url.replace(/:\/\/[^:]+:\d+/, "://10.0.2.2:8080");
-    }
-    return url;
-  }
-
-  // 그 외의 경우 기본값 사용
-  return defaultUrl;
-};
-
-/**
- * URL 프로토콜 처리
- * http/https -> SockJS 호환, ws/wss -> 직접 연결
- */
-const normalizeUrl = (url?: string): string => {
-  return getDynamicWebSocketURL(url);
+  return resolved;
 };
 
 /**
  * WebSocket 훅 (State-Driven Architecture)
- * 백엔드 WebSocket 서버와의 실시간 통신을 관리
  *
- * @param url - WebSocket 서버 URL
- * @returns WebSocket 연결 상태 및 제어 함수들
+ * [Migration Note] useChatWebSocket.ts의 핵심 로직을 병합:
+ * ① 비동기 JWT 토큰 Fetch (await getAccessToken())
+ * ② 중복 연결 방어 락 (connectingRef로 race condition 방지)
+ *
+ * @param url - WebSocket 서버 URL (기본값: http://localhost:8080/ws)
+ * @param chatDomain - 채팅 도메인 타입 (백엔드 Interceptor Fail-fast 검증 대상)
  */
 export function useWebSocket(
   url?: string,
@@ -108,6 +89,13 @@ export function useWebSocket(
   const clientRef = useRef<Client | null>(null);
 
   /**
+   * [Migration from useChatWebSocket] 중복 연결 방어 락
+   * useCallback 내부에서 상태를 읽지 않고 ref로 관리하여
+   * 클로저 캡처에 의한 stale 값 문제를 원천 차단
+   */
+  const connectingRef = useRef(false);
+
+  /**
    * WebSocket 연결 함수
    */
   const connect = useCallback(async () => {
@@ -117,73 +105,81 @@ export function useWebSocket(
       return;
     }
 
-    // 이미 연결된 경우
-    if (clientRef.current?.connected) {
-      Logger.debug("WebSocket already connected");
+    // [Migration] 중복 연결 방어 — 이미 연결 중이거나 연결된 상태면 무시
+    if (connectingRef.current || clientRef.current?.connected) {
+      Logger.debug("[useWebSocket] 이미 연결 중이거나 연결됨 — skip");
       return;
     }
 
+    connectingRef.current = true;
     setStatus("CONNECTING");
 
     try {
-      // JWT 토큰 가져오기 (TokenStore 사용)
+      // [Migration from useChatWebSocket] 비동기 JWT 토큰 Fetch
       const accessToken = await getAccessToken();
+      const resolvedUrl = getWebSocketURL(url);
 
-      const normalizedUrl = normalizeUrl(url);
+      const useSockJS =
+        resolvedUrl.startsWith("http://") ||
+        resolvedUrl.startsWith("https://");
 
-      let stompClient: Client;
-
-      // URL 프로토콜에 따라 연결 방식 결정
-      if (
-        normalizedUrl.startsWith("http://") ||
-        normalizedUrl.startsWith("https://")
-      ) {
-        // SockJS를 통한 연결 (백엔드 핸드셰이크 호환)
-        const socket = new SockJS(normalizedUrl);
-        stompClient = new Client({
-          webSocketFactory: () => socket,
-          connectHeaders: {
-            Authorization: `Bearer ${accessToken || ""}`,
-            ChatDomain: chatDomain,
-          },
-        });
-      } else {
-        // 직접 WebSocket 연결
-        stompClient = new Client({
-          brokerURL: normalizedUrl,
-          connectHeaders: {
-            Authorization: `Bearer ${accessToken || ""}`,
-            ChatDomain: chatDomain,
-          },
-        });
-      }
+      const stompClient = new Client({
+        // ✅ [CRITICAL FIX] SockJS 인스턴스를 webSocketFactory 내부에서 생성
+        // 기존: new SockJS()를 외부에서 생성 → activate() 전에 소켓 상태 변이 → race condition
+        // 수정: activate() 호출 시 팩토리가 실행되어 새 SockJS 인스턴스 생성
+        ...(useSockJS
+          ? { webSocketFactory: () => new SockJS(resolvedUrl) }
+          : { brokerURL: resolvedUrl }),
+        connectHeaders: {
+          Authorization: `Bearer ${accessToken || ""}`,
+          /**
+           * [CRITICAL] ChatDomain 헤더 명시적 주입
+           * 백엔드 StompInterceptor가 Fail-fast로 검증:
+           * - null/blank → IllegalArgumentException → 연결 즉시 거부
+           * - 매칭 불가 → IllegalArgumentException
+           */
+          ChatDomain: chatDomain,
+        },
+        // ✅ [FIX] reconnectDelay 추가 — 네트워크 불안정 시 5초 후 자동 재연결
+        reconnectDelay: 5000,
+        heartbeatIncoming: 4000,
+        heartbeatOutgoing: 4000,
+      });
 
       // State-Driven 콜백들
       stompClient.onConnect = () => {
-        Logger.debug("WebSocket CONNECTED");
+        Logger.debug("[useWebSocket] STOMP CONNECTED");
+        connectingRef.current = false;
         setStatus("CONNECTED");
       };
 
       stompClient.onStompError = (frame) => {
-        Logger.error("STOMP Error:", frame);
+        Logger.error("[useWebSocket] STOMP Error:", frame.headers?.message ?? frame);
+        connectingRef.current = false;
+        setStatus("ERROR");
+      };
+
+      stompClient.onWebSocketError = (event) => {
+        Logger.error("[useWebSocket] WebSocket transport error:", event);
+        connectingRef.current = false;
         setStatus("ERROR");
       };
 
       stompClient.onDisconnect = () => {
-        Logger.debug("WebSocket DISCONNECTED");
+        Logger.debug("[useWebSocket] STOMP DISCONNECTED");
+        connectingRef.current = false;
         setStatus("DISCONNECTED");
       };
 
-      // [BUG FIX] Ref와 State 양쪽에 모두 저장
-      // Ref: 안정적인 참조 보장 (disconnect, cleanup에서 사용)
-      // State: 컴포넌트 리렌더 트리거 (onConnect 콜백 후 컴포넌트에 전달)
+      // Ref와 State 양쪽에 모두 저장
       clientRef.current = stompClient;
       setClient(stompClient);
 
       // 연결 활성화
       stompClient.activate();
     } catch (error) {
-      Logger.error("WebSocket connection error:", error);
+      Logger.error("[useWebSocket] connection error:", error);
+      connectingRef.current = false;
       setStatus("ERROR");
     }
   }, [chatDomain, url]);
@@ -194,25 +190,26 @@ export function useWebSocket(
   const disconnect = useCallback(() => {
     if (clientRef.current?.connected) {
       clientRef.current.deactivate();
-      Logger.debug("WebSocket disconnected");
-      setStatus("DISCONNECTED");
-      setClient(null);
+      Logger.debug("[useWebSocket] disconnected");
     }
+    connectingRef.current = false;
+    setStatus("DISCONNECTED");
+    setClient(null);
   }, []);
 
   /**
    * 메시지 전송 함수
-   * @param destination - 메시지 목적지 (예: "/client/chat")
+   * @param destination - 메시지 목적지 (예: "/client/directRoom/send")
    * @param body - 전송할 데이터
    */
-  const sendMessage = useCallback((destination: string, body: any) => {
+  const sendMessage = useCallback((destination: string, body: unknown) => {
     if (clientRef.current?.connected) {
       clientRef.current.publish({
         destination,
         body: typeof body === "string" ? body : JSON.stringify(body),
       });
     } else {
-      Logger.warn("WebSocket not connected. Cannot send message.");
+      Logger.warn("[useWebSocket] not connected. Cannot send message.");
     }
   }, []);
 
@@ -220,16 +217,16 @@ export function useWebSocket(
   useEffect(() => {
     connect();
 
-    // Cleanup Logic: 컴포넌트 언마운트 시 정리
+    // Cleanup: 컴포넌트 언마운트 시 정리
     return () => {
       if (clientRef.current?.connected) {
         clientRef.current.deactivate();
-        Logger.debug("WebSocket cleanup: deactivated");
+        Logger.debug("[useWebSocket] cleanup: deactivated");
       }
       clientRef.current = null;
+      connectingRef.current = false;
       setClient(null);
       setStatus("DISCONNECTED");
-      Logger.debug("WebSocket cleanup: state reset");
     };
   }, [connect]);
 
