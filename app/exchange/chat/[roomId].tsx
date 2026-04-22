@@ -173,10 +173,35 @@ export default function ChatRoomScreen() {
         ["chatMessages", roomIdNumber],
         (oldData: InfiniteData<ChatMessagesPage, number> | undefined) => {
           if (!oldData || oldData.pages.length === 0) return oldData;
+
+          const prevContent = oldData.pages[0].content;
+
+          // 1단계: 낙관적 찌꺼기 청소 (임시 ID(음수)를 가진 메시지 제거)
+          // 조건: 음수 ID이고 senderId와 content가 수신된 메시지와 일치하면 제거
+          const cleanList = prevContent.filter(
+            (msg) =>
+              !(
+                msg.id < 0 &&
+                msg.senderId === newMessage.senderId &&
+                msg.content === newMessage.content
+              ),
+          );
+
+          // 2단계: 이중 구독 방어 (동일한 DB ID 존재 시 무시)
+          // 조건: 수신된 메시지의 ID가 이미 리스트에 존재하면 무시
+          if (cleanList.some((msg) => msg.id === newMessage.id)) {
+            Logger.debug(
+              "[ChatRoom] 이중 구독 방어 - 동일한 DB ID 이미 존재:",
+              newMessage.id,
+            );
+            return oldData;
+          }
+
+          // 3단계: 안전한 병합
           const nextPages = [...oldData.pages];
           nextPages[0] = {
             ...nextPages[0],
-            content: [newMessage, ...nextPages[0].content],
+            content: [newMessage, ...cleanList],
           };
           return { ...oldData, pages: nextPages };
         },
@@ -203,7 +228,7 @@ export default function ChatRoomScreen() {
 
     const now = new Date().toISOString();
     const optimistic: ChatMessage = {
-      id: Date.now(),
+      id: -Date.now(),
       roomId: roomIdNumber,
       senderId: user.userId,
       senderName: user.nickname ?? "",
@@ -290,7 +315,10 @@ export default function ChatRoomScreen() {
     );
 
     return () => {
-      subscription.unsubscribe();
+      if (subscription) {
+        subscription.unsubscribe();
+        Logger.debug("[ChatRoom] WebSocket 구독 해제 완료");
+      }
     };
   }, [client, handleMessageReceived, isConnected, roomIdNumber, user?.userId]);
 
@@ -518,9 +546,7 @@ export default function ChatRoomScreen() {
       <FlatList
         inverted={true}
         data={flattenedMessages}
-        keyExtractor={(item, index) =>
-          String(item.id ?? item.timestamp ?? index)
-        }
+        keyExtractor={(item) => String(item.id)}
         contentContainerStyle={styles.messageListContent}
         renderItem={({ item }) => (
           <View
