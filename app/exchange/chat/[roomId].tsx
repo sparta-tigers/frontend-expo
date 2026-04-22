@@ -558,6 +558,11 @@ export default function ChatRoomScreen() {
               },
             ]}
           >
+            {!item.isMine && (
+              <Text style={[styles.senderName, { color: colors.muted }]}>
+                {item.senderName}
+              </Text>
+            )}
             <Text
               style={[
                 styles.messageText,
@@ -727,6 +732,11 @@ const styles = StyleSheet.create({
   },
   messageText: {
     fontSize: FONT_SIZE.BODY,
+  },
+  senderName: {
+    fontSize: FONT_SIZE.SMALL,
+    fontWeight: "600",
+    marginBottom: SPACING.TINY,
   },
   paginationLoading: {
     paddingVertical: SPACING.SMALL,
