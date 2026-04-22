@@ -86,9 +86,18 @@ export function useWebSocket(
    * WebSocket 연결 함수
    */
   const connect = useCallback(async () => {
+    // [DEBUG] connect() 함수 진입 로그
+    Logger.debug("[useWebSocket] connect() 함수 진입. 현재 roomId:", roomId);
+
     // [SAFETY] directroom 도메인인데 roomId가 없으면 연결 시도 금지
-    if (chatDomain === "directroom" && (!roomId || roomId === "undefined" || roomId === "null")) {
-      Logger.warn("[useWebSocket] roomId가 유효하지 않아 연결을 중단합니다:", roomId);
+    if (
+      chatDomain === "directroom" &&
+      (!roomId || roomId === "undefined" || roomId === "null")
+    ) {
+      Logger.warn(
+        "[useWebSocket] roomId가 유효하지 않아 연결을 중단합니다:",
+        roomId,
+      );
       setStatus("ERROR");
       return;
     }
@@ -113,8 +122,15 @@ export function useWebSocket(
       const resolvedUrl = getWebSocketURL(url);
 
       const useSockJS =
-        resolvedUrl.startsWith("http://") ||
-        resolvedUrl.startsWith("https://");
+        resolvedUrl.startsWith("http://") || resolvedUrl.startsWith("https://");
+
+      // [DEBUG] SockJS 인스턴스 생성 직전
+      Logger.debug(
+        "[useWebSocket] STOMP Client 인스턴스 생성 직전. URL:",
+        resolvedUrl,
+        "UseSockJS:",
+        useSockJS,
+      );
 
       const stompClient = new Client({
         ...(useSockJS
@@ -131,14 +147,22 @@ export function useWebSocket(
         heartbeatOutgoing: 4000,
       });
 
+      // [DEBUG] SockJS 인스턴스 생성 직후
+      Logger.debug("[useWebSocket] STOMP Client 인스턴스 생성 완료");
+
       stompClient.onConnect = () => {
-        Logger.debug(`[useWebSocket] STOMP CONNECTED (Domain: ${chatDomain}, Room: ${roomId})`);
+        Logger.debug(
+          `[useWebSocket] STOMP CONNECTED (Domain: ${chatDomain}, Room: ${roomId})`,
+        );
         connectingRef.current = false;
         setStatus("CONNECTED");
       };
 
       stompClient.onStompError = (frame) => {
-        Logger.error("[useWebSocket] STOMP Error:", frame.headers?.message ?? frame);
+        Logger.error(
+          "[useWebSocket] STOMP Error:",
+          frame.headers?.message ?? frame,
+        );
         connectingRef.current = false;
         setStatus("ERROR");
       };
@@ -157,6 +181,9 @@ export function useWebSocket(
 
       clientRef.current = stompClient;
       setClient(stompClient);
+
+      // [DEBUG] activate() 호출 시점
+      Logger.debug("[useWebSocket] STOMP Client activate() 호출");
       stompClient.activate();
     } catch (error) {
       Logger.error("[useWebSocket] connection error:", error);
