@@ -157,7 +157,7 @@ export default function ChatRoomScreen() {
     client,
     connect,
     status: wsStatus,
-  } = useWebSocket(undefined, "directroom");
+  } = useWebSocket(roomId, "directroom");
   const isConnected = wsStatus === "CONNECTED";
 
   const handleMessageReceived = useCallback(

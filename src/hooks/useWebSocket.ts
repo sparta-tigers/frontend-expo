@@ -68,44 +68,38 @@ const getWebSocketURL = (url?: string): string => {
 /**
  * WebSocket 훅 (State-Driven Architecture)
  *
- * [Migration Note] useChatWebSocket.ts의 핵심 로직을 병합:
- * ① 비동기 JWT 토큰 Fetch (await getAccessToken())
- * ② 중복 연결 방어 락 (connectingRef로 race condition 방지)
- *
- * @param url - WebSocket 서버 URL (기본값: http://localhost:8080/ws)
+ * @param roomId - 채팅방 ID (directroom 도메인에서는 필수)
  * @param chatDomain - 채팅 도메인 타입 (백엔드 Interceptor Fail-fast 검증 대상)
+ * @param url - WebSocket 서버 URL (기본값: http://localhost:8080/ws)
  */
 export function useWebSocket(
-  url?: string,
+  roomId?: string | number,
   chatDomain: ChatDomain = "directroom",
+  url?: string,
 ): UseWebSocketReturn {
   const [status, setStatus] = useState<ConnectionState>("DISCONNECTED");
-  /**
-   * [BUG FIX] clientRef와 별도로 client 상태를 useState로 관리
-   * clientRef.current는 ref 변경 시 리렌더를 트리거하지 않아 컴포넌트가
-   * 항상 null을 받는 문제가 있었음. useState와 병행 관리로 해결.
-   */
   const [client, setClient] = useState<Client | null>(null);
   const clientRef = useRef<Client | null>(null);
-
-  /**
-   * [Migration from useChatWebSocket] 중복 연결 방어 락
-   * useCallback 내부에서 상태를 읽지 않고 ref로 관리하여
-   * 클로저 캡처에 의한 stale 값 문제를 원천 차단
-   */
   const connectingRef = useRef(false);
 
   /**
    * WebSocket 연결 함수
    */
   const connect = useCallback(async () => {
+    // [SAFETY] directroom 도메인인데 roomId가 없으면 연결 시도 금지
+    if (chatDomain === "directroom" && (!roomId || roomId === "undefined" || roomId === "null")) {
+      Logger.warn("[useWebSocket] roomId가 유효하지 않아 연결을 중단합니다:", roomId);
+      setStatus("ERROR");
+      return;
+    }
+
     // Polyfill 확인
     if (!checkPolyfills()) {
       setStatus("ERROR");
       return;
     }
 
-    // [Migration] 중복 연결 방어 — 이미 연결 중이거나 연결된 상태면 무시
+    // 중복 연결 방어
     if (connectingRef.current || clientRef.current?.connected) {
       Logger.debug("[useWebSocket] 이미 연결 중이거나 연결됨 — skip");
       return;
@@ -115,7 +109,6 @@ export function useWebSocket(
     setStatus("CONNECTING");
 
     try {
-      // [Migration from useChatWebSocket] 비동기 JWT 토큰 Fetch
       const accessToken = await getAccessToken();
       const resolvedUrl = getWebSocketURL(url);
 
@@ -124,31 +117,22 @@ export function useWebSocket(
         resolvedUrl.startsWith("https://");
 
       const stompClient = new Client({
-        // ✅ [CRITICAL FIX] SockJS 인스턴스를 webSocketFactory 내부에서 생성
-        // 기존: new SockJS()를 외부에서 생성 → activate() 전에 소켓 상태 변이 → race condition
-        // 수정: activate() 호출 시 팩토리가 실행되어 새 SockJS 인스턴스 생성
         ...(useSockJS
           ? { webSocketFactory: () => new SockJS(resolvedUrl) }
           : { brokerURL: resolvedUrl }),
         connectHeaders: {
           Authorization: `Bearer ${accessToken || ""}`,
-          /**
-           * [CRITICAL] ChatDomain 헤더 명시적 주입
-           * 백엔드 StompInterceptor가 Fail-fast로 검증:
-           * - null/blank → IllegalArgumentException → 연결 즉시 거부
-           * - 매칭 불가 → IllegalArgumentException
-           */
           ChatDomain: chatDomain,
+          // [DEBUG] roomId를 헤더에 포함하여 서버 로그에서 추적 가능하게 함
+          RoomId: String(roomId || ""),
         },
-        // ✅ [FIX] reconnectDelay 추가 — 네트워크 불안정 시 5초 후 자동 재연결
         reconnectDelay: 5000,
         heartbeatIncoming: 4000,
         heartbeatOutgoing: 4000,
       });
 
-      // State-Driven 콜백들
       stompClient.onConnect = () => {
-        Logger.debug("[useWebSocket] STOMP CONNECTED");
+        Logger.debug(`[useWebSocket] STOMP CONNECTED (Domain: ${chatDomain}, Room: ${roomId})`);
         connectingRef.current = false;
         setStatus("CONNECTED");
       };
@@ -171,22 +155,16 @@ export function useWebSocket(
         setStatus("DISCONNECTED");
       };
 
-      // Ref와 State 양쪽에 모두 저장
       clientRef.current = stompClient;
       setClient(stompClient);
-
-      // 연결 활성화
       stompClient.activate();
     } catch (error) {
       Logger.error("[useWebSocket] connection error:", error);
       connectingRef.current = false;
       setStatus("ERROR");
     }
-  }, [chatDomain, url]);
+  }, [chatDomain, roomId, url]);
 
-  /**
-   * WebSocket 연결 해제 함수
-   */
   const disconnect = useCallback(() => {
     if (clientRef.current?.connected) {
       clientRef.current.deactivate();
@@ -197,11 +175,6 @@ export function useWebSocket(
     setClient(null);
   }, []);
 
-  /**
-   * 메시지 전송 함수
-   * @param destination - 메시지 목적지 (예: "/client/directRoom/send")
-   * @param body - 전송할 데이터
-   */
   const sendMessage = useCallback((destination: string, body: unknown) => {
     if (clientRef.current?.connected) {
       clientRef.current.publish({
@@ -213,11 +186,9 @@ export function useWebSocket(
     }
   }, []);
 
-  // 컴포넌트 마운트 시 자동 연결
   useEffect(() => {
     connect();
 
-    // Cleanup: 컴포넌트 언마운트 시 정리
     return () => {
       if (clientRef.current?.connected) {
         clientRef.current.deactivate();
