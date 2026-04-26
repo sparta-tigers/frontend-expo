@@ -21,11 +21,16 @@ import {
   Text,
   TouchableOpacity,
   View,
+  FlatList,
+  Dimensions,
 } from "react-native";
+
 import ImageViewing from "react-native-image-viewing";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button } from "@/components/ui/button";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 // 정적 스타일 정의
 const styles = StyleSheet.create({
@@ -300,29 +305,29 @@ export default function ItemDetailScreen() {
 
     return (
       <View style={styles.imageCarousel}>
-        <ScrollView
+        <FlatList
+          data={images}
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
+          keyExtractor={(_, index) => `image-${index}`}
           onMomentumScrollEnd={(event) => {
             const { width } = event.nativeEvent.layoutMeasurement;
             const index = Math.round(event.nativeEvent.contentOffset.x / width);
             setCurrentImageIndex(index);
           }}
-        >
-          {images.map((imageUrl: string, index: number) => (
+          renderItem={({ item: imageUrl, index }) => (
             <TouchableOpacity
-              key={index}
-              style={styles.imageContainer}
+              style={[styles.imageContainer, { width: SCREEN_WIDTH }]}
               onPress={() => {
                 setImageViewerIndex(index);
                 setIsImageViewerVisible(true);
               }}
             >
-              <Image source={{ uri: getImageUrl(imageUrl) }} style={styles.image} />
+              <Image source={{ uri: getImageUrl(imageUrl as string) }} style={styles.image} />
             </TouchableOpacity>
-          ))}
-        </ScrollView>
+          )}
+        />
 
         {/* 이미지 인디케이터 */}
         {images.length > 1 && (

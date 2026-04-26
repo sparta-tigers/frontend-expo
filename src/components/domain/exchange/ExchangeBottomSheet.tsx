@@ -2,7 +2,7 @@ import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View, InteractionManager } from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -101,7 +101,9 @@ export const ExchangeBottomSheet: React.FC<ExchangeBottomSheetProps> = ({
       queryClient.invalidateQueries({ queryKey: ["myItems"] });
 
       // 3. 🚨 앙드레 카파시: Atomic Routing - 즉시 채팅방으로 이동
-      router.replace(`/exchange/chat/${roomId}`);
+      InteractionManager.runAfterInteractions(() => {
+        router.replace(`/exchange/chat/${roomId}`);
+      });
     },
     onError: (error) => {
       Alert.alert("오류", "교환 신청에 실패했습니다.");
