@@ -288,6 +288,56 @@ const styles = StyleSheet.create({
 });
 
 /**
+ * 지도 마커 렌더링 최적화 컴포넌트
+ * 바텀시트 상태 변경 등과 독립적으로 마커 리렌더링 방지
+ */
+const MapMarkers = React.memo(({ items, currentLocation, onMarkerPress }: { 
+  items: Item[] | null | undefined, 
+  currentLocation: { latitude: number; longitude: number } | null, 
+  onMarkerPress: (id: number) => void 
+}) => {
+  return (
+    <>
+      {currentLocation && (
+        <Marker
+          coordinate={currentLocation}
+          title="내 위치"
+          description="현재 내 위치"
+          pinColor="blue"
+        />
+      )}
+      {items?.map((item: Item) => {
+        if (
+          typeof item.latitude !== "number" ||
+          typeof item.longitude !== "number" ||
+          isNaN(item.latitude) ||
+          isNaN(item.longitude) ||
+          item.latitude === 0 ||
+          item.longitude === 0
+        ) {
+          return null;
+        }
+
+        return (
+          <Marker
+            key={`item-${item.id}`}
+            coordinate={{
+              latitude: item.latitude,
+              longitude: item.longitude,
+            }}
+            title={item.title}
+            description={item.category === "TICKET" ? "티켓" : "굿즈"}
+            onPress={() => onMarkerPress(item.id)}
+          />
+        );
+      })}
+    </>
+  );
+});
+
+MapMarkers.displayName = "MapMarkers";
+
+/**
  * 아이템 목록 페이지 컴포넌트
  *
  * PWA의 ExchangeMainPage를 React Native로 구현
@@ -698,52 +748,11 @@ export default function ExchangeScreen() {
         onMapReady={() => setIsMapReady(true)} // 지도 로딩 완료 플래그
         onRegionChangeComplete={handleRegionChangeComplete} // Phase 1: 지도 이동 감지
       >
-        {/* 현재 위치 마커 */}
-        {currentLocation && (
-          <Marker
-            coordinate={currentLocation}
-            title="내 위치"
-            description="현재 내 위치"
-            pinColor="blue"
-          />
-        )}
-
-        {/* 아이템 마커 */}
-        {itemsState.data?.map((item: Item) => {
-          // Phase 3: 강화된 방어 로직 - 유효한 좌표만 마커 렌더링
-          if (
-            typeof item.latitude !== "number" ||
-            typeof item.longitude !== "number" ||
-            isNaN(item.latitude) ||
-            isNaN(item.longitude) ||
-            item.latitude === 0 ||
-            item.longitude === 0
-          ) {
-            Logger.debug("무효한 좌표의 아이템 마커 제외:", {
-              itemId: item.id,
-              title: item.title,
-              latitude: item.latitude,
-              longitude: item.longitude,
-              latType: typeof item.latitude,
-              lngType: typeof item.longitude,
-            });
-            return null;
-          }
-
-          return (
-            <Marker
-              key={`item-${item.id}`}
-              coordinate={{
-                latitude: item.latitude,
-                longitude: item.longitude,
-              }}
-              title={item.title}
-              description={item.category === "TICKET" ? "티켓" : "굿즈"}
-              onPress={() => handleMarkerPress(item.id)}
-              // TODO: 커스텀 아이콘으로 마커 디자인 개선 가능
-            />
-          );
-        })}
+        <MapMarkers 
+          items={itemsState.data}
+          currentLocation={currentLocation}
+          onMarkerPress={handleMarkerPress}
+        />
       </MapView>
 
       {/* Bug 3 Fix: BottomSheet 다음에 렌뤈링하여 항상 위에 표시 */}

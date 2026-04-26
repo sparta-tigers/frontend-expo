@@ -290,7 +290,15 @@ export default function ChatRoomScreen() {
             timestamp?: string;
             createdAt?: string;
             type?: "CHAT" | "SYSTEM";
+            action?: string;
           };
+
+          // 🚨 앙드레 카파시: SYSTEM 상태 업데이트 브로드캐스트 가로채기
+          if (parsed.type === "SYSTEM" && parsed.action === "STATUS_UPDATED") {
+            Logger.debug("[ChatRoom] 상대방이 교환 상태를 변경했습니다. 아이템 정보를 리패치합니다.");
+            queryClient.invalidateQueries({ queryKey: ["exchangeItem", roomIdNumber] });
+            return;
+          }
 
           const normalized: ChatMessage = {
             id: parsed.messageId ?? parsed.id ?? Date.now(),
@@ -320,7 +328,7 @@ export default function ChatRoomScreen() {
         Logger.debug("[ChatRoom] WebSocket 구독 해제 완료");
       }
     };
-  }, [client, handleMessageReceived, isConnected, roomIdNumber, user?.userId]);
+  }, [client, handleMessageReceived, isConnected, queryClient, roomIdNumber, user?.userId]);
 
   // 🚨 앙드레 카파시: AppState 이벤트 리스너 (백그라운드/포그라운드 전환 감지)
   useEffect(() => {
@@ -330,10 +338,55 @@ export default function ChatRoomScreen() {
         Logger.debug("📱 [AppState] 앱이 활성화되었습니다.");
         void connect();
 
-        // 백그라운드 중 누락된 메시지 REST 패칭
-        queryClient.invalidateQueries({
-          queryKey: ["chatMessages", roomIdNumber],
-        });
+        // 백그라운드 중 누락된 메시지 REST 패칭 (최적화)
+        const cachedData = queryClient.getQueryData<InfiniteData<ChatMessagesPage>>(["chatMessages", roomIdNumber]);
+        const latestTimestamp = cachedData?.pages?.[0]?.content?.[0]?.timestamp;
+
+        if (latestTimestamp) {
+          apiClient.get(`/api/direct-room/${roomIdNumber}/messages/after?timestamp=${encodeURIComponent(latestTimestamp)}`)
+            .then(res => {
+              const newMessages = res.data?.content || res.data || [];
+              if (newMessages.length > 0) {
+                 const mappedMessages: ChatMessage[] = newMessages.map((msg: any) => ({
+                    id: msg.messageId ?? msg.id ?? Date.now(),
+                    roomId: roomIdNumber,
+                    senderId: msg.senderId,
+                    senderName: msg.senderNickname ?? msg.senderName ?? "",
+                    content: msg.message ?? msg.content ?? "",
+                    timestamp: msg.sentAt ?? msg.timestamp ?? msg.createdAt ?? new Date().toISOString(),
+                    isMine: msg.senderId === (user?.userId ?? -1),
+                    type: msg.type ?? "CHAT",
+                 }));
+
+                 queryClient.setQueryData(
+                   ["chatMessages", roomIdNumber],
+                   (oldData: InfiniteData<ChatMessagesPage> | undefined) => {
+                     if (!oldData || oldData.pages.length === 0) return oldData;
+                     const nextPages = [...oldData.pages];
+                     // 기존 메시지와 중복 제거 후 병합
+                     const uniqueMapped = mappedMessages.filter(m => !nextPages[0].content.some(existing => existing.id === m.id));
+                     nextPages[0] = {
+                       ...nextPages[0],
+                       // 최신순 (내림차순) 정렬
+                       content: [...uniqueMapped, ...nextPages[0].content].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+                     };
+                     return { ...oldData, pages: nextPages };
+                   }
+                 );
+              }
+            })
+            .catch(err => {
+              Logger.error("[ChatRoom] Missed messages fetch error", err);
+              // Fallback
+              queryClient.invalidateQueries({
+                queryKey: ["chatMessages", roomIdNumber],
+              });
+            });
+        } else {
+          queryClient.invalidateQueries({
+            queryKey: ["chatMessages", roomIdNumber],
+          });
+        }
       } else if (nextAppState === "background") {
         // 백그라운드 전환 시 STOMP 비활성화 (배터리 최적화)
         Logger.debug("📱 [AppState] 앱이 백그라운드로 전환되었습니다.");
@@ -344,7 +397,7 @@ export default function ChatRoomScreen() {
     return () => {
       subscription.remove();
     };
-  }, [client, connect, queryClient, roomIdNumber]);
+  }, [client, connect, queryClient, roomIdNumber, user?.userId]);
 
   // 🚨 앙드레 카파시: 상태 변경 Mutation
   const { mutate: updateItemStatus } = useMutation({
