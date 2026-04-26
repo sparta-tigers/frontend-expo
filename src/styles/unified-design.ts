@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Platform, useWindowDimensions } from "react-native";
+import { Dimensions, Platform, useWindowDimensions } from "react-native";
 
 // 기본 디자인 토큰 (변하지 않는 기준값)
 const BASE_DESIGN_TOKENS = {
@@ -117,8 +117,7 @@ export function useUnifiedDesign(): UnifiedDesign {
 /**
  * 훅 외부에서 사용할 경우
  */
-export const getUnifiedDesign = async () => {
-  const { Dimensions } = await import("react-native");
+export const getUnifiedDesign = () => {
   const { width } = Dimensions.get("window");
   const multiplier = getDeviceMultiplier(width);
 
