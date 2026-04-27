@@ -97,6 +97,29 @@ export const theme = {
     background: "#FFFFFF", // 기본 배경
     surface: "#F9FAFB", // 카드/입력창 배경 (gray-50)
     card: "#FFFFFF", // 카드 배경
+    /**
+     * 브랜드/제품 고유 컬러 토큰
+     *
+     * Why: Figma에서 정의된 앱 고유 색상(민트, 회색 계열, 로그인 그라데이션 등)을
+     * 화면 단위에서 하드코딩하지 않고 theme로 끌어올려 단일 출처(SSOT)로 관리한다.
+     */
+    brand: {
+      mint: "#4BBDBD",
+      background: "#F8F8FA",
+      subtitle: "#919191",
+      inactive: "#ADADAD",
+      /**
+       * 로그인 배경 그라데이션(아래 → 위 방향)
+       *
+       * Why: React Native에서는 CSS의 각도 그라데이션을 그대로 재현하기 어렵다.
+       * 앱에서는 시각적 인상이 크게 달라지지 않는 범위에서 스톱 기반으로 근사한다.
+       */
+      loginGradientStops: [
+        "rgba(75, 189, 189, 0.39)",
+        "rgba(255, 255, 255, 0.39)",
+        "rgba(165, 222, 222, 0.39)",
+      ],
+    },
     text: {
       primary: "#111827", // 기본 텍스트 (gray-900)
       secondary: "#6B7280", // 보조 텍스트 (gray-500)
@@ -158,6 +181,7 @@ export const theme = {
     sm: 4,
     md: 8,
     lg: 12,
+    tabBar: 15,
     full: 9999,
     // 기존 호환성을 위한 별칭
     BUTTON: 6,
@@ -179,6 +203,29 @@ export const theme = {
       shadowOpacity: 0.15,
       shadowRadius: 3,
       elevation: 3,
+    },
+  },
+  /**
+   * 화면/레이아웃 전용 토큰
+   *
+   * Why: 특정 화면(예: 로그인 main_00)의 픽셀 기반 스펙을 그대로 쓰되,
+   * 컴포넌트 코드에서 숫자 하드코딩을 제거하고 일관성을 유지한다.
+   */
+  layout: {
+    auth: {
+      headerHeight: 80,
+      headerIconBox: 24,
+      bodyPaddingHorizontal: 66,
+      bodyPaddingVertical: 86,
+      logoWidth: 270,
+      logoHeight: 274,
+      inputHeight: 36,
+      socialButtonSize: 45,
+      socialIconSize: 30,
+      socialDividerHeight: 95,
+      tabBarHeight: 66,
+      tabBarPaddingVertical: 13,
+      tabLabelWidth: 54,
     },
   },
 } as const;
