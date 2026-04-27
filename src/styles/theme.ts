@@ -120,6 +120,28 @@ export const theme = {
         "rgba(165, 222, 222, 0.39)",
       ],
     },
+    /**
+     * 도메인(야구/팀) 전용 컬러
+     *
+     * Why: 대시보드(`main_0`)에서 팀 컬러(예: KIA 레드)를 화면에서 하드코딩하지 않고
+     * 타입 안정성과 재사용성을 확보하기 위해 theme로 승격한다.
+     */
+    team: {
+      kiaRed: "#EA0029",
+      neutralDark: "#33363F",
+      neutralLight: "#D6D6D6",
+    },
+    /**
+     * 대시보드(`main_0`) 전용 톤 컬러
+     *
+     * Why: 카드 배경 톤(rgba)을 화면에서 직접 쓰면 추적/교체가 어렵다.
+     * theme로 승격해 한 곳에서 관리한다.
+     */
+    dashboard: {
+      statTonePink: "rgba(234, 0, 41, 0.12)",
+      statToneYellow: "rgba(245, 158, 11, 0.18)",
+      statToneGreen: "rgba(16, 185, 129, 0.18)",
+    },
     text: {
       primary: "#111827", // 기본 텍스트 (gray-900)
       secondary: "#6B7280", // 보조 텍스트 (gray-500)
@@ -182,6 +204,7 @@ export const theme = {
     md: 8,
     lg: 12,
     tabBar: 15,
+    dashboardCard: 10,
     full: 9999,
     // 기존 호환성을 위한 별칭
     BUTTON: 6,
@@ -226,6 +249,25 @@ export const theme = {
       tabBarHeight: 66,
       tabBarPaddingVertical: 13,
       tabLabelWidth: 54,
+    },
+    dashboard: {
+      screenPaddingHorizontal: 30,
+      sectionGap: 20,
+      sectionTitleHeight: 24,
+      myTeamCardHeight: 118,
+      myTeamMiniCardSize: 66,
+      myTeamMiniCardHeight: 61,
+      myTeamMascotBox: 72,
+      rankingRowHeight: 25,
+      rankingRowHeightActive: 37,
+      rankingMyTeamBorderWidth: 2,
+      lineupRowWidth: 234,
+      lineupRowHeight: 30,
+      calendarWidth: 340,
+      calendarCellWidth: 48.571,
+      calendarHeaderHeight: 32,
+      calendarCellHeight: 61,
+      calendarRadius: 12.687,
     },
   },
 } as const;

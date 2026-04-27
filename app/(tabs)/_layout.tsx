@@ -58,7 +58,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="stadium"
         options={{
-          title: "구장정보",
+          title: "대시보드",
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="location.fill" color={color} />
           ),
