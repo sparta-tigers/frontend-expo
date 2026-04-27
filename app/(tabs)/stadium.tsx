@@ -1,6 +1,7 @@
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { theme } from "@/src/styles/theme";
+import { type RelativePathString, router } from "expo-router";
 import React, { useMemo } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -432,7 +433,17 @@ function ScheduleSection(props: { schedule: CalendarGameDto[] }) {
 
         <View style={styles.calendarGrid}>
           {days.map((cell, idx) => (
-            <View key={`${cell.day}-${idx}`} style={styles.calendarCell}>
+            <TouchableOpacity
+              key={`${cell.day}-${idx}`}
+              activeOpacity={0.85}
+              disabled={!cell.hasGame}
+              onPress={() =>
+                router.push(
+                  `../schedule?view=year&day=${cell.day}` as RelativePathString,
+                )
+              }
+              style={styles.calendarCell}
+            >
               <View style={styles.calendarCellTopRow}>
                 <Text style={styles.calendarDayText}>{cell.day}</Text>
                 {cell.location ? (
@@ -467,7 +478,7 @@ function ScheduleSection(props: { schedule: CalendarGameDto[] }) {
               ) : (
                 <View style={styles.calendarTimeSpacer} />
               )}
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
       </View>
