@@ -13,7 +13,7 @@ const MainScreen: React.FC = () => {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Text style={[styles.title, { color: colors.text }]}>
-        스파르타 �이거즈
+        스파르타 타이거즈
       </Text>
       <Text style={[styles.subtitle, { color: colors.muted }]}>
         Expo 앱에 오신 것을 환영합니다!
