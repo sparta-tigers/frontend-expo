@@ -105,6 +105,8 @@ export const theme = {
      */
     brand: {
       mint: "#4BBDBD",
+      /** 선택 상태 배경(라이브보드 날짜 등) — 민트의 밝은 파생 톤 */
+      mintLight: "#DCF5F2",
       background: "#F8F8FA",
       subtitle: "#919191",
       inactive: "#ADADAD",
@@ -126,10 +128,28 @@ export const theme = {
      * Why: 대시보드(`main_0`)에서 팀 컬러(예: KIA 레드)를 화면에서 하드코딩하지 않고
      * 타입 안정성과 재사용성을 확보하기 위해 theme로 승격한다.
      */
+    /**
+     * KBO 10개 구단 + 공통 뉴트럴 컬러
+     *
+     * Why: 라이브보드/스케줄/대시보드 등 다수 화면에서 팀 컬러를 참조.
+     * 각 화면에서 하드코딩하면 유지보수 불가 → SSOT로 승격.
+     */
     team: {
-      kiaRed: "#EA0029",
+      kia: "#EA0029",
+      kiaRed: "#EA0029", // 기존 호환 별칭
+      hanwha: "#FF6600",
+      lg: "#C30452",
+      lotte: "#041E42",
+      samsung: "#074CA1",
+      nc: "#315288",
+      ssg: "#CE0E2D",
+      doosan: "#131230",
+      kt: "#000000",
+      kiwoom: "#820024",
       neutralDark: "#33363F",
       neutralLight: "#D6D6D6",
+      /** 팀 매칭 실패 시 기본 컬러 */
+      fallback: "#888888",
     },
     /**
      * 대시보드(`main_0`) 전용 톤 컬러
@@ -197,6 +217,8 @@ export const theme = {
       medium: "500",
       semibold: "600",
       bold: "700",
+      extrabold: "800",
+      black: "900",
     },
   },
   radius: {
@@ -235,6 +257,11 @@ export const theme = {
    * 컴포넌트 코드에서 숫자 하드코딩을 제거하고 일관성을 유지한다.
    */
   layout: {
+    /** 전역 헤더 레이아웃 토큰 */
+    header: {
+      backIconSize: 36,
+      titleFontSize: 22,
+    },
     auth: {
       headerHeight: 80,
       headerIconBox: 24,
