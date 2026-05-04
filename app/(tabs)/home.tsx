@@ -6,13 +6,13 @@ import React, { useMemo } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 /**
- * 대시보드 화면 (`main_0`)
+ * 홈 화면 (`main_0`)
  *
  * Why: 실제 API 연동 전에 UI 골격을 먼저 고정하고, 이후 데이터 연동을 단계적으로 진행한다.
  * 모든 데이터는 "가짜 데이터"로만 렌더링한다.
  */
-export default function StadiumScreen() {
-  const data = useFakeDashboardData();
+export default function HomeScreen() {
+  const data = useFakeHomeData();
 
   return (
     <SafeLayout style={styles.safeLayout} edges={["top", "left", "right"]}>
@@ -106,11 +106,11 @@ interface CalendarGameDto {
 }
 
 /**
- * 대시보드 화면용 가짜 데이터 훅
+ * 홈 화면용 가짜 데이터 훅
  *
  * Why: API 연동 전 UI 개발을 위한 단일 출처로, 이후 query/SDK로 대체된다.
  */
-function useFakeDashboardData() {
+function useFakeHomeData() {
   return useMemo(() => {
     const myTeam: TeamDto = { name: "KIA 타이거즈", shortName: "KIA" };
 

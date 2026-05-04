@@ -33,7 +33,16 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="home"
+        options={{
+          title: "홈",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="location.fill" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="liveboard"
         options={{
           title: "라이브보드",
           tabBarIcon: ({ color }) => (
@@ -52,15 +61,6 @@ export default function TabLayout() {
                 <View style={styles.badge} />
               )}
             </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="stadium"
-        options={{
-          title: "대시보드",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="location.fill" color={color} />
           ),
         }}
       />
