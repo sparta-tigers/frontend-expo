@@ -4,18 +4,17 @@ import { useTheme } from "@/hooks/useTheme";
 import { ErrorBoundaryFallback } from "@/src/components/shared/ErrorBoundaryFallback";
 import { OfflineBanner } from "@/src/components/shared/OfflineBanner";
 import { usePushNotifications } from "@/src/hooks/usePushNotifications";
-import { FONT_SIZE, SPACING } from "@/src/styles/unified-design";
+
 import { Logger } from "@/src/utils/logger";
 import { useNetInfo } from "@react-native-community/netinfo";
 import * as Notifications from "expo-notifications";
 import { router, Slot, useSegments } from "expo-router";
 import { useEffect, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import { theme } from "@/src/styles/theme";
 
 /**
  * 루트 레이아웃
@@ -132,18 +131,6 @@ function RootLayoutInner() {
             {/* 🚨 앙드레 카파시: 오프라인 배너 */}
             {!netInfo.isConnected && <OfflineBanner />}
 
-            {/* 1. 고정 헤더 (SafeArea 보호) */}
-            <View
-              style={[
-                styles.headerContainer,
-                { borderBottomColor: colors.border },
-              ]}
-            >
-              <Text style={[styles.headerTitle, { color: colors.primary }]}>
-                YAGUNIV
-              </Text>
-            </View>
-
             {/* 2. 하위 라우팅 화면 */}
             <View
               style={[
@@ -172,18 +159,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  headerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: SPACING.SCREEN,
-    paddingVertical: SPACING.COMPONENT,
-    borderBottomWidth: 1,
-  },
-  headerTitle: {
-    fontSize: FONT_SIZE.SECTION_TITLE,
-    fontWeight: theme.typography.weight.bold,
-  },
+
   contentContainer: {
     flex: 1,
   },
