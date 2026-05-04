@@ -1,10 +1,56 @@
-/* eslint-disable react-native/no-color-literals */
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { theme } from "@/src/styles/theme";
+import { getTeamBgStyle } from "@/src/utils/team";
 
 import React, { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+
+// ========================================================
+// Interfaces — Mock 데이터에도 타입 안전성 강제
+// ========================================================
+
+/** 주간 캘린더의 단일 날짜 셀 */
+interface WeekDayDto {
+  /** 요일 한글 (예: "월") */
+  dayOfWeek: string;
+  /** 일(date) 숫자 (예: 16) */
+  date: number;
+  /** 해당 날짜에 경기 존재 여부 */
+  hasGame: boolean;
+}
+
+/** 라이브보드 매치 카드의 팀 정보 */
+interface MatchTeamDto {
+  name: string;
+}
+
+/** 라이브보드 매치 카드의 날씨 정보 */
+interface MatchWeatherDto {
+  text: string;
+  /** MaterialIcons 아이콘 이름 */
+  icon: string;
+}
+
+/** 라이브보드 매치 카드 전체 */
+interface MatchDto {
+  away: MatchTeamDto;
+  home: MatchTeamDto;
+  time: string;
+  stadium: string;
+  weather: MatchWeatherDto;
+}
+
+// ========================================================
+// 화면 전용 레이아웃 상수 (theme 비대화 방지)
+// ========================================================
+const LIVEBOARD_LAYOUT = {
+  dateCircleSize: 32,
+  dotSize: 5,
+  teamLogoSize: 48,
+  teamBlockWidth: 60,
+  matchListBottomPadding: 40,
+} as const;
 
 /**
  * 라이브보드 화면 (`liveboard_0`)
@@ -57,7 +103,7 @@ export default function LiveboardScreen() {
           <View key={idx} style={styles.matchCard}>
             {/* 어웨이 팀 */}
             <View style={styles.teamBlock}>
-              <View style={[styles.teamLogoDummy, { backgroundColor: getTeamColor(match.away.name) }]}>
+              <View style={[styles.teamLogoDummy, getTeamBgStyle(match.away.name)]}>
                 <Text style={styles.teamLogoText}>{match.away.name}</Text>
               </View>
               <Text style={styles.teamName}>{match.away.name}</Text>
@@ -68,14 +114,14 @@ export default function LiveboardScreen() {
               <Text style={styles.timeText}>{match.time}</Text>
               <Text style={styles.stadiumText}>{match.stadium}</Text>
               <View style={styles.weatherRow}>
-                <MaterialIcons name={match.weather.icon as any} size={14} color={theme.colors.brand.mint} />
+                <MaterialIcons name={match.weather.icon as keyof typeof MaterialIcons.glyphMap} size={theme.typography.size.sm} color={theme.colors.brand.mint} />
                 <Text style={styles.weatherText}>{match.weather.text}</Text>
               </View>
             </View>
 
             {/* 홈 팀 */}
             <View style={styles.teamBlock}>
-              <View style={[styles.teamLogoDummy, { backgroundColor: getTeamColor(match.home.name) }]}>
+              <View style={[styles.teamLogoDummy, getTeamBgStyle(match.home.name)]}>
                 <Text style={styles.teamLogoText}>{match.home.name}</Text>
               </View>
               <Text style={styles.teamName}>{match.home.name}</Text>
@@ -92,7 +138,7 @@ export default function LiveboardScreen() {
  * Mock Data Hooks
  * ========================================================
  */
-function useFakeWeekData() {
+function useFakeWeekData(): WeekDayDto[] {
   return useMemo(() => {
     return [
       { dayOfWeek: "월", date: 16, hasGame: false },
@@ -106,7 +152,7 @@ function useFakeWeekData() {
   }, []);
 }
 
-function useFakeMatchData() {
+function useFakeMatchData(): MatchDto[] {
   return useMemo(() => {
     return [
       {
@@ -148,25 +194,9 @@ function useFakeMatchData() {
   }, []);
 }
 
-const getTeamColor = (teamName: string) => {
-  const colors: Record<string, string> = {
-    "한화": "#FF6600",
-    "LG": "#C30452",
-    "롯데": "#041E42",
-    "삼성": "#074CA1",
-    "NC": "#315288",
-    "SSG": "#CE0E2D",
-    "두산": "#131230",
-    "KT": "#000000",
-    "키움": "#820024",
-    "KIA": "#EA0029",
-  };
-  return colors[teamName] || "#888888";
-};
-
 /**
  * ========================================================
- * Styles
+ * Styles — 모든 수치는 theme 토큰 또는 LIVEBOARD_LAYOUT 참조
  * ========================================================
  */
 const styles = StyleSheet.create({
@@ -186,7 +216,7 @@ const styles = StyleSheet.create({
   },
   weekNavText: {
     fontSize: theme.typography.size.lg,
-    fontWeight: "800",
+    fontWeight: theme.typography.weight.extrabold,
     color: theme.colors.text.primary,
   },
   weekDaysRow: {
@@ -197,35 +227,35 @@ const styles = StyleSheet.create({
   dayCol: {
     flex: 1,
     alignItems: "center",
-    gap: 6,
+    gap: theme.spacing.sm - 2,
   },
   dayName: {
-    fontSize: 12,
+    fontSize: theme.typography.size.xs,
     color: theme.colors.brand.subtitle,
     fontWeight: theme.typography.weight.medium,
   },
   dateCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: LIVEBOARD_LAYOUT.dateCircleSize,
+    height: LIVEBOARD_LAYOUT.dateCircleSize,
+    borderRadius: LIVEBOARD_LAYOUT.dateCircleSize / 2,
     alignItems: "center",
     justifyContent: "center",
   },
   dateCircleSelected: {
-    backgroundColor: "#DCF5F2", // 라이트 민트
+    backgroundColor: theme.colors.brand.mintLight,
   },
   dateText: {
-    fontSize: 15,
+    fontSize: theme.typography.size.sm + 1,
     fontWeight: theme.typography.weight.medium,
     color: theme.colors.text.primary,
   },
   dateTextSelected: {
-    fontWeight: "bold",
+    fontWeight: theme.typography.weight.bold,
   },
   dot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
+    width: LIVEBOARD_LAYOUT.dotSize,
+    height: LIVEBOARD_LAYOUT.dotSize,
+    borderRadius: LIVEBOARD_LAYOUT.dotSize / 2,
     backgroundColor: theme.colors.brand.subtitle,
   },
   dotSelected: {
@@ -236,7 +266,7 @@ const styles = StyleSheet.create({
   },
   matchList: {
     paddingHorizontal: theme.spacing.xl,
-    paddingBottom: 40,
+    paddingBottom: LIVEBOARD_LAYOUT.matchListBottomPadding,
     gap: theme.spacing.md,
   },
   matchCard: {
@@ -251,37 +281,37 @@ const styles = StyleSheet.create({
   },
   teamBlock: {
     alignItems: "center",
-    width: 60,
+    width: LIVEBOARD_LAYOUT.teamBlockWidth,
     gap: theme.spacing.sm,
   },
   teamLogoDummy: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: LIVEBOARD_LAYOUT.teamLogoSize,
+    height: LIVEBOARD_LAYOUT.teamLogoSize,
+    borderRadius: LIVEBOARD_LAYOUT.teamLogoSize / 2,
     alignItems: "center",
     justifyContent: "center",
   },
   teamLogoText: {
-    fontSize: 11,
-    fontWeight: "900",
+    fontSize: theme.typography.size.xs - 1,
+    fontWeight: theme.typography.weight.black,
     color: theme.colors.surface,
   },
   teamName: {
-    fontSize: 13,
+    fontSize: theme.typography.size.xs + 1,
     fontWeight: theme.typography.weight.bold,
     color: theme.colors.text.primary,
   },
   infoBlock: {
     alignItems: "center",
-    gap: 4,
+    gap: theme.spacing.xs,
   },
   timeText: {
-    fontSize: 20,
-    fontWeight: "800",
+    fontSize: theme.typography.size.xl,
+    fontWeight: theme.typography.weight.extrabold,
     color: theme.colors.text.primary,
   },
   stadiumText: {
-    fontSize: 11,
+    fontSize: theme.typography.size.xs - 1,
     color: theme.colors.brand.subtitle,
     fontWeight: theme.typography.weight.medium,
   },
@@ -292,8 +322,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   weatherText: {
-    fontSize: 12,
-    fontWeight: "800",
+    fontSize: theme.typography.size.xs,
+    fontWeight: theme.typography.weight.extrabold,
     color: theme.colors.brand.mint,
   },
 });

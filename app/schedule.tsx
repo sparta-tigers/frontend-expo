@@ -5,6 +5,50 @@ import React, { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
+// ========================================================
+// Interfaces — Mock 데이터에도 타입 안전성 강제
+// ========================================================
+
+/** KBO 팀 순위 한 행의 데이터 */
+interface RankingRowDto {
+  rank: number;
+  teamName: string;
+  teamColor: string;
+  games: number;
+  win: number;
+  lose: number;
+  draw: number;
+  winRate: string;
+}
+
+/** 월간 캘린더의 단일 셀 데이터 */
+interface CalendarDayDto {
+  /** null이면 빈 셀 (월 시작 전 / 종료 후 패딩) */
+  day: number | null;
+  hasGame: boolean;
+  /** "H" (홈) | "A" (어웨이) | null */
+  location: string | null;
+  opponentShort: string | null;
+  opponentColor: string | null;
+  timeText: string | null;
+}
+
+// ========================================================
+// 화면 전용 레이아웃 상수 (theme 비대화 방지)
+// ========================================================
+const SCHEDULE_LAYOUT = {
+  teamLogoSubFontSize: 28,
+  teamLogoMarginTop: -4,
+  togglePadding: 2,
+  rankCardHeight: 52,
+  rankNumberWidth: 30,
+  statColWidth: 35,
+  calendarHeaderHeight: 36,
+  calendarCellHeight: 80,
+  opponentBadgeSize: 24,
+  scrollBottomPadding: 100,
+} as const;
+
 /**
  * 대시보드 화면 연동 컴포넌트 (main_1 / main_2)
  *
@@ -100,7 +144,7 @@ export default function ScheduleScreen() {
           {/* 우측: 정규리그 드롭다운 */}
           <TouchableOpacity activeOpacity={0.8} style={styles.leagueDropdown}>
             <Text style={styles.leagueDropdownText}>정규리그</Text>
-            <MaterialIcons name="keyboard-arrow-down" size={16} color={theme.colors.team.kiaRed} />
+            <MaterialIcons name="keyboard-arrow-down" size={theme.typography.size.md} color={theme.colors.team.kiaRed} />
           </TouchableOpacity>
         </View>
       </View>
@@ -213,7 +257,7 @@ function Main2CalendarView({ year, month }: { year: number; month: number }) {
 
                   {cell.hasGame && cell.opponentShort ? (
                     <View style={styles.calendarOpponentWrap}>
-                      <View style={[styles.opponentBadgeDummy, { backgroundColor: cell.opponentColor }]} />
+                      <View style={[styles.opponentBadgeDummy, { backgroundColor: cell.opponentColor ?? theme.colors.team.fallback }]} />
                       <Text style={styles.calendarOpponentText}>{cell.opponentShort}</Text>
                     </View>
                   ) : (
@@ -238,29 +282,29 @@ function Main2CalendarView({ year, month }: { year: number; month: number }) {
  * Mock Data Hooks
  * ========================================================
  */
-function useFakeRankingData() {
+function useFakeRankingData(): RankingRowDto[] {
   return useMemo(() => {
     return [
-      { rank: 1, teamName: "LG 트윈스", teamColor: "#C30452", games: 144, win: 85, lose: 56, draw: 3, winRate: "0.603" },
-      { rank: 2, teamName: "한화 이글스", teamColor: "#FF6600", games: 144, win: 83, lose: 57, draw: 4, winRate: "0.593" },
-      { rank: 3, teamName: "SSG 랜더스", teamColor: "#CE0E2D", games: 144, win: 75, lose: 65, draw: 4, winRate: "0.536" },
-      { rank: 4, teamName: "삼성 라이온즈", teamColor: "#074CA1", games: 144, win: 74, lose: 68, draw: 2, winRate: "0.521" },
-      { rank: 5, teamName: "NC 다이노스", teamColor: "#315288", games: 144, win: 71, lose: 67, draw: 6, winRate: "0.514" },
-      { rank: 6, teamName: "KT 위즈", teamColor: "#000000", games: 144, win: 71, lose: 68, draw: 5, winRate: "0.511" },
-      { rank: 7, teamName: "롯데 자이언츠", teamColor: "#041E42", games: 144, win: 66, lose: 72, draw: 6, winRate: "0.478" },
-      { rank: 8, teamName: "KIA 타이거즈", teamColor: "#EA0029", games: 144, win: 65, lose: 75, draw: 4, winRate: "0.464" },
-      { rank: 9, teamName: "두산 베어스", teamColor: "#131230", games: 144, win: 61, lose: 77, draw: 6, winRate: "0.442" },
-      { rank: 10, teamName: "키움 히어로즈", teamColor: "#820024", games: 144, win: 47, lose: 93, draw: 4, winRate: "0.336" },
+      { rank: 1, teamName: "LG 트윈스", teamColor: theme.colors.team.lg, games: 144, win: 85, lose: 56, draw: 3, winRate: "0.603" },
+      { rank: 2, teamName: "한화 이글스", teamColor: theme.colors.team.hanwha, games: 144, win: 83, lose: 57, draw: 4, winRate: "0.593" },
+      { rank: 3, teamName: "SSG 랜더스", teamColor: theme.colors.team.ssg, games: 144, win: 75, lose: 65, draw: 4, winRate: "0.536" },
+      { rank: 4, teamName: "삼성 라이온즈", teamColor: theme.colors.team.samsung, games: 144, win: 74, lose: 68, draw: 2, winRate: "0.521" },
+      { rank: 5, teamName: "NC 다이노스", teamColor: theme.colors.team.nc, games: 144, win: 71, lose: 67, draw: 6, winRate: "0.514" },
+      { rank: 6, teamName: "KT 위즈", teamColor: theme.colors.team.kt, games: 144, win: 71, lose: 68, draw: 5, winRate: "0.511" },
+      { rank: 7, teamName: "롯데 자이언츠", teamColor: theme.colors.team.lotte, games: 144, win: 66, lose: 72, draw: 6, winRate: "0.478" },
+      { rank: 8, teamName: "KIA 타이거즈", teamColor: theme.colors.team.kia, games: 144, win: 65, lose: 75, draw: 4, winRate: "0.464" },
+      { rank: 9, teamName: "두산 베어스", teamColor: theme.colors.team.doosan, games: 144, win: 61, lose: 77, draw: 6, winRate: "0.442" },
+      { rank: 10, teamName: "키움 히어로즈", teamColor: theme.colors.team.kiwoom, games: 144, win: 47, lose: 93, draw: 4, winRate: "0.336" },
     ];
   }, []);
 }
 
-function useFakeCalendarData(year: number, month: number) {
+function useFakeCalendarData(year: number, month: number): { days: CalendarDayDto[] } {
   return useMemo(() => {
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     
-    const daysArray = [];
+    const daysArray: CalendarDayDto[] = [];
     
     for (let i = 0; i < firstDay; i++) {
       daysArray.push({ day: null, hasGame: false, location: null, opponentShort: null, opponentColor: null, timeText: null });
@@ -270,11 +314,11 @@ function useFakeCalendarData(year: number, month: number) {
       const hasGame = d % 3 !== 0; 
       
       const opponents = [
-        { name: "SSG", color: "#CE0E2D" },
-        { name: "LOTTE", color: "#041E42" },
-        { name: "LG", color: "#C30452" },
-        { name: "NC", color: "#315288" },
-        { name: "DOOSAN", color: "#131230" },
+        { name: "SSG", color: theme.colors.team.ssg },
+        { name: "LOTTE", color: theme.colors.team.lotte },
+        { name: "LG", color: theme.colors.team.lg },
+        { name: "NC", color: theme.colors.team.nc },
+        { name: "DOOSAN", color: theme.colors.team.doosan },
       ];
       const opp = opponents[d % 5];
 
@@ -299,7 +343,7 @@ function useFakeCalendarData(year: number, month: number) {
 
 /**
  * ========================================================
- * Styles
+ * Styles — 모든 수치는 theme 토큰 또는 SCHEDULE_LAYOUT 참조
  * ========================================================
  */
 const styles = StyleSheet.create({
@@ -320,17 +364,17 @@ const styles = StyleSheet.create({
   },
   teamLogoText: {
     fontSize: theme.typography.size.lg,
-    fontWeight: "900",
+    fontWeight: theme.typography.weight.black,
     color: theme.colors.text.primary,
     fontStyle: "italic",
   },
   teamLogoSubText: {
-    fontSize: 28,
-    fontWeight: "900",
+    fontSize: SCHEDULE_LAYOUT.teamLogoSubFontSize,
+    fontWeight: theme.typography.weight.black,
     color: theme.colors.team.kiaRed,
     fontStyle: "italic",
     letterSpacing: 2,
-    marginTop: -4,
+    marginTop: SCHEDULE_LAYOUT.teamLogoMarginTop,
   },
   filterSection: {
     paddingHorizontal: theme.spacing.lg,
@@ -345,7 +389,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderRadius: theme.radius.full,
-    padding: 2,
+    padding: SCHEDULE_LAYOUT.togglePadding,
     borderWidth: 1,
     borderColor: theme.colors.team.neutralLight,
     backgroundColor: theme.colors.surface,
@@ -395,7 +439,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.team.kiaRed,
   },
   leagueDropdownText: {
-    fontSize: 10,
+    fontSize: theme.typography.size.xs - 2,
     fontWeight: theme.typography.weight.bold,
     color: theme.colors.team.kiaRed,
   },
@@ -403,7 +447,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContentPad: {
-    paddingBottom: 100,
+    paddingBottom: SCHEDULE_LAYOUT.scrollBottomPadding,
   },
   tableHeaderRow: {
     flexDirection: "row",
@@ -412,14 +456,14 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
   },
   tableHeaderText: {
-    fontSize: 11,
+    fontSize: theme.typography.size.xs - 1,
     color: theme.colors.brand.subtitle,
     fontWeight: theme.typography.weight.bold,
     textAlign: "center",
   },
-  colRank: { width: 30 },
+  colRank: { width: SCHEDULE_LAYOUT.rankNumberWidth },
   colTeam: { flex: 1, textAlign: "left", paddingLeft: theme.spacing.xl },
-  colStat: { width: 35 },
+  colStat: { width: SCHEDULE_LAYOUT.statColWidth },
   rankingList: {
     paddingHorizontal: theme.spacing.xl,
     gap: theme.spacing.sm,
@@ -430,10 +474,10 @@ const styles = StyleSheet.create({
     gap: theme.spacing.md,
   },
   rankNumberText: {
-    width: 30,
+    width: SCHEDULE_LAYOUT.rankNumberWidth,
     textAlign: "center",
     fontSize: theme.typography.size.xl,
-    fontWeight: "900",
+    fontWeight: theme.typography.weight.black,
     color: theme.colors.brand.subtitle,
   },
   myTeamRankNumber: {
@@ -445,7 +489,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.full,
-    height: 52,
+    height: SCHEDULE_LAYOUT.rankCardHeight,
     paddingHorizontal: theme.spacing.md,
     ...theme.shadow.card,
   },
@@ -460,8 +504,8 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   teamBadge: {
-    width: 24,
-    height: 24,
+    width: SCHEDULE_LAYOUT.opponentBadgeSize,
+    height: SCHEDULE_LAYOUT.opponentBadgeSize,
     borderRadius: theme.radius.full,
   },
   teamNameText: {
@@ -477,9 +521,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   statValueText: {
-    width: 35,
+    width: SCHEDULE_LAYOUT.statColWidth,
     textAlign: "center",
-    fontSize: 12,
+    fontSize: theme.typography.size.xs,
     fontWeight: theme.typography.weight.medium,
     color: theme.colors.brand.subtitle,
   },
@@ -494,7 +538,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.team.neutralLight,
     borderTopLeftRadius: theme.radius.dashboardCard,
     borderTopRightRadius: theme.radius.dashboardCard,
-    height: 36,
+    height: SCHEDULE_LAYOUT.calendarHeaderHeight,
   },
   calendarHeaderCell: {
     flex: 1,
@@ -519,7 +563,7 @@ const styles = StyleSheet.create({
   },
   calendarCell: {
     width: `${100 / 7}%`,
-    height: 80,
+    height: SCHEDULE_LAYOUT.calendarCellHeight,
     borderRightWidth: StyleSheet.hairlineWidth,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: theme.colors.team.neutralLight,
@@ -537,12 +581,12 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   calendarDayText: {
-    fontSize: 12,
+    fontSize: theme.typography.size.xs,
     color: theme.colors.text.primary,
     fontWeight: theme.typography.weight.medium,
   },
   calendarLocationText: {
-    fontSize: 10,
+    fontSize: theme.typography.size.xs - 2,
     color: theme.colors.brand.mint,
     fontWeight: theme.typography.weight.bold,
   },
@@ -554,13 +598,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   opponentBadgeDummy: {
-    width: 24,
-    height: 24,
+    width: SCHEDULE_LAYOUT.opponentBadgeSize,
+    height: SCHEDULE_LAYOUT.opponentBadgeSize,
     borderRadius: theme.radius.full,
     marginBottom: 2,
   },
   calendarOpponentText: {
-    fontSize: 9,
+    fontSize: theme.typography.size.xs - 3,
     fontWeight: theme.typography.weight.bold,
     color: theme.colors.text.primary,
   },
@@ -568,7 +612,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   calendarTimeText: {
-    fontSize: 10,
+    fontSize: theme.typography.size.xs - 2,
     color: theme.colors.brand.subtitle,
   },
 

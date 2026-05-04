@@ -8,7 +8,7 @@ import { usePushNotifications } from "@/src/hooks/usePushNotifications";
 import { Logger } from "@/src/utils/logger";
 import { useNetInfo } from "@react-native-community/netinfo";
 import * as Notifications from "expo-notifications";
-import { router, Slot, useSegments } from "expo-router";
+import { Href, router, Slot, useSegments } from "expo-router";
 import { useEffect, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -16,6 +16,22 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { theme } from "@/src/styles/theme";
+
+/**
+ * 푸시 알림 핸들러 설정 (모듈 스코프)
+ *
+ * Why: 컴포넌트 렌더 본문에 두면 매 렌더마다 핸들러가 재설정됨.
+ * 모듈 로드 시 1회만 실행되도록 컴포넌트 밖으로 이동.
+ */
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: false,
+    shouldShowList: false,
+  }),
+});
 
 
 /**
@@ -49,17 +65,6 @@ function RootLayoutInner() {
 
   const inAuthGroup = segments[0] === "(auth)";
 
-  // 푸시 알림 핸들러 설정
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: false,
-      shouldShowBanner: false,
-      shouldShowList: false,
-    }),
-  });
-
   // 토큰 발급 확인 (실제 전송 로직은 usePushNotifications 훅에서 처리)
   if (expoPushToken) {
     Logger.debug("Expo Push Token 발급 완료:", expoPushToken);
@@ -87,16 +92,14 @@ function RootLayoutInner() {
       // 네비게이터가 준비되지 않았으면 지연 실행
       redirectTimeoutRef.current = setTimeout(() => {
         Logger.debug("[Navigation] 지연된 리디렉션 실행:", href);
-        // @ts-ignore
-        router.replace(href);
+        router.replace(href as Href);
       }, 200);
       return;
     }
 
     // 네비게이터가 준비되었으면 즉시 실행
     Logger.debug("[Navigation] 즉시 리디렉션 실행:", href);
-    // @ts-ignore
-    router.replace(href);
+    router.replace(href as Href);
   };
 
   // 🚨 앙드레 카파시: 안전한 리디렉션 적용
@@ -146,7 +149,7 @@ function RootLayoutInner() {
               >
                 <MaterialIcons 
                   name="chevron-left" 
-                  size={36} 
+                  size={theme.layout.header.backIconSize} 
                   color={router.canGoBack() ? theme.colors.team.neutralDark : "transparent"} 
                 />
               </TouchableOpacity>
@@ -199,8 +202,8 @@ const styles = StyleSheet.create({
     padding: theme.spacing.xs,
   },
   mainTitleText: {
-    fontSize: 22,
-    fontWeight: "900",
+    fontSize: theme.layout.header.titleFontSize,
+    fontWeight: theme.typography.weight.black,
     color: theme.colors.brand.mint,
     letterSpacing: 1,
   },
