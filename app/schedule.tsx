@@ -1,6 +1,6 @@
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { theme } from "@/src/styles/theme";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import React, { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -51,6 +51,7 @@ export default function ScheduleScreen() {
 
   return (
     <SafeLayout style={styles.safeLayout} edges={["top", "left", "right"]}>
+      <Stack.Screen options={{ headerShown: false }} />
       {/* 1. 상단 로고 및 헤더 영역 */}
       <View style={styles.topHeader}>
         <View style={styles.topHeaderRow}>
@@ -118,7 +119,13 @@ export default function ScheduleScreen() {
       {/* 하단 우측 플로팅 뒤로가기 버튼 */}
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={() => router.replace("/(tabs)/stadium")}
+        onPress={() => {
+          if (router.canGoBack()) {
+            router.back();
+          } else {
+            router.replace("/(tabs)/stadium");
+          }
+        }}
         style={styles.fabBackButton}
       >
         <MaterialIcons name="chevron-left" size={32} color={theme.colors.team.neutralDark} />

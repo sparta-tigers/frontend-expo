@@ -1,7 +1,7 @@
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { theme } from "@/src/styles/theme";
-import { type RelativePathString, router } from "expo-router";
+import { router } from "expo-router";
 import React, { useMemo } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -407,7 +407,7 @@ function LineupSection(props: { lineup: LineupRowDto[] }) {
  */
 function ScheduleSection(props: { schedule: CalendarGameDto[] }) {
   const { schedule } = props;
-  const days = buildCalendarDays(schedule);
+  const days = useMemo(() => buildCalendarDays(schedule), [schedule]);
 
   return (
     <View style={[styles.section, styles.sectionBottomPad]}>
@@ -438,9 +438,10 @@ function ScheduleSection(props: { schedule: CalendarGameDto[] }) {
               activeOpacity={0.85}
               disabled={!cell.hasGame}
               onPress={() =>
-                router.push(
-                  `../schedule?view=year&day=${cell.day}` as RelativePathString,
-                )
+                router.push({
+                  pathname: "/schedule",
+                  params: { view: "day", day: cell.day }
+                })
               }
               style={styles.calendarCell}
             >
