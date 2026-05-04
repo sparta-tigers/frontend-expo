@@ -91,12 +91,8 @@ export default function MyItemsScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* 헤더 바 */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={[styles.backIcon, { color: colors.text }]}>{"<"}</Text>
-        </TouchableOpacity>
+      <View style={[styles.header, styles.headerCenter, { borderBottomColor: colors.border }]}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>내가 등록한 물건</Text>
-        <View style={styles.placeholder} />
       </View>
 
       {/* 목록 본문 */}
@@ -140,19 +136,12 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.COMPONENT,
     borderBottomWidth: 1,
   },
-  backButton: {
-    padding: SPACING.SMALL,
-  },
-  backIcon: {
-    fontSize: 24,
-    fontWeight: "bold",
+  headerCenter: {
+    justifyContent: "center",
   },
   headerTitle: {
     fontSize: FONT_SIZE.SECTION_TITLE,
     fontWeight: "bold",
-  },
-  placeholder: {
-    width: 40,
   },
   centered: {
     flex: 1,

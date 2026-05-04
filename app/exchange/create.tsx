@@ -134,13 +134,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   backButton: {
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-  },
-  backButtonText: {
-    fontSize: theme.typography.size.xl,
-    color: theme.colors.primary,
-    fontWeight: theme.typography.weight.bold,
+    width: 40,
+    height: 40,
   },
   submitButton: {
     fontSize: theme.typography.size.md,
@@ -463,12 +458,7 @@ export default function CreateItemScreen() {
     <SafeLayout edges={["top", "bottom"]} style={styles.container}>
       {/* 헤더 */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <Text style={styles.backButtonText}>←</Text>
-        </TouchableOpacity>
+        <View style={styles.backButton} />
         <Text style={styles.headerTitle}>교환글 쓰기</Text>
         <TouchableOpacity onPress={handleSubmit} disabled={isPending}>
           <Text

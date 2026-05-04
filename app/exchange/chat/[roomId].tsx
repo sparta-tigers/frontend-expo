@@ -5,7 +5,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -545,12 +545,7 @@ export default function ChatRoomScreen() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
-        <Stack.Screen
-          options={{
-            title: "교환 채팅",
-            headerShown: true,
-          }}
-        />
+
         <View
           style={[
             styles.errorContainer,
@@ -571,12 +566,7 @@ export default function ChatRoomScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
     >
-      <Stack.Screen
-        options={{
-          title: "교환 채팅",
-          headerShown: true,
-        }}
-      />
+
       {/* 아이템 정보 헤더 */}
       {renderExchangeItemHeader()}
 

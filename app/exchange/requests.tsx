@@ -394,15 +394,7 @@ export default function ExchangeRequestsScreen() {
     <SafeLayout style={{ backgroundColor: colors.background }}>
       <View style={styles.container}>
         
-        {/* 뒤로가기 버튼 */}
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={() => router.back()}
-        >
-          <Text style={[styles.backButtonText, { color: colors.text }]}>
-            ← 뒤로가기
-          </Text>
-        </TouchableOpacity>
+
 
         {/* 4~5 페이지 탭 컨트롤러 */}
         <View style={styles.tabContainer}>
@@ -459,14 +451,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: SPACING.SCREEN,
   },
-  backButton: {
-    paddingVertical: SPACING.SMALL,
-    marginBottom: SPACING.SMALL,
-  },
-  backButtonText: {
-    fontSize: 16,
-    fontWeight: "500",
-  },
+
   tabTitle: {
     fontSize: 24,
     fontWeight: "bold",

@@ -7,7 +7,7 @@ import {
 } from "@/src/features/exchange/api";
 import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
-import { Ionicons } from "@expo/vector-icons";
+
 import { getImageUrl } from "@/src/utils/url";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -207,10 +207,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: theme.spacing.COMPONENT,
   },
-  headerLeftButton: {
-    padding: 8,
-    marginRight: 4,
-  },
+
   customHeader: {
     flexDirection: "row",
     alignItems: "center",
@@ -542,12 +539,7 @@ export default function ItemDetailScreen() {
             },
           ]}
         >
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.headerLeftButton}
-          >
-            <Ionicons name="chevron-back" size={28} color={colors.text} />
-          </TouchableOpacity>
+
           <Text
             style={[styles.headerTitle, { color: colors.text }]}
             numberOfLines={1}

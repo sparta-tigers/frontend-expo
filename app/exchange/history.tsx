@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+
 import React, { useCallback, useState } from "react";
 import {
   FlatList,
@@ -18,7 +18,7 @@ import { Logger } from "@/src/utils/logger";
 
 export default function ExchangeHistoryScreen() {
   const { colors } = useTheme();
-  const router = useRouter();
+
   const insets = useSafeAreaInsets();
 
   const [historyItems, setHistoryItems] = useState<ReceiveExchangeRequest[]>([]);
@@ -120,12 +120,8 @@ export default function ExchangeHistoryScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background, paddingTop: Math.max(insets.top, 20) }]}>
       {/* 헤더 바 */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Text style={[styles.backIcon, { color: colors.text }]}>{"<"}</Text>
-        </TouchableOpacity>
+      <View style={[styles.header, styles.headerCenter, { borderBottomColor: colors.border }]}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>종료된 교환 내역</Text>
-        <View style={styles.placeholder} />
       </View>
 
       {/* 목록 본문 */}
@@ -169,19 +165,12 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.COMPONENT,
     borderBottomWidth: 1,
   },
-  backButton: {
-    padding: SPACING.SMALL,
-  },
-  backIcon: {
-    fontSize: 24,
-    fontWeight: "bold",
-  },
   headerTitle: {
     fontSize: FONT_SIZE.SECTION_TITLE,
     fontWeight: "bold",
   },
-  placeholder: {
-    width: 40,
+  headerCenter: {
+    justifyContent: "center",
   },
   centered: {
     flex: 1,

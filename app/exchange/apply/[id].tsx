@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+
 
 import { Input } from "@/components/ui/input";
 import { SafeLayout } from "@/components/ui/safe-layout";
@@ -103,10 +103,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  headerLeftButton: {
-    marginLeft: 0,
-    marginRight: 16,
-  },
+
   scrollView: {
     flex: 1,
   },
@@ -216,15 +213,7 @@ export default function ApplyExchangeScreen() {
       <>
         <Stack.Screen
           options={{
-            headerShown: true,
-            headerTitle: "교환 제안하기",
-            headerBackTitleVisible: false,
-            headerBackVisible: true,
-            headerLeft: () => (
-              <TouchableOpacity onPress={() => router.back()} style={styles.headerLeftButton}>
-                <Ionicons name="chevron-back" size={24} color={colors.text} />
-              </TouchableOpacity>
-            ),
+            headerShown: false,
           } as any}
         />
         <SafeLayout style={styles.loadingWrapper}>
@@ -240,15 +229,7 @@ export default function ApplyExchangeScreen() {
     <>
       <Stack.Screen
         options={{
-          headerShown: true,
-          headerTitle: "교환 제안하기",
-          headerBackTitleVisible: false,
-          headerBackVisible: true,
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} style={styles.headerLeftButton}>
-              <Ionicons name="chevron-back" size={24} color={colors.text} />
-            </TouchableOpacity>
-          ),
+          headerShown: false,
         } as any}
       />
       <SafeLayout edges={["top", "bottom"]} style={{ ...styles.container, backgroundColor: colors.background }}>

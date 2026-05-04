@@ -135,8 +135,20 @@ function RootLayoutInner() {
 
             {/* 1. 고정 헤더 (전역) */}
             <View style={styles.topHeader}>
-              <TouchableOpacity activeOpacity={0.7} style={styles.headerIconBtn}>
-                <MaterialIcons name="home" size={28} color={theme.colors.team.neutralDark} />
+              <TouchableOpacity 
+                activeOpacity={0.7} 
+                style={styles.headerIconBtn}
+                onPress={() => {
+                  if (router.canGoBack()) {
+                    router.back();
+                  }
+                }}
+              >
+                <MaterialIcons 
+                  name="chevron-left" 
+                  size={36} 
+                  color={router.canGoBack() ? theme.colors.team.neutralDark : "transparent"} 
+                />
               </TouchableOpacity>
               
               <Text style={styles.mainTitleText}>YAGUNIV</Text>

@@ -178,14 +178,7 @@ export default function EditItemScreen() {
         keyboardShouldPersistTaps="handled"
         extraScrollHeight={20}
       >
-        {/* 헤더 */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={[styles.backText, { color: colors.primary }]}>
-              ← 돌아가기
-            </Text>
-          </TouchableOpacity>
-        </View>
+
 
         {/* 아이템 이미지 */}
         {item.imageUrl && (
@@ -342,14 +335,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.SCREEN,
     textAlign: "center",
   },
-  header: {
-    padding: SPACING.SCREEN,
-    paddingBottom: SPACING.SMALL,
-  },
-  backText: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
+
   imageCard: {
     marginBottom: SPACING.SCREEN,
     marginHorizontal: SPACING.SCREEN,
