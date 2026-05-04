@@ -54,14 +54,6 @@ export default function ScheduleScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       {/* 1. 상단 로고 및 헤더 영역 */}
       <View style={styles.topHeader}>
-        <View style={styles.topHeaderRow}>
-          <View style={styles.topHeaderSpacer} />
-          <Text style={styles.mainTitleText}>YAGUNIV</Text>
-          <TouchableOpacity activeOpacity={0.7} style={styles.scanButton}>
-            <MaterialIcons name="qr-code-scanner" size={24} color={theme.colors.team.neutralDark} />
-          </TouchableOpacity>
-        </View>
-
         {/* KIA TIGERS 로고 (가짜 뷰로 대체) */}
         <View style={styles.teamLogoContainer}>
           <Text style={styles.teamLogoText}>KIA</Text>
@@ -333,25 +325,7 @@ const styles = StyleSheet.create({
     paddingTop: theme.spacing.lg,
     paddingBottom: theme.spacing.md,
   },
-  topHeaderRow: {
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: theme.spacing.xl,
-  },
-  topHeaderSpacer: {
-    width: 24,
-  },
-  mainTitleText: {
-    fontSize: 24,
-    fontWeight: "900",
-    color: theme.colors.brand.mint,
-    letterSpacing: 1,
-  },
-  scanButton: {
-    padding: theme.spacing.xs,
-  },
+
   teamLogoContainer: {
     marginTop: theme.spacing.xl,
     marginBottom: theme.spacing.md,

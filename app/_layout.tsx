@@ -11,9 +11,11 @@ import * as Notifications from "expo-notifications";
 import { router, Slot, useSegments } from "expo-router";
 import { useEffect, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { MaterialIcons } from "@expo/vector-icons";
+import { theme } from "@/src/styles/theme";
 
 
 /**
@@ -131,6 +133,20 @@ function RootLayoutInner() {
             {/* 🚨 앙드레 카파시: 오프라인 배너 */}
             {!netInfo.isConnected && <OfflineBanner />}
 
+            {/* 1. 고정 헤더 (전역) */}
+            <View style={styles.topHeader}>
+              <TouchableOpacity activeOpacity={0.7} style={styles.headerIconBtn}>
+                <MaterialIcons name="home" size={28} color={theme.colors.team.neutralDark} />
+              </TouchableOpacity>
+              
+              <Text style={styles.mainTitleText}>YAGUNIV</Text>
+              
+              {/* 프로필 버튼 */}
+              <TouchableOpacity activeOpacity={0.7} style={styles.headerIconBtn} onPress={() => router.push("/profile")}>
+                <MaterialIcons name="person-outline" size={28} color={theme.colors.team.neutralDark} />
+              </TouchableOpacity>
+            </View>
+
             {/* 2. 하위 라우팅 화면 */}
             <View
               style={[
@@ -159,7 +175,23 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-
+  topHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: theme.spacing.xl,
+    paddingTop: theme.spacing.lg,
+    paddingBottom: theme.spacing.lg,
+  },
+  headerIconBtn: {
+    padding: theme.spacing.xs,
+  },
+  mainTitleText: {
+    fontSize: 22,
+    fontWeight: "900",
+    color: theme.colors.brand.mint,
+    letterSpacing: 1,
+  },
   contentContainer: {
     flex: 1,
   },

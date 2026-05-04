@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-color-literals */
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { theme } from "@/src/styles/theme";
-import { router } from "expo-router";
+
 import React, { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -19,21 +19,6 @@ export default function LiveboardScreen() {
 
   return (
     <SafeLayout style={styles.safeLayout} edges={["top", "left", "right"]}>
-      {/* 1. 상단 로고 및 헤더 영역 */}
-      <View style={styles.topHeader}>
-        <TouchableOpacity activeOpacity={0.7} style={styles.headerIconBtn}>
-          <MaterialIcons name="home" size={28} color={theme.colors.team.neutralDark} />
-        </TouchableOpacity>
-        
-        <Text style={styles.mainTitleText}>YAGUNIV</Text>
-        
-        {/* 프로필 버튼 */}
-        <TouchableOpacity activeOpacity={0.7} style={styles.headerIconBtn} onPress={() => router.push("/profile")}>
-          {/* 피그마의 Face ID 아이콘과 유사한 아이콘 또는 프로필 대체용 아이콘 적용 */}
-          <MaterialIcons name="person-outline" size={28} color={theme.colors.team.neutralDark} />
-        </TouchableOpacity>
-      </View>
-
       {/* 2. 주간 캘린더 네비게이션 */}
       <View style={styles.weekNavRow}>
         <TouchableOpacity activeOpacity={0.7} style={styles.navArrowBtn}>
@@ -188,23 +173,6 @@ const styles = StyleSheet.create({
   safeLayout: {
     flex: 1,
     backgroundColor: theme.colors.brand.background,
-  },
-  topHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: theme.spacing.xl,
-    paddingTop: theme.spacing.lg,
-    paddingBottom: theme.spacing.lg,
-  },
-  headerIconBtn: {
-    padding: theme.spacing.xs,
-  },
-  mainTitleText: {
-    fontSize: 22,
-    fontWeight: "900",
-    color: theme.colors.brand.mint,
-    letterSpacing: 1,
   },
   weekNavRow: {
     flexDirection: "row",
