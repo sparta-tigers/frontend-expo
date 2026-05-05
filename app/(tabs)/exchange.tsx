@@ -1,16 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { useTheme } from "@/hooks/useTheme";
-import {
-  itemsGetListAPI,
-} from "@/src/features/exchange/api";
 import { useCheckActiveItem } from "@/src/features/exchange/queries";
-import {
-  Item,
-} from "@/src/features/exchange/types";
-import { useLocationTracker } from "@/src/hooks/useLocationTracker";
-import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
-import { useLocationStore } from "@/src/store/useLocationStore";
+import { Item } from "@/src/features/exchange/types";
+import { useExchangeItems } from "@/src/features/exchange/hooks/useExchangeItems";
+import { useExchangeMap } from "@/src/features/exchange/hooks/useExchangeMap";
+import { ExchangeProfileModal } from "@/src/features/exchange/components/ExchangeProfileModal";
+import { ExchangeMapOverlay } from "@/src/features/exchange/components/ExchangeMapOverlay";
 import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
 import { getImageUrl } from "@/src/utils/url";
@@ -18,7 +14,6 @@ import BottomSheet, {
   BottomSheetFlatList,
   BottomSheetFlatListMethods,
 } from "@gorhom/bottom-sheet";
-import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
 import {
@@ -30,262 +25,16 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Modal,
-  Pressable,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-// 정적 스타일 정의
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  map: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  bottomSheetContainer: {
-    backgroundColor: theme.colors.background,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    shadowColor: theme.colors.text.primary,
-    shadowOffset: {
-      width: 0,
-      height: -2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  listContainer: {
-    flex: 1,
-    paddingHorizontal: theme.spacing.SCREEN,
-  },
-  itemContainer: {
-    flexDirection: "row",
-    padding: theme.spacing.lg,
-    borderBottomWidth: 1,
-    borderColor: theme.colors.border.light,
-  },
-  itemImage: {
-    width: 90,
-    height: 90,
-    borderRadius: theme.radius.md,
-    backgroundColor: theme.colors.surface,
-    marginRight: 14,
-  },
-  itemContent: {
-    flex: 1,
-    justifyContent: "space-between",
-  },
-  itemTitle: {
-    fontSize: theme.typography.size.md,
-    color: theme.colors.text.primary,
-    fontWeight: theme.typography.weight.bold,
-  },
-  itemDescription: {
-    fontSize: theme.typography.size.xs,
-    color: theme.colors.text.secondary,
-    marginTop: theme.spacing.xs,
-  },
-  itemMeta: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  itemCategory: {
-    fontSize: theme.typography.size.xs,
-    color: theme.colors.text.secondary,
-    fontWeight: theme.typography.weight.semibold,
-  },
-  itemDate: {
-    fontSize: theme.typography.size.xs,
-    color: theme.colors.text.secondary,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 40,
-  },
-  emptyText: {
-    fontSize: theme.typography.size.xs,
-    color: theme.colors.text.secondary,
-    textAlign: "center",
-    marginBottom: theme.spacing.COMPONENT,
-  },
-  emptyImageContainer: {
-    backgroundColor: theme.colors.border.medium,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 40,
-  },
-  loadingText: {
-    fontSize: 16,
-    marginTop: 8,
-  },
-  emptyButton: {
-    minWidth: 120,
-  },
-  fabButton: {
-    position: "absolute",
-    bottom: theme.spacing.xxl,
-    right: theme.spacing.xxl,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: theme.colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 5,
-  },
-  locationButton: {
-    backgroundColor: theme.colors.info,
-    bottom: theme.spacing.xxl + 70, // 등록 버튼 위에 위치
-  },
-  fabContainer: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    elevation: 5,      // Android 레이어
-  },
-  fabText: {
-    fontSize: 24,
-    color: theme.colors.background,
-  },
-  // 재검색 버튼 스타일 (Phase 1)
-  reSearchButton: {
-    position: "absolute",
-    alignSelf: "center",
-    backgroundColor: theme.colors.primary,
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: 20,
-    flexDirection: "row",
-    alignItems: "center",
-    shadowColor: theme.colors.text.primary,
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 10, // 더 위로
-    zIndex: 2000, // 모든 요소 위에 표시
-  },
-  reSearchText: {
-    color: theme.colors.background,
-    fontSize: theme.typography.size.sm,
-    fontWeight: theme.typography.weight.semibold,
-    marginLeft: theme.spacing.xs,
-  },
-  // 1페이지: 지도 뷰 상단 오버레이 버튼들
-  topOverlayContainer: {
-    position: "absolute",
-    // [Bonus-2] top 제거 — JSX에서 insets.top 기반으로 동적 주입
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: theme.spacing.COMPONENT,
-    zIndex: 10,
-  },
-  topOverlayButton: {
-    backgroundColor: theme.colors.surface,
-    paddingHorizontal: theme.spacing.COMPONENT,
-    paddingVertical: theme.spacing.SMALL,
-    borderRadius: 24,
-    flexDirection: "row",
-    alignItems: "center",
-    ...theme.shadow.card,
-  },
-  topOverlayButtonText: {
-    fontSize: theme.typography.size.BODY,
-    fontWeight: theme.typography.weight.semibold,
-    color: theme.colors.text.primary,
-  },
-  // 2페이지: 바텀시트 필터
-  filterContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    paddingVertical: theme.spacing.SMALL,
-    gap: theme.spacing.SMALL,
-  },
-  filterButton: {
-    paddingHorizontal: theme.spacing.COMPONENT,
-    paddingVertical: theme.spacing.TINY,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: theme.colors.border.medium,
-  },
-  filterButtonActive: {
-    backgroundColor: theme.colors.text.secondary,
-    borderColor: theme.colors.text.secondary,
-  },
-  filterButtonText: {
-    fontSize: theme.typography.size.SMALL,
-    color: theme.colors.text.secondary,
-  },
-  filterButtonTextActive: {
-    color: theme.colors.background,
-    fontWeight: theme.typography.weight.bold,
-  },
-  // Profile Modal 스타일
-  // eslint-disable-next-line react-native/no-color-literals
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-    justifyContent: "flex-end",
-  },
-  modalContent: {
-    backgroundColor: theme.colors.background,
-    borderTopLeftRadius: theme.radius.lg,
-    borderTopRightRadius: theme.radius.lg,
-    paddingBottom: theme.spacing.xxl,
-    paddingHorizontal: theme.spacing.SCREEN,
-  },
-  modalHeader: {
-    alignItems: "center",
-    paddingVertical: theme.spacing.COMPONENT,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
-    marginBottom: theme.spacing.COMPONENT,
-  },
-  modalHandle: {
-    width: 40,
-    height: 4,
-    backgroundColor: theme.colors.text.tertiary,
-    borderRadius: 2,
-    marginBottom: theme.spacing.COMPONENT,
-  },
-  modalTitle: {
-    fontSize: theme.typography.size.SECTION_TITLE,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.text.primary,
-  },
-  modalMenuButton: {
-    paddingVertical: theme.spacing.COMPONENT,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  modalMenuButtonText: {
-    fontSize: theme.typography.size.BODY,
-    color: theme.colors.text.primary,
-    fontWeight: theme.typography.weight.medium,
-  },
-});
+/** 교환 화면 전용 레이아웃 상수 (theme에 올리지 않는 화면 로컬 수치) */
+const EXCHANGE_LAYOUT = {
+  itemImageSize: 90,
+  emptyPaddingVertical: 40,
+  emptyButtonMinWidth: 120,
+} as const;
 
 /**
  * 지도 마커 렌더링 최적화 컴포넌트
@@ -338,152 +87,59 @@ const MapMarkers = React.memo(({ items, currentLocation, onMarkerPress }: {
 MapMarkers.displayName = "MapMarkers";
 
 /**
- * 아이템 목록 페이지 컴포넌트
+ * 교환 화면 오케스트레이터
  *
- * PWA의 ExchangeMainPage를 React Native로 구현
- * - 아이템 목록 표시
- * - 무한 스크롤 지원
- * - 풀다운로드 새로고침
+ * 책임: 훅들과 하위 컴포넌트를 조합하여 화면을 구성.
+ * 비즈니스 로직은 useExchangeMap, useExchangeItems 훅이 담당.
+ * UI 조각은 ExchangeProfileModal, ExchangeMapOverlay가 담당.
  */
 export default function ExchangeScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const mapRef = useRef<MapView>(null);
-  const listRef = useRef<BottomSheetFlatListMethods>(null); // Phase 4: 리스트 스크롤 제어용
+  const listRef = useRef<BottomSheetFlatListMethods>(null);
 
-  // 위치 추적 훅 연동
-  const { userLocation } = useLocationStore();
-  const { errorMsg: locationError } = useLocationTracker();
-
-  // 바텀시트 카테고리 필터 상태
-  const [selectedCategory, setSelectedCategory] = useState<"ALL" | "TICKET" | "GOODS">("ALL");
-
-  // 프로필 모달 상태 (8페이지 대응)
+  // 프로필 모달 상태
   const [isProfileModalVisible, setProfileModalVisible] = useState(false);
 
-  // Map-First 초기 로딩 상태 관리
-  const [isInitialFetched, setIsInitialFetched] = useState(false);
+  // --- 커스텀 훅 연동 ---
+  const {
+    itemsState,
+    selectedCategory,
+    setSelectedCategory,
+    filteredItems,
+    refreshing,
+    isInitialFetched,
+    handleRefresh,
+    searchByRegion,
+    fetchInitialItems,
+  } = useExchangeItems();
 
-  // useAsyncState 훅으로 기본 상태 관리
-  const [itemsState, fetchItems] = useAsyncState<Item[]>([]);
+  const {
+    mapRef,
+    mapRegion,
+    isMapMoved,
+    currentLocation,
+    userLocation,
+    defaultRegion,
+    setIsMapMoved,
+    handleRegionChangeComplete,
+    moveToCurrentLocation,
+    initializeLocation,
+    setIsMapReady,
+  } = useExchangeMap(isInitialFetched);
 
-  // 추가 상태 (페이지네이션용 - 현재 미사용)
-  // const [page, setPage] = useState(0);
-  // const [isLast, setIsLast] = useState(false);
   // 활성 아이템 체크 쿼리 (Navigation Guard용)
   const { data: hasActiveItem, isLoading: isCheckingActive } = useCheckActiveItem();
 
-  const [refreshing, setRefreshing] = useState(false);
-
-  // 현재 위치 상태
-  const [currentLocation, setCurrentLocation] = useState<{
-    latitude: number;
-    longitude: number;
-  } | null>(null);
-
-  // 지도 이동 감지 상태 (Phase 1)
-  const [isMapMoved, setIsMapMoved] = useState(false);
-  const [isMapReady, setIsMapReady] = useState(false);
-  const [mapRegion, setMapRegion] = useState({
-    latitude: 37.5665, // 서울 디폴트 좌표
-    longitude: 126.978,
-    latitudeDelta: 0.009, // 약 1km 반경
-    longitudeDelta: 0.009, // 약 1km 반경
-  });
-  // 아이템 목록 가져오기 (교환 완료된 아이템 필터링)
-  const loadItems = useCallback(
-    async (
-      pageNum: number = 0,
-      isRefresh: boolean = false,
-      lat?: number,
-      lng?: number,
-      radiusKm?: number,
-    ): Promise<Item[]> => {
-      if (itemsState.status === "loading" && !isRefresh) return [];
-
-      // 에러 상태에서는 재시도하지 않음 (무한반복 방지)
-      if (itemsState.status === "error" && !isRefresh) return [];
-
-      if (isRefresh) setRefreshing(true);
-
-      try {
-        const response = await itemsGetListAPI(
-          pageNum,
-          10,
-          undefined,
-          undefined,
-          lat,
-          lng,
-          radiusKm,
-        );
-
-        if (response.resultType === "SUCCESS" && response.data) {
-          const { content } = response.data;
-          // 다음 페이지 정보는 현재 미사용 (BottomSheetFlatList에서 onEndReached 제거)
-          // const { last } = response.data;
-
-          // 교환 완료된 아이템 필터링 (COMPLETED/FAILED/DELETED 제외 가능)
-          const filteredContent = content.filter(
-            (item: Item) => item.status !== "COMPLETED",
-          );
-
-          if (pageNum === 0 || isRefresh) {
-            return filteredContent;
-          } else {
-            // 기존 데이터에 새 데이터 추가
-            return [...(itemsState.data || []), ...filteredContent];
-          }
-        }
-
-        return itemsState.data || [];
-      } catch (error) {
-        Logger.error(
-          "아이템 목록 로딩 실패:",
-          error instanceof Error ? error.message : String(error),
-        );
-        throw error;
-      } finally {
-        if (isRefresh) setRefreshing(false);
-      }
-    },
-    [itemsState.data, itemsState.status],
-  );
-
-  // 아이템 상세 페이지로 이동
-  const navigateToDetail = (itemId: number) => {
+  // --- 네비게이션 핸들러 ---
+  const navigateToDetail = useCallback((itemId: number) => {
     router.push(`/exchange/${itemId}`);
-  };
+  }, [router]);
 
-  // 마커 클릭 핸들러 (Phase 4)
-  const handleMarkerPress = (itemId: number) => {
-    // 아이템 리스트에서 해당 아이템의 인덱스 찾기
-    const index = itemsState.data?.findIndex((item) => item.id === itemId);
-
-    if (index !== undefined && index !== -1) {
-      // 1. 바텀시트가 닫혀있다면 올리기
-      bottomSheetRef.current?.snapToIndex(1);
-
-      // 2. 리스트 스크롤 이동
-      setTimeout(() => {
-        listRef.current?.scrollToIndex({
-          index,
-          animated: true,
-          viewPosition: 0.5, // 아이템을 화면 중앙에 위치
-        });
-      }, 300); // 바텀시트 애니메이션 대기
-
-      Logger.debug("마커 연동 스크롤 완료:", { itemId, index });
-    } else {
-      // 아이템을 찾을 수 없으면 상세 페이지로 이동 (기존 동작)
-      navigateToDetail(itemId);
-    }
-  };
-
-  // 아이템 생성 페이지로 이동 (Navigation Guard 적용 - React Query 기반)
-  const navigateToCreate = () => {
-    if (isCheckingActive) return; // 아직 체크 중이면 무시
+  const navigateToCreate = useCallback(() => {
+    if (isCheckingActive) return;
 
     if (hasActiveItem === true) {
       Alert.alert(
@@ -494,145 +150,57 @@ export default function ExchangeScreen() {
     }
     
     router.push("/exchange/create");
-  };
+  }, [isCheckingActive, hasActiveItem, router]);
 
-  // 현재 위치로 이동 (Phase 3: 즉각 반응)
-  const moveToCurrentLocation = () => {
-    if (userLocation && mapRef.current) {
-      // GPS 로딩 대기 없이 메모리 좌표로 즉시 이동!
-      mapRef.current.animateToRegion(
-        {
-          latitude: userLocation.latitude,
-          longitude: userLocation.longitude,
-          latitudeDelta: 0.009, // 약 1km 반경
-          longitudeDelta: 0.009, // 약 1km 반경
-        },
-        500, // 0.5초 동안 부드럽게 이동
-      );
+  // --- 마커 클릭 → 바텀시트 스크롤 연동 ---
+  const handleMarkerPress = useCallback((itemId: number) => {
+    const index = itemsState.data?.findIndex((item) => item.id === itemId);
 
-      Logger.debug("[즉각 위치 이동 완료]", userLocation);
+    if (index !== undefined && index !== -1) {
+      bottomSheetRef.current?.snapToIndex(1);
+      setTimeout(() => {
+        listRef.current?.scrollToIndex({
+          index,
+          animated: true,
+          viewPosition: 0.5,
+        });
+      }, 300);
+      Logger.debug("마커 연동 스크롤 완료:", { itemId, index });
     } else {
-      // 권한 거부 상태이거나 아직 첫 좌표를 못 잡은 경우의 예외 처리
-      Alert.alert(
-        "알림",
-        locationError
-          ? "위치 권한이 거부되었습니다.\n설정에서 권한을 허용해주세요."
-          : "현재 위치를 확인하는 중입니다.\n잠시 후 다시 시도해주세요.",
-      );
+      navigateToDetail(itemId);
     }
-  };
+  }, [itemsState.data, navigateToDetail]);
 
-  // 현재 위치 가져오기 (컴포넌트 마운트 시 자동 실행)
-  const getCurrentLocationOnMount = async () => {
+  // --- 지도 재검색 핸들러 ---
+  const handleSearchCurrentLocation = useCallback(async () => {
+    setIsMapMoved(false);
     try {
-      // 위치 권한 요청
-      const { status } = await Location.requestForegroundPermissionsAsync();
-
-      if (status !== "granted") {
-        Logger.debug("위치 권한이 거부됨");
-        return;
-      }
-
-      // 현재 위치 가져오기
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-
-      const { latitude, longitude } = location.coords;
-      const userLocation = { latitude, longitude };
-
-      setCurrentLocation(userLocation);
-
-      // 지도를 현재 위치로 이동 (1km 반경)
-      if (mapRef.current) {
-        mapRef.current.animateToRegion(
-          {
-            ...userLocation,
-            latitudeDelta: 0.009, // 약 1km 반경
-            longitudeDelta: 0.009, // 약 1km 반경
-          },
-          1000,
-        );
-      }
-
-      Logger.debug("[초기 위치 설정]", userLocation);
-    } catch (error) {
-      Logger.error(
-        "초기 위치 가져오기 실패:",
-        error instanceof Error ? error.message : String(error),
-      );
-    }
-  };
-
-  // [P2-2] 새로고침 핸들러 — async/await 누락로 refresh 인디케이터가 즉시 쪬히젠 버그 수정
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    try {
-      const radius = mapRegion.latitudeDelta * 111; // 1도 ≈ 111km
-      await fetchItems(
-        loadItems(0, true, mapRegion.latitude, mapRegion.longitude, radius),
-      );
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
-  // 지도 이동 완료 핸들러 (Phase 1)
-  const handleRegionChangeComplete = (region: any) => {
-    setMapRegion(region);
-    // Bug 2: 초기 데이터가 1회 로딩된 이후의 유저 이동만 지도 이동으로 간주
-    if (isMapReady && isInitialFetched) {
+      await searchByRegion(mapRegion.latitude, mapRegion.longitude, mapRegion.latitudeDelta);
+    } catch {
       setIsMapMoved(true);
     }
-  };
+  }, [mapRegion, searchByRegion, setIsMapMoved]);
 
-  // 현 지도에서 재검색 핸들러 (Phase 2)
-  const handleSearchCurrentLocation = async () => {
-    try {
-      // 재검색 버튼 즉시 숨김
-      setIsMapMoved(false);
+  // --- Effects (최소화: 마운트 + 초기 데이터 로딩) ---
 
-      // 현재 지도 중심 좌표로 아이템 목록 새로고침
-      setRefreshing(true);
+  // 1. 마운트 시 위치 초기화 (1회)
+  React.useEffect(() => {
+    initializeLocation();
+  }, [initializeLocation]);
 
-      if (true) {
-        // 지도 중심 좌표와 반경 계산하여 API 호출
-        const radius = mapRegion.latitudeDelta * 111; // 대략적인 반경 계산 (1도 ≈ 111km)
-        await fetchItems(
-          loadItems(0, true, mapRegion.latitude, mapRegion.longitude, radius),
-        );
-      }
-
-      setRefreshing(false);
-
-      Logger.debug("현 지도에서 재검색 완료", {
-        center: mapRegion,
-        timestamp: new Date().toISOString(),
-      });
-    } catch (error) {
-      Logger.error("현 지도에서 재검색 실패:", error);
-      setRefreshing(false);
-      // 에러 발생 시 버튼 다시 표시
-      setIsMapMoved(true);
+  // 2. GPS 좌표 확보 시 초기 아이템 로딩 (1회)
+  React.useEffect(() => {
+    if (!isInitialFetched && userLocation) {
+      fetchInitialItems(
+        userLocation.latitude,
+        userLocation.longitude,
+        mapRegion.latitudeDelta,
+      );
     }
-  };
+  }, [userLocation, isInitialFetched, mapRegion.latitudeDelta, fetchInitialItems]);
 
-  // 다음 페이지 로드 (현재 미사용 - BottomSheetFlatList에서 onEndReached 제거)
-  // const loadMore = () => {
-  //   // 에러 상태에서는 자동 로드를 차단하여 무한 루프 방지
-  //   if (
-  //     itemsState.status !== "loading" &&
-  //     itemsState.status !== "error" &&
-  //     !isLast
-  //   ) {
-  //     const nextPage = page + 1;
-  //     setPage(nextPage);
-  //     fetchItems(loadItems(nextPage, false));
-  //   }
-  // };
-
-  // 아이템 렌더 함수
-  const renderItem = ({ item }: { item: Item }) => (
+  // --- 아이템 렌더 함수 ---
+  const renderItem = useCallback(({ item }: { item: Item }) => (
     <TouchableOpacity
       style={[
         styles.itemContainer,
@@ -643,7 +211,6 @@ export default function ExchangeScreen() {
       ]}
       onPress={() => navigateToDetail(item.id)}
     >
-      {/* 아이템 이미지 */}
       {item.imageUrl ? (
         <Image source={{ uri: getImageUrl(item.imageUrl) }} style={styles.itemImage} />
       ) : (
@@ -652,7 +219,6 @@ export default function ExchangeScreen() {
         </View>
       )}
 
-      {/* 아이템 정보 */}
       <View style={styles.itemContent}>
         <Text
           style={[styles.itemTitle, { color: colors.text }]}
@@ -676,77 +242,19 @@ export default function ExchangeScreen() {
         </View>
       </View>
     </TouchableOpacity>
-  );
+  ), [colors, navigateToDetail]);
 
-  // 1. 컴포넌트 마운트 시 최초 1회만 실행 (위치 조회)
-  React.useEffect(() => {
-    getCurrentLocationOnMount();
-  }, []); // 의존성 배열을 비워 마운트 시 1회만 실행 보장
-
-  // 필터링 적용된 목록 도출
-  const filteredItemsData = React.useMemo(() => {
-    if (!itemsState.data) return [];
-    if (selectedCategory === "ALL") return itemsState.data;
-    return itemsState.data.filter(item => item.category === selectedCategory);
-  }, [itemsState.data, selectedCategory]);
-
-  // [P2-3] loadItems ref 패턴 — loadItems가 itemsState에 의존하여
-  // 렌더마다 재생성되는 함수이며, 이를 useEffect dep에 넣으면
-  // itemsState 변경 → loadItems 재생성 → useEffect 재실행 순환에 진입.
-  // ref로 관리하면 dep 없이 항상 최신 함수를 호출할 수 있다.
-  const loadItemsRef = React.useRef(loadItems);
-  React.useEffect(() => {
-    loadItemsRef.current = loadItems;
-  });
-
-  // 2. Map-First 초기 데이터 로딩 (GPS 좌표가 잡히는 즉시 실행)
-  React.useEffect(() => {
-    let isMounted = true;
-
-    const fetchInitialMapData = async () => {
-      // 마운트 해제됨, 이미 로딩됨, 혹은 GPS 아직 못 잡음 ➔ 대기
-      if (!isMounted || isInitialFetched || !userLocation) return;
-
-      // GPS 좌표가 들어왔다! → 지도 기반 반경 계산 후 즉시 아이템 페칭
-      const radius = mapRegion.latitudeDelta * 111;
-      await fetchItems(
-        loadItemsRef.current( // ← loadItems 대신 ref 사용 — dep 제거
-          0,
-          true,
-          userLocation.latitude,
-          userLocation.longitude,
-          radius,
-        ),
-      );
-
-      // 최초 1회 로딩 완료 플래그 세팅 (이후에는 '현 지도에서 재검색' 버튼으로만 수동 갱신)
-      setIsInitialFetched(true);
-      Logger.debug(" [Map-First] 초기 GPS 기반 아이템 로딩 완료", userLocation);
-    };
-
-    fetchInitialMapData();
-
-    return () => {
-      isMounted = false;
-    };
-    // [P2-3] loadItems는 loadItemsRef로 관리하므로 deps 불필요
-  }, [userLocation, isInitialFetched, mapRegion.latitudeDelta, fetchItems]);
-
+  // --- 렌더링 ---
   return (
     <SafeLayout style={[styles.container, { backgroundColor: colors.background }]}>
       {/* 1. 백그라운드 지도 뷰 */}
       <MapView
         ref={mapRef}
         style={styles.map}
-        initialRegion={{
-          latitude: 37.5665, // 서울 디폴트 좌표
-          longitude: 126.978,
-          latitudeDelta: 0.009, // 약 1km 반경
-          longitudeDelta: 0.009, // 약 1km 반경
-        }}
+        initialRegion={defaultRegion}
         showsUserLocation={false}
-        onMapReady={() => setIsMapReady(true)} // 지도 로딩 완료 플래그
-        onRegionChangeComplete={handleRegionChangeComplete} // Phase 1: 지도 이동 감지
+        onMapReady={() => setIsMapReady(true)}
+        onRegionChangeComplete={handleRegionChangeComplete}
       >
         <MapMarkers 
           items={itemsState.data}
@@ -755,29 +263,14 @@ export default function ExchangeScreen() {
         />
       </MapView>
 
-      {/* Bug 3 Fix: BottomSheet 다음에 렌뤈링하여 항상 위에 표시 */}
-      {!isProfileModalVisible && (
-        <View style={styles.fabContainer}>
-          <TouchableOpacity
-            style={[styles.fabButton, styles.locationButton]}
-            onPress={moveToCurrentLocation}
-          >
-            <Text style={styles.fabText}>📍</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.fabButton} onPress={() => setProfileModalVisible(true)}>
-            <Text style={styles.fabText}>👤</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
+      {/* 2. 바텀시트 */}
       <BottomSheet
         ref={bottomSheetRef}
         snapPoints={["15%", "85%"]}
         style={styles.bottomSheetContainer}
         backgroundStyle={{ backgroundColor: colors.background }}
       >
-        {/* 2페이지 디자인: TICKET / ITEM 필터 */}
+        {/* 카테고리 필터 */}
         <View style={[styles.filterContainer, { backgroundColor: colors.background }]}>
           <TouchableOpacity 
             style={[styles.filterButton, selectedCategory === "TICKET" && styles.filterButtonActive]}
@@ -795,7 +288,6 @@ export default function ExchangeScreen() {
 
         {/* 콘텐츠 영역 */}
         <View style={styles.listContainer}>
-          {/* 아이템 목록 */}
           {itemsState.status === "loading" && itemsState.data?.length === 0 ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color={colors.primary} />
@@ -803,23 +295,14 @@ export default function ExchangeScreen() {
                   아이템 목록 로딩 중...
                 </Text>
               </View>
-            ) : itemsState.status === "error" && 0 ? (
+            ) : itemsState.status === "error" ? (
               <View style={styles.emptyContainer}>
                 <Text style={[styles.emptyText, { color: colors.text }]}>
                   {itemsState.error || "아이템 목록을 불러올 수 없습니다."}
                 </Text>
                 <Button
                   onPress={() => {
-                    const radius = mapRegion.latitudeDelta * 111; // 1도 ≈ 111km
-                    fetchItems(
-                      loadItems(
-                        0,
-                        true,
-                        mapRegion.latitude,
-                        mapRegion.longitude,
-                        radius,
-                      ),
-                    );
+                    handleRefresh(mapRegion.latitude, mapRegion.longitude, mapRegion.latitudeDelta);
                   }}
                   style={styles.emptyButton}
                 >
@@ -828,14 +311,14 @@ export default function ExchangeScreen() {
               </View>
             ) : (
                 <BottomSheetFlatList
-                ref={listRef} // 리스트 스크롤 제어용 ref 연결
-                data={filteredItemsData}
+                ref={listRef}
+                data={filteredItems}
                 renderItem={renderItem}
                 keyExtractor={(item: Item) => item.id.toString()}
                 refreshControl={
                   <RefreshControl
                     refreshing={refreshing}
-                    onRefresh={handleRefresh}
+                    onRefresh={() => handleRefresh(mapRegion.latitude, mapRegion.longitude, mapRegion.latitudeDelta)}
                   />
                 }
               />
@@ -843,75 +326,149 @@ export default function ExchangeScreen() {
         </View>
       </BottomSheet>
 
-      {/* 3. 지도 상단 플로팅 오버레이 버튼들 (항상 바텀시트보다 위에 있어야 하므로 더 나중에 렌더링) */}
-      {/* [Bonus-2] top: insets.top + 8 으로 SafeArea 노치 높이 대응 */}
-      <View style={[styles.topOverlayContainer, { top: insets.top + 8 }]}>
-        <TouchableOpacity style={styles.topOverlayButton} onPress={navigateToCreate}>
-          <Text style={styles.topOverlayButtonText}>+ 등록하기</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.topOverlayButton} onPress={() => router.push("/exchange/requests")}>
-          <Text style={styles.topOverlayButtonText}>💬 교환현황</Text>
-        </TouchableOpacity>
-      </View>
+      {/* 3. 지도 오버레이 (FAB + 상단 버튼 + 재검색) */}
+      <ExchangeMapOverlay
+        topInset={insets.top}
+        isProfileModalVisible={isProfileModalVisible}
+        isMapMoved={isMapMoved}
+        onMoveToLocation={moveToCurrentLocation}
+        onOpenProfile={() => setProfileModalVisible(true)}
+        onNavigateToCreate={navigateToCreate}
+        onNavigateToRequests={() => router.push("/exchange/requests")}
+        onSearchCurrentLocation={handleSearchCurrentLocation}
+      />
 
-      {/* Bug 1 Fix: 재검색 버튼을 topOverlay 아래에 위치시키고 모든 요소 위에 표시 */}
-      {isMapMoved && (
-        <TouchableOpacity
-          style={[
-            styles.reSearchButton,
-            {
-              // [Bonus-2] topOverlay = insets.top + 8 + 버튼화면 높이(약 44px) + 여백(12px)
-              // 이로써 노치 크기에 관계없이 topOverlay 아래에 정확히 위치
-              top: insets.top + 64,
-            },
-          ]}
-          onPress={handleSearchCurrentLocation}
-        >
-          <Text style={styles.reSearchText}>↻ 현 지도에서 재검색</Text>
-        </TouchableOpacity>
-      )}
-
-      {/* Profile Modal (8-11페이지 연결) */}
-      <Modal
+      {/* 4. 프로필 모달 */}
+      <ExchangeProfileModal
         visible={isProfileModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setProfileModalVisible(false)}
-      >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setProfileModalVisible(false)}
-        >
-          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
-            <View style={styles.modalHeader}>
-              <View style={styles.modalHandle} />
-              <Text style={styles.modalTitle}>내 활동 관리</Text>
-            </View>
-
-            <TouchableOpacity
-              style={styles.modalMenuButton}
-              onPress={() => {
-                setProfileModalVisible(false);
-                router.push("/exchange/my-items");
-              }}
-            >
-              <Text style={styles.modalMenuButtonText}>내가 등록한 물건</Text>
-              <Text style={[{ color: colors.muted }]}>{">"}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.modalMenuButton}
-              onPress={() => {
-                setProfileModalVisible(false);
-                router.push("/exchange/history");
-              }}
-            >
-              <Text style={styles.modalMenuButtonText}>종료된 교환 내역</Text>
-              <Text style={[{ color: colors.muted }]}>{">"}</Text>
-            </TouchableOpacity>
-          </Pressable>
-        </Pressable>
-      </Modal>
+        onClose={() => setProfileModalVisible(false)}
+      />
     </SafeLayout>
   );
 }
+
+// ========================================================
+// Styles — Co-location 유지, 하드코딩 제거
+// ========================================================
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  map: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  bottomSheetContainer: {
+    backgroundColor: theme.colors.background,
+    borderTopLeftRadius: theme.radius.lg,
+    borderTopRightRadius: theme.radius.lg,
+    shadowColor: theme.colors.text.primary,
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: theme.spacing.xs,
+    elevation: 5,
+  },
+  listContainer: {
+    flex: 1,
+    paddingHorizontal: theme.spacing.SCREEN,
+  },
+  itemContainer: {
+    flexDirection: "row",
+    padding: theme.spacing.lg,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.border.light,
+  },
+  itemImage: {
+    width: EXCHANGE_LAYOUT.itemImageSize,
+    height: EXCHANGE_LAYOUT.itemImageSize,
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.surface,
+    marginRight: theme.spacing.md,
+  },
+  itemContent: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
+  itemTitle: {
+    fontSize: theme.typography.size.md,
+    color: theme.colors.text.primary,
+    fontWeight: theme.typography.weight.bold,
+  },
+  itemDescription: {
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.secondary,
+    marginTop: theme.spacing.xs,
+  },
+  itemMeta: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  itemCategory: {
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.secondary,
+    fontWeight: theme.typography.weight.semibold,
+  },
+  itemDate: {
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.secondary,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: EXCHANGE_LAYOUT.emptyPaddingVertical,
+  },
+  emptyText: {
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.secondary,
+    textAlign: "center",
+    marginBottom: theme.spacing.COMPONENT,
+  },
+  emptyImageContainer: {
+    backgroundColor: theme.colors.border.medium,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: EXCHANGE_LAYOUT.emptyPaddingVertical,
+  },
+  loadingText: {
+    fontSize: theme.typography.size.md,
+    marginTop: theme.spacing.sm,
+  },
+  emptyButton: {
+    minWidth: EXCHANGE_LAYOUT.emptyButtonMinWidth,
+  },
+  filterContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    paddingVertical: theme.spacing.SMALL,
+    gap: theme.spacing.SMALL,
+  },
+  filterButton: {
+    paddingHorizontal: theme.spacing.COMPONENT,
+    paddingVertical: theme.spacing.TINY,
+    borderRadius: theme.radius.lg + 4,
+    borderWidth: 1,
+    borderColor: theme.colors.border.medium,
+  },
+  filterButtonActive: {
+    backgroundColor: theme.colors.text.secondary,
+    borderColor: theme.colors.text.secondary,
+  },
+  filterButtonText: {
+    fontSize: theme.typography.size.SMALL,
+    color: theme.colors.text.secondary,
+  },
+  filterButtonTextActive: {
+    color: theme.colors.background,
+    fontWeight: theme.typography.weight.bold,
+  },
+});
