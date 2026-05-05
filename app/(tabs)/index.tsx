@@ -1,9 +1,9 @@
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { useFakeHomeData } from "@/src/features/home/mocks";
+import { LineupSection } from "@/src/features/home/components/LineupSection";
 import { MyTeamSection } from "@/src/features/home/components/MyTeamSection";
 import { RankingSummarySection } from "@/src/features/home/components/RankingSummarySection";
-import { LineupSection } from "@/src/features/home/components/LineupSection";
 import { ScheduleSection } from "@/src/features/home/components/ScheduleSection";
+import { useFakeHomeData } from "@/src/features/home/mocks";
 import { styles } from "@/src/features/home/styles";
 import React from "react";
 import { ScrollView } from "react-native";

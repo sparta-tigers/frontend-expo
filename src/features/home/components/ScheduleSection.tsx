@@ -1,8 +1,8 @@
-import React, { useMemo } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
-import { CalendarGameDto, CalendarCellModel } from "../types";
+import React, { useMemo } from "react";
+import { Text, TouchableOpacity, View } from "react-native";
 import { styles } from "../styles";
+import { CalendarCellModel, CalendarGameDto } from "../types";
 
 export function ScheduleSection(props: { schedule: CalendarGameDto[] }) {
   const { schedule } = props;
@@ -37,11 +37,15 @@ export function ScheduleSection(props: { schedule: CalendarGameDto[] }) {
               activeOpacity={0.85}
               disabled={!cell.hasGame}
               accessibilityRole="button"
-              accessibilityLabel={cell.hasGame ? `${cell.day}일 ${cell.opponentShort}전` : `${cell.day}일 경기 없음`}
+              accessibilityLabel={
+                cell.hasGame
+                  ? `${cell.day}일 ${cell.opponentShort}전`
+                  : `${cell.day}일 경기 없음`
+              }
               onPress={() =>
                 router.push({
                   pathname: "/schedule",
-                  params: { view: "day", day: cell.day }
+                  params: { view: "day", day: cell.day },
                 })
               }
               style={styles.calendarCell}
@@ -49,14 +53,16 @@ export function ScheduleSection(props: { schedule: CalendarGameDto[] }) {
               <View style={styles.calendarCellTopRow}>
                 <Text style={styles.calendarDayText}>{cell.day}</Text>
                 {cell.location ? (
-                  <Text style={styles.calendarLocationText}>{cell.location}</Text>
+                  <Text style={styles.calendarLocationText}>
+                    {cell.location}
+                  </Text>
                 ) : (
                   <View style={styles.calendarLocationSpacer} />
                 )}
               </View>
 
               {cell.hasGame ? (
-               <View
+                <View
                   style={[
                     styles.calendarOpponentBadge,
                     cell.isSelected && styles.calendarOpponentBadgeSelected,
