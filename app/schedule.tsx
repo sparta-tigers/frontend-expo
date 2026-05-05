@@ -9,17 +9,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 // Interfaces — Mock 데이터에도 타입 안전성 강제
 // ========================================================
 
-/** KBO 팀 순위 한 행의 데이터 */
-interface RankingRowDto {
-  rank: number;
-  teamName: string;
-  teamColor: string;
-  games: number;
-  win: number;
-  lose: number;
-  draw: number;
-  winRate: string;
-}
+import { RankingRowDto } from "@/src/features/home/types";
+import { getTeamColor } from "@/src/utils/team";
 
 /** 월간 캘린더의 단일 셀 데이터 */
 interface CalendarDayDto {
@@ -181,7 +172,7 @@ function Main1RankingView() {
       {/* 랭킹 리스트 */}
       <View style={styles.rankingList}>
         {rankingData.map((row) => {
-          const isMyTeam = row.teamName === "KIA 타이거즈";
+          const isMyTeam = row.team.name === "KIA 타이거즈";
           return (
             <View key={row.rank} style={styles.rankingRow}>
               <Text style={[styles.rankNumberText, isMyTeam && styles.myTeamRankNumber]}>{row.rank}</Text>
@@ -189,9 +180,9 @@ function Main1RankingView() {
               <View style={[styles.rankingCard, isMyTeam && styles.myTeamRankingCard]}>
                 <View style={styles.teamInfoArea}>
                   {/* 로고 더미 */}
-                  <View style={[styles.teamBadge, { backgroundColor: row.teamColor }]} />
+                  <View style={[styles.teamBadge, { backgroundColor: getTeamColor(row.team.name) }]} />
                   <Text style={[styles.teamNameText, isMyTeam && styles.myTeamText]} numberOfLines={1}>
-                    {row.teamName}
+                    {row.team.name}
                   </Text>
                 </View>
                 
@@ -200,7 +191,7 @@ function Main1RankingView() {
                   <Text style={[styles.statValueText, isMyTeam && styles.myTeamStatText]}>{row.win}</Text>
                   <Text style={[styles.statValueText, isMyTeam && styles.myTeamStatText]}>{row.lose}</Text>
                   <Text style={[styles.statValueText, isMyTeam && styles.myTeamStatText]}>{row.draw}</Text>
-                  <Text style={[styles.statValueText, isMyTeam && styles.myTeamStatText]}>{row.winRate}</Text>
+                  <Text style={[styles.statValueText, isMyTeam && styles.myTeamStatText]}>{row.winRate.toFixed(3)}</Text>
                 </View>
               </View>
             </View>
@@ -285,16 +276,16 @@ function Main2CalendarView({ year, month }: { year: number; month: number }) {
 function useFakeRankingData(): RankingRowDto[] {
   return useMemo(() => {
     return [
-      { rank: 1, teamName: "LG 트윈스", teamColor: theme.colors.team.lg, games: 144, win: 85, lose: 56, draw: 3, winRate: "0.603" },
-      { rank: 2, teamName: "한화 이글스", teamColor: theme.colors.team.hanwha, games: 144, win: 83, lose: 57, draw: 4, winRate: "0.593" },
-      { rank: 3, teamName: "SSG 랜더스", teamColor: theme.colors.team.ssg, games: 144, win: 75, lose: 65, draw: 4, winRate: "0.536" },
-      { rank: 4, teamName: "삼성 라이온즈", teamColor: theme.colors.team.samsung, games: 144, win: 74, lose: 68, draw: 2, winRate: "0.521" },
-      { rank: 5, teamName: "NC 다이노스", teamColor: theme.colors.team.nc, games: 144, win: 71, lose: 67, draw: 6, winRate: "0.514" },
-      { rank: 6, teamName: "KT 위즈", teamColor: theme.colors.team.kt, games: 144, win: 71, lose: 68, draw: 5, winRate: "0.511" },
-      { rank: 7, teamName: "롯데 자이언츠", teamColor: theme.colors.team.lotte, games: 144, win: 66, lose: 72, draw: 6, winRate: "0.478" },
-      { rank: 8, teamName: "KIA 타이거즈", teamColor: theme.colors.team.kia, games: 144, win: 65, lose: 75, draw: 4, winRate: "0.464" },
-      { rank: 9, teamName: "두산 베어스", teamColor: theme.colors.team.doosan, games: 144, win: 61, lose: 77, draw: 6, winRate: "0.442" },
-      { rank: 10, teamName: "키움 히어로즈", teamColor: theme.colors.team.kiwoom, games: 144, win: 47, lose: 93, draw: 4, winRate: "0.336" },
+      { rank: 1, team: { name: "LG 트윈스", shortName: "LG" }, games: 144, win: 85, lose: 56, draw: 3, winRate: 0.603 },
+      { rank: 2, team: { name: "한화 이글스", shortName: "한화" }, games: 144, win: 83, lose: 57, draw: 4, winRate: 0.593 },
+      { rank: 3, team: { name: "SSG 랜더스", shortName: "SSG" }, games: 144, win: 75, lose: 65, draw: 4, winRate: 0.536 },
+      { rank: 4, team: { name: "삼성 라이온즈", shortName: "삼성" }, games: 144, win: 74, lose: 68, draw: 2, winRate: 0.521 },
+      { rank: 5, team: { name: "NC 다이노스", shortName: "NC" }, games: 144, win: 71, lose: 67, draw: 6, winRate: 0.514 },
+      { rank: 6, team: { name: "KT 위즈", shortName: "KT" }, games: 144, win: 71, lose: 68, draw: 5, winRate: 0.511 },
+      { rank: 7, team: { name: "롯데 자이언츠", shortName: "롯데" }, games: 144, win: 66, lose: 72, draw: 6, winRate: 0.478 },
+      { rank: 8, team: { name: "KIA 타이거즈", shortName: "KIA" }, games: 144, win: 65, lose: 75, draw: 4, winRate: 0.464 },
+      { rank: 9, team: { name: "두산 베어스", shortName: "두산" }, games: 144, win: 61, lose: 77, draw: 6, winRate: 0.442 },
+      { rank: 10, team: { name: "키움 히어로즈", shortName: "키움" }, games: 144, win: 47, lose: 93, draw: 4, winRate: 0.336 },
     ];
   }, []);
 }

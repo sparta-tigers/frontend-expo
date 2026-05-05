@@ -28,8 +28,8 @@ interface MatchTeamDto {
 /** 라이브보드 매치 카드의 날씨 정보 */
 interface MatchWeatherDto {
   text: string;
-  /** MaterialIcons 아이콘 이름 */
-  icon: string;
+  /** MaterialIcons 아이콘 이름 — 타입 안전성을 위해 glyphMap 키로 한정 */
+  icon: keyof typeof MaterialIcons.glyphMap;
 }
 
 /** 라이브보드 매치 카드 전체 */
@@ -116,7 +116,7 @@ export default function LiveboardScreen() {
               <Text style={styles.timeText}>{match.time}</Text>
               <Text style={styles.stadiumText}>{match.stadium}</Text>
               <View style={styles.weatherRow}>
-                <MaterialIcons name={match.weather.icon as keyof typeof MaterialIcons.glyphMap} size={theme.typography.size.sm} color={theme.colors.brand.mint} />
+                <MaterialIcons name={match.weather.icon} size={theme.typography.size.sm} color={theme.colors.brand.mint} />
                 <Text style={styles.weatherText}>{match.weather.text}</Text>
               </View>
             </View>

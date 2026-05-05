@@ -91,7 +91,7 @@ function MiniStatCard(props: { item: MiniStatDto }) {
         <View style={styles.miniStatIconBadge}>
           <IconSymbol
             size={theme.typography.size.xs}
-            name={item.iconName as any}
+            name={item.iconName}
             color={iconColor}
           />
         </View>

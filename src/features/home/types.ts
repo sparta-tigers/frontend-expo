@@ -1,3 +1,5 @@
+import { IconSymbolName } from "@/components/ui/icon-symbol";
+
 /**
  * 팀 정보 데이터 객체
  *
@@ -8,6 +10,7 @@ export interface TeamDto {
   shortName: string;
 }
 
+
 /**
  * 마이팀 미니 통계 데이터 객체
  *
@@ -17,7 +20,8 @@ export interface MiniStatDto {
   key: "visits" | "alarms" | "remainingGames";
   valueText: string;
   label: string;
-  iconName: "chart.bar.fill" | "clock.fill" | "star.fill" | string;
+  /** 표시할 아이콘 이름 — IconSymbolName으로 제한하여 타입 안전성 확보 */
+  iconName: IconSymbolName;
   tone: "pink" | "yellow" | "green";
 }
 
