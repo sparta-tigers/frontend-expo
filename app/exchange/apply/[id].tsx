@@ -214,7 +214,7 @@ export default function ApplyExchangeScreen() {
         <Stack.Screen
           options={{
             headerShown: false,
-          } as any}
+          }}
         />
         <SafeLayout style={styles.loadingWrapper}>
           <View style={styles.loadingContainer}>
@@ -230,7 +230,7 @@ export default function ApplyExchangeScreen() {
       <Stack.Screen
         options={{
           headerShown: false,
-        } as any}
+        }}
       />
       <SafeLayout edges={["top", "bottom"]} style={{ ...styles.container, backgroundColor: colors.background }}>
         {/* [KB-1] KeyboardAwareScrollView — have 입력 포커스 시 키보드가 버튼을 가리지 않도록 자동 스크롤 */}

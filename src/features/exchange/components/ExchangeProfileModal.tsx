@@ -5,7 +5,7 @@
  */
 import { useTheme } from "@/hooks/useTheme";
 import { theme } from "@/src/styles/theme";
-import { useRouter } from "expo-router";
+import { useRouter, Href } from "expo-router";
 import React from "react";
 import {
   Modal,
@@ -33,9 +33,15 @@ export const ExchangeProfileModal = React.memo(
     const router = useRouter();
     const { colors } = useTheme();
 
-    const handleNavigate = (path: string) => {
+    /**
+     * 모달을 닫고 지정 경로로 이동
+     * 
+     * Why: 모달이 닫히기 전에 네비게이션이 발생하면 애니메이션 충돌이 생길 수 있으므로
+     * onClose()를 먼저 호출한 뒤 push한다.
+     */
+    const handleNavigate = (path: Href) => {
       onClose();
-      router.push(path as never);
+      router.push(path);
     };
 
     return (

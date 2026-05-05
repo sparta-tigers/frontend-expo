@@ -23,8 +23,7 @@ import { ItemCategory, LocationDto } from "@/src/features/exchange/types";
 import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
 
-// Location 모듈 타입 단언
-const LocationModule = Location as any;
+
 
 // 정적 스타일 정의 (작업 지시서 기준)
 const styles = StyleSheet.create({
@@ -287,7 +286,7 @@ export default function CreateItemScreen() {
           uri: uri,
           name: filename,
           type,
-        } as any); // RN의 FormData 타입 에러 우회
+        } as unknown as Blob); // RN의 FormData 타입 에러 우회
       });
 
       Logger.debug("멀티파트 전송 준비 완료:", requestFormData);
@@ -300,7 +299,7 @@ export default function CreateItemScreen() {
       queryClient.invalidateQueries({ queryKey: ["items"] });
       router.replace("/(tabs)/exchange");
     },
-    onError: (error: any) => {
+    onError: (error: Error & { response?: { status?: number } }) => {
       let errorMessage = "게시글 등록 중 문제가 발생했습니다.";
       const status = error?.response?.status;
       
@@ -338,7 +337,7 @@ export default function CreateItemScreen() {
 
     try {
       // 위치 권한 요청
-      let { status } = await LocationModule.requestForegroundPermissionsAsync();
+      let { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status !== "granted") {
         Logger.debug("위치 권한이 거부됨");
@@ -348,12 +347,12 @@ export default function CreateItemScreen() {
       }
 
       // 현재 위치 가져오기
-      const location = await LocationModule.getCurrentPositionAsync({
-        accuracy: LocationModule.Accuracy.Balanced,
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
       });
 
       // 주소 변환 (역지오코딩)
-      const [address] = await LocationModule.reverseGeocodeAsync({
+      const [address] = await Location.reverseGeocodeAsync({
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
       });
