@@ -5,6 +5,16 @@ import { theme } from "@/src/styles/theme";
 import { TeamDto, MiniStatDto } from "../types";
 import { styles } from "../styles";
 
+/**
+ * 마이팀 요약 섹션
+ *
+ * Why: 홈 화면 최상단에서 사용자의 닉네임, 활동 일수, 응원팀 정보 및 주요 통계(직관 횟수 등)를 요약해서 보여주기 위함.
+ * @param props.userNickname 사용자 닉네임
+ * @param props.daysInSchool 서비스 이용 일수
+ * @param props.myTeam 응원팀 정보 (TeamDto)
+ * @param props.stats 표시할 미니 통계 배열 (MiniStatDto[])
+ * @param props.onPressChangeTeam 팀 변경 버튼 클릭 시 콜백
+ */
 export function MyTeamSection(props: {
   userNickname: string;
   daysInSchool: number;
@@ -53,6 +63,12 @@ export function MyTeamSection(props: {
   );
 }
 
+/**
+ * 미니 통계 카드 컴포넌트 (내부용)
+ *
+ * Why: MyTeamSection 내에서 개별 통계 항목(직관 횟수, 알람 등)을 카드 형태로 일관되게 렌더링하기 위함.
+ * @param props.item 표시할 통계 데이터 (MiniStatDto)
+ */
 function MiniStatCard(props: { item: MiniStatDto }) {
   const { item } = props;
   const toneStyle =

@@ -9,7 +9,7 @@ import { itemsGetListAPI } from "@/src/features/exchange/api";
 import { Item } from "@/src/features/exchange/types";
 import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import { Logger } from "@/src/utils/logger";
-import React, { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 /** 카테고리 필터 타입 */
 type CategoryFilter = "ALL" | "TICKET" | "GOODS";
@@ -136,7 +136,7 @@ export function useExchangeItems(): UseExchangeItemsReturn {
   );
 
   /** 필터링 적용된 아이템 목록 */
-  const filteredItems = React.useMemo(() => {
+  const filteredItems = useMemo(() => {
     if (!itemsState.data) return [];
     if (selectedCategory === "ALL") return itemsState.data;
     return itemsState.data.filter((item) => item.category === selectedCategory);

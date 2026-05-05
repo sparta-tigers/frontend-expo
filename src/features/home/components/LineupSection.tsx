@@ -3,6 +3,12 @@ import { View, Text } from "react-native";
 import { LineupRowDto } from "../types";
 import { styles } from "../styles";
 
+/**
+ * 오늘의 라인업 섹션
+ *
+ * Why: 홈 화면에서 당일 선발 라인업(타순, 이름, 포지션)을 목록으로 보여주기 위해 분리.
+ * @param props.lineup 표시할 LineupRowDto 배열
+ */
 export function LineupSection(props: { lineup: LineupRowDto[] }) {
   const { lineup } = props;
 

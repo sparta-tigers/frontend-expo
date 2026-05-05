@@ -7,6 +7,12 @@ import {
   CalendarGameDto,
 } from "./types";
 
+/**
+ * 홈 화면 가짜 데이터 생성 훅
+ *
+ * Why: 실제 API 연동 전 홈 화면의 각 섹션(마이팀, 순위, 라인업, 일정)을 테스트하기 위한 데이터를 통합 제공하기 위함.
+ * @returns 홈 화면에 필요한 목(Mock) 데이터 객체
+ */
 export function useFakeHomeData() {
   return useMemo(() => {
     const myTeam: TeamDto = { name: "KIA 타이거즈", shortName: "KIA" };
