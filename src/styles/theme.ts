@@ -291,10 +291,10 @@ export const theme = {
       lineupRowWidth: 234,
       lineupRowHeight: 30,
       calendarWidth: 340,
-      calendarCellWidth: 48.571,
+      calendarCellWidth: 48, // 340 / 7 을 내림; 미세 여백은 flex로 흡수
       calendarHeaderHeight: 32,
       calendarCellHeight: 61,
-      calendarRadius: 12.687,
+      calendarRadius: 13, // 12.687 반올림; 정수화하여 렌더링 일관성 확보
     },
   },
 } as const;
