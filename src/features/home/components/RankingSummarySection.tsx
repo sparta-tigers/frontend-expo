@@ -15,7 +15,7 @@ export function RankingSummarySection(props: { ranking: RankingRowDto[] }) {
 
       <View style={styles.rankingList}>
         {ranking.map((row) => (
-          <RankingRow key={row.rank} row={row} />
+          <RankingRow key={row.team.name} row={row} />
         ))}
       </View>
     </View>

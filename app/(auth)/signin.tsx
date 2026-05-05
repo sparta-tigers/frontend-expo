@@ -204,6 +204,14 @@ export default function SigninScreen() {
                 <View style={styles.fakeTabItem}>
                   <IconSymbol
                     size={theme.typography.size.xl}
+                    name="location.fill"
+                    color={theme.colors.brand.inactive}
+                  />
+                  <Text style={styles.fakeTabLabel}>홈</Text>
+                </View>
+                <View style={styles.fakeTabItem}>
+                  <IconSymbol
+                    size={theme.typography.size.xl}
                     name="chart.bar.fill"
                     color={theme.colors.brand.inactive}
                   />
@@ -216,14 +224,6 @@ export default function SigninScreen() {
                     color={theme.colors.brand.inactive}
                   />
                   <Text style={styles.fakeTabLabel}>교환</Text>
-                </View>
-                <View style={styles.fakeTabItem}>
-                  <IconSymbol
-                    size={theme.typography.size.xl}
-                    name="location.fill"
-                    color={theme.colors.brand.inactive}
-                  />
-                  <Text style={styles.fakeTabLabel}>구장정보</Text>
                 </View>
                 <View style={styles.fakeTabItem}>
                   <IconSymbol

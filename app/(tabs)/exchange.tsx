@@ -152,7 +152,7 @@ export default function ExchangeScreen() {
 
   // --- 마커 클릭 → 바텀시트 스크롤 연동 ---
   const handleMarkerPress = useCallback((itemId: number) => {
-    const index = itemsState.data?.findIndex((item) => item.id === itemId);
+    const index = filteredItems.findIndex((item) => item.id === itemId);
 
     if (index !== undefined && index !== -1) {
       bottomSheetRef.current?.snapToIndex(1);
@@ -167,7 +167,7 @@ export default function ExchangeScreen() {
     } else {
       navigateToDetail(itemId);
     }
-  }, [itemsState.data, navigateToDetail]);
+  }, [filteredItems, navigateToDetail]);
 
   // --- 지도 재검색 핸들러 ---
   const handleSearchCurrentLocation = useCallback(async () => {
@@ -249,7 +249,7 @@ export default function ExchangeScreen() {
         onRegionChangeComplete={handleRegionChangeComplete}
       >
         <MapMarkers 
-          items={itemsState.data}
+          items={filteredItems}
           currentLocation={currentLocation}
           onMarkerPress={handleMarkerPress}
         />

@@ -182,7 +182,7 @@ function Main1RankingView() {
       {/* 랭킹 리스트 */}
       <View style={styles.rankingList}>
         {rankingData.map((row) => {
-          const isMyTeam = row.team.name === "KIA 타이거즈";
+          const isMyTeam = !!row.isMyTeam;
           return (
             <View key={row.rank} style={styles.rankingRow}>
               <Text style={[styles.rankNumberText, isMyTeam && styles.myTeamRankNumber]}>{row.rank}</Text>
@@ -293,7 +293,7 @@ function useFakeRankingData(): RankingRowDto[] {
       { rank: 5, team: { name: "NC 다이노스", shortName: "NC" }, games: 144, win: 71, lose: 67, draw: 6, winRate: 0.514 },
       { rank: 6, team: { name: "KT 위즈", shortName: "KT" }, games: 144, win: 71, lose: 68, draw: 5, winRate: 0.511 },
       { rank: 7, team: { name: "롯데 자이언츠", shortName: "롯데" }, games: 144, win: 66, lose: 72, draw: 6, winRate: 0.478 },
-      { rank: 8, team: { name: "KIA 타이거즈", shortName: "KIA" }, games: 144, win: 65, lose: 75, draw: 4, winRate: 0.464 },
+      { rank: 8, team: { name: "KIA 타이거즈", shortName: "KIA" }, games: 144, win: 65, lose: 75, draw: 4, winRate: 0.464, isMyTeam: true },
       { rank: 9, team: { name: "두산 베어스", shortName: "두산" }, games: 144, win: 61, lose: 77, draw: 6, winRate: 0.442 },
       { rank: 10, team: { name: "키움 히어로즈", shortName: "키움" }, games: 144, win: 47, lose: 93, draw: 4, winRate: 0.336 },
     ];

@@ -76,7 +76,7 @@ export default function LiveboardScreen() {
         <TouchableOpacity activeOpacity={0.7} style={styles.navArrowBtn} accessibilityRole="button" accessibilityLabel="이전 주">
           <MaterialIcons name="chevron-left" size={28} color={theme.colors.team.neutralDark} />
         </TouchableOpacity>
-        <Text style={styles.weekNavText}>2026년 3월 첫쨋주</Text>
+        <Text style={styles.weekNavText}>2026년 3월 첫째 주</Text>
         <TouchableOpacity activeOpacity={0.7} style={styles.navArrowBtn} accessibilityRole="button" accessibilityLabel="다음 주">
           <MaterialIcons name="chevron-right" size={28} color={theme.colors.team.neutralDark} />
         </TouchableOpacity>

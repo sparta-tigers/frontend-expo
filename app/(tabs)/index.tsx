@@ -29,7 +29,6 @@ export default function HomeScreen() {
           daysInSchool={data.daysInSchool}
           myTeam={data.myTeam}
           stats={data.myTeamStats}
-          onPressChangeTeam={() => {}}
         />
 
         <RankingSummarySection ranking={data.rankingSummary} />

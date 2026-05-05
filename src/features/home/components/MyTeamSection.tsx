@@ -20,7 +20,7 @@ export function MyTeamSection(props: {
   daysInSchool: number;
   myTeam: TeamDto;
   stats: MiniStatDto[];
-  onPressChangeTeam: () => void;
+  onPressChangeTeam?: () => void;
 }) {
   const { userNickname, daysInSchool, myTeam, stats, onPressChangeTeam } = props;
 
@@ -28,15 +28,17 @@ export function MyTeamSection(props: {
     <View style={styles.section}>
       <View style={styles.sectionHeaderRow}>
         <Text style={styles.sectionHeaderLabel}>MY TEAM</Text>
-        <TouchableOpacity
-          activeOpacity={0.75}
-          onPress={onPressChangeTeam}
-          style={styles.changeTeamButton}
-          accessibilityRole="button"
-          accessibilityLabel="응원팀 변경"
-        >
-          <Text style={styles.changeTeamButtonText}>응원팀 변경</Text>
-        </TouchableOpacity>
+        {onPressChangeTeam && (
+          <TouchableOpacity
+            activeOpacity={0.75}
+            onPress={onPressChangeTeam}
+            style={styles.changeTeamButton}
+            accessibilityRole="button"
+            accessibilityLabel="응원팀 변경"
+          >
+            <Text style={styles.changeTeamButtonText}>응원팀 변경</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.myTeamCard}>
