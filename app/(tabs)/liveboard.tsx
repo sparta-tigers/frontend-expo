@@ -67,11 +67,11 @@ export default function LiveboardScreen() {
     <SafeLayout style={styles.safeLayout} edges={["top", "left", "right"]}>
       {/* 2. 주간 캘린더 네비게이션 */}
       <View style={styles.weekNavRow}>
-        <TouchableOpacity activeOpacity={0.7} style={styles.navArrowBtn}>
+        <TouchableOpacity activeOpacity={0.7} style={styles.navArrowBtn} accessibilityRole="button" accessibilityLabel="이전 주">
           <MaterialIcons name="chevron-left" size={28} color={theme.colors.team.neutralDark} />
         </TouchableOpacity>
         <Text style={styles.weekNavText}>2026년 3월 첫쨋주</Text>
-        <TouchableOpacity activeOpacity={0.7} style={styles.navArrowBtn}>
+        <TouchableOpacity activeOpacity={0.7} style={styles.navArrowBtn} accessibilityRole="button" accessibilityLabel="다음 주">
           <MaterialIcons name="chevron-right" size={28} color={theme.colors.team.neutralDark} />
         </TouchableOpacity>
       </View>
@@ -86,6 +86,8 @@ export default function LiveboardScreen() {
               style={styles.dayCol}
               onPress={() => setSelectedDate(day.date)}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`${day.date}일 ${day.dayOfWeek}요일 ${day.hasGame ? '경기 있음' : '경기 없음'}`}
             >
               <Text style={styles.dayName}>{day.dayOfWeek}</Text>
               <View style={[styles.dateCircle, isSelected && styles.dateCircleSelected]}>

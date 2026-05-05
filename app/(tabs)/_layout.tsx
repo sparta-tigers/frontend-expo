@@ -1,8 +1,8 @@
 import { Tabs } from "expo-router";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 import { useQuery } from "@tanstack/react-query";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, AppState, AppStateStatus } from "react-native";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -15,11 +15,22 @@ export default function TabLayout() {
   const { colors } = useTheme();
   const { user } = useAuth();
 
+  const [appState, setAppState] = useState<AppStateStatus>(AppState.currentState);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      setAppState(nextAppState);
+    });
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
   const { data: receiveResponse } = useQuery({
     queryKey: ["exchangeRequests", "receiver", "PENDING"],
     queryFn: () => exchangeGetMyRequestsAPI("receiver", 0, 1, "PENDING"),
-    enabled: !!user?.userId,
-    refetchInterval: 10000,
+    enabled: !!user?.userId && appState === "active",
+    refetchInterval: 30000,
   });
 
   const hasNewExchangeRequest = (receiveResponse?.data?.totalElements ?? 0) > 0;

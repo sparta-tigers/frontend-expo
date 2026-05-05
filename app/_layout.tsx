@@ -136,31 +136,41 @@ function RootLayoutInner() {
             {/* 🚨 앙드레 카파시: 오프라인 배너 */}
             {!netInfo.isConnected && <OfflineBanner />}
 
-            {/* 1. 고정 헤더 (전역) */}
-            <View style={styles.topHeader}>
-              <TouchableOpacity 
-                activeOpacity={0.7} 
-                style={styles.headerIconBtn}
-                onPress={() => {
-                  if (router.canGoBack()) {
-                    router.back();
-                  }
-                }}
-              >
-                <MaterialIcons 
-                  name="chevron-left" 
-                  size={theme.layout.header.backIconSize} 
-                  color={router.canGoBack() ? theme.colors.team.neutralDark : "transparent"} 
-                />
-              </TouchableOpacity>
-              
-              <Text style={styles.mainTitleText}>YAGUNIV</Text>
-              
-              {/* 프로필 버튼 */}
-              <TouchableOpacity activeOpacity={0.7} style={styles.headerIconBtn} onPress={() => router.push("/profile")}>
-                <MaterialIcons name="person-outline" size={28} color={theme.colors.team.neutralDark} />
-              </TouchableOpacity>
-            </View>
+            {/* 1. 고정 헤더 (전역) - 특정 화면에서는 숨김 처리 */}
+            {!inAuthGroup && segments[0] !== "schedule" && (
+              <View style={styles.topHeader}>
+                <TouchableOpacity 
+                  activeOpacity={0.7} 
+                  style={styles.headerIconBtn}
+                  onPress={() => {
+                    if (router.canGoBack()) {
+                      router.back();
+                    }
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel="뒤로가기"
+                >
+                  <MaterialIcons 
+                    name="chevron-left" 
+                    size={theme.layout.header.backIconSize} 
+                    color={router.canGoBack() ? theme.colors.team.neutralDark : "transparent"} 
+                  />
+                </TouchableOpacity>
+                
+                <Text style={styles.mainTitleText}>YAGUNIV</Text>
+                
+                {/* 프로필 버튼 */}
+                <TouchableOpacity 
+                  activeOpacity={0.7} 
+                  style={styles.headerIconBtn} 
+                  onPress={() => router.push("/profile")}
+                  accessibilityRole="button"
+                  accessibilityLabel="프로필"
+                >
+                  <MaterialIcons name="person-outline" size={28} color={theme.colors.team.neutralDark} />
+                </TouchableOpacity>
+              </View>
+            )}
 
             {/* 2. 하위 라우팅 화면 */}
             <View

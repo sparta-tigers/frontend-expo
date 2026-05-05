@@ -132,11 +132,11 @@ export default function ScheduleScreen() {
 
           {/* 중앙: 날짜 선택기 */}
           <View style={styles.dateSelector}>
-            <TouchableOpacity activeOpacity={0.7} onPress={handlePrev} style={styles.iconButton}>
+            <TouchableOpacity activeOpacity={0.7} onPress={handlePrev} style={styles.iconButton} accessibilityRole="button" accessibilityLabel="이전">
               <MaterialIcons name="chevron-left" size={28} color={theme.colors.team.neutralDark} />
             </TouchableOpacity>
             <Text style={styles.dateText}>{dateText}</Text>
-            <TouchableOpacity activeOpacity={0.7} onPress={handleNext} style={styles.iconButton}>
+            <TouchableOpacity activeOpacity={0.7} onPress={handleNext} style={styles.iconButton} accessibilityRole="button" accessibilityLabel="다음">
               <MaterialIcons name="chevron-right" size={28} color={theme.colors.team.neutralDark} />
             </TouchableOpacity>
           </View>
