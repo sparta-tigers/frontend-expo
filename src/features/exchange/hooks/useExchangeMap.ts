@@ -40,7 +40,7 @@ const MAP_INITIAL_ANIMATE_DURATION = 1000;
 
 /** useExchangeMap 훅의 반환 타입 */
 export interface UseExchangeMapReturn {
-  mapRef: React.RefObject<MapView>;
+  mapRef: React.RefObject<MapView | null>;
   mapRegion: MapRegion;
   isMapMoved: boolean;
   isMapReady: boolean;
