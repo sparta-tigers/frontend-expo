@@ -13,19 +13,19 @@ import {
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-
 import { Input } from "@/components/ui/input";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { useTheme } from "@/hooks/useTheme";
 import { exchangeCreateAPI, itemsGetDetailAPI } from "@/src/features/exchange/api";
 import { CreateExchangeDto } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
+import { theme } from "@/src/styles/theme";
 import { FONT_SIZE, SPACING } from "@/src/styles/unified-design";
 import { Logger } from "@/src/utils/logger";
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: theme.colors.background,
   },
   content: {
     paddingHorizontal: SPACING.SCREEN,
@@ -39,20 +39,25 @@ const styles = StyleSheet.create({
   },
   loadingWrapper: {
     flex: 1,
+    backgroundColor: theme.colors.background,
   },
   targetItemBox: {
     borderRadius: 12,
     borderWidth: 1,
     padding: SPACING.COMPONENT,
     marginBottom: SPACING.SECTION,
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border.medium,
   },
   targetItemLabel: {
     fontSize: FONT_SIZE.SMALL,
     marginBottom: 4,
+    color: theme.colors.text.tertiary,
   },
   targetItemTitle: {
     fontSize: FONT_SIZE.BODY,
     fontWeight: "700",
+    color: theme.colors.text.primary,
   },
   header: {
     marginBottom: SPACING.SECTION,
@@ -61,9 +66,11 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.TITLE,
     fontWeight: "bold",
     marginBottom: SPACING.SMALL / 2,
+    color: theme.colors.text.primary,
   },
   subtitle: {
     fontSize: FONT_SIZE.BODY,
+    color: theme.colors.text.tertiary,
   },
   inputContainer: {
     marginBottom: SPACING.SECTION,
@@ -72,10 +79,11 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.BODY,
     fontWeight: "600",
     marginBottom: SPACING.SMALL,
+    color: theme.colors.text.primary,
   },
   requiredMark: {
-    // 업데이트 시 텔마 색상 사용 - 인라인 스타일 없이 런타임 적용
     fontWeight: "700",
+    color: theme.colors.error,
   },
   haveInput: {
     minHeight: 120,
@@ -89,6 +97,8 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingHorizontal: 20,
     borderTopWidth: 1,
+    borderColor: theme.colors.border.medium,
+    backgroundColor: theme.colors.background,
     zIndex: 100,
     elevation: 5,
   },
@@ -96,14 +106,18 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.BODY,
     fontWeight: "600",
     textAlign: "center",
+    color: theme.colors.background,
   },
   applyButton: {
     height: 52,
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: theme.colors.primary,
   },
-
+  applyButtonDisabled: {
+    backgroundColor: theme.colors.text.tertiary,
+  },
   scrollView: {
     flex: 1,
   },
@@ -120,9 +134,8 @@ export default function ApplyExchangeScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const { user } = useAuth(); // [EB-1] 로그인 정보 가져오기
+  const { user } = useAuth();
 
   const targetItemId = Number(id);
 
@@ -142,12 +155,11 @@ export default function ApplyExchangeScreen() {
   const { data: targetItem, isLoading: isItemLoading } = useQuery({
     queryKey: ["item", id],
     queryFn: () => itemsGetDetailAPI(targetItemId),
-    enabled: !!id && user !== null, // [EB-1] 비로그인 시 401 에러 방지
+    enabled: !!id && user !== null,
   });
 
   const { mutate: requestExchange, isPending } = useMutation({
     mutationFn: async () => {
-      // [SEC-2] \ubc31\uc5d4\ub4dc DTO \ud544\ub4dc \ud63c\uc6a9 \uac00\ub2a5\uc131 \ub300\ube44 (as any 제거)
       const receiverId = targetItem?.data?.user?.userId ?? targetItem?.data?.userId;
 
       if (!receiverId) {
@@ -177,8 +189,6 @@ export default function ApplyExchangeScreen() {
       return response.data;
     },
     onSuccess: (data) => {
-      // 백엔드 ExchangeRoomResponseDto: { directRoomId, exchangeRequestId }
-      // directRoomId 를 우선 참조하고 roomId 는 fallback으로만 사용
       const roomId =
         (data as { directRoomId?: number; roomId?: number })?.directRoomId ??
         (data as { directRoomId?: number; roomId?: number })?.roomId;
@@ -218,7 +228,7 @@ export default function ApplyExchangeScreen() {
         />
         <SafeLayout style={styles.loadingWrapper}>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
+            <ActivityIndicator size="large" color={theme.colors.primary} />
           </View>
         </SafeLayout>
       </>
@@ -232,8 +242,7 @@ export default function ApplyExchangeScreen() {
           headerShown: false,
         }}
       />
-      <SafeLayout edges={["top", "bottom"]} style={{ ...styles.container, backgroundColor: colors.background }}>
-        {/* [KB-1] KeyboardAwareScrollView — have 입력 포커스 시 키보드가 버튼을 가리지 않도록 자동 스크롤 */}
+      <SafeLayout edges={["top", "bottom"]} style={styles.container}>
         <KeyboardAwareScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.content}
@@ -245,9 +254,9 @@ export default function ApplyExchangeScreen() {
         >
           {/* 교환 대상 아이템 표시 */}
           {targetItem?.data && (
-            <View style={[styles.targetItemBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <Text style={[styles.targetItemLabel, { color: colors.muted }]}>교환 요청 대상 아이템</Text>
-              <Text style={[styles.targetItemTitle, { color: colors.text }]}>
+            <View style={styles.targetItemBox}>
+              <Text style={styles.targetItemLabel}>교환 요청 대상 아이템</Text>
+              <Text style={styles.targetItemTitle}>
                 {targetItem.data.title}
               </Text>
             </View>
@@ -255,15 +264,15 @@ export default function ApplyExchangeScreen() {
 
           {/* 헤더 안내 */}
           <View style={styles.header}>
-            <Text style={[styles.title, { color: colors.text }]}>내가 제안하는 물건</Text>
-            <Text style={[styles.subtitle, { color: colors.muted }]}>
+            <Text style={styles.title}>내가 제안하는 물건</Text>
+            <Text style={styles.subtitle}>
               교환하고 싶은 내 물건을 설명해주세요. 상대방에게 전달됩니다.
             </Text>
           </View>
 
           {/* have 입력 폼 (필수) */}
           <View style={styles.inputContainer}>
-            <Text style={[styles.inputLabel, { color: colors.text }]}>
+            <Text style={styles.inputLabel}>
               교환 물건 설명 <Text style={styles.requiredMark}>*</Text>
             </Text>
             <Input
@@ -282,8 +291,6 @@ export default function ApplyExchangeScreen() {
           style={[
             styles.bottomContainer,
             {
-              backgroundColor: colors.background,
-              borderTopColor: colors.border,
               paddingBottom: Math.max(insets.bottom, 20),
             },
           ]}
@@ -291,19 +298,12 @@ export default function ApplyExchangeScreen() {
           <TouchableOpacity
             style={[
               styles.applyButton,
-              {
-                backgroundColor: !have.trim() || isPending ? colors.muted : colors.primary,
-              },
+              (!have.trim() || isPending) && styles.applyButtonDisabled
             ]}
             onPress={handleSubmit}
             disabled={!have.trim() || isPending}
           >
-            <Text
-              style={[
-                styles.submitButtonText,
-                { color: colors.background },
-              ]}
-            >
+            <Text style={styles.submitButtonText}>
               {isPending ? "신청 중..." : "제안 보내기"}
             </Text>
           </TouchableOpacity>

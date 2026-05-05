@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { useTheme } from "@/hooks/useTheme";
 import {
   exchangeGetReceivedAPI,
   exchangeUpdateStatusAPI,
@@ -12,14 +11,13 @@ import {
   UpdateExchangeStatusDto,
 } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
-import { SPACING } from "@/src/styles/unified-design";
+import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import { Alert, FlatList, StyleSheet, Text, View } from "react-native";
 
 export default function HistoryScreen() {
-  const { colors } = useTheme();
   const { user } = useAuth();
   const [exchangeRequests, setExchangeRequests] = useState<ReceiveExchangeRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,88 +89,85 @@ export default function HistoryScreen() {
     fetchExchangeRequests();
   }, [fetchExchangeRequests]);
 
-  const renderExchangeRequest = ({ item }: { item: ReceiveExchangeRequest }) => (
-    <Card style={styles.requestCard}>
-      <View style={styles.requestHeader}>
-        <Text style={[styles.itemTitle, { color: colors.text }]}>
-          {item.title || "아이템 정보 없음"}
-        </Text>
-        <Text
-          style={[
-            styles.status,
-            {
-              color:
-                item.exchangeStatus === ExchangeRequestStatus.PENDING
-                  ? colors.warning
-                  : item.exchangeStatus === ExchangeRequestStatus.ACCEPTED
-                    ? colors.success
-                    : colors.destructive,
-            },
-          ]}
-        >
-          {item.exchangeStatus === ExchangeRequestStatus.PENDING
-            ? "대기 중"
-            : item.exchangeStatus === ExchangeRequestStatus.ACCEPTED
-              ? "수락됨"
-              : "거절됨"}
-        </Text>
-      </View>
+  const renderExchangeRequest = ({ item }: { item: ReceiveExchangeRequest }) => {
+    const statusColor =
+      item.exchangeStatus === ExchangeRequestStatus.PENDING
+        ? theme.colors.warning
+        : item.exchangeStatus === ExchangeRequestStatus.ACCEPTED
+          ? theme.colors.success
+          : theme.colors.error;
 
-      <Text style={[styles.requester, { color: colors.text }]}>
-        요청자: {item.sender.userNickname || "알 수 없음"}
-      </Text>
-
-      <Text style={[styles.date, { color: colors.muted }]}>
-        요청일: {new Date(item.createdAt).toLocaleDateString()}
-      </Text>
-
-      {item.exchangeStatus === ExchangeRequestStatus.PENDING && (
-        <View style={styles.actionButtons}>
-          <Button
-            variant="primary"
-            size="sm"
-            loading={actionLoading === item.exchangeRequestId}
-            onPress={() =>
-              handleUpdateStatus(item.exchangeRequestId, ExchangeRequestStatus.ACCEPTED)
-            }
-            style={styles.acceptButton}
-          >
-            수락
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            loading={actionLoading === item.exchangeRequestId}
-            onPress={() =>
-              handleUpdateStatus(item.exchangeRequestId, ExchangeRequestStatus.REJECTED)
-            }
-            style={styles.rejectButton}
-          >
-            거절
-          </Button>
+    return (
+      <Card style={styles.requestCard}>
+        <View style={styles.requestHeader}>
+          <Text style={styles.itemTitle}>
+            {item.title || "아이템 정보 없음"}
+          </Text>
+          <Text style={[styles.status, { color: statusColor }]}>
+            {item.exchangeStatus === ExchangeRequestStatus.PENDING
+              ? "대기 중"
+              : item.exchangeStatus === ExchangeRequestStatus.ACCEPTED
+                ? "수락됨"
+                : "거절됨"}
+          </Text>
         </View>
-      )}
 
-      {item.exchangeStatus === ExchangeRequestStatus.ACCEPTED && item.directRoomId && (
-        <View style={styles.actionButtons}>
-          <Button
-            variant="primary"
-            size="sm"
-            onPress={() => router.push(`/exchange/chat/${item.directRoomId}`)}
-            style={styles.chatButton}
-          >
-            채팅방 가기
-          </Button>
-        </View>
-      )}
-    </Card>
-  );
+        <Text style={styles.requester}>
+          요청자: {item.sender.userNickname || "알 수 없음"}
+        </Text>
+
+        <Text style={styles.date}>
+          요청일: {new Date(item.createdAt).toLocaleDateString()}
+        </Text>
+
+        {item.exchangeStatus === ExchangeRequestStatus.PENDING && (
+          <View style={styles.actionButtons}>
+            <Button
+              variant="primary"
+              size="sm"
+              loading={actionLoading === item.exchangeRequestId}
+              onPress={() =>
+                handleUpdateStatus(item.exchangeRequestId, ExchangeRequestStatus.ACCEPTED)
+              }
+              style={styles.acceptButton}
+            >
+              수락
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              loading={actionLoading === item.exchangeRequestId}
+              onPress={() =>
+                handleUpdateStatus(item.exchangeRequestId, ExchangeRequestStatus.REJECTED)
+              }
+              style={styles.rejectButton}
+            >
+              거절
+            </Button>
+          </View>
+        )}
+
+        {item.exchangeStatus === ExchangeRequestStatus.ACCEPTED && item.directRoomId && (
+          <View style={styles.actionButtons}>
+            <Button
+              variant="primary"
+              size="sm"
+              onPress={() => router.push(`/exchange/chat/${item.directRoomId}`)}
+              style={styles.chatButton}
+            >
+              채팅방 가기
+            </Button>
+          </View>
+        )}
+      </Card>
+    );
+  };
 
   if (loading) {
     return (
-      <SafeLayout style={{ backgroundColor: colors.background }}>
+      <SafeLayout style={styles.safeLayout}>
         <View style={styles.loadingContainer}>
-          <Text style={[styles.loadingText, { color: colors.text }]}>
+          <Text style={styles.loadingText}>
             교환 요청 목록을 불러오는 중...
           </Text>
         </View>
@@ -181,15 +176,15 @@ export default function HistoryScreen() {
   }
 
   return (
-    <SafeLayout style={{ backgroundColor: colors.background }}>
+    <SafeLayout style={styles.safeLayout}>
       <View style={styles.container}>
-        <Text style={[styles.title, { color: colors.text }]}>
+        <Text style={styles.title}>
           받은 교환 요청
         </Text>
 
         {exchangeRequests.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, { color: colors.muted }]}>
+            <Text style={styles.emptyText}>
               받은 교환 요청이 없습니다.
             </Text>
           </View>
@@ -207,15 +202,22 @@ export default function HistoryScreen() {
   );
 }
 
+// ========================================================
+// Styles — Co-location 유지, 하드코딩 제거
+// ========================================================
 const styles = StyleSheet.create({
+  safeLayout: {
+    backgroundColor: theme.colors.background,
+  },
   container: {
     flex: 1,
-    padding: SPACING.SCREEN,
+    padding: theme.spacing.SCREEN,
   },
   title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: SPACING.SCREEN,
+    fontSize: theme.typography.size.TITLE,
+    fontWeight: theme.typography.weight.bold,
+    marginBottom: theme.spacing.SCREEN,
+    color: theme.colors.text.primary,
   },
   loadingContainer: {
     flex: 1,
@@ -223,7 +225,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loadingText: {
-    fontSize: 16,
+    fontSize: theme.typography.size.BODY,
+    color: theme.colors.text.primary,
   },
   emptyContainer: {
     flex: 1,
@@ -231,45 +234,49 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: theme.typography.size.BODY,
     textAlign: "center",
+    color: theme.colors.text.secondary,
   },
   listContainer: {
-    gap: SPACING.COMPONENT,
+    gap: theme.spacing.COMPONENT,
   },
   requestCard: {
-    padding: SPACING.SCREEN,
-    marginBottom: SPACING.SMALL,
+    padding: theme.spacing.SCREEN,
+    marginBottom: theme.spacing.SMALL,
   },
   requestHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: SPACING.SMALL,
+    marginBottom: theme.spacing.SMALL,
   },
   itemTitle: {
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: theme.typography.size.CARD_TITLE,
+    fontWeight: theme.typography.weight.semibold,
     flex: 1,
+    color: theme.colors.text.primary,
   },
   status: {
-    fontSize: 14,
-    fontWeight: "600",
-    paddingHorizontal: SPACING.SMALL,
+    fontSize: theme.typography.size.CAPTION,
+    fontWeight: theme.typography.weight.semibold,
+    paddingHorizontal: theme.spacing.SMALL,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: theme.radius.sm,
   },
   requester: {
-    fontSize: 16,
-    marginBottom: SPACING.SMALL,
+    fontSize: theme.typography.size.BODY,
+    marginBottom: theme.spacing.SMALL,
+    color: theme.colors.text.primary,
   },
   date: {
-    fontSize: 14,
-    marginBottom: SPACING.COMPONENT,
+    fontSize: theme.typography.size.CAPTION,
+    marginBottom: theme.spacing.COMPONENT,
+    color: theme.colors.text.secondary,
   },
   actionButtons: {
     flexDirection: "row",
-    gap: SPACING.SMALL,
+    gap: theme.spacing.SMALL,
   },
   acceptButton: {
     flex: 1,

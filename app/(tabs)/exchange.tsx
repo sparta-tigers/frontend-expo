@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { useTheme } from "@/hooks/useTheme";
 import { useCheckActiveItem } from "@/src/features/exchange/queries";
 import { Item } from "@/src/features/exchange/types";
 import { useExchangeItems } from "@/src/features/exchange/hooks/useExchangeItems";
@@ -95,7 +94,6 @@ MapMarkers.displayName = "MapMarkers";
  */
 export default function ExchangeScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const listRef = useRef<BottomSheetFlatListMethods>(null);
@@ -202,13 +200,7 @@ export default function ExchangeScreen() {
   // --- 아이템 렌더 함수 ---
   const renderItem = useCallback(({ item }: { item: Item }) => (
     <TouchableOpacity
-      style={[
-        styles.itemContainer,
-        {
-          backgroundColor: colors.surface,
-          shadowColor: colors.border,
-        },
-      ]}
+      style={styles.itemContainer}
       onPress={() => navigateToDetail(item.id)}
     >
       {item.imageUrl ? (
@@ -221,32 +213,32 @@ export default function ExchangeScreen() {
 
       <View style={styles.itemContent}>
         <Text
-          style={[styles.itemTitle, { color: colors.text }]}
+          style={styles.itemTitle}
           numberOfLines={1}
         >
           {item.title}
         </Text>
         <Text
-          style={[styles.itemDescription, { color: colors.muted }]}
+          style={styles.itemDescription}
           numberOfLines={2}
         >
           {item.description}
         </Text>
         <View style={styles.itemMeta}>
-          <Text style={[styles.itemCategory, { color: colors.primary }]}>
+          <Text style={styles.itemCategory}>
             {item.category === "TICKET" ? "티켓" : "굿즈"}
           </Text>
-          <Text style={[styles.itemDate, { color: colors.muted }]}>
+          <Text style={styles.itemDate}>
             {new Date(item.createdAt).toLocaleDateString()}
           </Text>
         </View>
       </View>
     </TouchableOpacity>
-  ), [colors, navigateToDetail]);
+  ), [navigateToDetail]);
 
   // --- 렌더링 ---
   return (
-    <SafeLayout style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeLayout style={styles.container}>
       {/* 1. 백그라운드 지도 뷰 */}
       <MapView
         ref={mapRef}
@@ -268,10 +260,10 @@ export default function ExchangeScreen() {
         ref={bottomSheetRef}
         snapPoints={["15%", "85%"]}
         style={styles.bottomSheetContainer}
-        backgroundStyle={{ backgroundColor: colors.background }}
+        backgroundStyle={styles.bottomSheetBackground}
       >
         {/* 카테고리 필터 */}
-        <View style={[styles.filterContainer, { backgroundColor: colors.background }]}>
+        <View style={styles.filterContainer}>
           <TouchableOpacity 
             style={[styles.filterButton, selectedCategory === "TICKET" && styles.filterButtonActive]}
             onPress={() => setSelectedCategory(selectedCategory === "TICKET" ? "ALL" : "TICKET")}
@@ -290,14 +282,14 @@ export default function ExchangeScreen() {
         <View style={styles.listContainer}>
           {itemsState.status === "loading" && itemsState.data?.length === 0 ? (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={colors.primary} />
-                <Text style={[styles.loadingText, { color: colors.text }]}>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
+                <Text style={styles.loadingText}>
                   아이템 목록 로딩 중...
                 </Text>
               </View>
             ) : itemsState.status === "error" ? (
               <View style={styles.emptyContainer}>
-                <Text style={[styles.emptyText, { color: colors.text }]}>
+                <Text style={styles.emptyText}>
                   {itemsState.error || "아이템 목록을 불러올 수 없습니다."}
                 </Text>
                 <Button
@@ -362,6 +354,7 @@ export default function ExchangeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: theme.colors.background,
   },
   map: {
     position: "absolute",
@@ -380,6 +373,9 @@ const styles = StyleSheet.create({
     shadowRadius: theme.spacing.xs,
     elevation: 5,
   },
+  bottomSheetBackground: {
+    backgroundColor: theme.colors.background,
+  },
   listContainer: {
     flex: 1,
     paddingHorizontal: theme.spacing.SCREEN,
@@ -388,7 +384,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     padding: theme.spacing.lg,
     borderBottomWidth: 1,
-    borderColor: theme.colors.border.light,
+    borderColor: theme.colors.border.medium,
+    backgroundColor: theme.colors.surface,
   },
   itemImage: {
     width: EXCHANGE_LAYOUT.itemImageSize,
@@ -418,7 +415,7 @@ const styles = StyleSheet.create({
   },
   itemCategory: {
     fontSize: theme.typography.size.xs,
-    color: theme.colors.text.secondary,
+    color: theme.colors.primary,
     fontWeight: theme.typography.weight.semibold,
   },
   itemDate: {
@@ -433,7 +430,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: theme.typography.size.xs,
-    color: theme.colors.text.secondary,
+    color: theme.colors.text.primary,
     textAlign: "center",
     marginBottom: theme.spacing.COMPONENT,
   },
@@ -450,6 +447,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: theme.typography.size.md,
+    color: theme.colors.text.primary,
     marginTop: theme.spacing.sm,
   },
   emptyButton: {
@@ -460,6 +458,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: theme.spacing.SMALL,
     gap: theme.spacing.SMALL,
+    backgroundColor: theme.colors.background,
   },
   filterButton: {
     paddingHorizontal: theme.spacing.COMPONENT,
