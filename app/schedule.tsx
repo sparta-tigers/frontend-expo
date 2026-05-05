@@ -184,7 +184,7 @@ function Main1RankingView() {
         {rankingData.map((row) => {
           const isMyTeam = !!row.isMyTeam;
           return (
-            <View key={row.rank} style={styles.rankingRow}>
+            <View key={row.team.name} style={styles.rankingRow}>
               <Text style={[styles.rankNumberText, isMyTeam && styles.myTeamRankNumber]}>{row.rank}</Text>
               
               <View style={[styles.rankingCard, isMyTeam && styles.myTeamRankingCard]}>

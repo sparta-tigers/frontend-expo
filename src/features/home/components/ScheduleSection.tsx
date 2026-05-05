@@ -4,14 +4,18 @@ import { Text, TouchableOpacity, View } from "react-native";
 import { styles } from "../styles";
 import { CalendarCellModel, CalendarGameDto } from "../types";
 
-export function ScheduleSection(props: { schedule: CalendarGameDto[] }) {
-  const { schedule } = props;
-  const days = useMemo(() => buildCalendarDays(schedule), [schedule]);
+export function ScheduleSection(props: { 
+  schedule: CalendarGameDto[];
+  year?: number;
+  month?: number;
+}) {
+  const { schedule, year = 2026, month = 2 } = props; // 기본값: 2026년 3월 (month=2)
+  const days = useMemo(() => buildCalendarDays(schedule, year, month), [schedule, year, month]);
 
   return (
     <View style={[styles.section, styles.sectionBottomPad]}>
       <View style={styles.sectionTitleRow}>
-        <Text style={styles.sectionTitleText}>7월, 우리팀 경기 일정이에요</Text>
+        <Text style={styles.sectionTitleText}>{month + 1}월, 우리팀 경기 일정이에요</Text>
       </View>
 
       <View style={styles.calendarWrap}>
@@ -51,8 +55,8 @@ export function ScheduleSection(props: { schedule: CalendarGameDto[] }) {
               style={styles.calendarCell}
             >
               <View style={styles.calendarCellTopRow}>
-                <Text style={styles.calendarDayText}>{cell.day}</Text>
-                {cell.location ? (
+                {cell.day > 0 && <Text style={styles.calendarDayText}>{cell.day}</Text>}
+                {cell.day > 0 && cell.location ? (
                   <Text style={styles.calendarLocationText}>
                     {cell.location}
                   </Text>
@@ -94,29 +98,55 @@ export function ScheduleSection(props: { schedule: CalendarGameDto[] }) {
   );
 }
 
-function buildCalendarDays(schedule: CalendarGameDto[]): CalendarCellModel[] {
-  const MAX_CELLS = 35;
+function buildCalendarDays(
+  schedule: CalendarGameDto[],
+  year: number,
+  month: number
+): CalendarCellModel[] {
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  
   const dayToGame = new Map<number, CalendarGameDto>();
   schedule.forEach((g) => dayToGame.set(g.day, g));
 
-  return Array.from({ length: MAX_CELLS }, (_, idx) => {
-    const day = idx + 1;
-    const game = dayToGame.get(day);
-    const base: CalendarCellModel = {
-      day,
+  const daysArray: CalendarCellModel[] = [];
+
+  // 1. 월 시작 전 빈 셀 채우기
+  for (let i = 0; i < firstDay; i++) {
+    daysArray.push({
+      day: 0, // 빈 셀 식별용
+      hasGame: false,
+      opponentShort: "",
+      isSelected: false,
+    });
+  }
+
+  // 2. 실제 날짜 채우기
+  for (let d = 1; d <= daysInMonth; d++) {
+    const game = dayToGame.get(d);
+    const cell: CalendarCellModel = {
+      day: d,
       hasGame: !!game,
       opponentShort: game?.opponentShort ?? "",
       isSelected: game?.isSelected === true,
+      location: game?.location,
+      timeText: game?.timeText,
     };
+    daysArray.push(cell);
+  }
 
-    if (game?.location) {
-      base.location = game.location;
-    }
+  // 3. 5주(35칸) 또는 6주(42칸) 그리드 맞추기 (최소 35칸)
+  const totalCells = Math.ceil(daysArray.length / 7) * 7;
+  const finalTotal = Math.max(totalCells, 35);
+  
+  while (daysArray.length < finalTotal) {
+    daysArray.push({
+      day: 0,
+      hasGame: false,
+      opponentShort: "",
+      isSelected: false,
+    });
+  }
 
-    if (game?.timeText) {
-      base.timeText = game.timeText;
-    }
-
-    return base;
-  });
+  return daysArray;
 }

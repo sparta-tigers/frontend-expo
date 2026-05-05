@@ -59,10 +59,10 @@ export interface LineupRowDto {
  */
 export interface CalendarGameDto {
   day: number;
-  location?: "H" | "A";
+  location?: "H" | "A" | undefined;
   opponentShort: string;
-  timeText?: string;
-  isSelected?: boolean;
+  timeText?: string | undefined;
+  isSelected?: boolean | undefined;
 }
 
 /**
@@ -73,8 +73,8 @@ export interface CalendarGameDto {
 export type CalendarCellModel = {
   day: number;
   hasGame: boolean;
-  location?: "H" | "A";
+  location?: "H" | "A" | undefined;
   opponentShort: string;
-  timeText?: string;
+  timeText?: string | undefined;
   isSelected: boolean;
 };
