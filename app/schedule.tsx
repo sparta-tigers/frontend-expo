@@ -38,6 +38,16 @@ const SCHEDULE_LAYOUT = {
   calendarCellHeight: 80,
   opponentBadgeSize: 24,
   scrollBottomPadding: 100,
+  letterSpacing: 2,
+  dateMinWidth: 100,
+  myTeamBorderWidth: 1.5,
+  calendarBorderWidth: 1,
+  opponentBadgeMarginBottom: 2,
+  calendarLocationFontSize: 10,  // xs - 2
+  calendarOpponentFontSize: 9,   // xs - 3
+  calendarTimeFontSize: 10,      // xs - 2
+  headerLabelFontSize: 11,       // xs - 1
+  dropdownLabelFontSize: 10,     // xs - 2
 } as const;
 
 /**
@@ -364,7 +374,7 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.weight.black,
     color: theme.colors.team.kiaRed,
     fontStyle: "italic",
-    letterSpacing: 2,
+    letterSpacing: SCHEDULE_LAYOUT.letterSpacing,
     marginTop: SCHEDULE_LAYOUT.teamLogoMarginTop,
   },
   filterSection: {
@@ -416,7 +426,7 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.size.xl,
     fontWeight: theme.typography.weight.bold,
     color: theme.colors.text.primary,
-    minWidth: 100,
+    minWidth: SCHEDULE_LAYOUT.dateMinWidth,
     textAlign: "center",
   },
   leagueDropdown: {
@@ -430,7 +440,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.team.kiaRed,
   },
   leagueDropdownText: {
-    fontSize: theme.typography.size.xs - 2,
+    fontSize: SCHEDULE_LAYOUT.dropdownLabelFontSize,
     fontWeight: theme.typography.weight.bold,
     color: theme.colors.team.kiaRed,
   },
@@ -447,7 +457,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
   },
   tableHeaderText: {
-    fontSize: theme.typography.size.xs - 1,
+    fontSize: SCHEDULE_LAYOUT.headerLabelFontSize,
     color: theme.colors.brand.subtitle,
     fontWeight: theme.typography.weight.bold,
     textAlign: "center",
@@ -485,7 +495,7 @@ const styles = StyleSheet.create({
     ...theme.shadow.card,
   },
   myTeamRankingCard: {
-    borderWidth: 1.5,
+    borderWidth: SCHEDULE_LAYOUT.myTeamBorderWidth,
     borderColor: theme.colors.brand.mint,
   },
   teamInfoArea: {
@@ -549,7 +559,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.card,
     borderBottomLeftRadius: theme.radius.dashboardCard,
     borderBottomRightRadius: theme.radius.dashboardCard,
-    borderWidth: 1,
+    borderWidth: SCHEDULE_LAYOUT.calendarBorderWidth,
     borderColor: theme.colors.team.neutralLight,
   },
   calendarCell: {
@@ -577,7 +587,7 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.weight.medium,
   },
   calendarLocationText: {
-    fontSize: theme.typography.size.xs - 2,
+    fontSize: SCHEDULE_LAYOUT.calendarLocationFontSize,
     color: theme.colors.brand.mint,
     fontWeight: theme.typography.weight.bold,
   },
@@ -592,10 +602,10 @@ const styles = StyleSheet.create({
     width: SCHEDULE_LAYOUT.opponentBadgeSize,
     height: SCHEDULE_LAYOUT.opponentBadgeSize,
     borderRadius: theme.radius.full,
-    marginBottom: 2,
+    marginBottom: SCHEDULE_LAYOUT.opponentBadgeMarginBottom,
   },
   calendarOpponentText: {
-    fontSize: theme.typography.size.xs - 3,
+    fontSize: SCHEDULE_LAYOUT.calendarOpponentFontSize,
     fontWeight: theme.typography.weight.bold,
     color: theme.colors.text.primary,
   },
@@ -603,7 +613,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   calendarTimeText: {
-    fontSize: theme.typography.size.xs - 2,
+    fontSize: SCHEDULE_LAYOUT.calendarTimeFontSize,
     color: theme.colors.brand.subtitle,
   },
 

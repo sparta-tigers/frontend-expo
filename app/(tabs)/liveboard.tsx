@@ -50,6 +50,12 @@ const LIVEBOARD_LAYOUT = {
   teamLogoSize: 48,
   teamBlockWidth: 60,
   matchListBottomPadding: 40,
+  dayColGap: 6,          // theme.spacing.sm - 2
+  dateFontSize: 15,      // theme.typography.size.sm + 1
+  smallFontSize: 11,     // theme.typography.size.xs - 1
+  teamNameFontSize: 13,  // theme.typography.size.xs + 1
+  weatherGap: 2,
+  weatherMarginTop: 2,
 } as const;
 
 /**
@@ -229,7 +235,7 @@ const styles = StyleSheet.create({
   dayCol: {
     flex: 1,
     alignItems: "center",
-    gap: theme.spacing.sm - 2,
+    gap: LIVEBOARD_LAYOUT.dayColGap,
   },
   dayName: {
     fontSize: theme.typography.size.xs,
@@ -247,7 +253,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.brand.mintLight,
   },
   dateText: {
-    fontSize: theme.typography.size.sm + 1,
+    fontSize: LIVEBOARD_LAYOUT.dateFontSize,
     fontWeight: theme.typography.weight.medium,
     color: theme.colors.text.primary,
   },
@@ -294,12 +300,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   teamLogoText: {
-    fontSize: theme.typography.size.xs - 1,
+    fontSize: LIVEBOARD_LAYOUT.smallFontSize,
     fontWeight: theme.typography.weight.black,
     color: theme.colors.surface,
   },
   teamName: {
-    fontSize: theme.typography.size.xs + 1,
+    fontSize: LIVEBOARD_LAYOUT.teamNameFontSize,
     fontWeight: theme.typography.weight.bold,
     color: theme.colors.text.primary,
   },
@@ -313,15 +319,15 @@ const styles = StyleSheet.create({
     color: theme.colors.text.primary,
   },
   stadiumText: {
-    fontSize: theme.typography.size.xs - 1,
+    fontSize: LIVEBOARD_LAYOUT.smallFontSize,
     color: theme.colors.brand.subtitle,
     fontWeight: theme.typography.weight.medium,
   },
   weatherRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 2,
-    marginTop: 2,
+    gap: LIVEBOARD_LAYOUT.weatherGap,
+    marginTop: LIVEBOARD_LAYOUT.weatherMarginTop,
   },
   weatherText: {
     fontSize: theme.typography.size.xs,

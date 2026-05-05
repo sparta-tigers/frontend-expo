@@ -100,11 +100,11 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   badge: {
     position: "absolute",
-    right: -2,
-    top: -2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    right: theme.layout.tabBar.badgeOffset,
+    top: theme.layout.tabBar.badgeOffset,
+    width: theme.layout.tabBar.badgeSize,
+    height: theme.layout.tabBar.badgeSize,
+    borderRadius: theme.layout.tabBar.badgeRadius,
     backgroundColor: theme.colors.error,
   },
 });

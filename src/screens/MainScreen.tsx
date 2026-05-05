@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "@/hooks/useTheme";
+import { theme } from "@/src/styles/theme";
 
 /**
  * 메인 스크린 컴포넌트
@@ -27,15 +28,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: theme.spacing.SCREEN,
   },
   title: {
-    fontSize: 24,
+    fontSize: theme.typography.size.TITLE,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: theme.spacing.sm,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: theme.typography.size.BODY,
     textAlign: "center",
   },
 });

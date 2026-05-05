@@ -248,7 +248,6 @@ export const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: theme.typography.size.xl,
     fontWeight: theme.typography.weight.bold,
-    color: theme.colors.team.kiaRed,
   },
   lineupDivider: {
     width: StyleSheet.hairlineWidth,
@@ -266,7 +265,6 @@ export const styles = StyleSheet.create({
     right: theme.spacing.lg,
     fontSize: theme.typography.size.lg,
     fontWeight: theme.typography.weight.bold,
-    color: theme.colors.team.kiaRed,
   },
   calendarWrap: {
     width: theme.layout.dashboard.calendarWidth,

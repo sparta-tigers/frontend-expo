@@ -167,7 +167,7 @@ function RootLayoutInner() {
                   accessibilityRole="button"
                   accessibilityLabel="프로필"
                 >
-                  <MaterialIcons name="person-outline" size={28} color={theme.colors.team.neutralDark} />
+                  <MaterialIcons name="person-outline" size={theme.layout.header.profileIconSize} color={theme.colors.team.neutralDark} />
                 </TouchableOpacity>
               </View>
             )}

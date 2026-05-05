@@ -261,6 +261,7 @@ export const theme = {
     header: {
       backIconSize: 36,
       titleFontSize: 22,
+      profileIconSize: 28,
     },
     auth: {
       headerHeight: 80,
@@ -295,6 +296,11 @@ export const theme = {
       calendarHeaderHeight: 32,
       calendarCellHeight: 61,
       calendarRadius: 13, // 12.687 반올림; 정수화하여 렌더링 일관성 확보
+    },
+    tabBar: {
+      badgeSize: 8,
+      badgeOffset: -2,
+      badgeRadius: 4,
     },
   },
 } as const;

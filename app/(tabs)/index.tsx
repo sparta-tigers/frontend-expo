@@ -34,7 +34,7 @@ export default function HomeScreen() {
 
         <RankingSummarySection ranking={data.rankingSummary} />
 
-        <LineupSection lineup={data.todayLineup} />
+        <LineupSection lineup={data.todayLineup} teamName={data.myTeam.name} />
 
         <ScheduleSection schedule={data.monthSchedule} />
       </ScrollView>
