@@ -302,7 +302,16 @@ export default function ExchangeScreen() {
                 </Text>
                 <Button
                   onPress={() => {
-                    handleRefresh(mapRegion.latitude, mapRegion.longitude, mapRegion.latitudeDelta);
+                    // 🚨 앙드레 카파시: 초기 로딩 실패 시 결정론적 재시도 경로
+                    if (userLocation) {
+                      fetchInitialItems(
+                        userLocation.latitude,
+                        userLocation.longitude,
+                        mapRegion.latitudeDelta
+                      );
+                    } else {
+                      handleRefresh(mapRegion.latitude, mapRegion.longitude, mapRegion.latitudeDelta);
+                    }
                   }}
                   style={styles.emptyButton}
                 >

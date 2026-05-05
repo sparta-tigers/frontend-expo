@@ -127,10 +127,17 @@ export function useExchangeItems(): UseExchangeItemsReturn {
   /** 초기 GPS 기반 아이템 로딩 (1회 실행) */
   const fetchInitialItems = useCallback(
     async (lat: number, lng: number, latDelta: number) => {
-      const radius = deltaToRadius(latDelta);
-      await fetchItems(loadItems(lat, lng, radius));
-      setIsInitialFetched(true);
-      Logger.debug("[Map-First] 초기 GPS 기반 아이템 로딩 완료", { lat, lng });
+      try {
+        const radius = deltaToRadius(latDelta);
+        await fetchItems(loadItems(lat, lng, radius));
+        Logger.debug("[Map-First] 초기 GPS 기반 아이템 로딩 완료", { lat, lng });
+      } catch (error) {
+        Logger.error("[Map-First] 초기 아이템 로딩 실패:", error);
+        // fetchItems 내부에 에러가 전파되어 itemsState.error에 저장됨
+      } finally {
+        // 실패하더라도 무한 로딩 스피너 방지를 위해 '가져옴' 상태로 완결
+        setIsInitialFetched(true);
+      }
     },
     [fetchItems, loadItems],
   );

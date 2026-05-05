@@ -9,7 +9,7 @@ import { Logger } from "@/src/utils/logger";
 import { useNetInfo } from "@react-native-community/netinfo";
 import * as Notifications from "expo-notifications";
 import { Href, router, Stack, useSegments } from "expo-router";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -87,7 +87,7 @@ function RootLayoutInner() {
   }, []);
 
   // 🚨 앙드레 카파시: 안전한 리디렉션 로직
-  const safeRedirect = (href: string) => {
+  const safeRedirect = useCallback((href: string) => {
     if (!navigationReady.current) {
       // 네비게이터가 준비되지 않았으면 지연 실행
       redirectTimeoutRef.current = setTimeout(() => {
@@ -100,7 +100,7 @@ function RootLayoutInner() {
     // 네비게이터가 준비되었으면 즉시 실행
     Logger.debug("[Navigation] 즉시 리디렉션 실행:", href);
     router.replace(href as Href);
-  };
+  }, []);
 
   // 🚨 앙드레 카파시: 안전한 리디렉션 적용
   useEffect(() => {
@@ -113,7 +113,7 @@ function RootLayoutInner() {
     if (user && inAuthGroup && !isLoading) {
       safeRedirect("/(tabs)");
     }
-  }, [user, inAuthGroup, isLoading]);
+  }, [user, inAuthGroup, isLoading, safeRedirect]);
 
   // 로딩 중인 경우 ActivityIndicator 표시
   if (isLoading) {
