@@ -8,7 +8,7 @@ import { usePushNotifications } from "@/src/hooks/usePushNotifications";
 import { Logger } from "@/src/utils/logger";
 import { useNetInfo } from "@react-native-community/netinfo";
 import * as Notifications from "expo-notifications";
-import { Href, router, Slot, useSegments } from "expo-router";
+import { Href, router, Stack, useSegments } from "expo-router";
 import { useEffect, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -179,7 +179,14 @@ function RootLayoutInner() {
                 { backgroundColor: colors.background },
               ]}
             >
-              <Slot />
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  gestureEnabled: true,
+                  animation: "slide_from_right",
+                  fullScreenGestureEnabled: true, // Android에서도 제스처 가능하도록 설정
+                }}
+              />
             </View>
           </SafeAreaView>
         </SafeAreaProvider>

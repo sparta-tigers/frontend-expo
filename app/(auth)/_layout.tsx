@@ -1,5 +1,5 @@
 import { useAuth } from "@/src/hooks/useAuth";
-import { Redirect, Slot } from "expo-router";
+import { Redirect, Stack } from "expo-router";
 
 /**
  * 인증 레이아웃
@@ -14,5 +14,5 @@ export default function AuthLayout() {
   }
 
   // 로그인되지 않은 경우 현재 페이지 렌더링 (signin, signup 등)
-  return <Slot />;
+  return <Stack screenOptions={{ headerShown: false, gestureEnabled: true }} />;
 }
