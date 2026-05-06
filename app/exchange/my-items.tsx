@@ -1,14 +1,8 @@
 import { Href, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
-import {
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-
+import { StyleSheet, TouchableOpacity } from "react-native";
+import { Box, Typography, List } from "@/components/ui";
+import { SafeLayout } from "@/components/ui/safe-layout";
 import { itemsGetMyItemsAPI } from "@/src/features/exchange/api";
 import { Item } from "@/src/features/exchange/types";
 import { theme } from "@/src/styles/theme";
@@ -21,10 +15,9 @@ export default function MyItemsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // 내 아이템 목록 로드
   const fetchMyItems = useCallback(async () => {
     try {
-      const response = await itemsGetMyItemsAPI(0, 50); // 충분히 큰 사이즈로 1페이지 호출
+      const response = await itemsGetMyItemsAPI(0, 50);
       if (response && response.data && response.data.content) {
         setMyItems(response.data.content);
       }
@@ -45,153 +38,106 @@ export default function MyItemsScreen() {
     setRefreshing(false);
   }, [fetchMyItems]);
 
-  const renderItem = ({ item }: { item: Item }) => (
+  const renderItem = useCallback(({ item }: { item: Item }) => (
     <TouchableOpacity
-      style={styles.itemContainer}
       onPress={() => router.push(`/exchange/${item.id}` as Href)}
       activeOpacity={0.8}
     >
-      <View style={styles.itemHeader}>
-        <Text style={styles.itemTitle} numberOfLines={1}>
-          {item.title}
-        </Text>
-        <Text style={styles.itemCategory}>
-          {item.category === "TICKET" ? "티켓" : "굿즈"}
-        </Text>
-      </View>
-      <Text style={styles.itemDescription} numberOfLines={2}>
-        {item.description}
-      </Text>
-      <View style={styles.itemFooter}>
-        <Text style={styles.itemDate}>
-          {new Date(item.createdAt).toLocaleDateString()}
-        </Text>
-        <View style={styles.statusBadge}>
-          <Text style={styles.statusText}>활성</Text>
-        </View>
-      </View>
+      <Box 
+        p="md" 
+        mb="sm" 
+        rounded="md" 
+        borderWidth={1} 
+        bg="surface" 
+        borderColor="border.medium"
+      >
+        <Box flexDir="row" justify="space-between" align="center" mb="sm">
+          <Typography
+            variant="body1"
+            weight="bold"
+            color="text.primary"
+            style={styles.itemTitle}
+            numberOfLines={1}
+          >
+            {item.title}
+          </Typography>
+          <Typography variant="caption" weight="bold" color="primary">
+            {item.category === "TICKET" ? "티켓" : "굿즈"}
+          </Typography>
+        </Box>
+        <Typography 
+          variant="body2" 
+          color="text.secondary" 
+          numberOfLines={2} 
+          mb="md"
+          minHeight={36}
+        >
+          {item.description}
+        </Typography>
+        <Box flexDir="row" justify="space-between" align="center">
+          <Typography variant="caption" color="text.secondary">
+            {new Date(item.createdAt).toLocaleDateString()}
+          </Typography>
+          <Box px="sm" py="xxs" rounded="sm" bg="text.secondary">
+            <Typography variant="caption" weight="semibold" color="background">
+              활성
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
     </TouchableOpacity>
-  );
+  ), [router]);
 
   return (
-    <View style={styles.container}>
+    <SafeLayout style={styles.container}>
       {/* 헤더 바 */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>내가 등록한 물건</Text>
-      </View>
+      <Box 
+        flexDir="row" 
+        align="center" 
+        justify="center" 
+        py="md" 
+        px="SCREEN" 
+        borderBottomWidth={1} 
+        borderColor="border.medium"
+      >
+        <Typography variant="h3" weight="bold" color="text.primary">
+          내가 등록한 물건
+        </Typography>
+      </Box>
 
       {/* 목록 본문 */}
       {isLoading ? (
-        <View style={styles.centered}>
-          <Text style={styles.mutedText}>불러오는 중...</Text>
-        </View>
+        <Box flex={1} justify="center" align="center">
+          <Typography color="text.secondary">불러오는 중...</Typography>
+        </Box>
       ) : myItems.length === 0 ? (
-        <View style={styles.centered}>
-          <Text style={styles.mutedText}>현재 활성화된 등록 물건이 없습니다.</Text>
-        </View>
+        <Box flex={1} justify="center" align="center">
+          <Typography color="text.secondary">현재 활성화된 등록 물건이 없습니다.</Typography>
+        </Box>
       ) : (
-        <FlatList
+        <List
           data={myItems}
           renderItem={renderItem}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor={theme.colors.primary}
-            />
-          }
+          onRefresh={handleRefresh}
+          refreshing={refreshing}
         />
       )}
-    </View>
+    </SafeLayout>
   );
 }
 
-// ========================================================
-// Styles — Co-location 유지, 하드코딩 제거
-// ========================================================
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: theme.spacing.SCREEN,
-    paddingVertical: theme.spacing.COMPONENT,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.medium,
-  },
-  headerTitle: {
-    fontSize: theme.typography.size.SECTION_TITLE,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.text.primary,
-  },
-  centered: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  mutedText: {
-    color: theme.colors.text.secondary,
-  },
   listContainer: {
     padding: theme.spacing.SCREEN,
   },
-  itemContainer: {
-    padding: theme.spacing.COMPONENT,
-    marginBottom: theme.spacing.SMALL,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border.medium,
-  },
-  itemHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: theme.spacing.SMALL,
-  },
   itemTitle: {
-    fontSize: theme.typography.size.BODY,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.text.primary,
     flex: 1,
-    marginRight: theme.spacing.SMALL,
-  },
-  itemCategory: {
-    fontSize: theme.typography.size.SMALL,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.primary,
-  },
-  itemDescription: {
-    fontSize: theme.typography.size.SMALL,
-    color: theme.colors.text.secondary,
-    marginBottom: theme.spacing.COMPONENT,
-    minHeight: 36, // 두 줄 정렬 맞춤
-  },
-  itemFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  itemDate: {
-    fontSize: theme.typography.size.CAPTION,
-    color: theme.colors.text.secondary,
-  },
-  statusBadge: {
-    paddingHorizontal: theme.spacing.SMALL,
-    paddingVertical: 2,
-    borderRadius: theme.radius.sm,
-    backgroundColor: theme.colors.text.secondary, // 등록상태 (REGISTERED)
-  },
-  statusText: {
-    fontSize: theme.typography.size.CAPTION,
-    fontWeight: theme.typography.weight.semibold,
-    color: theme.colors.background,
+    marginRight: theme.spacing.sm,
   },
 });

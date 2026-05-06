@@ -77,15 +77,15 @@ export default function ChangeTeamScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Box mb={LOCAL_LAYOUT.headerMarginBottom}>
+        <Box mb="xxl">
           <Typography 
             variant="h3" 
             weight="bold" 
-            mb={LOCAL_LAYOUT.titleBottomGap}
+            mb="sm"
           >
             응원하는 팀을 선택해주세요
           </Typography>
-          <Typography variant="body2" color="secondary">
+          <Typography variant="body2" color="text.secondary">
             선택한 팀에 맞춰 앱의 테마 색상이 변경됩니다.
           </Typography>
         </Box>
@@ -115,10 +115,10 @@ export default function ChangeTeamScreen() {
                 <Box 
                   width={LOCAL_LAYOUT.avatarSize}
                   height={LOCAL_LAYOUT.avatarSize}
-                  rounded={LOCAL_LAYOUT.avatarRadius}
+                  rounded="full"
                   justify="center"
                   align="center"
-                  mb={LOCAL_LAYOUT.avatarBottomGap}
+                  mb="md"
                   style={[styles.colorBadge, badgeDynamicStyle]}
                 >
                   <Typography style={styles.mascot}>{team.mascot}</Typography>
@@ -133,9 +133,9 @@ export default function ChangeTeamScreen() {
                 </Typography>
                 {isSelected && (
                   <Box 
-                    rounded={LOCAL_LAYOUT.checkRadius}
-                    px={LOCAL_LAYOUT.checkPaddingHorizontal}
-                    py={LOCAL_LAYOUT.checkPaddingVertical}
+                    rounded="sm"
+                    px="xs"
+                    py="xxs"
                     style={[styles.checkBadge, badgeDynamicStyle]}
                   >
                     <Typography 

@@ -38,7 +38,7 @@ export const ScheduleSection = React.memo(function ScheduleSection({
   const days = useCalendarGrid(year, month, schedule);
 
   return (
-    <Box mt="xl" pb="xxl" px={theme.layout.dashboard.screenPaddingHorizontal}>
+    <Box mt="xl" pb="xxl" px="SCREEN_DASHBOARD">
       <Box height={theme.layout.dashboard.sectionTitleHeight} align="center" justify="center" mb="md">
         <Typography variant="h3" weight="bold" center>
           {month + 1}월, 우리팀 경기 일정이에요
@@ -50,7 +50,7 @@ export const ScheduleSection = React.memo(function ScheduleSection({
         <Box 
           height={LOCAL_LAYOUT.headerHeight} 
           bg="team.neutralLight" 
-          roundedTop={LOCAL_LAYOUT.calendarRadius} 
+          roundedTop="calendar" 
           flexDir="row" 
           overflow="hidden"
         >
@@ -70,7 +70,7 @@ export const ScheduleSection = React.memo(function ScheduleSection({
         {/* Calendar Grid */}
         <Box 
           bg="card" 
-          roundedBottom={LOCAL_LAYOUT.calendarRadius} 
+          roundedBottom="calendar" 
           flexDir="row" 
           flexWrap="wrap" 
           overflow="hidden" 

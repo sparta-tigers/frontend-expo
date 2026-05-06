@@ -2,17 +2,31 @@ import { theme } from "@/src/styles/theme";
 import React from "react";
 import { View, ViewProps, ViewStyle } from "react-native";
 
+type ThemeColorPath = 
+  | keyof typeof theme.colors 
+  | `text.${keyof typeof theme.colors.text}`
+  | `brand.${keyof typeof theme.colors.brand}`
+  | `team.${keyof typeof theme.colors.team}`
+  | `border.${keyof typeof theme.colors.border}`
+  | `dashboard.${keyof typeof theme.colors.dashboard}`
+  | "transparent";
+
 /**
  * 테마 컬러를 재귀적으로 찾아주는 유틸리티
  */
-const resolveThemeColor = (path: string, obj: Record<string, unknown>): string | undefined => {
-  const result = path.split(".").reduce((acc: unknown, part) => {
-    if (acc && typeof acc === "object" && part in acc) {
-      return (acc as Record<string, unknown>)[part];
+const resolveThemeColor = (path: string): string | undefined => {
+  const parts = path.split(".");
+  let current: any = theme.colors;
+  
+  for (const part of parts) {
+    if (current && typeof current === "object" && part in current) {
+      current = current[part];
+    } else {
+      return undefined;
     }
-    return undefined;
-  }, obj);
-  return typeof result === "string" ? result : undefined;
+  }
+  
+  return typeof current === "string" ? current : undefined;
 };
 
 /**
@@ -20,47 +34,49 @@ const resolveThemeColor = (path: string, obj: Record<string, unknown>): string |
  */
 interface BoxCustomProps {
   /** 테마 스패이싱 토큰 (padding) */
-  p?: keyof typeof theme.spacing | number | undefined;
+  p?: keyof typeof theme.spacing;
   /** 가로 패딩 */
-  px?: keyof typeof theme.spacing | number | undefined;
+  px?: keyof typeof theme.spacing;
   /** 세로 패딩 */
-  py?: keyof typeof theme.spacing | number | undefined;
+  py?: keyof typeof theme.spacing;
   /** 상단 패딩 */
-  pt?: keyof typeof theme.spacing | number | undefined;
+  pt?: keyof typeof theme.spacing;
   /** 하단 패딩 */
-  pb?: keyof typeof theme.spacing | number | undefined;
+  pb?: keyof typeof theme.spacing;
   /** 좌측 패딩 */
-  pl?: keyof typeof theme.spacing | number | undefined;
+  pl?: keyof typeof theme.spacing;
   /** 우측 패딩 */
-  pr?: keyof typeof theme.spacing | number | undefined;
+  pr?: keyof typeof theme.spacing;
   /** 테마 스패이싱 토큰 (margin) */
-  m?: keyof typeof theme.spacing | number | undefined;
+  m?: keyof typeof theme.spacing;
   /** 가로 마진 */
-  mx?: keyof typeof theme.spacing | number | undefined;
+  mx?: keyof typeof theme.spacing;
   /** 세로 마진 */
-  my?: keyof typeof theme.spacing | number | undefined;
+  my?: keyof typeof theme.spacing;
   /** 상단 마진 */
-  mt?: keyof typeof theme.spacing | number | undefined;
+  mt?: keyof typeof theme.spacing;
   /** 하단 마진 */
-  mb?: keyof typeof theme.spacing | number | undefined;
+  mb?: keyof typeof theme.spacing;
   /** 좌측 마진 */
-  ml?: keyof typeof theme.spacing | number | undefined;
+  ml?: keyof typeof theme.spacing;
   /** 우측 마진 */
-  mr?: keyof typeof theme.spacing | number | undefined;
-  /** 배경색 (테마 컬러 키 또는 raw string) */
-  bg?: string;
+  mr?: keyof typeof theme.spacing;
+  /** 배경색 (테마 컬러 키) */
+  bg?: ThemeColorPath;
   /** 테마 반경 토큰 */
-  rounded?: keyof typeof theme.radius | number;
+  rounded?: keyof typeof theme.radius;
   /** 상단 테마 반경 토큰 */
-  roundedTop?: keyof typeof theme.radius | number;
+  roundedTop?: keyof typeof theme.radius;
   /** 하단 테마 반경 토큰 */
-  roundedBottom?: keyof typeof theme.radius | number;
+  roundedBottom?: keyof typeof theme.radius;
   /** 플렉스 */
   flex?: ViewStyle["flex"];
   /** 가로 크기 */
   width?: ViewStyle["width"];
   /** 세로 크기 */
   height?: ViewStyle["height"];
+  /** 최소 높이 */
+  minHeight?: ViewStyle["minHeight"];
   /** 플렉스 방향 */
   flexDir?: ViewStyle["flexDirection"];
   /** 플렉스 랩 */
@@ -72,7 +88,7 @@ interface BoxCustomProps {
   /** justify */
   justify?: ViewStyle["justifyContent"];
   /** 간격 */
-  gap?: keyof typeof theme.spacing | number;
+  gap?: keyof typeof theme.spacing;
   /** 포지션 */
   position?: ViewStyle["position"];
   /** 포지션 값 */
@@ -82,7 +98,11 @@ interface BoxCustomProps {
   right?: ViewStyle["right"];
   /** 테두리 */
   borderWidth?: ViewStyle["borderWidth"];
-  borderColor?: string;
+  borderColor?: ThemeColorPath;
+  borderTopWidth?: ViewStyle["borderTopWidth"];
+  borderBottomWidth?: ViewStyle["borderBottomWidth"];
+  borderLeftWidth?: ViewStyle["borderLeftWidth"];
+  borderRightWidth?: ViewStyle["borderRightWidth"];
   /** 오버플로우 */
   overflow?: ViewStyle["overflow"];
 }
@@ -117,6 +137,7 @@ export const Box = ({
   flex,
   width,
   height,
+  minHeight,
   flexDir,
   flexWrap,
   align,
@@ -130,18 +151,20 @@ export const Box = ({
   right,
   borderWidth,
   borderColor,
+  borderTopWidth,
+  borderBottomWidth,
+  borderLeftWidth,
+  borderRightWidth,
   overflow,
   style,
   children,
   ...rest
 }: BoxProps) => {
-  const getSpacing = (val: keyof typeof theme.spacing | number | undefined) => {
-    if (typeof val === "number") return val;
+  const getSpacing = (val: keyof typeof theme.spacing | undefined) => {
     return val ? theme.spacing[val] : undefined;
   };
 
-  const getRadius = (val: keyof typeof theme.radius | number | undefined) => {
-    if (typeof val === "number") return val;
+  const getRadius = (val: keyof typeof theme.radius | undefined) => {
     return val ? theme.radius[val] : undefined;
   };
 
@@ -165,7 +188,7 @@ export const Box = ({
   if (mr !== undefined) boxStyle.marginRight = getSpacing(mr);
 
   if (bg !== undefined) {
-    boxStyle.backgroundColor = resolveThemeColor(bg, theme.colors) || bg;
+    boxStyle.backgroundColor = resolveThemeColor(bg) || (theme.colors as any)[bg];
   }
   
   if (flex !== undefined) boxStyle.flex = flex;
@@ -176,6 +199,7 @@ export const Box = ({
   if (justify !== undefined) boxStyle.justifyContent = justify;
   if (width !== undefined) boxStyle.width = width;
   if (height !== undefined) boxStyle.height = height;
+  if (minHeight !== undefined) boxStyle.minHeight = minHeight;
   if (gap !== undefined) boxStyle.gap = getSpacing(gap);
   
   if (rounded !== undefined) boxStyle.borderRadius = getRadius(rounded);
@@ -195,8 +219,12 @@ export const Box = ({
   if (right !== undefined) boxStyle.right = right;
   
   if (borderWidth !== undefined) boxStyle.borderWidth = borderWidth;
+  if (borderTopWidth !== undefined) boxStyle.borderTopWidth = borderTopWidth;
+  if (borderBottomWidth !== undefined) boxStyle.borderBottomWidth = borderBottomWidth;
+  if (borderLeftWidth !== undefined) boxStyle.borderLeftWidth = borderLeftWidth;
+  if (borderRightWidth !== undefined) boxStyle.borderRightWidth = borderRightWidth;
   if (borderColor !== undefined) {
-    boxStyle.borderColor = resolveThemeColor(borderColor, theme.colors) || borderColor;
+    boxStyle.borderColor = resolveThemeColor(borderColor) || (theme.colors as any)[borderColor];
   }
   if (overflow !== undefined) boxStyle.overflow = overflow;
 

@@ -25,22 +25,6 @@ import {
     TouchableOpacity,
 } from "react-native";
 
-// ========================================================
-// 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
-// ========================================================
-const LOCAL_LAYOUT = {
-  guestAvatarSize: 80,
-  userAvatarSize: 60,
-  dividerHeight: 1,
-  headerBorderWidth: 1,
-  logoutBorderWidth: 1,
-  menuItemVerticalPadding: theme.spacing.md,
-  menuItemHorizontalPadding: theme.spacing.xl,
-  teamDeletePaddingVertical: theme.spacing.xs,
-  teamDeletePaddingHorizontal: theme.spacing.sm,
-  scrollBottomPadding: 40,
-} as const;
-
 /**
  * 프로필 화면 컴포넌트
  * 
@@ -286,7 +270,8 @@ export default function ProfileScreen() {
           <Box 
             py="lg" 
             align="center" 
-            style={styles.header}
+            borderBottomWidth={1}
+            borderColor="border.medium"
           >
             <Typography variant="h3">프로필</Typography>
           </Box>
@@ -298,25 +283,24 @@ export default function ProfileScreen() {
           >
             <Box bg="card" p="xl" rounded="xl" align="center" mb="xxl">
               <Box 
-                bg="muted" 
+                bg="text.tertiary" 
                 rounded="full" 
                 align="center" 
                 justify="center" 
                 mb="md"
-                width={LOCAL_LAYOUT.guestAvatarSize}
-                height={LOCAL_LAYOUT.guestAvatarSize}
+                width={80}
+                height={80}
               >
                 <Typography variant="h1" color="background">G</Typography>
               </Box>
               <Typography variant="h2" mb="sm">게스트 모드</Typography>
-              <Typography variant="body2" color="secondary" center>
+              <Typography variant="body2" color="text.secondary" center>
                 로그인하면 더 많은 기능을 이용할 수 있어요
               </Typography>
             </Box>
 
             <Box gap="md">
               <Button
-                variant="primary"
                 onPress={() => router.push("/(auth)/signin")}
               >
                 로그인
@@ -341,7 +325,8 @@ export default function ProfileScreen() {
         <Box 
           py="lg" 
           align="center" 
-          style={styles.header}
+          borderBottomWidth={1}
+          borderColor="border.medium"
         >
           <Typography variant="h3">프로필</Typography>
         </Box>
@@ -360,8 +345,8 @@ export default function ProfileScreen() {
                 align="center" 
                 justify="center" 
                 mr="md"
-                width={LOCAL_LAYOUT.userAvatarSize}
-                height={LOCAL_LAYOUT.userAvatarSize}
+                width={60}
+                height={60}
               >
                 <Typography variant="h3" color="background">U</Typography>
               </Box>
@@ -369,7 +354,7 @@ export default function ProfileScreen() {
                 <Typography weight="bold" mb="xxs">
                   {user?.nickname ?? user?.email ?? ""}
                 </Typography>
-                <Typography variant="caption" color="secondary">
+                <Typography variant="caption" color="text.secondary">
                   활성 상태
                 </Typography>
               </Box>
@@ -378,41 +363,41 @@ export default function ProfileScreen() {
 
           {/* 메뉴 그룹 - 교환 관리 */}
           <Box mb="lg">
-            <Typography variant="label" ml="sm" mb="sm">교환 관리</Typography>
-            <Box bg="card" rounded="lg" style={styles.menuCard}>
+            <Typography variant="label" ml="sm" mb="sm" color="text.secondary">교환 관리</Typography>
+            <Box bg="card" rounded="lg" overflow="hidden">
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => router.push("/(tabs)/exchange")}
                 activeOpacity={0.7}
               >
                 <Typography>내 티켓 목록</Typography>
-                <Typography color="secondary" weight="bold">›</Typography>
+                <Typography color="text.secondary" weight="bold">›</Typography>
               </TouchableOpacity>
-              <Box mx="lg" style={styles.divider} />
+              <Box mx="lg" height={1} bg="border.medium" />
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => router.push("/exchange/create")}
                 activeOpacity={0.7}
               >
                 <Typography>티켓 등록하기</Typography>
-                <Typography color="secondary" weight="bold">›</Typography>
+                <Typography color="text.secondary" weight="bold">›</Typography>
               </TouchableOpacity>
-              <Box mx="lg" style={styles.divider} />
+              <Box mx="lg" height={1} bg="border.medium" />
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => router.push("/chat/chat")}
                 activeOpacity={0.7}
               >
                 <Typography>채팅방 목록</Typography>
-                <Typography color="secondary" weight="bold">›</Typography>
+                <Typography color="text.secondary" weight="bold">›</Typography>
               </TouchableOpacity>
             </Box>
           </Box>
 
           {/* 메뉴 그룹 - 계정 관리 */}
           <Box mb="lg">
-            <Typography variant="label" ml="sm" mb="sm">계정 관리</Typography>
-            <Box bg="card" rounded="lg" style={styles.menuCard}>
+            <Typography variant="label" ml="sm" mb="sm" color="text.secondary">계정 관리</Typography>
+            <Box bg="card" rounded="lg" overflow="hidden">
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={handleEditProfile}
@@ -420,52 +405,52 @@ export default function ProfileScreen() {
                 activeOpacity={0.7}
               >
                 <Typography>프로필 수정</Typography>
-                <Typography color="secondary" weight="bold">›</Typography>
+                <Typography color="text.secondary" weight="bold">›</Typography>
               </TouchableOpacity>
-              <Box mx="lg" style={styles.divider} />
+              <Box mx="lg" height={1} bg="border.medium" />
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={handleDeleteAccount}
                 disabled={loading}
                 activeOpacity={0.7}
               >
-                <Typography color="destructive">회원 탈퇴</Typography>
-                <Typography color="destructive" weight="bold">›</Typography>
+                <Typography color="error">회원 탈퇴</Typography>
+                <Typography color="error" weight="bold">›</Typography>
               </TouchableOpacity>
             </Box>
           </Box>
 
           {/* 즐겨찾기 팀 */}
           <Box mb="lg">
-            <Typography variant="label" ml="sm" mb="sm">즐겨찾기 팀</Typography>
-            <Box bg="card" rounded="lg" style={styles.menuCard}>
+            <Typography variant="label" ml="sm" mb="sm" color="text.secondary">즐겨찾기 팀</Typography>
+            <Box bg="card" rounded="lg" overflow="hidden">
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={handleAddFavoriteTeam}
                 activeOpacity={0.7}
               >
                 <Typography>팀 추가하기</Typography>
-                <Typography color="secondary" weight="bold">›</Typography>
+                <Typography color="text.secondary" weight="bold">›</Typography>
               </TouchableOpacity>
 
               {favoriteTeams.length > 0 && (
                 <>
-                  <Box mx="lg" style={styles.divider} />
+                  <Box mx="lg" height={1} bg="border.medium" />
                   {favoriteTeams.map((team, index) => (
                     <React.Fragment key={team.id}>
                       <Box flexDir="row" align="center" justify="space-between" px="lg" py="md">
                         <Typography>{team.teamName}</Typography>
                         <TouchableOpacity
                           onPress={() => handleDeleteFavoriteTeam(team)}
-                          style={styles.teamDeleteButton}
+                          style={{ paddingVertical: theme.spacing.xxs, paddingHorizontal: theme.spacing.xs }}
                         >
-                          <Typography variant="caption" color="destructive" weight="bold">
+                          <Typography variant="caption" color="error" weight="bold">
                             삭제
                           </Typography>
                         </TouchableOpacity>
                       </Box>
                       {index < favoriteTeams.length - 1 && (
-                        <Box mx="lg" style={styles.divider} />
+                        <Box mx="lg" height={1} bg="border.medium" />
                       )}
                     </React.Fragment>
                   ))}
@@ -476,24 +461,24 @@ export default function ProfileScreen() {
 
           {/* 설정 */}
           <Box mb="lg">
-            <Typography variant="label" ml="sm" mb="sm">설정</Typography>
-            <Box bg="card" rounded="lg" style={styles.menuCard}>
+            <Typography variant="label" ml="sm" mb="sm" color="text.secondary">설정</Typography>
+            <Box bg="card" rounded="lg" overflow="hidden">
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => {}}
                 activeOpacity={0.7}
               >
                 <Typography>알림 설정</Typography>
-                <Typography color="secondary" weight="bold">›</Typography>
+                <Typography color="text.secondary" weight="bold">›</Typography>
               </TouchableOpacity>
-              <Box mx="lg" style={styles.divider} />
+              <Box mx="lg" height={1} bg="border.medium" />
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => {}}
                 activeOpacity={0.7}
               >
                 <Typography>테마 설정</Typography>
-                <Typography color="secondary" weight="bold">›</Typography>
+                <Typography color="text.secondary" weight="bold">›</Typography>
               </TouchableOpacity>
             </Box>
           </Box>
@@ -504,7 +489,7 @@ export default function ProfileScreen() {
             style={styles.logoutButton}
             onPress={handleLogout}
           >
-            <Typography color="destructive" weight="bold">로그아웃</Typography>
+            로그아웃
           </Button>
         </ScrollView>
       </Box>
@@ -518,33 +503,18 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: theme.spacing.xl,
-    paddingBottom: LOCAL_LAYOUT.scrollBottomPadding,
-  },
-  header: {
-    borderBottomWidth: LOCAL_LAYOUT.headerBorderWidth,
-    borderBottomColor: theme.colors.border.medium,
-  },
-  menuCard: {
-    overflow: "hidden",
+    paddingBottom: 40,
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: LOCAL_LAYOUT.menuItemVerticalPadding,
-    paddingHorizontal: LOCAL_LAYOUT.menuItemHorizontalPadding,
-  },
-  divider: {
-    height: LOCAL_LAYOUT.dividerHeight,
-    backgroundColor: theme.colors.border.medium,
-  },
-  teamDeleteButton: {
-    paddingHorizontal: LOCAL_LAYOUT.teamDeletePaddingHorizontal,
-    paddingVertical: LOCAL_LAYOUT.teamDeletePaddingVertical,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xl,
   },
   logoutButton: {
     borderColor: theme.colors.error,
-    borderWidth: LOCAL_LAYOUT.logoutBorderWidth,
+    borderWidth: 1,
     marginTop: theme.spacing.sm,
   },
 });

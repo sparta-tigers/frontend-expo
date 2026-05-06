@@ -31,7 +31,7 @@ interface MiniStatCardProps {
 
 const MiniStatCard = memo(({ item }: MiniStatCardProps) => (
   <Box align="center" mr="lg">
-    <Typography variant="caption" color="secondary" mb="xs">
+    <Typography variant="caption" color="text.secondary" mb="xs">
       {item.label}
     </Typography>
     <Typography weight="semibold">
@@ -76,10 +76,10 @@ export const MyTeamSection = memo(({
   const dynamicMascotTextStyle = { color: teamColor };
 
   return (
-    <Box mt="xxl" px={theme.layout.dashboard.screenPaddingHorizontal}>
+    <Box mt="xxl" px="SCREEN_DASHBOARD">
       {/* 섹션 헤더 */}
       <Box flexDir="row" justify="space-between" align="center" mb="md">
-        <Typography variant="label" color="secondary" style={styles.headerLabel}>
+        <Typography variant="label" color="text.secondary" style={styles.headerLabel}>
           MY TEAM
         </Typography>
         {onPressChangeTeam && (

@@ -16,11 +16,10 @@ import { Logger } from "@/src/utils/logger";
 import React, { useCallback, useEffect, useState } from "react";
 import {
     Alert,
-    FlatList,
     StyleSheet,
     TouchableOpacity,
 } from "react-native";
-import { Box, Typography } from "@/components/ui";
+import { Box, Typography, List } from "@/components/ui";
 
 export default function NotificationScreen() {
   const { user } = useAuth();
@@ -171,7 +170,7 @@ export default function NotificationScreen() {
           <Box 
             bg={item.isNotified ? "error" : "primary"} 
             px="sm" 
-            py={2} 
+            py="xxs" 
             rounded="sm"
           >
             <Typography variant="caption" color="background" weight="bold">
@@ -204,12 +203,13 @@ export default function NotificationScreen() {
           </Button>
         </Box>
 
-        <FlatList
+        <List
           data={alarms}
           renderItem={renderAlarmItem}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
+          refreshing={loading}
+          onRefresh={loadAlarms}
           ListEmptyComponent={
             <Box flex={1} justify="center" align="center" py="xxl">
               <Typography variant="body1" weight="semibold" color="text.secondary" mb="xs">
@@ -220,8 +220,6 @@ export default function NotificationScreen() {
               </Typography>
             </Box>
           }
-          refreshing={loading}
-          onRefresh={loadAlarms}
         />
       </Box>
     </SafeLayout>

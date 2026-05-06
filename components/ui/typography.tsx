@@ -11,17 +11,31 @@ export type TypographyVariant =
   | "caption" 
   | "label";
 
+type ThemeColorPath = 
+  | keyof typeof theme.colors 
+  | `text.${keyof typeof theme.colors.text}`
+  | `brand.${keyof typeof theme.colors.brand}`
+  | `team.${keyof typeof theme.colors.team}`
+  | `border.${keyof typeof theme.colors.border}`
+  | `dashboard.${keyof typeof theme.colors.dashboard}`
+  | "transparent";
+
 /**
  * 테마 컬러를 재귀적으로 찾아주는 유틸리티
  */
-const resolveThemeColor = (path: string, obj: Record<string, unknown>): string | undefined => {
-  const result = path.split(".").reduce((acc: unknown, part) => {
-    if (acc && typeof acc === "object" && part in acc) {
-      return (acc as Record<string, unknown>)[part];
+const resolveThemeColor = (path: string): string | undefined => {
+  const parts = path.split(".");
+  let current: any = theme.colors;
+  
+  for (const part of parts) {
+    if (current && typeof current === "object" && part in current) {
+      current = current[part];
+    } else {
+      return undefined;
     }
-    return undefined;
-  }, obj);
-  return typeof result === "string" ? result : undefined;
+  }
+  
+  return typeof current === "string" ? current : undefined;
 };
 
 /**
@@ -32,22 +46,26 @@ interface TypographyCustomProps {
   variant?: TypographyVariant;
   /** 텍스트 두께 */
   weight?: keyof typeof theme.typography.weight;
-  /** 텍스트 색상 (테마 컬러 키 또는 raw string) */
-  color?: keyof typeof theme.colors.text | keyof typeof theme.colors | string;
+  /** 텍스트 색상 (테마 컬러 키) */
+  color?: ThemeColorPath;
   /** 가운데 정렬 여부 */
   center?: boolean;
   /** 상단 마진 */
-  mt?: keyof typeof theme.spacing | number;
+  mt?: keyof typeof theme.spacing;
   /** 하단 마진 */
-  mb?: keyof typeof theme.spacing | number;
+  mb?: keyof typeof theme.spacing;
   /** 좌측 마진 */
-  ml?: keyof typeof theme.spacing | number;
+  ml?: keyof typeof theme.spacing;
   /** 우측 마진 */
-  mr?: keyof typeof theme.spacing | number;
+  mr?: keyof typeof theme.spacing;
   /** 수평 마진 */
-  mx?: keyof typeof theme.spacing | number;
+  mx?: keyof typeof theme.spacing;
   /** 수직 마진 */
-  my?: keyof typeof theme.spacing | number;
+  my?: keyof typeof theme.spacing;
+  /** 플렉스 */
+  flex?: TextStyle["flex"];
+  /** 최소 높이 */
+  minHeight?: TextStyle["minHeight"];
 }
 
 export interface TypographyProps extends TextProps, TypographyCustomProps {}
@@ -69,26 +87,25 @@ export const Typography = ({
   mb,
   ml,
   mr,
+  flex,
+  minHeight,
   style,
   children,
   ...rest
 }: TypographyProps) => {
   const variantStyle = VARIANT_STYLES[variant];
 
-  const getSpacing = (val: keyof typeof theme.spacing | number | undefined) => {
-    if (typeof val === "number") return val;
+  const getSpacing = (val: keyof typeof theme.spacing | undefined) => {
     return val ? theme.spacing[val] : undefined;
   };
   
   const resolvedColor = color 
-    ? (color.includes('.') 
-        ? resolveThemeColor(color, theme.colors) 
-        : ((theme.colors as Record<string, any>)[color] || color))
+    ? (resolveThemeColor(color) || (theme.colors as any)[color])
     : theme.colors.text.primary;
 
   const customStyle: TextStyle = {
     fontWeight: weight ? theme.typography.weight[weight] : variantStyle.fontWeight,
-    color: resolvedColor as string,
+    color: resolvedColor,
     textAlign: center ? "center" : undefined,
     marginTop: getSpacing(mt),
     marginBottom: getSpacing(mb),
@@ -96,6 +113,8 @@ export const Typography = ({
     marginRight: getSpacing(mr),
     marginHorizontal: getSpacing(mx),
     marginVertical: getSpacing(my),
+    flex,
+    minHeight,
   };
 
   return (

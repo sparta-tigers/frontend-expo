@@ -101,7 +101,7 @@ export default function LiveboardScreen() {
               accessibilityRole="button"
               accessibilityLabel={`${day.date}일 ${day.dayOfWeek}요일 ${day.hasGame ? '경기 있음' : '경기 없음'}`}
             >
-              <Typography variant="caption" color="secondary" weight="medium">
+              <Typography variant="caption" color="text.secondary" weight="medium">
                 {day.dayOfWeek}
               </Typography>
               <Box 
@@ -168,12 +168,12 @@ export default function LiveboardScreen() {
               <Typography variant="h2" weight="extrabold">
                 {match.time}
               </Typography>
-              <Typography variant="caption" color="secondary" weight="medium">
+              <Typography variant="caption" color="text.secondary" weight="medium">
                 {match.stadium}
               </Typography>
               <Box flexDir="row" align="center" gap="xxs" mt="xxs">
                 <MaterialIcons name={match.weather.icon} size={LOCAL_LAYOUT.weatherIconSize} color={theme.colors.brand.mint} />
-                <Typography variant="caption" color="accent" weight="extrabold">
+                <Typography variant="caption" color="brand.mint" weight="extrabold">
                   {match.weather.text}
                 </Typography>
               </Box>

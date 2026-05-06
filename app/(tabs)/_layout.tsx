@@ -85,7 +85,7 @@ export default function TabLayout() {
                   top={theme.layout.tabBar.badgeOffset} 
                   width={theme.layout.tabBar.badgeSize} 
                   height={theme.layout.tabBar.badgeSize} 
-                  rounded={theme.layout.tabBar.badgeRadius} 
+                  rounded="sm" 
                   bg="error" 
                 />
               )}

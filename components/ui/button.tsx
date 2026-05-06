@@ -73,7 +73,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   // variant별 버튼 스타일
   const getButtonStyle = (): StyleProp<ViewStyle> => {
-    const baseStyle: any[] = [
+    const baseStyle: StyleProp<ViewStyle> = [
       styles.button,
       getSizeStyle(),
       fullWidth && styles.fullWidth,
@@ -111,7 +111,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   // variant별 텍스트 스타일
   const getTextStyle = (): StyleProp<TextStyle> => {
-    const baseTextStyle: any[] = [styles.text, textStyle];
+    const baseTextStyle: StyleProp<TextStyle> = [styles.text, textStyle];
 
     let variantTextStyle: TextStyle = {};
     switch (variant) {

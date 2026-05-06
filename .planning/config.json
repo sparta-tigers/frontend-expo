@@ -1,0 +1,15 @@
+{
+  "workflow": {
+    "research_enabled": true,
+    "plan_checker_enabled": true,
+    "nyquist_validation_enabled": true,
+    "commit_docs": true,
+    "auto_advance": false,
+    "discuss_mode": "discuss"
+  },
+  "models": {
+    "researcher": "sonnet",
+    "planner": "opus",
+    "checker": "sonnet"
+  }
+}

@@ -4,12 +4,6 @@ import React from "react";
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
 // ========================================================
-const LOCAL_LAYOUT = {
-  containerPadding: 20,
-  titleSize: 24,
-  titleBottomMargin: 10,
-  subtitleSize: 16,
-} as const;
 
 /**
  * 메인 스크린 컴포넌트
@@ -24,16 +18,16 @@ const MainScreen: React.FC = () => {
       justify="center" 
       align="center" 
       bg="background" 
-      px={LOCAL_LAYOUT.containerPadding}
+      px="SCREEN"
     >
       <Typography 
         variant="h1" 
         weight="bold" 
-        mb={LOCAL_LAYOUT.titleBottomMargin}
+        mb="sm"
       >
         스파르타 타이거즈
       </Typography>
-      <Typography variant="body1" center color="secondary">
+      <Typography variant="body1" center color="text.secondary">
         Expo 앱에 오신 것을 환영합니다!
       </Typography>
     </Box>

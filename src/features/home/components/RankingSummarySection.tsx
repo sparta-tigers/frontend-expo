@@ -31,7 +31,7 @@ export const RankingSummarySection = React.memo(function RankingSummarySection({
   const myTeamRank = ranking.find((r) => r.isMyTeam)?.rank ?? 0;
 
   return (
-    <Box mt="xl" px={theme.layout.dashboard.screenPaddingHorizontal}>
+    <Box mt="xl" px="xxxl">
       <Typography variant="h3" weight="bold" center mb="md">
         오늘의 우리 팀 순위는 {myTeamRank}위예요
       </Typography>
@@ -66,7 +66,7 @@ const RankingRow = React.memo(function RankingRow({ row }: RankingRowProps) {
         <Typography 
           variant={isMyTeam ? "h2" : "h3"} 
           weight="bold" 
-          color={isMyTeam ? "brand.mint" : "secondary"}
+          color={isMyTeam ? "brand.mint" : "text.secondary"}
         >
           {row.rank}
         </Typography>
@@ -95,7 +95,7 @@ const RankingRow = React.memo(function RankingRow({ row }: RankingRowProps) {
             align="center" 
             justify="center"
           >
-            <Typography variant="caption" weight="bold" color="secondary">
+            <Typography variant="caption" weight="bold" color="text.secondary">
               {row.team.shortName}
             </Typography>
           </Box>
@@ -111,7 +111,7 @@ const RankingRow = React.memo(function RankingRow({ row }: RankingRowProps) {
         <Box flexDir="row" align="center" gap="sm">
           {[row.games, row.win, row.lose, row.draw, row.winRate.toFixed(3)].map((stat, i) => (
             <Box key={i} width={LOCAL_LAYOUT.statTextWidth} align="center">
-              <Typography variant="caption" color="secondary">
+              <Typography variant="caption" color="text.secondary">
                 {stat}
               </Typography>
             </Box>

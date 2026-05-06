@@ -200,6 +200,7 @@ export const theme = {
     lg: 16,
     xl: 20,
     xxl: 24,
+    xxxl: 30,
     // 기존 호환성을 위한 별칭
     TINY: 4,
     SMALL: 8,
@@ -207,6 +208,8 @@ export const theme = {
     CARD: 16,
     SECTION: 20,
     SCREEN: 20,
+    SCREEN_DASHBOARD: DASHBOARD_PADDING_HORIZONTAL,
+    AUTH_TAB: 13,
   },
   typography: {
     size: {
@@ -250,6 +253,7 @@ export const theme = {
     INPUT: 8,
     IMAGE: 8,
     CARD: 8,
+    calendar: 13,
   },
   shadow: {
     card: {

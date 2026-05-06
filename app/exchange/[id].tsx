@@ -234,7 +234,7 @@ export default function ItemDetailScreen() {
       return (
         <Box style={styles.imageContainer}>
           <Box style={styles.imagePlaceholder}>
-            <Typography variant="body2" color="secondary">이미지 없음</Typography>
+            <Typography variant="body2" color="text.secondary">이미지 없음</Typography>
           </Box>
         </Box>
       );
@@ -358,7 +358,7 @@ export default function ItemDetailScreen() {
     return (
       <SafeLayout style={styles.container}>
         <Box style={styles.errorContainer}>
-          <Typography variant="body1" center mb="COMPONENT">
+          <Typography variant="body1" center mb="md">
             로그인이 필요합니다.
           </Typography>
           <Button onPress={() => router.back()} variant="outline">돌아가기</Button>
@@ -372,7 +372,7 @@ export default function ItemDetailScreen() {
       <SafeLayout style={styles.container}>
         <Box style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Typography variant="body2" color="secondary" mt="SMALL">
+          <Typography variant="body2" color="text.secondary" mt="sm">
             불러오는 중...
           </Typography>
         </Box>
@@ -384,7 +384,7 @@ export default function ItemDetailScreen() {
     return (
       <SafeLayout style={styles.container}>
         <Box style={styles.errorContainer}>
-          <Typography variant="body1" center mb="COMPONENT">
+          <Typography variant="body1" center mb="md">
             정보를 불러올 수 없습니다.
           </Typography>
           <Button onPress={() => refetch()}>다시 시도</Button>
@@ -431,7 +431,7 @@ export default function ItemDetailScreen() {
               <Image source={{ uri: getImageUrl(item.data.user.profileImage) }} style={styles.profileImage} />
             ) : (
               <Box style={styles.profileImage} justify="center" align="center">
-                <Typography variant="body1" weight="bold" color="secondary">
+                <Typography variant="body1" weight="bold" color="text.secondary">
                   {item.data.user?.userNickname?.[0]?.toUpperCase() || "U"}
                 </Typography>
               </Box>
@@ -440,7 +440,7 @@ export default function ItemDetailScreen() {
           </Box>
 
           <Box style={styles.contentContainer}>
-            <Typography variant="h3" weight="bold" mb="SMALL">
+            <Typography variant="h3" weight="bold" mb="sm">
               {item.data.title}
             </Typography>
             <Typography variant="body1" style={styles.descriptionText}>
@@ -450,8 +450,8 @@ export default function ItemDetailScreen() {
 
           <Box style={styles.bottomBar}>
             <Box style={styles.desiredItemContainer}>
-              <Typography variant="caption" color="secondary">희망 아이템</Typography>
-              <Typography variant="body1" weight="bold" mt={2}>
+              <Typography variant="caption" color="text.secondary">희망 아이템</Typography>
+              <Typography variant="body1" weight="bold" mt="xxs">
                 {item.data.desiredItem || "없음"}
               </Typography>
             </Box>
@@ -460,7 +460,7 @@ export default function ItemDetailScreen() {
               <Box style={styles.buttonRow}>
                 <Box style={styles.statusSection}>
                   <Box style={styles.statusInfoRow}>
-                    <Typography variant="caption" color="secondary">현재 상태</Typography>
+                    <Typography variant="caption" color="text.secondary">현재 상태</Typography>
                     <Typography
                       variant="body2"
                       weight="bold"

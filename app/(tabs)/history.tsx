@@ -106,7 +106,7 @@ export default function HistoryScreen() {
           <Box 
             bg="surface" 
             px="sm" 
-            py={2} 
+            py="xxs" 
             rounded="sm" 
             style={[styles.statusBadge, { borderColor: theme.colors[statusColor] }]}
           >

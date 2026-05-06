@@ -207,7 +207,7 @@ export default function SigninScreen() {
                 />
               </Box>
 
-              <Box flexDir="row" align="center" justify="center" gap="xl" mt={-theme.spacing.xxl}>
+              <Box flexDir="row" align="center" justify="center" gap="xl" style={styles.socialButtonsContainer}>
                 <TouchableOpacity
                   activeOpacity={0.85}
                   style={styles.socialButton}
@@ -244,7 +244,7 @@ export default function SigninScreen() {
             roundedTop="tabBar" 
             style={theme.shadow.card}
           >
-            <Box flex={1} py={LOCAL_LAYOUT.tabBarPaddingVertical}>
+            <Box flex={1} py="AUTH_TAB">
               <Box flex={1} flexDir="row" px="xl" justify="space-between" align="center">
                 {([
                   { name: "house.fill", label: "홈" },
@@ -333,5 +333,8 @@ const styles = StyleSheet.create({
   },
   dividerLine: {
     opacity: 0.8,
+  },
+  socialButtonsContainer: {
+    marginTop: -theme.spacing.xxl,
   },
 });
