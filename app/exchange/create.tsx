@@ -22,221 +22,23 @@ import { useCheckActiveItem } from "@/src/features/exchange/queries";
 import { ItemCategory, LocationDto } from "@/src/features/exchange/types";
 import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 
-// Location 모듈 타입 단언
-const LocationModule = Location as any;
-
-// 정적 스타일 정의 (작업 지시서 기준)
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  submitButtonDisabled: {
-    opacity: 0.6,
-  },
-  imageItemWrapper: {
-    position: "relative",
-  },
-  imageAddIcon: {
-    fontSize: theme.typography.size.xl,
-    color: theme.colors.text.tertiary,
-  },
-  imageCountText: {
-    fontSize: theme.typography.size.xs,
-    color: theme.colors.text.tertiary,
-    marginTop: theme.spacing.xs,
-  },
-  // 이미지 첨부 UI
-  imageScrollContainer: {
-    padding: theme.spacing.lg,
-    paddingBottom: theme.spacing.xl,
-    borderBottomWidth: 1,
-    borderColor: theme.colors.border.light,
-  },
-  imageAddButton: {
-    width: 72,
-    height: 72,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border.dark,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: theme.spacing.sm,
-    backgroundColor: theme.colors.surface,
-  },
-  imageThumbnail: {
-    width: 72,
-    height: 72,
-    borderRadius: theme.radius.md,
-    marginRight: theme.spacing.sm,
-  },
-  deleteButton: {
-    position: "absolute",
-    top: -8,
-    right: -8,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: theme.colors.error,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  deleteButtonText: {
-    color: theme.colors.background,
-    fontSize: theme.typography.size.xs,
-    fontWeight: theme.typography.weight.bold,
-  },
-  // 입력 폼
-  formContainer: {
-    paddingHorizontal: theme.spacing.lg,
-  },
-  titleInput: {
-    height: 60,
-    fontSize: theme.typography.size.lg,
-    borderBottomWidth: 1,
-    borderColor: theme.colors.border.light,
-    marginBottom: theme.spacing.lg,
-  },
-  desiredItemInput: {
-    height: 60,
-    fontSize: theme.typography.size.md,
-    borderBottomWidth: 1,
-    borderColor: theme.colors.border.light,
-    marginBottom: theme.spacing.lg,
-  },
-  contentInput: {
-    minHeight: 200,
-    fontSize: theme.typography.size.md,
-    paddingTop: theme.spacing.lg,
-    textAlignVertical: "top",
-    borderBottomWidth: 1,
-    borderColor: theme.colors.border.light,
-  },
-  // 헤더
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.sm,
-    borderBottomWidth: 1,
-    borderColor: theme.colors.border.medium,
-  },
-  headerTitle: {
-    fontSize: theme.typography.size.lg,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.text.primary,
-    flex: 1,
-    textAlign: "center",
-  },
-  backButton: {
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-  },
-  backButtonText: {
-    fontSize: theme.typography.size.xl,
-    color: theme.colors.primary,
-    fontWeight: theme.typography.weight.bold,
-  },
-  submitButton: {
-    fontSize: theme.typography.size.md,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.primary,
-  },
-  // 위치 정보 UI
-  locationContainer: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
-    borderBottomWidth: 1,
-    borderColor: theme.colors.border.light,
-  },
-  locationHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: theme.spacing.sm,
-  },
-  locationTitle: {
-    fontSize: theme.typography.size.md,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.text.primary,
-  },
-  locationRefreshButton: {
-    fontSize: theme.typography.size.sm,
-    color: theme.colors.primary,
-  },
-  locationContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: theme.spacing.sm,
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.md,
-  },
-  locationIcon: {
-    fontSize: theme.typography.size.lg,
-    marginRight: theme.spacing.sm,
-  },
-  locationText: {
-    flex: 1,
-    fontSize: theme.typography.size.sm,
-    color: theme.colors.text.secondary,
-  },
-  locationLoading: {
-    marginLeft: theme.spacing.sm,
-  },
-  // 카테고리 선택 UI
-  categoryContainer: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
-    borderBottomWidth: 1,
-    borderColor: theme.colors.border.light,
-  },
-  label: {
-    fontSize: theme.typography.size.md,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing.sm,
-  },
-  categoryButtons: {
-    flexDirection: "row",
-    gap: theme.spacing.sm,
-  },
-  categoryButton: {
-    flex: 1,
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border.medium,
-    backgroundColor: theme.colors.background,
-    alignItems: "center",
-  },
-  categoryButtonActive: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
-  },
-  categoryButtonText: {
-    fontSize: theme.typography.size.md,
-    color: theme.colors.text.secondary,
-    fontWeight: theme.typography.weight.medium,
-  },
-  categoryButtonTextActive: {
-    color: theme.colors.background,
-    fontWeight: theme.typography.weight.bold,
-  },
-});
+/**
+ * React Native FormData에 첨부할 파일 객체 형태.
+ *
+ * Why: 웹 표준 Blob/File과 달리, RN의 FormData는 { uri, name, type }
+ * 형태의 파일 객체를 직접 받아 멀티파트로 직렬화한다. 백엔드에서
+ * 파일명/MIME 타입을 인식할 수 있도록 세 필드 모두 명시적으로 정의한다.
+ */
+interface ReactNativeFile {
+  uri: string;
+  name: string;
+  type: string;
+}
 
 /**
  * 교환글 작성 화면 컴포넌트
- *
- * 작업 지시서 Target 3 구현
- * - 이미지 첨부 UI: 가로 스크롤, 72x72 정방형
- * - 입력 폼: 하단 선 스타일
- * - SafeLayout 적용
  */
 export default function CreateItemScreen() {
   const queryClient = useQueryClient();
@@ -246,7 +48,7 @@ export default function CreateItemScreen() {
     title: "",
     desiredItem: "",
     content: "",
-    itemCategory: "TICKET" as ItemCategory, // 기본값 추가
+    itemCategory: "TICKET" as ItemCategory,
   });
 
   const [selectedImages, setSelectedImages] = React.useState<string[]>([]);
@@ -264,12 +66,10 @@ export default function CreateItemScreen() {
     mutationFn: async (data: typeof formData) => {
       const requestFormData = new FormData();
 
-      // 1. JSON 데이터 구조를 백엔드 ItemCreateRequest DTO에 완벽히 매핑
       const requestData = {
-        category: data.itemCategory, // 백엔드 ItemCategory Enum 매핑
+        category: data.itemCategory,
         title: data.title.trim(),
         description: data.content.trim(),
-        // 프론트엔드의 desiredItem 필드가 백엔드 DTO에 없다면 무시되지만 함께 전송
         desiredItem: data.desiredItem?.trim() || "",
         location: {
           latitude: currentLocation.latitude,
@@ -278,40 +78,37 @@ export default function CreateItemScreen() {
         },
       };
 
-      // 파트 이름을 "itemRequest"로 변경 (백엔드 @RequestPart("itemRequest") 대응)
       requestFormData.append("itemRequest", JSON.stringify(requestData));
 
-      // 2. 파트 이름을 "images"로 변경 (백엔드 @RequestPart("images") 대응)
       selectedImages.forEach((uri, index) => {
         const filename = uri.split("/").pop() || `image_${index}.jpg`;
         const match = /\.(\w+)$/.exec(filename);
         const type = match ? `image/${match[1]}` : "image/jpeg";
 
-        requestFormData.append("images", {
-          // itemImage -> images 로 수정
+        const file: ReactNativeFile = {
           uri: uri,
           name: filename,
           type,
-        } as any); // RN의 FormData 타입 에러 우회
+        };
+
+        // RN의 FormData는 { uri, name, type } 형태의 파일 객체를 받지만,
+        // 표준 DOM 타입에는 표현이 없어 unknown을 경유한 Blob 캐스트로 우회한다.
+        requestFormData.append("images", file as unknown as Blob);
       });
 
-      Logger.debug("멀티파트 전송 준비 완료:", requestFormData);
-      // 3. API 호출
       return createExchangeItem(requestFormData);
     },
     onSuccess: () => {
       Alert.alert("성공", "아이템이 등록되었습니다.");
-      // 캐시 무효화로 목록 새로고침
       queryClient.invalidateQueries({ queryKey: ["items"] });
       router.replace("/(tabs)/exchange");
     },
-    onError: (error: any) => {
+    onError: (error: Error & { response?: { status?: number } }) => {
       let errorMessage = "게시글 등록 중 문제가 발생했습니다.";
       const status = error?.response?.status;
       
       if (status === 409) {
         errorMessage = "이미 등록된 아이템이 있습니다. 하나의 계정당 하나의 아이템만 등록 가능합니다.";
-        // 409 Conflict는 예상된 비즈니스 에러이므로 WARN으로 기록하여 콘솔 에러 노이즈 제거
         Logger.warn("아이템 중복 등록 시도 차단 (409)");
       } else {
         Logger.error(
@@ -324,17 +121,12 @@ export default function CreateItemScreen() {
     },
   });
 
-  const onSubmit = (data: typeof formData) => {
-    // 기본 유효성 검사
-    if (!data.title.trim() || !data.content.trim()) {
+  const handleSubmit = () => {
+    if (!formData.title.trim() || !formData.content.trim()) {
       Alert.alert("오류", "제목과 내용을 입력해주세요.");
       return;
     }
-    mutate(data);
-  };
-
-  const handleSubmit = () => {
-    onSubmit(formData);
+    mutate(formData);
   };
 
   // 위치 정보 가져오기
@@ -342,23 +134,19 @@ export default function CreateItemScreen() {
     setLocationLoading(true);
 
     try {
-      // 위치 권한 요청
-      let { status } = await LocationModule.requestForegroundPermissionsAsync();
+      const { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status !== "granted") {
-        Logger.debug("위치 권한이 거부됨");
         Alert.alert("권한 필요", "위치 정보를 사용하려면 권한이 필요합니다.");
         setLocationLoading(false);
         return;
       }
 
-      // 현재 위치 가져오기
-      const location = await LocationModule.getCurrentPositionAsync({
-        accuracy: LocationModule.Accuracy.Balanced,
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
       });
 
-      // 주소 변환 (역지오코딩)
-      const [address] = await LocationModule.reverseGeocodeAsync({
+      const [address] = await Location.reverseGeocodeAsync({
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
       });
@@ -373,31 +161,9 @@ export default function CreateItemScreen() {
       };
 
       setCurrentLocation(locationData);
-
-      Logger.debug("[위치 정보 가져오기]", locationData);
     } catch (error) {
-      Logger.error(
-        "위치 정보 가져오기 실패:",
-        error instanceof Error ? error.message : String(error),
-      );
-
-      // 에러 메시지에 따라 처리
-      if (
-        error instanceof Error &&
-        error.message.includes("location services are enabled")
-      ) {
-        Alert.alert(
-          "위치 서비스 비활성화",
-          "기기의 위치 서비스를 활성화해주세요.\n설정 > 개인정보 보호 및 보안 > 위치 서비스",
-        );
-      } else {
-        Alert.alert(
-          "위치 정보 오류",
-          "위치 정보를 가져올 수 없습니다. 기본 위치(서울)를 사용합니다.",
-        );
-      }
-
-      // 기본 위치 유지 (서울 시청)
+      Logger.error("위치 정보 가져오기 실패:", error);
+      Alert.alert("위치 정보 오류", "위치 정보를 가져올 수 없습니다. 기본 위치(서울)를 사용합니다.");
       const defaultLocation: LocationDto = {
         latitude: 37.5665,
         longitude: 126.978,
@@ -411,16 +177,10 @@ export default function CreateItemScreen() {
 
   const { data: hasActiveItem } = useCheckActiveItem();
 
-  // 컴포넌트 마운트 시 위치 정보 및 활성 아이템 체크
   React.useEffect(() => {
-    const init = async () => {
-      await getCurrentLocation();
-    };
-    
-    init();
+    getCurrentLocation();
   }, []);
 
-  // 활성 아이템 감지 시 즉시 차단 (Redundant check)
   React.useEffect(() => {
     if (hasActiveItem === true) {
       Alert.alert(
@@ -431,29 +191,29 @@ export default function CreateItemScreen() {
     }
   }, [hasActiveItem]);
 
-  // 이미지 선택
   const handleImagePicker = async () => {
+    if (selectedImages.length >= 5) {
+      Alert.alert("알림", "이미지는 최대 5장까지 선택 가능합니다.");
+      return;
+    }
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
+        mediaTypes: ["images"],
         quality: 0.8,
         allowsMultipleSelection: true,
+        selectionLimit: 5 - selectedImages.length,
       });
 
       if (!result.canceled && result.assets) {
         const newImages = result.assets.map((asset) => asset.uri || "");
-        const updatedImages = [...selectedImages, ...newImages].slice(0, 5); // 최대 5장
+        const updatedImages = [...selectedImages, ...newImages].slice(0, 5);
         setSelectedImages(updatedImages);
-        Logger.debug("[이미지 선택]", `${updatedImages.length}장 선택됨`);
       }
     } catch {
       Alert.alert("오류", "이미지 선택에 실패했습니다.");
     }
   };
 
-  // 이미지 제거
   const removeImage = (index: number) => {
     const updatedImages = selectedImages.filter((_, i) => i !== index);
     setSelectedImages(updatedImages);
@@ -461,13 +221,14 @@ export default function CreateItemScreen() {
 
   return (
     <SafeLayout edges={["top", "bottom"]} style={styles.container}>
-      {/* 헤더 */}
       <View style={styles.header}>
-        <TouchableOpacity
+        <TouchableOpacity 
+          style={styles.backButton} 
           onPress={() => router.back()}
-          style={styles.backButton}
+          accessibilityRole="button"
+          accessibilityLabel="뒤로가기"
         >
-          <Text style={styles.backButtonText}>←</Text>
+          <IconSymbol name="chevron.left" size={24} color={theme.colors.text.primary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>교환글 쓰기</Text>
         <TouchableOpacity onPress={handleSubmit} disabled={isPending}>
@@ -482,7 +243,6 @@ export default function CreateItemScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* [KB-1] KeyboardAwareScrollView — TextInput 포커스 시 키보드가 내용을 가리지 않도록 자동 스크롤 */}
       <KeyboardAwareScrollView
         style={styles.scrollView}
         keyboardShouldPersistTaps="handled"
@@ -491,13 +251,11 @@ export default function CreateItemScreen() {
         enableAutomaticScroll
         showsVerticalScrollIndicator={false}
       >
-        {/* 이미지 첨부 가로 스크롤 */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.imageScrollContainer}
         >
-          {/* 이미지 추가 버튼 */}
           {selectedImages.length < 5 && (
             <TouchableOpacity
               style={styles.imageAddButton}
@@ -510,7 +268,6 @@ export default function CreateItemScreen() {
             </TouchableOpacity>
           )}
 
-          {/* 렌더링된 이미지 목록 */}
           {selectedImages.map((imageUri, index) => (
             <View key={index} style={styles.imageItemWrapper}>
               <Image source={{ uri: imageUri }} style={styles.imageThumbnail} />
@@ -524,7 +281,6 @@ export default function CreateItemScreen() {
           ))}
         </ScrollView>
 
-        {/* 위치 정보 영역 */}
         <View style={styles.locationContainer}>
           <View style={styles.locationHeader}>
             <Text style={styles.locationTitle}>📍 위치 정보</Text>
@@ -551,9 +307,7 @@ export default function CreateItemScreen() {
           </View>
         </View>
 
-        {/* 입력 폼 영역 */}
         <View style={styles.formContainer}>
-          {/* 카테고리 선택 */}
           <View style={styles.categoryContainer}>
             <Text style={styles.label}>카테고리</Text>
             <View style={styles.categoryButtons}>
@@ -605,6 +359,7 @@ export default function CreateItemScreen() {
             style={styles.titleInput}
             value={formData.title}
             onChangeText={(text) => setFormData({ ...formData, title: text })}
+            placeholderTextColor={theme.colors.text.tertiary}
           />
 
           <TextInput
@@ -614,6 +369,7 @@ export default function CreateItemScreen() {
             onChangeText={(text) =>
               setFormData({ ...formData, desiredItem: text })
             }
+            placeholderTextColor={theme.colors.text.tertiary}
           />
 
           <TextInput
@@ -622,9 +378,209 @@ export default function CreateItemScreen() {
             style={styles.contentInput}
             value={formData.content}
             onChangeText={(text) => setFormData({ ...formData, content: text })}
+            placeholderTextColor={theme.colors.text.tertiary}
           />
         </View>
       </KeyboardAwareScrollView>
     </SafeLayout>
   );
 }
+
+// --- Styles — Co-location & Static Analysis Optimized ---
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
+  },
+  imageItemWrapper: {
+    position: "relative",
+  },
+  imageAddIcon: {
+    fontSize: theme.typography.size.xl,
+    color: theme.colors.text.tertiary,
+  },
+  imageCountText: {
+    fontSize: theme.typography.size.xs,
+    color: theme.colors.text.tertiary,
+    marginTop: theme.spacing.xs,
+  },
+  imageScrollContainer: {
+    padding: theme.spacing.lg,
+    paddingBottom: theme.spacing.xl,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.border.medium,
+  },
+  imageAddButton: {
+    width: 72,
+    height: 72,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border.medium,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: theme.spacing.sm,
+    backgroundColor: theme.colors.surface,
+  },
+  imageThumbnail: {
+    width: 72,
+    height: 72,
+    borderRadius: theme.radius.md,
+    marginRight: theme.spacing.sm,
+  },
+  deleteButton: {
+    position: "absolute",
+    top: -8,
+    right: -8,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: theme.colors.error,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  deleteButtonText: {
+    color: theme.colors.background,
+    fontSize: theme.typography.size.xs,
+    fontWeight: theme.typography.weight.bold,
+  },
+  formContainer: {
+    paddingHorizontal: theme.spacing.lg,
+  },
+  titleInput: {
+    height: 60,
+    fontSize: theme.typography.size.lg,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.border.medium,
+    marginBottom: theme.spacing.lg,
+    color: theme.colors.text.primary,
+  },
+  desiredItemInput: {
+    height: 60,
+    fontSize: theme.typography.size.md,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.border.medium,
+    marginBottom: theme.spacing.lg,
+    color: theme.colors.text.primary,
+  },
+  contentInput: {
+    minHeight: 200,
+    fontSize: theme.typography.size.md,
+    paddingTop: theme.spacing.lg,
+    textAlignVertical: "top",
+    borderBottomWidth: 1,
+    borderColor: theme.colors.border.medium,
+    color: theme.colors.text.primary,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.border.medium,
+  },
+  headerTitle: {
+    fontSize: theme.typography.size.lg,
+    fontWeight: theme.typography.weight.bold,
+    color: theme.colors.text.primary,
+    flex: 1,
+    textAlign: "center",
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  submitButton: {
+    fontSize: theme.typography.size.md,
+    fontWeight: theme.typography.weight.bold,
+    color: theme.colors.primary,
+  },
+  locationContainer: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.border.medium,
+  },
+  locationHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: theme.spacing.sm,
+  },
+  locationTitle: {
+    fontSize: theme.typography.size.md,
+    fontWeight: theme.typography.weight.bold,
+    color: theme.colors.text.primary,
+  },
+  locationRefreshButton: {
+    fontSize: theme.typography.size.sm,
+    color: theme.colors.primary,
+  },
+  locationContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: theme.spacing.sm,
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.md,
+  },
+  locationIcon: {
+    fontSize: theme.typography.size.lg,
+    marginRight: theme.spacing.sm,
+  },
+  locationText: {
+    flex: 1,
+    fontSize: theme.typography.size.sm,
+    color: theme.colors.text.secondary,
+  },
+  locationLoading: {
+    marginLeft: theme.spacing.sm,
+  },
+  categoryContainer: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderColor: theme.colors.border.medium,
+  },
+  label: {
+    fontSize: theme.typography.size.md,
+    fontWeight: theme.typography.weight.bold,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.sm,
+  },
+  categoryButtons: {
+    flexDirection: "row",
+    gap: theme.spacing.sm,
+  },
+  categoryButton: {
+    flex: 1,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border.medium,
+    backgroundColor: theme.colors.background,
+    alignItems: "center",
+  },
+  categoryButtonActive: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
+  },
+  categoryButtonText: {
+    fontSize: theme.typography.size.md,
+    color: theme.colors.text.secondary,
+    fontWeight: theme.typography.weight.medium,
+  },
+  categoryButtonTextActive: {
+    color: theme.colors.background,
+    fontWeight: theme.typography.weight.bold,
+  },
+});

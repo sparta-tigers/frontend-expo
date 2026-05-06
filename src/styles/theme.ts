@@ -5,7 +5,14 @@
  * 모든 디자인 토큰을 단일 theme 객체로 통합
  */
 
-import { Platform } from "react-native";
+import { Platform, Dimensions } from "react-native";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+// 🚨 앙드레 카파시: 대시보드 레이아웃 고정 상수 정의
+// Why: 계산식에서 중복 참조되는 값을 변수로 추출하여 undefined 방지 및 가독성 확보
+const DASHBOARD_PADDING_HORIZONTAL = 30;
+const CALENDAR_WIDTH = SCREEN_WIDTH - DASHBOARD_PADDING_HORIZONTAL * 2;
 
 const tintColorLight = "#0a7ea4";
 const tintColorDark = "#fff";
@@ -97,6 +104,74 @@ export const theme = {
     background: "#FFFFFF", // 기본 배경
     surface: "#F9FAFB", // 카드/입력창 배경 (gray-50)
     card: "#FFFFFF", // 카드 배경
+    /**
+     * 브랜드/제품 고유 컬러 토큰
+     *
+     * Why: Figma에서 정의된 앱 고유 색상(민트, 회색 계열, 로그인 그라데이션 등)을
+     * 화면 단위에서 하드코딩하지 않고 theme로 끌어올려 단일 출처(SSOT)로 관리한다.
+     */
+    brand: {
+      mint: "#4BBDBD",
+      /** 선택 상태 배경(라이브보드 날짜 등) — 민트의 밝은 파생 톤 */
+      mintLight: "#DCF5F2",
+      background: "#F8F8FA",
+      subtitle: "#919191",
+      inactive: "#ADADAD",
+      /**
+       * 로그인 배경 그라데이션(아래 → 위 방향)
+       *
+       * Why: React Native에서는 CSS의 각도 그라데이션을 그대로 재현하기 어렵다.
+       * 앱에서는 시각적 인상이 크게 달라지지 않는 범위에서 스톱 기반으로 근사한다.
+       */
+      loginGradientStops: [
+        "rgba(75, 189, 189, 0.39)",
+        "rgba(255, 255, 255, 0.39)",
+        "rgba(165, 222, 222, 0.39)",
+      ],
+    },
+    /**
+     * 도메인(야구/팀) 전용 컬러
+     *
+     * Why: 대시보드(`main_0`)에서 팀 컬러(예: KIA 레드)를 화면에서 하드코딩하지 않고
+     * 타입 안정성과 재사용성을 확보하기 위해 theme로 승격한다.
+     */
+    /**
+     * KBO 10개 구단 + 공통 뉴트럴 컬러
+     *
+     * Why: 라이브보드/스케줄/대시보드 등 다수 화면에서 팀 컬러를 참조.
+     * 각 화면에서 하드코딩하면 유지보수 불가 → SSOT로 승격.
+     */
+    team: {
+      kia: "#EA0029",
+      kiaRed: "#EA0029", // 기존 호환 별칭
+      hanwha: "#FF6600",
+      lg: "#C30452",
+      lotte: "#041E42",
+      samsung: "#074CA1",
+      nc: "#315288",
+      ssg: "#CE0E2D",
+      doosan: "#131230",
+      kt: "#000000",
+      kiwoom: "#820024",
+      neutralDark: "#33363F",
+      neutralLight: "#D6D6D6",
+      /** 팀 매칭 실패 시 기본 컬러 */
+      fallback: "#888888",
+    },
+    /**
+     * 대시보드(`main_0`) 전용 톤 컬러
+     *
+     * Why: 카드 배경 톤(rgba)을 화면에서 직접 쓰면 추적/교체가 어렵다.
+     * theme로 승격해 한 곳에서 관리한다.
+     */
+    dashboard: {
+      statTonePink: "rgba(234, 0, 41, 0.12)",
+      statToneYellow: "rgba(245, 158, 11, 0.18)",
+      statToneGreen: "rgba(16, 185, 129, 0.18)",
+      statIconPink: "#EA0029",
+      statIconYellow: "#F59E0B",
+      statIconGreen: "#10B981",
+    },
     text: {
       primary: "#111827", // 기본 텍스트 (gray-900)
       secondary: "#6B7280", // 보조 텍스트 (gray-500)
@@ -152,12 +227,16 @@ export const theme = {
       medium: "500",
       semibold: "600",
       bold: "700",
+      extrabold: "800",
+      black: "900",
     },
   },
   radius: {
     sm: 4,
     md: 8,
     lg: 12,
+    tabBar: 15,
+    dashboardCard: 10,
     full: 9999,
     // 기존 호환성을 위한 별칭
     BUTTON: 6,
@@ -179,6 +258,59 @@ export const theme = {
       shadowOpacity: 0.15,
       shadowRadius: 3,
       elevation: 3,
+    },
+  },
+  /**
+   * 화면/레이아웃 전용 토큰
+   *
+   * Why: 특정 화면(예: 로그인 main_00)의 픽셀 기반 스펙을 그대로 쓰되,
+   * 컴포넌트 코드에서 숫자 하드코딩을 제거하고 일관성을 유지한다.
+   */
+  layout: {
+    /** 전역 헤더 레이아웃 토큰 */
+    header: {
+      backIconSize: 36,
+      titleFontSize: 22,
+      profileIconSize: 28,
+    },
+    auth: {
+      headerHeight: 80,
+      headerIconBox: 24,
+      bodyPaddingHorizontal: 66,
+      bodyPaddingVertical: 86,
+      logoWidth: 270,
+      logoHeight: 274,
+      inputHeight: 36,
+      socialButtonSize: 45,
+      socialIconSize: 30,
+      socialDividerHeight: 95,
+      tabBarHeight: 66,
+      tabBarPaddingVertical: 13,
+      tabLabelWidth: 54,
+    },
+    dashboard: {
+      screenPaddingHorizontal: DASHBOARD_PADDING_HORIZONTAL,
+      sectionGap: 20,
+      sectionTitleHeight: 24,
+      myTeamCardHeight: 118,
+      myTeamMiniCardSize: 66,
+      myTeamMiniCardHeight: 61,
+      myTeamMascotBox: 72,
+      rankingRowHeight: 25,
+      rankingRowHeightActive: 37,
+      rankingMyTeamBorderWidth: 2,
+      lineupRowWidth: CALENDAR_WIDTH * 0.7, // 고정 234px 대신 캘린더 너비의 70%로 반응형 대응
+      lineupRowHeight: 30,
+      calendarWidth: CALENDAR_WIDTH,
+      calendarCellWidth: Math.floor(CALENDAR_WIDTH / 7), // 7등분 후 정수화
+      calendarHeaderHeight: 32,
+      calendarCellHeight: 61,
+      calendarRadius: 13, // 12.687 반올림; 정수화하여 렌더링 일관성 확보
+    },
+    tabBar: {
+      badgeSize: 8,
+      badgeOffset: -2,
+      badgeRadius: 4,
     },
   },
 } as const;

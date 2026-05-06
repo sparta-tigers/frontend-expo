@@ -266,15 +266,10 @@ export default function ProfileScreen() {
     return (
       <SafeLayout style={{ backgroundColor: colors.background }}>
         <View style={styles.container}>
-          {/* 상단 네비게이션 */}
-          <View style={[styles.topNav, { borderBottomColor: colors.border }]}>
-            <Button variant="ghost" size="sm" onPress={() => router.back()}>
-              ←
-            </Button>
+          <View style={[styles.topNav, styles.topNavCenter, { borderBottomColor: colors.border }]}>
             <Text style={[styles.navTitle, { color: colors.text }]}>
               프로필
             </Text>
-            <View style={styles.navSpacer} />
           </View>
 
           {/* 게스트 상태 콘텐츠 */}
@@ -325,13 +320,8 @@ export default function ProfileScreen() {
   return (
     <SafeLayout style={{ backgroundColor: colors.background }}>
       <View style={styles.container}>
-        {/* 상단 네비게이션 */}
-        <View style={[styles.topNav, { borderBottomColor: colors.border }]}>
-          <Button variant="ghost" size="sm" onPress={() => router.back()}>
-            ←
-          </Button>
+        <View style={[styles.topNav, styles.topNavCenter, { borderBottomColor: colors.border }]}>
           <Text style={[styles.navTitle, { color: colors.text }]}>프로필</Text>
-          <View style={styles.navSpacer} />
         </View>
 
         {/* 스크롤 가능한 콘텐츠 */}
@@ -593,13 +583,14 @@ const styles = StyleSheet.create({
     padding: SPACING.SCREEN,
     borderBottomWidth: 1,
   },
+  topNavCenter: {
+    justifyContent: "center",
+  },
   navTitle: {
     fontSize: 18,
     fontWeight: "600",
   },
-  navSpacer: {
-    width: 40, // 버튼과 동일한 너비로 정렬 맞춤
-  },
+
   // 콘텐츠 영역 (기존 content 스타일 제거됨)
   // 게스트 상태
   guestCard: {

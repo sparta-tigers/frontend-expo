@@ -65,3 +65,6 @@ docs/issues/*.md
 # Repomix
 repomix.config.json
 **/frontend-context**.txt
+
+**/**cursor**/
+**/**agents**/

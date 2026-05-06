@@ -1,8 +1,8 @@
 import { Tabs } from "expo-router";
-import React from "react";
+import React, { useEffect } from "react";
 
 import { useQuery } from "@tanstack/react-query";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, AppState, AppStateStatus } from "react-native";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -15,12 +15,24 @@ export default function TabLayout() {
   const { colors } = useTheme();
   const { user } = useAuth();
 
-  const { data: receiveResponse } = useQuery({
+  const { data: receiveResponse, refetch } = useQuery({
     queryKey: ["exchangeRequests", "receiver", "PENDING"],
     queryFn: () => exchangeGetMyRequestsAPI("receiver", 0, 1, "PENDING"),
     enabled: !!user?.userId,
-    refetchInterval: 10000,
+    refetchInterval: 30000,
   });
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextAppState: AppStateStatus) => {
+      if (nextAppState === "active") {
+        refetch();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [refetch]);
 
   const hasNewExchangeRequest = (receiveResponse?.data?.totalElements ?? 0) > 0;
 
@@ -34,6 +46,15 @@ export default function TabLayout() {
     >
       <Tabs.Screen
         name="index"
+        options={{
+          title: "홈",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="house.fill" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="liveboard"
         options={{
           title: "라이브보드",
           tabBarIcon: ({ color }) => (
@@ -52,15 +73,6 @@ export default function TabLayout() {
                 <View style={styles.badge} />
               )}
             </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="stadium"
-        options={{
-          title: "구장정보",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="location.fill" color={color} />
           ),
         }}
       />
@@ -89,11 +101,11 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   badge: {
     position: "absolute",
-    right: -2,
-    top: -2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    right: theme.layout.tabBar.badgeOffset,
+    top: theme.layout.tabBar.badgeOffset,
+    width: theme.layout.tabBar.badgeSize,
+    height: theme.layout.tabBar.badgeSize,
+    borderRadius: theme.layout.tabBar.badgeRadius,
     backgroundColor: theme.colors.error,
   },
 });

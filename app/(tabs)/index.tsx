@@ -1,64 +1,42 @@
-import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { useTheme } from "@/hooks/useTheme";
-import { SPACING } from "@/src/styles/unified-design";
-import { router } from "expo-router";
+import { LineupSection } from "@/src/features/home/components/LineupSection";
+import { MyTeamSection } from "@/src/features/home/components/MyTeamSection";
+import { RankingSummarySection } from "@/src/features/home/components/RankingSummarySection";
+import { ScheduleSection } from "@/src/features/home/components/ScheduleSection";
+import { useFakeHomeData } from "@/src/features/home/mocks";
+import { styles } from "@/src/features/home/styles";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView } from "react-native";
 
-export default function LiveboardScreen() {
-  const { colors } = useTheme();
+/**
+ * 홈 화면 (`main_0`)
+ *
+ * Why: 실제 API 연동 전에 UI 골격을 먼저 고정하고, 이후 데이터 연동을 단계적으로 진행한다.
+ * 모든 데이터는 "가짜 데이터"로만 렌더링한다.
+ */
+export default function HomeScreen() {
+  const data = useFakeHomeData();
 
   return (
-    <SafeLayout style={{ backgroundColor: colors.background }}>
-      {/* 프로필 버튼 */}
-      <View style={styles.profileButtonContainer}>
-        <Button variant="outline" onPress={() => router.push("/profile")}>
-          프로필
-        </Button>
-      </View>
+    <SafeLayout style={styles.safeLayout} edges={["top", "left", "right"]}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <MyTeamSection
+          userNickname={data.userNickname}
+          daysInSchool={data.daysInSchool}
+          myTeam={data.myTeam}
+          stats={data.myTeamStats}
+        />
 
-      <View style={[styles.container, { borderColor: colors.border }]}>
-        <Text style={[styles.title, { color: colors.text }]}>라이브보드</Text>
-        <Text style={[styles.description, { color: colors.muted }]}>
-          실시간 경기 정보와 라이브 스코어를 제공합니다.
-        </Text>
-        <Text style={[styles.comingSoon, { color: colors.primary }]}>
-          준비 중인 기능입니다.
-        </Text>
-      </View>
+        <RankingSummarySection ranking={data.rankingSummary} />
+
+        <LineupSection lineup={data.todayLineup} teamName={data.myTeam.name} />
+
+        <ScheduleSection schedule={data.monthSchedule} />
+      </ScrollView>
     </SafeLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  profileButtonContainer: {
-    position: "absolute",
-    top: SPACING.SCREEN,
-    right: SPACING.SCREEN,
-    zIndex: 1,
-  },
-  container: {
-    flex: 1,
-    padding: SPACING.SCREEN,
-    borderWidth: 1,
-    borderRadius: 8,
-    margin: SPACING.SCREEN,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: SPACING.SMALL,
-  },
-  description: {
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: SPACING.COMPONENT,
-  },
-  comingSoon: {
-    fontSize: 18,
-    fontWeight: "600",
-  },
-});

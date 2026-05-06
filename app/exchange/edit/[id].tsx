@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { useTheme } from "@/hooks/useTheme";
 import { itemsGetDetailAPI, itemsUpdateAPI } from "@/src/features/exchange/api";
 import { UpdateItemRequest } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
+import { theme } from "@/src/styles/theme";
 import { SPACING } from "@/src/styles/unified-design";
 import { Logger } from "@/src/utils/logger";
 import { getImageUrl } from "@/src/utils/url";
@@ -23,6 +23,110 @@ import {
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: SPACING.SMALL,
+    fontSize: 16,
+    color: theme.colors.text.primary,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: SPACING.SCREEN,
+  },
+  errorText: {
+    fontSize: 16,
+    marginBottom: SPACING.SCREEN,
+    textAlign: "center",
+    color: theme.colors.text.primary,
+  },
+  imageCard: {
+    marginBottom: SPACING.SCREEN,
+    marginHorizontal: SPACING.SCREEN,
+    backgroundColor: theme.colors.card,
+    borderColor: theme.colors.border.medium,
+  },
+  itemImage: {
+    width: "100%",
+    height: 200,
+    borderRadius: 8,
+  },
+  formCard: {
+    margin: SPACING.SCREEN,
+    padding: SPACING.SCREEN,
+    backgroundColor: theme.colors.card,
+    borderColor: theme.colors.border.medium,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: SPACING.COMPONENT,
+    color: theme.colors.text.primary,
+  },
+  inputContainer: {
+    marginBottom: SPACING.COMPONENT,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "500",
+    marginBottom: SPACING.SMALL,
+    color: theme.colors.text.primary,
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: SPACING.SMALL,
+    fontSize: 16,
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border.medium,
+    color: theme.colors.text.primary,
+  },
+  textArea: {
+    height: 120,
+  },
+  categoryContainer: {
+    flexDirection: "row",
+    gap: SPACING.SMALL,
+  },
+  categoryButton: {
+    flex: 1,
+    padding: SPACING.SMALL,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: "center",
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border.medium,
+  },
+  categoryButtonActive: {
+    backgroundColor: theme.colors.primary,
+  },
+  categoryText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: theme.colors.text.primary,
+  },
+  categoryTextActive: {
+    color: theme.colors.background,
+  },
+  actionContainer: {
+    padding: SPACING.SCREEN,
+    paddingTop: 0,
+  },
+  saveButton: {
+    marginBottom: SPACING.SMALL,
+  },
+});
+
 /**
  * 아이템 수정 페이지 컴포넌트
  *
@@ -32,7 +136,6 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 export default function EditItemScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const { colors } = useTheme();
   const { user } = useAuth();
 
   // React Query로 아이템 상세 정보 가져오기
@@ -142,15 +245,8 @@ export default function EditItemScreen() {
     return (
       <SafeLayout edges={["top", "bottom"]} style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text
-            style={[
-              styles.loadingText,
-              { color: colors.text, marginTop: SPACING.SMALL },
-            ]}
-          >
-            아이템 정보를 불러오는 중...
-          </Text>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <Text style={styles.loadingText}>아이템 정보를 불러오는 중...</Text>
         </View>
       </SafeLayout>
     );
@@ -161,32 +257,21 @@ export default function EditItemScreen() {
     return (
       <SafeLayout edges={["top", "bottom"]} style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={[styles.errorText, { color: colors.text }]}>
-            아이템 정보를 불러올 수 없습니다.
-          </Text>
-          <Button onPress={() => router.reload()}>다시 시도</Button>
+          <Text style={styles.errorText}>아이템 정보를 불러올 수 없습니다.</Text>
+          <Button onPress={() => router.replace("/(tabs)/exchange")}>돌아가기</Button>
         </View>
       </SafeLayout>
     );
   }
 
   return (
-    <SafeLayout style={{ backgroundColor: colors.background }}>
+    <SafeLayout style={styles.container}>
       <KeyboardAwareScrollView
         style={styles.container}
         enableOnAndroid={true}
         keyboardShouldPersistTaps="handled"
         extraScrollHeight={20}
       >
-        {/* 헤더 */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={[styles.backText, { color: colors.primary }]}>
-              ← 돌아가기
-            </Text>
-          </TouchableOpacity>
-        </View>
-
         {/* 아이템 이미지 */}
         {item.imageUrl && (
           <Card style={styles.imageCard}>
@@ -200,52 +285,36 @@ export default function EditItemScreen() {
 
         {/* 수정 폼 */}
         <Card style={styles.formCard}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            아이템 정보 수정
-          </Text>
+          <Text style={styles.sectionTitle}>아이템 정보 수정</Text>
 
           {/* 제목 입력 */}
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>제목</Text>
+            <Text style={styles.label}>제목</Text>
             <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  color: colors.text,
-                },
-              ]}
+              style={styles.input}
               value={title}
               onChangeText={setTitle}
               placeholder="아이템 제목을 입력하세요"
-              placeholderTextColor={colors.muted}
+              placeholderTextColor={theme.colors.text.tertiary}
               multiline
             />
           </View>
 
           {/* 카테고리 선택 */}
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>카테고리</Text>
+            <Text style={styles.label}>카테고리</Text>
             <View style={styles.categoryContainer}>
               <TouchableOpacity
                 style={[
                   styles.categoryButton,
-                  {
-                    backgroundColor:
-                      category === "TICKET" ? colors.primary : colors.surface,
-                    borderColor: colors.border,
-                  },
+                  category === "TICKET" && styles.categoryButtonActive,
                 ]}
                 onPress={() => setCategory("TICKET")}
               >
                 <Text
                   style={[
                     styles.categoryText,
-                    {
-                      color:
-                        category === "TICKET" ? colors.background : colors.text,
-                    },
+                    category === "TICKET" && styles.categoryTextActive,
                   ]}
                 >
                   경기 티켓
@@ -254,21 +323,14 @@ export default function EditItemScreen() {
               <TouchableOpacity
                 style={[
                   styles.categoryButton,
-                  {
-                    backgroundColor:
-                      category === "GOODS" ? colors.primary : colors.surface,
-                    borderColor: colors.border,
-                  },
+                  category === "GOODS" && styles.categoryButtonActive,
                 ]}
                 onPress={() => setCategory("GOODS")}
               >
                 <Text
                   style={[
                     styles.categoryText,
-                    {
-                      color:
-                        category === "GOODS" ? colors.background : colors.text,
-                    },
+                    category === "GOODS" && styles.categoryTextActive,
                   ]}
                 >
                   굿즈/상품
@@ -279,21 +341,13 @@ export default function EditItemScreen() {
 
           {/* 설명 입력 */}
           <View style={styles.inputContainer}>
-            <Text style={[styles.label, { color: colors.text }]}>설명</Text>
+            <Text style={styles.label}>설명</Text>
             <TextInput
-              style={[
-                styles.input,
-                styles.textArea,
-                {
-                  backgroundColor: colors.surface,
-                  borderColor: colors.border,
-                  color: colors.text,
-                },
-              ]}
+              style={[styles.input, styles.textArea]}
               value={description}
               onChangeText={setDescription}
               placeholder="아이템 상세 설명을 입력하세요"
-              placeholderTextColor={colors.muted}
+              placeholderTextColor={theme.colors.text.tertiary}
               multiline
               numberOfLines={6}
               textAlignVertical="top"
@@ -317,94 +371,3 @@ export default function EditItemScreen() {
     </SafeLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    marginTop: SPACING.SMALL,
-    fontSize: 16,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: SPACING.SCREEN,
-  },
-  errorText: {
-    fontSize: 16,
-    marginBottom: SPACING.SCREEN,
-    textAlign: "center",
-  },
-  header: {
-    padding: SPACING.SCREEN,
-    paddingBottom: SPACING.SMALL,
-  },
-  backText: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  imageCard: {
-    marginBottom: SPACING.SCREEN,
-    marginHorizontal: SPACING.SCREEN,
-  },
-  itemImage: {
-    width: "100%",
-    height: 200,
-    borderRadius: 8,
-  },
-  formCard: {
-    margin: SPACING.SCREEN,
-    padding: SPACING.SCREEN,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: SPACING.COMPONENT,
-  },
-  inputContainer: {
-    marginBottom: SPACING.COMPONENT,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "500",
-    marginBottom: SPACING.SMALL,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: SPACING.SMALL,
-    fontSize: 16,
-  },
-  textArea: {
-    height: 120,
-  },
-  categoryContainer: {
-    flexDirection: "row",
-    gap: SPACING.SMALL,
-  },
-  categoryButton: {
-    flex: 1,
-    padding: SPACING.SMALL,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: "center",
-  },
-  categoryText: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  actionContainer: {
-    padding: SPACING.SCREEN,
-    paddingTop: 0,
-  },
-  saveButton: {
-    marginBottom: SPACING.SMALL,
-  },
-});

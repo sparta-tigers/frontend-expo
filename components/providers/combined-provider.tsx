@@ -1,8 +1,9 @@
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { initializeTokenCache } from "@/src/utils/tokenStore";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { focusManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React, { ReactNode, useEffect, useState } from "react";
+import { AppState, AppStateStatus, Platform } from "react-native";
 
 /**
  * 결합된 Provider 컴포넌트
@@ -19,15 +20,27 @@ export function CombinedProvider({ children }: { children: ReactNode }) {
           queries: {
             staleTime: 1000 * 60 * 5, // 5분
             retry: 1,
-            refetchOnWindowFocus: false,
+            refetchOnWindowFocus: true,
           },
         },
       }),
   );
 
-  // 🚨 앱 시작 시 토큰 캐시 초기화
+  // 🚨 앱 시작 시 토큰 캐시 초기화 및 React Query 포커스 관리 설정
   useEffect(() => {
     initializeTokenCache();
+
+    // 🚨 앙드레 카파시: 전역 포커스 매니저 설정 (AppState 연동)
+    // Why: 앱이 포그라운드로 돌아올 때 stale 쿼리를 자동으로 refetch 하도록 함
+    const subscription = AppState.addEventListener("change", (status: AppStateStatus) => {
+      if (Platform.OS !== "web") {
+        focusManager.setFocused(status === "active");
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   return (

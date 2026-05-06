@@ -4,18 +4,34 @@ import { useTheme } from "@/hooks/useTheme";
 import { ErrorBoundaryFallback } from "@/src/components/shared/ErrorBoundaryFallback";
 import { OfflineBanner } from "@/src/components/shared/OfflineBanner";
 import { usePushNotifications } from "@/src/hooks/usePushNotifications";
-import { FONT_SIZE, SPACING } from "@/src/styles/unified-design";
+
 import { Logger } from "@/src/utils/logger";
 import { useNetInfo } from "@react-native-community/netinfo";
 import * as Notifications from "expo-notifications";
-import { router, Slot, useSegments } from "expo-router";
-import { useEffect, useRef } from "react";
+import { Href, router, Stack, useSegments } from "expo-router";
+import { useCallback, useEffect, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-
 import { theme } from "@/src/styles/theme";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+
+/**
+ * 푸시 알림 핸들러 설정 (모듈 스코프)
+ *
+ * Why: 컴포넌트 렌더 본문에 두면 매 렌더마다 핸들러가 재설정됨.
+ * 모듈 로드 시 1회만 실행되도록 컴포넌트 밖으로 이동.
+ */
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
 
 /**
  * 루트 레이아웃
@@ -48,20 +64,9 @@ function RootLayoutInner() {
 
   const inAuthGroup = segments[0] === "(auth)";
 
-  // 푸시 알림 핸들러 설정
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: false,
-      shouldShowBanner: false,
-      shouldShowList: false,
-    }),
-  });
-
-  // 토큰 발급 확인 (실제 전송 로직은 usePushNotifications 훅에서 처리)
-  if (expoPushToken) {
-    Logger.debug("Expo Push Token 발급 완료:", expoPushToken);
+  // 🚨 앙드레 카파시: 푸시 토큰 발급 확인 (보안을 위해 실제 값은 로깅하지 않음)
+  if (__DEV__ && expoPushToken) {
+    Logger.debug("[Push] Expo Push Token 발급 완료 (토큰 정보는 보안상 숨김)");
   }
 
   // 🚨 앙드레 카파시: 네비게이터 준비 상태 관리
@@ -81,22 +86,27 @@ function RootLayoutInner() {
   }, []);
 
   // 🚨 앙드레 카파시: 안전한 리디렉션 로직
-  const safeRedirect = (href: string) => {
+  const safeRedirect = useCallback((href: Href) => {
+    // 기존에 대기 중인 리디렉션이 있다면 취소 (Race Condition 방지)
+    if (redirectTimeoutRef.current) {
+      clearTimeout(redirectTimeoutRef.current);
+      redirectTimeoutRef.current = null;
+    }
+
     if (!navigationReady.current) {
       // 네비게이터가 준비되지 않았으면 지연 실행
       redirectTimeoutRef.current = setTimeout(() => {
         Logger.debug("[Navigation] 지연된 리디렉션 실행:", href);
-        // @ts-ignore
         router.replace(href);
+        redirectTimeoutRef.current = null;
       }, 200);
       return;
     }
 
     // 네비게이터가 준비되었으면 즉시 실행
     Logger.debug("[Navigation] 즉시 리디렉션 실행:", href);
-    // @ts-ignore
     router.replace(href);
-  };
+  }, []);
 
   // 🚨 앙드레 카파시: 안전한 리디렉션 적용
   useEffect(() => {
@@ -109,7 +119,7 @@ function RootLayoutInner() {
     if (user && inAuthGroup && !isLoading) {
       safeRedirect("/(tabs)");
     }
-  }, [user, inAuthGroup, isLoading]);
+  }, [user, inAuthGroup, isLoading, safeRedirect]);
 
   // 로딩 중인 경우 ActivityIndicator 표시
   if (isLoading) {
@@ -132,17 +142,41 @@ function RootLayoutInner() {
             {/* 🚨 앙드레 카파시: 오프라인 배너 */}
             {!netInfo.isConnected && <OfflineBanner />}
 
-            {/* 1. 고정 헤더 (SafeArea 보호) */}
-            <View
-              style={[
-                styles.headerContainer,
-                { borderBottomColor: colors.border },
-              ]}
-            >
-              <Text style={[styles.headerTitle, { color: colors.primary }]}>
-                YAGUNIV
-              </Text>
-            </View>
+            {/* 1. 고정 헤더 (전역) - 특정 화면에서는 숨김 처리 */}
+            {!inAuthGroup && segments[0] !== "schedule" && segments[1] !== "create" && (
+              <View style={styles.topHeader}>
+                {router.canGoBack() ? (
+                  <TouchableOpacity 
+                    activeOpacity={0.7} 
+                    style={styles.headerIconBtn}
+                    onPress={() => router.back()}
+                    accessibilityRole="button"
+                    accessibilityLabel="뒤로가기"
+                  >
+                    <IconSymbol
+                      size={theme.layout.header.backIconSize}
+                      name="chevron.left"
+                      color={theme.colors.team.neutralDark}
+                    />
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.headerIconBtn} />
+                )}
+                
+                <Text style={styles.mainTitleText}>YAGUNIV</Text>
+                
+                {/* 프로필 버튼 */}
+                <TouchableOpacity 
+                  activeOpacity={0.7} 
+                  style={styles.headerIconBtn} 
+                  onPress={() => router.push("/profile")}
+                  accessibilityRole="button"
+                  accessibilityLabel="프로필"
+                >
+                  <IconSymbol name="person.fill" size={theme.layout.header.profileIconSize} color={theme.colors.team.neutralDark} />
+                </TouchableOpacity>
+              </View>
+            )}
 
             {/* 2. 하위 라우팅 화면 */}
             <View
@@ -151,7 +185,14 @@ function RootLayoutInner() {
                 { backgroundColor: colors.background },
               ]}
             >
-              <Slot />
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  gestureEnabled: true,
+                  animation: "slide_from_right",
+                  fullScreenGestureEnabled: true, // Android에서도 제스처 가능하도록 설정
+                }}
+              />
             </View>
           </SafeAreaView>
         </SafeAreaProvider>
@@ -172,17 +213,22 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  headerContainer: {
+  topHeader: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: SPACING.SCREEN,
-    paddingVertical: SPACING.COMPONENT,
-    borderBottomWidth: 1,
+    justifyContent: "space-between",
+    paddingHorizontal: theme.spacing.xl,
+    paddingTop: theme.spacing.lg,
+    paddingBottom: theme.spacing.lg,
   },
-  headerTitle: {
-    fontSize: FONT_SIZE.SECTION_TITLE,
-    fontWeight: theme.typography.weight.bold,
+  headerIconBtn: {
+    padding: theme.spacing.xs,
+  },
+  mainTitleText: {
+    fontSize: theme.layout.header.titleFontSize,
+    fontWeight: theme.typography.weight.black,
+    color: theme.colors.brand.mint,
+    letterSpacing: 1,
   },
   contentContainer: {
     flex: 1,
