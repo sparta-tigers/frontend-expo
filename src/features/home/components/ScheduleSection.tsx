@@ -1,8 +1,9 @@
 import { router } from "expo-router";
-import React, { useMemo } from "react";
+import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { styles } from "../styles";
-import { CalendarCellModel, CalendarGameDto } from "../types";
+import { CalendarGameDto } from "../types";
+import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
 
 export const ScheduleSection = React.memo(function ScheduleSection(props: { 
   schedule: CalendarGameDto[];
@@ -10,7 +11,7 @@ export const ScheduleSection = React.memo(function ScheduleSection(props: {
   month?: number;
 }) {
   const { schedule, year = 2026, month = 2 } = props; // 기본값: 2026년 3월 (month=2)
-  const days = useMemo(() => buildCalendarDays(schedule, year, month), [schedule, year, month]);
+  const days = useCalendarGrid(year, month, schedule);
 
   return (
     <View style={[styles.section, styles.sectionBottomPad]}>
@@ -116,55 +117,3 @@ export const ScheduleSection = React.memo(function ScheduleSection(props: {
   );
 });
 
-function buildCalendarDays(
-  schedule: CalendarGameDto[],
-  year: number,
-  month: number
-): CalendarCellModel[] {
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  
-  const dayToGame = new Map<number, CalendarGameDto>();
-  schedule.forEach((g) => dayToGame.set(g.day, g));
-
-  const daysArray: CalendarCellModel[] = [];
-
-  // 1. 월 시작 전 빈 셀 채우기
-  for (let i = 0; i < firstDay; i++) {
-    daysArray.push({
-      day: 0, // 빈 셀 식별용
-      hasGame: false,
-      opponentShort: "",
-      isSelected: false,
-    });
-  }
-
-  // 2. 실제 날짜 채우기
-  for (let d = 1; d <= daysInMonth; d++) {
-    const game = dayToGame.get(d);
-    const cell: CalendarCellModel = {
-      day: d,
-      hasGame: !!game,
-      opponentShort: game?.opponentShort ?? "",
-      isSelected: game?.isSelected === true,
-      location: game?.location,
-      timeText: game?.timeText,
-    };
-    daysArray.push(cell);
-  }
-
-  // 3. 5주(35칸) 또는 6주(42칸) 그리드 맞추기 (최소 35칸)
-  const totalCells = Math.ceil(daysArray.length / 7) * 7;
-  const finalTotal = Math.max(totalCells, 35);
-  
-  while (daysArray.length < finalTotal) {
-    daysArray.push({
-      day: 0,
-      hasGame: false,
-      opponentShort: "",
-      isSelected: false,
-    });
-  }
-
-  return daysArray;
-}

@@ -21,6 +21,9 @@ import {
   useEffect,
   useState,
 } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const MY_TEAM_STORAGE_KEY = "yaguniv_my_team";
 
 /**
  * 단순화된 토큰 타입
@@ -88,10 +91,12 @@ interface AuthContextType {
   user: SimpleToken | null;
   isLoading: boolean;
   isLoggedIn: boolean;
+  myTeam: string | null;
   signin: (credentials: AuthSigninRequest) => Promise<boolean>;
   signup: (userData: AuthSignupRequest) => Promise<boolean>;
   signout: () => Promise<void>;
   loadToken: () => Promise<void>;
+  updateMyTeam: (teamName: string) => Promise<void>;
 }
 
 /**
@@ -126,6 +131,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<SimpleToken | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [myTeam, setMyTeam] = useState<string | null>(null);
 
   /**
    * 로그인 여부 확인
@@ -140,6 +146,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const loadToken = async (): Promise<void> => {
     try {
       setIsLoading(true);
+      
+      // 🚨 응원팀 정보 로드 (Optimistic Update를 위한 초기화)
+      const savedTeam = await AsyncStorage.getItem(MY_TEAM_STORAGE_KEY);
+      if (savedTeam) {
+        setMyTeam(savedTeam);
+      }
+
       const accessToken = await getAccessToken();
 
       if (__DEV__) {
@@ -346,6 +359,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+  /**
+   * 응원팀 업데이트 함수 (Optimistic Update)
+   * 
+   * @param teamName - 변경할 팀 명칭
+   */
+  const updateMyTeam = async (teamName: string): Promise<void> => {
+    try {
+      // 1. 상태 즉시 업데이트 (UI 반응성 확보)
+      setMyTeam(teamName);
+      
+      // 2. 로컬 스토리지 저장 (영속성 확보)
+      await AsyncStorage.setItem(MY_TEAM_STORAGE_KEY, teamName);
+      
+      // 3. API 연동 (백엔드 반영 - 필요 시 구현)
+      // TODO: await userUpdateAPI({ favoriteTeam: teamName });
+      
+      if (__DEV__) {
+        Logger.debug(`✅ [AuthContext] 응원팀 변경 완료: ${teamName}`);
+      }
+    } catch (error) {
+      Logger.error("[AuthContext] 응원팀 변경 실패:", error);
+    }
+  };
+
   // 컴포넌트 마운트 시 토큰 로드
   useEffect(() => {
     loadToken();
@@ -355,10 +392,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     user,
     isLoading,
     isLoggedIn,
+    myTeam,
     signin,
     signup,
     signout,
     loadToken,
+    updateMyTeam,
   };
 
   return (

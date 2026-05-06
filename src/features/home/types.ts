@@ -69,6 +69,7 @@ export interface CalendarGameDto {
   opponentShort: string;
   timeText?: string | undefined;
   isSelected?: boolean | undefined;
+  opponentColor?: string | undefined;
 }
 
 /**
@@ -83,4 +84,5 @@ export type CalendarCellModel = {
   opponentShort: string;
   timeText?: string | undefined;
   isSelected: boolean;
+  opponentColor?: string | undefined;
 };

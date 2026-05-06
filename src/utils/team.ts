@@ -7,6 +7,25 @@
  */
 import { StyleSheet } from "react-native";
 import { theme } from "@/src/styles/theme";
+import { TeamDto } from "@/src/features/home/types";
+
+/**
+ * KBO 10개 구단 상세 데이터 맵
+ * 
+ * Why: 팀 ID(코드)만으로 마스코트, 약칭, 풀네임 등을 즉시 조회하기 위함.
+ */
+export const TEAM_DATA: Record<string, TeamDto> = {
+  KIA: { name: "KIA 타이거즈", shortName: "KIA", subName: "타이거즈", mascotEmoji: "🐯" },
+  LG: { name: "LG 트윈스", shortName: "LG", subName: "트윈스", mascotEmoji: "👯" },
+  KT: { name: "KT 위즈", shortName: "KT", subName: "위즈", mascotEmoji: "🧙" },
+  SSG: { name: "SSG 랜더스", shortName: "SSG", subName: "랜더스", mascotEmoji: "🛸" },
+  NC: { name: "NC 다이노스", shortName: "NC", subName: "다이노스", mascotEmoji: "🦖" },
+  DOOSAN: { name: "두산 베어스", shortName: "두산", subName: "베어스", mascotEmoji: "🐻" },
+  LOTTE: { name: "롯데 자이언츠", shortName: "롯데", subName: "자이언츠", mascotEmoji: "⚓" },
+  SAMSUNG: { name: "삼성 라이온즈", shortName: "삼성", subName: "라이온즈", mascotEmoji: "🦁" },
+  HANWHA: { name: "한화 이글스", shortName: "한화", subName: "이글스", mascotEmoji: "🦅" },
+  KIWUM: { name: "키움 히어로즈", shortName: "키움", subName: "히어로즈", mascotEmoji: "🦸" },
+} as const;
 
 /**
  * KBO 팀 약칭 → theme 컬러 매핑 테이블
@@ -27,6 +46,9 @@ const TEAM_NAME_TO_COLOR: Record<string, string> = {
   "KT": theme.colors.team.kt,
   "키움": theme.colors.team.kiwoom,
   "KIA": theme.colors.team.kia,
+  // 영문 ID (신규 추가)
+  "KIA_TIGERS": theme.colors.team.kia,
+  "LG_TWINS": theme.colors.team.lg,
   // 풀네임 (schedule.tsx 등에서 사용)
   "한화 이글스": theme.colors.team.hanwha,
   "LG 트윈스": theme.colors.team.lg,

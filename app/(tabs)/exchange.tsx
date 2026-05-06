@@ -25,7 +25,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import MapView from "react-native-map-clustering";
+import { Marker } from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /** 교환 화면 전용 레이아웃 상수 (theme에 올리지 않는 화면 로컬 수치) */
@@ -152,7 +153,19 @@ export default function ExchangeScreen() {
 
   // --- 마커 클릭 → 바텀시트 스크롤 연동 ---
   const handleMarkerPress = useCallback((itemId: number) => {
-    const index = filteredItems.findIndex((item) => item.id === itemId);
+    const item = filteredItems.find((i) => i.id === itemId);
+    const index = filteredItems.findIndex((i) => i.id === itemId);
+
+    if (item && item.latitude && item.longitude) {
+      // 🚨 앙드레 카파시: 명령형 지도 제어 (Zoom-in)
+      // Why: 마커 클릭 시 해당 위치로 집중시켜 사용자 UX를 강화.
+      mapRef.current?.animateToRegion({
+        latitude: item.latitude,
+        longitude: item.longitude,
+        latitudeDelta: 0.005,
+        longitudeDelta: 0.005,
+      }, 500);
+    }
 
     if (index !== undefined && index !== -1) {
       bottomSheetRef.current?.snapToIndex(1);
@@ -167,7 +180,7 @@ export default function ExchangeScreen() {
     } else {
       navigateToDetail(itemId);
     }
-  }, [filteredItems, navigateToDetail]);
+  }, [filteredItems, navigateToDetail, mapRef]);
 
   // --- 지도 재검색 핸들러 ---
   const handleSearchCurrentLocation = useCallback(async () => {
@@ -239,7 +252,7 @@ export default function ExchangeScreen() {
   // --- 렌더링 ---
   return (
     <SafeLayout style={styles.container}>
-      {/* 1. 백그라운드 지도 뷰 */}
+      {/* 1. 백그라운드 지도 뷰 (Clustered) */}
       <MapView
         ref={mapRef}
         style={styles.map}
@@ -247,6 +260,10 @@ export default function ExchangeScreen() {
         showsUserLocation={false}
         onMapReady={() => setIsMapReady(true)}
         onRegionChangeComplete={handleRegionChangeComplete}
+        // Clustering Options
+        clusterColor={theme.colors.primary}
+        clusterTextColor={theme.colors.background}
+        animationEnabled={true}
       >
         <MapMarkers 
           items={filteredItems}

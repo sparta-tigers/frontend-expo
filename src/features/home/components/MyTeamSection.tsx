@@ -1,9 +1,10 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { theme } from "@/src/styles/theme";
 import { TeamDto, MiniStatDto } from "../types";
 import { styles } from "../styles";
+import { getTeamColor } from "@/src/utils/team";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 
 /**
  * 마이팀 요약 섹션
@@ -23,6 +24,7 @@ export const MyTeamSection = React.memo(function MyTeamSection(props: {
   onPressChangeTeam?: () => void;
 }) {
   const { userNickname, daysInSchool, myTeam, stats, onPressChangeTeam } = props;
+  const teamColor = getTeamColor(myTeam.name);
 
   return (
     <View style={styles.section}>
@@ -41,12 +43,12 @@ export const MyTeamSection = React.memo(function MyTeamSection(props: {
         )}
       </View>
 
-      <View style={styles.myTeamCard}>
+      <View style={[styles.myTeamCard, { borderLeftWidth: 4, borderLeftColor: teamColor }]}> {/* eslint-disable-line react-native/no-inline-styles */}
         <View style={styles.myTeamTitleRow}>
           <Text style={styles.myTeamNicknameText}>{userNickname}</Text>
           <Text style={styles.myTeamSubText}>님,</Text>
           <Text style={styles.myTeamSubText}>입학한지 </Text>
-          <Text style={styles.myTeamDaysText}>{daysInSchool}</Text>
+          <Text style={[styles.myTeamDaysText, { color: teamColor }]}>{daysInSchool}</Text>
           <Text style={styles.myTeamSubText}>일째 !</Text>
         </View>
 
@@ -57,7 +59,7 @@ export const MyTeamSection = React.memo(function MyTeamSection(props: {
 
           <View style={styles.mascotBox}>
             <Text style={styles.mascotEmoji}>{myTeam.mascotEmoji}</Text>
-            <Text style={styles.mascotTeamText}>{myTeam.shortName}</Text>
+            <Text style={[styles.mascotTeamText, { color: teamColor, fontWeight: "700" }]}>{myTeam.shortName}</Text> {/* eslint-disable-line react-native/no-inline-styles */}
           </View>
         </View>
       </View>

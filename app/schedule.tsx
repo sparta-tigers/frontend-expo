@@ -5,26 +5,10 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import React, { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-
-// ========================================================
-// Interfaces — Mock 데이터에도 타입 안전성 강제
-// ========================================================
-
-import { RankingRowDto } from "@/src/features/home/types";
+import { RankingRowDto, CalendarGameDto } from "@/src/features/home/types";
 import { getTeamColor } from "@/src/utils/team";
 import { useFakeHomeData } from "@/src/features/home/mocks";
-
-/** 월간 캘린더의 단일 셀 데이터 */
-interface CalendarDayDto {
-  /** null이면 빈 셀 (월 시작 전 / 종료 후 패딩) */
-  day: number | null;
-  hasGame: boolean;
-  /** "H" (홈) | "A" (어웨이) | null */
-  location: string | null;
-  opponentShort: string | null;
-  opponentColor: string | null;
-  timeText: string | null;
-}
+import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (theme 비대화 방지)
@@ -255,11 +239,6 @@ function Main1RankingView() {
   );
 }
 
-/**
- * ========================================================
- * [main_2] 일자별 토글 시: 월간 달력 UI (특정 팀 일정)
- * ========================================================
- */
 function Main2CalendarView({ 
   year, 
   month,
@@ -269,7 +248,8 @@ function Main2CalendarView({
   month: number;
   selectedDay?: number;
 }) {
-  const { days } = useFakeCalendarData(year, month);
+  const { schedule } = useFakeCalendarSchedule(year, month);
+  const days = useCalendarGrid(year, month, schedule, selectedDay);
   const weekDays = ["일", "월", "화", "수", "목", "금", "토"];
 
   return (
@@ -300,10 +280,10 @@ function Main2CalendarView({
               style={[
                 styles.calendarCell, 
                 !cell.day && styles.calendarCellEmpty,
-                cell.day === selectedDay && styles.calendarCellSelected
+                (cell.day === selectedDay && cell.day !== 0) && styles.calendarCellSelected
               ]}
             >
-              {cell.day ? (
+              {cell.day !== 0 ? (
                 <>
                   <Box style={styles.calendarCellTopRow}>
                     <Typography style={styles.calendarDayText}>{cell.day}</Typography>
@@ -358,45 +338,33 @@ function useFakeRankingData(): RankingRowDto[] {
   }, []);
 }
 
-function useFakeCalendarData(year: number, month: number): { days: CalendarDayDto[] } {
+function useFakeCalendarSchedule(year: number, month: number): { schedule: CalendarGameDto[] } {
   return useMemo(() => {
-    const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
-    const daysArray: CalendarDayDto[] = [];
-    
-    for (let i = 0; i < firstDay; i++) {
-      daysArray.push({ day: null, hasGame: false, location: null, opponentShort: null, opponentColor: null, timeText: null });
-    }
+    const schedule: CalendarGameDto[] = [];
     
     for (let d = 1; d <= daysInMonth; d++) {
-      const hasGame = d % 3 !== 0; 
-      
-      const opponents = [
-        { name: "SSG", color: theme.colors.team.ssg },
-        { name: "LOTTE", color: theme.colors.team.lotte },
-        { name: "LG", color: theme.colors.team.lg },
-        { name: "NC", color: theme.colors.team.nc },
-        { name: "DOOSAN", color: theme.colors.team.doosan },
-      ];
-      const opp = opponents[d % 5];
+      if (d % 3 !== 0) {
+        const opponents = [
+          { name: "SSG", color: theme.colors.team.ssg },
+          { name: "LOTTE", color: theme.colors.team.lotte },
+          { name: "LG", color: theme.colors.team.lg },
+          { name: "NC", color: theme.colors.team.nc },
+          { name: "DOOSAN", color: theme.colors.team.doosan },
+        ];
+        const opp = opponents[d % 5];
 
-      daysArray.push({
-        day: d,
-        hasGame,
-        location: hasGame ? (d % 2 === 0 ? "H" : "A") : null,
-        opponentShort: hasGame ? opp.name : null,
-        opponentColor: hasGame ? opp.color : null,
-        timeText: hasGame ? "18:30" : null,
-      });
+        schedule.push({
+          day: d,
+          location: d % 2 === 0 ? "H" : "A",
+          opponentShort: opp.name,
+          opponentColor: opp.color,
+          timeText: "18:30",
+        });
+      }
     }
 
-    const totalCells = Math.ceil(daysArray.length / 7) * 7;
-    while (daysArray.length < totalCells) {
-      daysArray.push({ day: null, hasGame: false, location: null, opponentShort: null, opponentColor: null, timeText: null });
-    }
-
-    return { days: daysArray };
+    return { schedule };
   }, [year, month]);
 }
 

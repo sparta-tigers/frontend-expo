@@ -7,6 +7,9 @@ import { useFakeHomeData } from "@/src/features/home/mocks";
 import { styles } from "@/src/features/home/styles";
 import React from "react";
 import { ScrollView } from "react-native";
+import { useAuth } from "@/context/AuthContext";
+import { TEAM_DATA } from "@/src/utils/team";
+import { router } from "expo-router";
 
 /**
  * 홈 화면 (`main_0`)
@@ -15,7 +18,17 @@ import { ScrollView } from "react-native";
  * 모든 데이터는 "가짜 데이터"로만 렌더링한다.
  */
 export default function HomeScreen() {
-  const data = useFakeHomeData();
+  const { myTeam: myTeamId } = useAuth();
+  const mockData = useFakeHomeData();
+
+  // 🚨 앙드레 카파시: 낙관적 업데이트를 고려한 데이터 병합
+  // Why: AsyncStorage에서 로드된 실제 응원팀 정보가 있다면 우선 사용, 없으면 목 데이터 사용.
+  const myTeam = (myTeamId && TEAM_DATA[myTeamId]) || mockData.myTeam;
+
+  const handlePressChangeTeam = () => {
+    // @ts-ignore - Expo Router typed routes may not have generated types for /change-team yet
+    router.push("/change-team");
+  };
 
   return (
     <SafeLayout style={styles.safeLayout} edges={["top", "left", "right"]}>
@@ -25,17 +38,18 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         <MyTeamSection
-          userNickname={data.userNickname}
-          daysInSchool={data.daysInSchool}
-          myTeam={data.myTeam}
-          stats={data.myTeamStats}
+          userNickname={mockData.userNickname}
+          daysInSchool={mockData.daysInSchool}
+          myTeam={myTeam}
+          stats={mockData.myTeamStats}
+          onPressChangeTeam={handlePressChangeTeam}
         />
 
-        <RankingSummarySection ranking={data.rankingSummary} />
+        <RankingSummarySection ranking={mockData.rankingSummary} />
 
-        <LineupSection lineup={data.todayLineup} teamName={data.myTeam.name} />
+        <LineupSection lineup={mockData.todayLineup} teamName={myTeam.name} />
 
-        <ScheduleSection schedule={data.monthSchedule} />
+        <ScheduleSection schedule={mockData.monthSchedule} />
       </ScrollView>
     </SafeLayout>
   );
