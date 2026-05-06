@@ -231,7 +231,7 @@ export default function ChatRoomScreen() {
     !roomId || !Number.isFinite(roomIdNumber) || roomIdNumber <= 0;
 
   const { data: exchangeItem, isLoading: itemLoading } = useQuery({
-    queryKey: ["exchangeItem", roomId],
+    queryKey: ["exchangeItem", roomIdNumber],
     queryFn: async () => {
       const response = await apiClient.get(
         `/api/direct-rooms/${roomIdNumber}/item`,
@@ -473,7 +473,7 @@ export default function ChatRoomScreen() {
     },
     onSuccess: () => {
       Alert.alert("성공", "상태가 변경되었습니다.");
-      queryClient.invalidateQueries({ queryKey: ["exchangeItem", roomId] });
+      queryClient.invalidateQueries({ queryKey: ["exchangeItem", roomIdNumber] });
       queryClient.invalidateQueries({ queryKey: ["items"] });
       queryClient.invalidateQueries({ queryKey: ["myItems"] });
       queryClient.invalidateQueries({ queryKey: ["myExchanges"] });

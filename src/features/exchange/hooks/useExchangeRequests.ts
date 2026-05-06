@@ -14,33 +14,44 @@ export const useExchangeRequests = (role: "receiver" | "sender") => {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchRequests = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await exchangeGetMyRequestsAPI(role, 0, 50);
+  const fetchRequests = useCallback(
+    async (
+      mode: "initial" | "refresh" | "silent" = "initial",
+      checkCancelled?: () => boolean,
+    ) => {
+      try {
+        if (mode === "initial") setLoading(true);
+        setError(null);
+        const response = await exchangeGetMyRequestsAPI(role, 0, 50);
 
-      if (response.resultType === "SUCCESS" && response.data) {
-        setRequests(response.data.content);
-      } else {
-        throw new Error(
-          response.error?.message || "데이터를 불러오는데 실패했습니다.",
-        );
+        if (checkCancelled?.()) return;
+
+        if (response.resultType === "SUCCESS" && response.data) {
+          setRequests(response.data.content);
+        } else {
+          throw new Error(
+            response.error?.message || "데이터를 불러오는데 실패했습니다.",
+          );
+        }
+      } catch (err) {
+        if (checkCancelled?.()) return;
+        const msg =
+          err instanceof Error ? err.message : "알 수 없는 에러가 발생했습니다.";
+        Logger.error(`[useExchangeRequests] ${role} fetch error:`, msg);
+        setError(msg);
+      } finally {
+        if (!checkCancelled?.()) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
-    } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : "알 수 없는 에러가 발생했습니다.";
-      Logger.error(`[useExchangeRequests] ${role} fetch error:`, msg);
-      setError(msg);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [role]);
+    },
+    [role],
+  );
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
-    fetchRequests();
+    fetchRequests("refresh");
   }, [fetchRequests]);
 
   const handleAccept = useCallback(
@@ -91,7 +102,14 @@ export const useExchangeRequests = (role: "receiver" | "sender") => {
   );
 
   useEffect(() => {
-    fetchRequests();
+    let cancelled = false;
+    const checkCancelled = () => cancelled;
+
+    fetchRequests("initial", checkCancelled);
+
+    return () => {
+      cancelled = true;
+    };
   }, [fetchRequests]);
 
   return {

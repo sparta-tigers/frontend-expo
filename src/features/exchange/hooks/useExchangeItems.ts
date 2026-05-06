@@ -36,6 +36,9 @@ export interface UseExchangeItemsReturn {
   fetchInitialItems: (lat: number, lng: number, latDelta: number) => Promise<void>;
 }
 
+/** 지도 영역의 latDelta → km 반경 변환 (1도 ≒ 111km) */
+const deltaToRadius = (latDelta: number): number => latDelta * 111;
+
 /**
  * 아이템 목록 관리 훅
  *
@@ -77,13 +80,11 @@ export function useExchangeItems(): UseExchangeItemsReturn {
         return content.filter((item: Item) => item.status !== "COMPLETED");
       }
 
-      return [];
+      throw new Error(response.error?.message || "아이템 목록을 불러오는데 실패했습니다.");
     },
     [], // ← deps 없음! API 호출 파라미터만으로 결과가 결정됨
   );
 
-  /** 지도 영역의 latDelta → km 반경 변환 */
-  const deltaToRadius = (latDelta: number): number => latDelta * 111;
 
   /** 새로고침 핸들러 */
   const handleRefresh = useCallback(
