@@ -58,12 +58,25 @@ const SCHEDULE_LAYOUT = {
  * - 좌측 꺽쇠(화살표)로 연도/월 이동 기능 활성화
  */
 export default function ScheduleScreen() {
-  const params = useLocalSearchParams<{ view?: string }>();
+  const params = useLocalSearchParams<{ 
+    view?: string; 
+    day?: string;
+    year?: string;
+    month?: string;
+  }>();
+  
   const initialView = params.view === "day" ? "day" : "year";
+  
+  // [RC-7] URL 파라미터를 소스로 사용하여 결정론적 상태 초기화
+  const initialDate = useMemo(() => {
+    const y = params.year ? parseInt(params.year) : 2026;
+    const m = params.month ? parseInt(params.month) : 2; // March
+    const d = params.day ? parseInt(params.day) : 1;
+    return new Date(y, m, d);
+  }, [params.year, params.month, params.day]);
 
   const [view, setView] = useState<"year" | "day">(initialView);
-  // 초기 날짜: 2026년 3월 (월은 0-indexed 이므로 2)
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 2, 1));
+  const [currentDate, setCurrentDate] = useState(initialDate);
 
   const handlePrev = () => {
     setCurrentDate((prev) => {
@@ -151,7 +164,15 @@ export default function ScheduleScreen() {
       </View>
 
       {/* 3. 본문 렌더링 (main_1 or main_2) */}
-      {view === "year" ? <Main1RankingView /> : <Main2CalendarView year={currentDate.getFullYear()} month={currentDate.getMonth()} />}
+      {view === "year" ? (
+        <Main1RankingView />
+      ) : (
+        <Main2CalendarView 
+          year={currentDate.getFullYear()} 
+          month={currentDate.getMonth()} 
+          selectedDay={currentDate.getDate()}
+        />
+      )}
 
 
     </SafeLayout>
@@ -217,7 +238,15 @@ function Main1RankingView() {
  * [main_2] 일자별 토글 시: 월간 달력 UI (특정 팀 일정)
  * ========================================================
  */
-function Main2CalendarView({ year, month }: { year: number; month: number }) {
+function Main2CalendarView({ 
+  year, 
+  month,
+  selectedDay 
+}: { 
+  year: number; 
+  month: number;
+  selectedDay?: number;
+}) {
   const { days } = useFakeCalendarData(year, month);
   const weekDays = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -244,7 +273,14 @@ function Main2CalendarView({ year, month }: { year: number; month: number }) {
         {/* 달력 그리드 */}
         <View style={styles.calendarGrid}>
           {days.map((cell, idx) => (
-            <View key={`${cell.day || "empty"}-${idx}`} style={[styles.calendarCell, !cell.day && styles.calendarCellEmpty]}>
+            <View 
+              key={`${cell.day || "empty"}-${idx}`} 
+              style={[
+                styles.calendarCell, 
+                !cell.day && styles.calendarCellEmpty,
+                cell.day === selectedDay && styles.calendarCellSelected
+              ]}
+            >
               {cell.day ? (
                 <>
                   <View style={styles.calendarCellTopRow}>
@@ -616,5 +652,9 @@ const styles = StyleSheet.create({
     fontSize: SCHEDULE_LAYOUT.calendarTimeFontSize,
     color: theme.colors.brand.subtitle,
   },
-
+  calendarCellSelected: {
+    backgroundColor: theme.colors.brand.mint + "10", // 10% 투명도
+    borderColor: theme.colors.brand.mint,
+    borderWidth: 1,
+  },
 });

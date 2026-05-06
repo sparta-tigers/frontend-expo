@@ -49,7 +49,12 @@ export function ScheduleSection(props: {
               onPress={() =>
                 router.push({
                   pathname: "/schedule",
-                  params: { view: "day", day: cell.day },
+                  params: { 
+                    view: "day", 
+                    day: cell.day.toString(),
+                    year: year.toString(),
+                    month: month.toString(),
+                  },
                 })
               }
               style={styles.calendarCell}
