@@ -2,6 +2,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { asyncStoragePersister } from "@/src/core/persistence";
 import { initializeTokenCache } from "@/src/utils/tokenStore";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { focusManager, QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import React, { ReactNode, useEffect, useState } from "react";
@@ -61,7 +62,11 @@ export function CombinedProvider({ children }: { children: ReactNode }) {
       }}
     >
       <AuthProvider>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <BottomSheetModalProvider>
+            {children}
+          </BottomSheetModalProvider>
+        </ThemeProvider>
       </AuthProvider>
     </PersistQueryClientProvider>
   );

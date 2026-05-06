@@ -100,6 +100,7 @@ interface AuthContextType {
   signout: () => Promise<void>;
   loadToken: () => Promise<void>;
   updateMyTeam: (teamName: string) => Promise<void>;
+  updateUser: (partialUser: Partial<SimpleToken>) => void;
 }
 
 /**
@@ -381,6 +382,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       Alert.alert("알림", "팀 정보를 저장하는 중 오류가 발생했습니다. 다시 시도해주세요.");
     }
   };
+  
+  /**
+   * 사용자 정보 부분 업데이트 함수
+   * 닉네임 등 변경된 정보만 유저 상태에 병합 (토큰 등 기존 정보 보호)
+   * 
+   * @param partialUser - 업데이트할 사용자 정보 조각
+   */
+  const updateUser = (partialUser: Partial<SimpleToken>): void => {
+    setUser((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        ...partialUser,
+      };
+    });
+    
+    if (__DEV__) {
+      Logger.debug("✅ [AuthContext] 사용자 정보 부분 업데이트 완료", partialUser);
+    }
+  };
 
   // 컴포넌트 마운트 시 토큰 로드
   useEffect(() => {
@@ -397,6 +418,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     signout,
     loadToken,
     updateMyTeam,
+    updateUser,
   };
 
   return (

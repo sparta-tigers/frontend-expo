@@ -16,6 +16,7 @@ import {
 } from "@/src/features/user/favorite-team-api";
 import { useAuth } from "@/src/hooks/useAuth";
 import { Logger } from "@/src/utils/logger";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -24,6 +25,12 @@ import {
     StyleSheet,
     TouchableOpacity,
 } from "react-native";
+import { 
+    BottomSheetModal, 
+    BottomSheetBackdrop, 
+    BottomSheetScrollView,
+    BottomSheetBackdropProps
+} from "@gorhom/bottom-sheet";
 
 /**
  * 프로필 화면 컴포넌트
@@ -32,9 +39,13 @@ import {
  * Zero-Magic UI 원칙에 따라 모든 레이아웃은 Box와 Typography 프리미티브를 사용함.
  */
 export default function ProfileScreen() {
-  const { user, signout } = useAuth();
+  const { user, signout, updateUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [favoriteTeams, setFavoriteTeams] = useState<FavoriteTeam[]>([]);
+
+  // 바텀 시트 관련 설정
+  const bottomSheetModalRef = React.useRef<BottomSheetModal>(null);
+  const snapPoints = React.useMemo(() => ["60%"], []);
 
   // 즐겨찾기 팀 목록 로드
   const loadFavoriteTeams = React.useCallback(async () => {
@@ -89,15 +100,10 @@ export default function ProfileScreen() {
 
               const response = await usersUpdateProfileAPI(request);
 
-              if (response.resultType === "SUCCESS") {
-                Alert.alert("성공", "프로필이 성공적으로 수정되었습니다.", [
-                  {
-                    text: "확인",
-                    onPress: () => {
-                      router.replace("/(auth)/signin");
-                    },
-                  },
-                ]);
+              if (response.resultType === "SUCCESS" && response.data) {
+                // 🚨 [UX] 리다이렉트 제거 및 AuthContext 상태 즉시 동기화
+                updateUser({ nickname: response.data.nickname });
+                Alert.alert("성공", "프로필이 성공적으로 수정되었습니다.");
               } else {
                 Alert.alert("오류", "프로필 수정에 실패했습니다.");
               }
@@ -198,33 +204,40 @@ export default function ProfileScreen() {
 
   // 즐겨찾기 팀 추가 핸들러
   const handleAddFavoriteTeam = () => {
-    const teamOptions = KBO_TEAMS.map((team) => ({
-      text: team.name,
-      onPress: async () => {
-        try {
-          const response = await favoriteTeamAddAPI({
-            teamName: team.name,
-            teamCode: team.code,
-          });
-
-          if (response.resultType === "SUCCESS") {
-            Alert.alert("성공", `${team.name}을 즐겨찾기에 추가했습니다.`);
-            loadFavoriteTeams();
-          } else {
-            Alert.alert("오류", "즐겨찾기 추가에 실패했습니다.");
-          }
-        } catch (error) {
-          Logger.error("즐겨찾기 팀 추가 실패:", error);
-          Alert.alert("오류", "네트워크 에러가 발생했습니다.");
-        }
-      },
-    }));
-
-    Alert.alert("즐겨찾기 팀 추가", "추가할 팀을 선택하세요", [
-      ...teamOptions,
-      { text: "취소", style: "cancel" },
-    ]);
+    bottomSheetModalRef.current?.present();
   };
+
+  const handleSelectTeam = async (team: (typeof KBO_TEAMS)[number]) => {
+    bottomSheetModalRef.current?.dismiss();
+    try {
+      const response = await favoriteTeamAddAPI({
+        teamName: team.name,
+        teamCode: team.code,
+      });
+
+      if (response.resultType === "SUCCESS") {
+        Alert.alert("성공", `${team.name}을 즐겨찾기에 추가했습니다.`);
+        loadFavoriteTeams();
+      } else {
+        Alert.alert("오류", "즐겨찾기 추가에 실패했습니다.");
+      }
+    } catch (error) {
+      Logger.error("즐겨찾기 팀 추가 실패:", error);
+      Alert.alert("오류", "네트워크 에러가 발생했습니다.");
+    }
+  };
+
+  // 배경 렌더링
+  const renderBackdrop = React.useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+      />
+    ),
+    [],
+  );
 
   // 즐겨찾기 팀 삭제 핸들러
   const handleDeleteFavoriteTeam = (team: FavoriteTeam) => {
@@ -493,6 +506,36 @@ export default function ProfileScreen() {
           </Button>
         </ScrollView>
       </Box>
+
+      {/* 즐겨찾기 팀 선택 바텀 시트 */}
+      <BottomSheetModal
+        ref={bottomSheetModalRef}
+        index={0}
+        snapPoints={snapPoints}
+        backdropComponent={renderBackdrop}
+        handleIndicatorStyle={styles.sheetIndicator}
+      >
+        <BottomSheetScrollView contentContainerStyle={styles.sheetContent}>
+          <Box px="xl" py="lg">
+            <Typography variant="h3" weight="bold" mb="lg">즐겨찾기 팀 선택</Typography>
+            <Box gap="sm">
+              {KBO_TEAMS.map((team) => (
+                <TouchableOpacity
+                  key={team.code}
+                  activeOpacity={0.7}
+                  onPress={() => handleSelectTeam(team)}
+                  style={styles.teamItem}
+                >
+                  <Box flexDir="row" align="center" justify="space-between">
+                    <Typography variant="body1">{team.name}</Typography>
+                    <IconSymbol name="plus.circle" size={20} color={theme.colors.brand.mint} />
+                  </Box>
+                </TouchableOpacity>
+              ))}
+            </Box>
+          </Box>
+        </BottomSheetScrollView>
+      </BottomSheetModal>
     </SafeLayout>
   );
 }
@@ -516,5 +559,16 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.error,
     borderWidth: 1,
     marginTop: theme.spacing.sm,
+  },
+  sheetIndicator: {
+    backgroundColor: theme.colors.border.medium,
+  },
+  sheetContent: {
+    paddingBottom: theme.spacing.xxl,
+  },
+  teamItem: {
+    paddingVertical: theme.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border.medium,
   },
 });

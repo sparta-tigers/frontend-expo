@@ -36,7 +36,7 @@ export const LineupSection = React.memo(function LineupSection({ lineup, teamNam
     <Box mt="xl" px="SCREEN_DASHBOARD">
       <Box height={theme.layout.dashboard.sectionTitleHeight} align="center" justify="center" mb="md">
         <Typography variant="h3" weight="bold" center>
-          오늘, 승리를 이끌 라인업이예요
+          오늘, 승리를 이끌 라인업이에요
         </Typography>
       </Box>
 

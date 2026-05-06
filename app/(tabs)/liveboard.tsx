@@ -114,7 +114,7 @@ export default function LiveboardScreen() {
               >
                 <Typography 
                   weight={isSelected ? "bold" : "medium"} 
-                  color={isSelected ? "primary" : "primary"}
+                  color={isSelected ? "primary" : "text.secondary"}
                 >
                   {day.date}
                 </Typography>
