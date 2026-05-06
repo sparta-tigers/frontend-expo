@@ -131,21 +131,21 @@ function RootLayoutInner() {
                 px="xl" 
                 py="lg"
               >
-                {router.canGoBack() ? (
-                  <TouchableOpacity 
-                    activeOpacity={0.7} 
-                    style={styles.headerIconBtn}
-                    onPress={() => router.back()}
-                  >
-                    <IconSymbol
-                      size={theme.layout.header.backIconSize}
-                      name="chevron.left"
-                      color={theme.colors.team.neutralDark}
-                    />
-                  </TouchableOpacity>
-                ) : (
-                  <Box width={theme.layout.header.backIconSize} />
-                )}
+                <Box width={48} align="flex-start">
+                  {router.canGoBack() && (
+                    <TouchableOpacity 
+                      activeOpacity={0.7} 
+                      style={styles.headerIconBtn}
+                      onPress={() => router.back()}
+                    >
+                      <IconSymbol
+                        size={theme.layout.header.backIconSize}
+                        name="chevron.left"
+                        color={theme.colors.team.neutralDark}
+                      />
+                    </TouchableOpacity>
+                  )}
+                </Box>
                 
                 <Typography 
                   variant="h3" 
@@ -156,17 +156,19 @@ function RootLayoutInner() {
                   YAGUNIV
                 </Typography>
                 
-                <TouchableOpacity 
-                  activeOpacity={0.7} 
-                  style={styles.headerIconBtn} 
-                  onPress={() => router.push("/profile")}
-                >
-                  <IconSymbol 
-                    name="person.fill" 
-                    size={theme.layout.header.profileIconSize} 
-                    color={theme.colors.team.neutralDark} 
-                  />
-                </TouchableOpacity>
+                <Box width={48} align="flex-end">
+                  <TouchableOpacity 
+                    activeOpacity={0.7} 
+                    style={styles.headerIconBtn} 
+                    onPress={() => router.push("/profile")}
+                  >
+                    <IconSymbol 
+                      name="person.fill" 
+                      size={theme.layout.header.profileIconSize} 
+                      color={theme.colors.team.neutralDark} 
+                    />
+                  </TouchableOpacity>
+                </Box>
               </Box>
             )}
 
