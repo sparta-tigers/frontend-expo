@@ -21,6 +21,8 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
 import { FONT_SIZE, SPACING } from "@/src/styles/unified-design";
 import { Logger } from "@/src/utils/logger";
+const APPLY_CONTENT_PADDING_BOTTOM = 100;
+const APPLY_BUTTON_HEIGHT = 52;
 
 const styles = StyleSheet.create({
   container: {
@@ -30,7 +32,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: SPACING.SCREEN,
     paddingTop: SPACING.COMPONENT,
-    paddingBottom: 100,
+    paddingBottom: APPLY_CONTENT_PADDING_BOTTOM,
   },
   loadingContainer: {
     flex: 1,
@@ -42,7 +44,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   targetItemBox: {
-    borderRadius: 12,
+    borderRadius: theme.radius.lg,
     borderWidth: 1,
     padding: SPACING.COMPONENT,
     marginBottom: SPACING.SECTION,
@@ -51,7 +53,7 @@ const styles = StyleSheet.create({
   },
   targetItemLabel: {
     fontSize: FONT_SIZE.SMALL,
-    marginBottom: 4,
+    marginBottom: theme.spacing.xs,
     color: theme.colors.text.tertiary,
   },
   targetItemTitle: {
@@ -94,8 +96,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingTop: 12,
-    paddingHorizontal: 20,
+    paddingTop: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xl,
     borderTopWidth: 1,
     borderColor: theme.colors.border.medium,
     backgroundColor: theme.colors.background,
@@ -109,8 +111,8 @@ const styles = StyleSheet.create({
     color: theme.colors.background,
   },
   applyButton: {
-    height: 52,
-    borderRadius: 8,
+    height: APPLY_BUTTON_HEIGHT,
+    borderRadius: theme.radius.md,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: theme.colors.primary,
