@@ -138,24 +138,35 @@ export default function ApplyExchangeScreen() {
   const { user } = useAuth();
 
   const targetItemId = Number(id);
+  const isTargetItemIdValid = !!id && Number.isFinite(targetItemId) && targetItemId > 0;
 
   /** 내가 제안하는 교환 물건 설명 (필수, 백엔드 have 필드) */
   const [have, setHave] = useState("");
 
-  // [EB-1] 마운트 시 딥링크로 비로그인 접근 시 즉각 차단
+  // [EB-1] 마운트 시 유효성 검사 및 딥링크 비로그인 접근 차단
   React.useEffect(() => {
+    // 1. 로그인 상태 체크
     if (user === null) {
       Alert.alert("인증 오류", "로그인 후 이용해주세요.", [
         { text: "확인", onPress: () => router.back() }
       ]);
+      return;
     }
-  }, [user, router]);
+
+    // 2. ID 유효성 체크 (Early Return)
+    if (!isTargetItemIdValid) {
+      Logger.error("[ExchangeApply] 유효하지 않은 아이템 ID:", id);
+      Alert.alert("오류", "유효하지 않은 요청입니다.", [
+        { text: "확인", onPress: () => router.back() }
+      ]);
+    }
+  }, [user, router, isTargetItemIdValid, id]);
 
   // 교환 대상 아이템 조회 (receiverId 추출용)
   const { data: targetItem, isLoading: isItemLoading } = useQuery({
     queryKey: ["item", id],
     queryFn: () => itemsGetDetailAPI(targetItemId),
-    enabled: !!id && user !== null,
+    enabled: isTargetItemIdValid && user !== null,
   });
 
   const { mutate: requestExchange, isPending } = useMutation({
@@ -216,6 +227,10 @@ export default function ApplyExchangeScreen() {
     }
     requestExchange();
   }, [have, requestExchange]);
+
+  if (!isTargetItemIdValid || user === null) {
+    return null; // Early Return 처리 중 (Alert 표시 중)
+  }
 
   if (isItemLoading) {
     return (

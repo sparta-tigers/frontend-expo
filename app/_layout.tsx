@@ -64,9 +64,9 @@ function RootLayoutInner() {
 
   const inAuthGroup = segments[0] === "(auth)";
 
-  // 토큰 발급 확인 (실제 전송 로직은 usePushNotifications 훅에서 처리)
-  if (expoPushToken) {
-    Logger.debug("Expo Push Token 발급 완료:", expoPushToken);
+  // 🚨 앙드레 카파시: 푸시 토큰 발급 확인 (보안을 위해 실제 값은 로깅하지 않음)
+  if (__DEV__ && expoPushToken) {
+    Logger.debug("[Push] Expo Push Token 발급 완료 (토큰 정보는 보안상 숨김)");
   }
 
   // 🚨 앙드레 카파시: 네비게이터 준비 상태 관리
@@ -87,11 +87,18 @@ function RootLayoutInner() {
 
   // 🚨 앙드레 카파시: 안전한 리디렉션 로직
   const safeRedirect = useCallback((href: Href) => {
+    // 기존에 대기 중인 리디렉션이 있다면 취소 (Race Condition 방지)
+    if (redirectTimeoutRef.current) {
+      clearTimeout(redirectTimeoutRef.current);
+      redirectTimeoutRef.current = null;
+    }
+
     if (!navigationReady.current) {
       // 네비게이터가 준비되지 않았으면 지연 실행
       redirectTimeoutRef.current = setTimeout(() => {
         Logger.debug("[Navigation] 지연된 리디렉션 실행:", href);
         router.replace(href);
+        redirectTimeoutRef.current = null;
       }, 200);
       return;
     }
