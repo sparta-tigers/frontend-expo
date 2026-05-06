@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { theme } from "@/src/styles/theme";
 import {
   TeamDto,
   MiniStatDto,
@@ -19,7 +20,8 @@ export function useFakeHomeData() {
       name: "KIA 타이거즈", 
       shortName: "KIA", 
       subName: "타이거즈", 
-      mascotEmoji: "🐯" 
+      mascotEmoji: "🐯",
+      color: theme.colors.team.kia
     };
 
     const myTeamStats: MiniStatDto[] = [
@@ -49,7 +51,7 @@ export function useFakeHomeData() {
     const rankingSummary: RankingRowDto[] = [
       {
         rank: 1,
-        team: { name: "LG 트윈스", shortName: "LG", subName: "트윈스", mascotEmoji: "👯" },
+        team: { name: "LG 트윈스", shortName: "LG", subName: "트윈스", mascotEmoji: "👯", color: theme.colors.team.lg },
         games: 144,
         win: 85,
         lose: 56,
@@ -58,7 +60,7 @@ export function useFakeHomeData() {
       },
       {
         rank: 2,
-        team: { name: "한화 이글스", shortName: "HH", subName: "이글스", mascotEmoji: "🦅" },
+        team: { name: "한화 이글스", shortName: "한화", subName: "이글스", mascotEmoji: "🦅", color: theme.colors.team.hanwha },
         games: 144,
         win: 83,
         lose: 57,
@@ -67,7 +69,7 @@ export function useFakeHomeData() {
       },
       {
         rank: 3,
-        team: { name: "SSG 랜더스", shortName: "SSG", subName: "랜더스", mascotEmoji: "🛸" },
+        team: { name: "SSG 랜더스", shortName: "SSG", subName: "랜더스", mascotEmoji: "🛸", color: theme.colors.team.ssg },
         games: 144,
         win: 75,
         lose: 65,
@@ -76,7 +78,7 @@ export function useFakeHomeData() {
       },
       {
         rank: 4,
-        team: { name: "삼성 라이온즈", shortName: "SS", subName: "라이온즈", mascotEmoji: "🦁" },
+        team: { name: "삼성 라이온즈", shortName: "삼성", subName: "라이온즈", mascotEmoji: "🦁", color: theme.colors.team.samsung },
         games: 144,
         win: 74,
         lose: 68,
@@ -85,7 +87,7 @@ export function useFakeHomeData() {
       },
       {
         rank: 5,
-        team: { name: "NC 다이노스", shortName: "NC", subName: "다이노스", mascotEmoji: "🦖" },
+        team: { name: "NC 다이노스", shortName: "NC", subName: "다이노스", mascotEmoji: "🦖", color: theme.colors.team.nc },
         games: 144,
         win: 71,
         lose: 67,

@@ -49,24 +49,27 @@ export default function ChangeTeamScreen() {
         <Box style={styles.grid}>
           {TEAMS.map((team) => {
             const isSelected = myTeam === team.id;
+            
+            // Generate dynamic styles without literals in JSX
+            const cardDynamicStyle = isSelected ? { borderColor: team.color, borderWidth: 2 } : null;
+            const badgeDynamicStyle = { backgroundColor: team.color };
+            const textDynamicStyle = isSelected ? { color: team.color, fontWeight: "700" as const } : null;
+
             return (
               <TouchableOpacity
                 key={team.id}
                 activeOpacity={0.7}
                 onPress={() => handleSelectTeam(team.id)}
-                style={[
-                  styles.teamCard,
-                  isSelected && { borderColor: team.color, borderWidth: 2 } // eslint-disable-line react-native/no-inline-styles
-                ]}
+                style={[styles.teamCard, cardDynamicStyle]}
               >
-                <Box style={[styles.colorBadge, { backgroundColor: team.color }]}>
+                <Box style={[styles.colorBadge, badgeDynamicStyle]}>
                   <Typography style={styles.mascot}>{team.mascot}</Typography>
                 </Box>
-                <Typography style={[styles.teamName, isSelected && { color: team.color, fontWeight: "700" }]}> {/* eslint-disable-line react-native/no-inline-styles */}
+                <Typography style={[styles.teamName, textDynamicStyle]}>
                   {team.name}
                 </Typography>
                 {isSelected && (
-                  <Box style={[styles.checkBadge, { backgroundColor: team.color }]}>
+                  <Box style={[styles.checkBadge, badgeDynamicStyle]}>
                     <Typography style={styles.checkText}>선택됨</Typography>
                   </Box>
                 )}

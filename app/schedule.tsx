@@ -324,16 +324,16 @@ function Main2CalendarView({
 function useFakeRankingData(): RankingRowDto[] {
   return useMemo(() => {
     return [
-      { rank: 1, team: { name: "LG 트윈스", shortName: "LG", subName: "트윈스", mascotEmoji: "👯" }, games: 144, win: 85, lose: 56, draw: 3, winRate: 0.603 },
-      { rank: 2, team: { name: "한화 이글스", shortName: "한화", subName: "이글스", mascotEmoji: "🦅" }, games: 144, win: 83, lose: 57, draw: 4, winRate: 0.593 },
-      { rank: 3, team: { name: "SSG 랜더스", shortName: "SSG", subName: "랜더스", mascotEmoji: "🛸" }, games: 144, win: 75, lose: 65, draw: 4, winRate: 0.536 },
-      { rank: 4, team: { name: "삼성 라이온즈", shortName: "삼성", subName: "라이온즈", mascotEmoji: "🦁" }, games: 144, win: 74, lose: 68, draw: 2, winRate: 0.521 },
-      { rank: 5, team: { name: "NC 다이노스", shortName: "NC", subName: "다이노스", mascotEmoji: "🦖" }, games: 144, win: 71, lose: 67, draw: 6, winRate: 0.514 },
-      { rank: 6, team: { name: "KT 위즈", shortName: "KT", subName: "위즈", mascotEmoji: "🧙" }, games: 144, win: 71, lose: 68, draw: 5, winRate: 0.511 },
-      { rank: 7, team: { name: "롯데 자이언츠", shortName: "롯데", subName: "자이언츠", mascotEmoji: "⚓" }, games: 144, win: 66, lose: 72, draw: 6, winRate: 0.478 },
-      { rank: 8, team: { name: "KIA 타이거즈", shortName: "KIA", subName: "타이거즈", mascotEmoji: "🐯" }, games: 144, win: 65, lose: 75, draw: 4, winRate: 0.464, isMyTeam: true },
-      { rank: 9, team: { name: "두산 베어스", shortName: "두산", subName: "베어스", mascotEmoji: "🐻" }, games: 144, win: 61, lose: 77, draw: 6, winRate: 0.442 },
-      { rank: 10, team: { name: "키움 히어로즈", shortName: "키움", subName: "히어로즈", mascotEmoji: "🦸" }, games: 144, win: 47, lose: 93, draw: 4, winRate: 0.336 },
+      { rank: 1, team: { name: "LG 트윈스", shortName: "LG", subName: "트윈스", mascotEmoji: "👯", color: theme.colors.team.lg }, games: 144, win: 85, lose: 56, draw: 3, winRate: 0.603 },
+      { rank: 2, team: { name: "한화 이글스", shortName: "한화", subName: "이글스", mascotEmoji: "🦅", color: theme.colors.team.hanwha }, games: 144, win: 83, lose: 57, draw: 4, winRate: 0.593 },
+      { rank: 3, team: { name: "SSG 랜더스", shortName: "SSG", subName: "랜더스", mascotEmoji: "🛸", color: theme.colors.team.ssg }, games: 144, win: 75, lose: 65, draw: 4, winRate: 0.536 },
+      { rank: 4, team: { name: "삼성 라이온즈", shortName: "삼성", subName: "라이온즈", mascotEmoji: "🦁", color: theme.colors.team.samsung }, games: 144, win: 74, lose: 68, draw: 2, winRate: 0.521 },
+      { rank: 5, team: { name: "NC 다이노스", shortName: "NC", subName: "다이노스", mascotEmoji: "🦖", color: theme.colors.team.nc }, games: 144, win: 71, lose: 67, draw: 6, winRate: 0.514 },
+      { rank: 6, team: { name: "KT 위즈", shortName: "KT", subName: "위즈", mascotEmoji: "🧙", color: theme.colors.team.kt }, games: 144, win: 71, lose: 68, draw: 5, winRate: 0.511 },
+      { rank: 7, team: { name: "롯데 자이언츠", shortName: "롯데", subName: "자이언츠", mascotEmoji: "⚓", color: theme.colors.team.lotte }, games: 144, win: 66, lose: 72, draw: 6, winRate: 0.478 },
+      { rank: 8, team: { name: "KIA 타이거즈", shortName: "KIA", subName: "타이거즈", mascotEmoji: "🐯", color: theme.colors.team.kia }, games: 144, win: 65, lose: 75, draw: 4, winRate: 0.464, isMyTeam: true },
+      { rank: 9, team: { name: "두산 베어스", shortName: "두산", subName: "베어스", mascotEmoji: "🐻", color: theme.colors.team.doosan }, games: 144, win: 61, lose: 77, draw: 6, winRate: 0.442 },
+      { rank: 10, team: { name: "키움 히어로즈", shortName: "키움", subName: "히어로즈", mascotEmoji: "🦸", color: theme.colors.team.kiwoom }, games: 144, win: 47, lose: 93, draw: 4, winRate: 0.336 },
     ];
   }, []);
 }

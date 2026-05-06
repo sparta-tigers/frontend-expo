@@ -26,7 +26,6 @@ export default function HomeScreen() {
   const myTeam = (myTeamId && TEAM_DATA[myTeamId]) || mockData.myTeam;
 
   const handlePressChangeTeam = () => {
-    // @ts-ignore - Expo Router typed routes may not have generated types for /change-team yet
     router.push("/change-team");
   };
 
@@ -40,8 +39,7 @@ export default function HomeScreen() {
         <MyTeamSection
           userNickname={mockData.userNickname}
           daysInSchool={mockData.daysInSchool}
-          myTeam={myTeam}
-          stats={mockData.myTeamStats}
+          myTeamId={myTeamId}
           onPressChangeTeam={handlePressChangeTeam}
         />
 
