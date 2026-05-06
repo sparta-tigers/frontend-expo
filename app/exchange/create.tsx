@@ -192,6 +192,10 @@ export default function CreateItemScreen() {
   }, [hasActiveItem]);
 
   const handleImagePicker = async () => {
+    if (selectedImages.length >= 5) {
+      Alert.alert("알림", "이미지는 최대 5장까지 선택 가능합니다.");
+      return;
+    }
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ["images"],

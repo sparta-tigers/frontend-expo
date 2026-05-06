@@ -102,6 +102,9 @@ export default function ScheduleScreen() {
       if (view === "year") {
         newDate.setFullYear(prev.getFullYear() - 1);
       } else {
+        // 🚨 앙드레 카파시: 날짜 불변성 유지 및 Overflow 방지
+        // Why: 31일에서 30일/28일 월로 이동 시 March로 튀는 현상 방지 위해 1일로 세팅 후 이동
+        newDate.setDate(1);
         newDate.setMonth(prev.getMonth() - 1);
       }
       return newDate;
@@ -114,6 +117,8 @@ export default function ScheduleScreen() {
       if (view === "year") {
         newDate.setFullYear(prev.getFullYear() + 1);
       } else {
+        // 🚨 앙드레 카파시: 날짜 불변성 유지 및 Overflow 방지 위해 1일로 세팅 후 이동
+        newDate.setDate(1);
         newDate.setMonth(prev.getMonth() + 1);
       }
       return newDate;
@@ -303,7 +308,7 @@ function Main2CalendarView({
                 <>
                   <View style={styles.calendarCellTopRow}>
                     <Text style={styles.calendarDayText}>{cell.day}</Text>
-                    {cell.location ? (
+                    {cell.hasGame && cell.location ? (
                       <Text style={[styles.calendarLocationText, cell.location === "A" && styles.calendarLocationAway]}>
                         {cell.location}
                       </Text>
@@ -319,7 +324,7 @@ function Main2CalendarView({
                     <View style={styles.calendarEmptySpacer} />
                   )}
 
-                  {cell.timeText ? (
+                  {cell.hasGame && cell.timeText ? (
                     <Text style={styles.calendarTimeText}>{cell.timeText}</Text>
                   ) : null}
                 </>
@@ -380,10 +385,10 @@ function useFakeCalendarData(year: number, month: number): { days: CalendarDayDt
       daysArray.push({
         day: d,
         hasGame,
-        location: d % 2 === 0 ? "H" : "A",
-        opponentShort: opp.name,
-        opponentColor: opp.color,
-        timeText: "18:30",
+        location: hasGame ? (d % 2 === 0 ? "H" : "A") : null,
+        opponentShort: hasGame ? opp.name : null,
+        opponentColor: hasGame ? opp.color : null,
+        timeText: hasGame ? "18:30" : null,
       });
     }
 

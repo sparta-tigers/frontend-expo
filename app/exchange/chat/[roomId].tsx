@@ -374,6 +374,23 @@ export default function ChatRoomScreen() {
         "[ChatRoom] send message error:",
         error instanceof Error ? error.message : String(error),
       );
+      
+      // 🚨 앙드레 카파시: 전역 상태 롤백 (Optimistic Update 제거)
+      // Why: 전송 실패 시 목록에 남은 임시 메시지를 tempId(negative id) 기준으로 필터링하여 제거
+      queryClient.setQueryData(
+        ["chatMessages", roomIdNumber],
+        (oldData: InfiniteData<ChatMessagesPage, number> | undefined) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page) => ({
+              ...page,
+              content: page.content.filter((msg) => msg.id !== optimistic.id),
+            })),
+          };
+        }
+      );
+
       Alert.alert("전송 실패", "메시지 전송에 실패했습니다.");
     }
   }, [
@@ -381,6 +398,7 @@ export default function ChatRoomScreen() {
     handleMessageReceived,
     isConnected,
     messageText,
+    queryClient,
     roomIdNumber,
     user,
   ]);
