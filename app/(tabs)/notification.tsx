@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { useTheme } from "@/hooks/useTheme";
 import {
     ticketAlarmAddAPI,
     ticketAlarmDeleteAPI,
@@ -12,21 +11,18 @@ import {
     TicketAlarm,
 } from "@/src/features/notification/types";
 import { useAuth } from "@/src/hooks/useAuth";
-import { SPACING } from "@/src/styles/unified-design";
+import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
-import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
     Alert,
     FlatList,
     StyleSheet,
-    Text,
     TouchableOpacity,
-    View,
 } from "react-native";
+import { Box, Typography } from "@/components/ui";
 
 export default function NotificationScreen() {
-  const { colors } = useTheme();
   const { user } = useAuth();
   const [alarms, setAlarms] = useState<TicketAlarm[]>([]);
   const [loading, setLoading] = useState(false);
@@ -64,7 +60,6 @@ export default function NotificationScreen() {
       return;
     }
 
-    // 간단한 예시: 첫 번째 경기장과 오늘 날짜로 알림 추가
     const today = new Date().toISOString().split("T")[0];
     const stadium = STADIUMS[0];
 
@@ -84,14 +79,14 @@ export default function NotificationScreen() {
               const request: AddTicketAlarmRequest = {
                 stadiumName: stadium.name,
                 gameDate: today,
-                opponentTeam: "상대팀", // 실제로는 선택 가능해야 함
+                opponentTeam: "상대팀",
               };
 
               const response = await ticketAlarmAddAPI(request);
 
               if (response.resultType === "SUCCESS") {
                 Alert.alert("성공", "티켓 알림이 추가되었습니다.");
-                await loadAlarms(); // 목록 새로고침
+                await loadAlarms();
               } else {
                 Alert.alert("오류", "티켓 알림 추가에 실패했습니다.");
               }
@@ -110,7 +105,6 @@ export default function NotificationScreen() {
     );
   };
 
-  // 티켓 알림 삭제 핸들러
   const handleDeleteAlarm = (alarm: TicketAlarm) => {
     Alert.alert(
       "티켓 알림 삭제",
@@ -130,7 +124,7 @@ export default function NotificationScreen() {
 
               if (response.resultType === "SUCCESS") {
                 Alert.alert("성공", "티켓 알림이 삭제되었습니다.");
-                await loadAlarms(); // 목록 새로고침
+                await loadAlarms();
               } else {
                 Alert.alert("오류", "티켓 알림 삭제에 실패했습니다.");
               }
@@ -149,77 +143,54 @@ export default function NotificationScreen() {
     );
   };
 
-  // 알림 아이템 렌더링
   const renderAlarmItem = ({ item }: { item: TicketAlarm }) => (
-    <View style={[styles.alarmItem, { backgroundColor: colors.card }]}>
-      <View style={styles.alarmContent}>
-        <Text style={[styles.alarmStadium, { color: colors.text }]}>
+    <Box bg="card" p="SCREEN" rounded="md" mb="sm" flexDir="row" style={[styles.alarmItem, theme.shadow.card]}>
+      <Box flex={1}>
+        <Typography variant="body1" weight="semibold" color="text.primary" mb="xs">
           {item.stadiumName}
-        </Text>
-        <Text style={[styles.alarmDate, { color: colors.muted }]}>
+        </Typography>
+        <Typography variant="caption" color="text.secondary" mb="xs">
           {item.gameDate}
-        </Text>
-        <Text style={[styles.alarmOpponent, { color: colors.text }]}>
+        </Typography>
+        <Typography variant="body2" color="text.primary" mb="sm">
           vs {item.opponentTeam}
-        </Text>
-        <View style={styles.statusContainer}>
-          <View
-            style={[
-              styles.statusBadge,
-              {
-                backgroundColor: item.isNotified
-                  ? colors.destructive
-                  : colors.primary,
-              },
-            ]}
+        </Typography>
+        <Box align="flex-start">
+          <Box 
+            bg={item.isNotified ? "error" : "primary"} 
+            px="sm" 
+            py={2} 
+            rounded="sm"
           >
-            <Text style={[styles.statusText, { color: colors.background }]}>
+            <Typography variant="caption" color="background" weight="bold">
               {item.isNotified ? "알림 완료" : "대기 중"}
-            </Text>
-          </View>
-        </View>
-      </View>
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
       <TouchableOpacity
-        style={[styles.deleteButton, { borderColor: colors.destructive }]}
+        style={[styles.deleteButton, { borderColor: theme.colors.error }]}
         onPress={() => handleDeleteAlarm(item)}
         disabled={loading}
       >
-        <Text style={[styles.deleteButtonText, { color: colors.destructive }]}>
+        <Typography variant="caption" color="error" weight="bold">
           삭제
-        </Text>
+        </Typography>
       </TouchableOpacity>
-    </View>
+    </Box>
   );
 
-  // 로그인되지 않은 상태
-  if (!user?.accessToken) {
-    return (
-      <SafeLayout style={{ backgroundColor: colors.background }}>
-        <View style={styles.container}>
-          <Text style={[styles.title, { color: colors.text }]}>예매알림</Text>
-          <Text style={[styles.description, { color: colors.muted }]}>
-            로그인이 필요한 기능입니다.
-          </Text>
-          <Button
-            onPress={() => router.push("/(auth)/signin")}
-            style={styles.loginButton}
-          >
-            로그인
-          </Button>
-        </View>
-      </SafeLayout>
-    );
-  }
-
   return (
-    <SafeLayout style={{ backgroundColor: colors.background }}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.text }]}>예매알림</Text>
-          <Button onPress={handleAddAlarm} disabled={loading}>
+    <SafeLayout style={styles.safeLayout}>
+      <Box flex={1} p="SCREEN">
+        <Box flexDir="row" justify="space-between" align="center" mb="SCREEN">
+          <Typography variant="h2" weight="bold" color="text.primary">
+            예매알림
+          </Typography>
+          <Button onPress={handleAddAlarm} disabled={loading} size="sm">
             알림 추가
           </Button>
-        </View>
+        </Box>
 
         <FlatList
           data={alarms}
@@ -228,107 +199,40 @@ export default function NotificationScreen() {
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={[styles.emptyText, { color: colors.muted }]}>
+            <Box flex={1} justify="center" align="center" py="xxl">
+              <Typography variant="body1" weight="semibold" color="text.secondary" mb="xs">
                 등록된 알림이 없습니다.
-              </Text>
-              <Text style={[styles.emptySubText, { color: colors.muted }]}>
+              </Typography>
+              <Typography variant="body2" color="text.tertiary" center>
                 알림 추가 버튼을 눌러 새로운 알림을 설정해보세요.
-              </Text>
-            </View>
+              </Typography>
+            </Box>
           }
           refreshing={loading}
           onRefresh={loadAlarms}
         />
-      </View>
+      </Box>
     </SafeLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: SPACING.SMALL,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-  description: {
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: SPACING.SMALL,
-  },
-  loginButton: {
-    marginTop: SPACING.SMALL,
+  safeLayout: {
+    backgroundColor: theme.colors.background,
   },
   listContainer: {
-    gap: SPACING.SMALL,
+    paddingBottom: theme.spacing.SCREEN,
   },
   alarmItem: {
-    flexDirection: "row",
-    padding: SPACING.COMPONENT,
-    borderRadius: 8,
-    marginBottom: SPACING.SMALL,
     borderWidth: 1,
-  },
-  alarmContent: {
-    flex: 1,
-  },
-  alarmStadium: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: SPACING.SMALL / 2,
-  },
-  alarmDate: {
-    fontSize: 14,
-    marginBottom: SPACING.SMALL / 2,
-  },
-  alarmOpponent: {
-    fontSize: 14,
-    marginBottom: SPACING.SMALL,
-  },
-  statusContainer: {
-    alignSelf: "flex-start",
-  },
-  statusBadge: {
-    paddingHorizontal: SPACING.SMALL,
-    paddingVertical: SPACING.SMALL / 2,
-    borderRadius: 4,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: "600",
+    borderColor: theme.colors.border.light,
   },
   deleteButton: {
     borderWidth: 1,
-    borderRadius: 4,
-    paddingHorizontal: SPACING.SMALL,
-    paddingVertical: SPACING.SMALL / 2,
-    marginLeft: SPACING.SMALL,
-  },
-  deleteButtonText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: SPACING.SCREEN * 2,
-  },
-  emptyText: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: SPACING.SMALL / 2,
-  },
-  emptySubText: {
-    fontSize: 14,
-    textAlign: "center",
+    borderRadius: theme.radius.sm,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    marginLeft: theme.spacing.sm,
+    alignSelf: "flex-start",
   },
 });

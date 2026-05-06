@@ -1,4 +1,4 @@
-import { useTheme } from "@/hooks/useTheme";
+import { theme } from "@/src/styles/theme";
 import React from "react";
 import {
   GestureResponderEvent,
@@ -51,19 +51,20 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   textStyle,
 }) => {
-  const { colors } = useTheme();
+  // 🚨 앙드레 카파시: Props 인터페이스는 외부 호환성을 위해 유지함.
 
-  // 크기별 스타일
+  // 🚨 앙드레 카파시: Props 인터페이스는 외부 호환성을 위해 유지함.
+  // 내부 구현만 테마 토큰 기반으로 리팩토링.
   const getSizeStyle = () => {
     switch (size) {
       case "sm":
-        return { height: 36, paddingHorizontal: 12 };
+        return { height: 36, paddingHorizontal: theme.spacing.md };
       case "md":
-        return { height: 44, paddingHorizontal: 16 };
+        return { height: 44, paddingHorizontal: theme.spacing.lg };
       case "lg":
-        return { height: 52, paddingHorizontal: 24 };
+        return { height: 52, paddingHorizontal: theme.spacing.xxl };
       default:
-        return { height: 44, paddingHorizontal: 16 };
+        return { height: 44, paddingHorizontal: theme.spacing.lg };
     }
   };
 
@@ -80,21 +81,21 @@ export const Button: React.FC<ButtonProps> = ({
       case "primary":
         return {
           ...baseStyle,
-          backgroundColor: colors.primary,
+          backgroundColor: theme.colors.brand.mint, // 1:1 매핑: 기존 colors.primary가 가리키던 메인 컬러
         };
       case "secondary":
         return {
           ...baseStyle,
-          backgroundColor: colors.surface,
+          backgroundColor: theme.colors.surface,
           borderWidth: 1,
-          borderColor: colors.border,
+          borderColor: theme.colors.border.medium,
         };
       case "outline":
         return {
           ...baseStyle,
           backgroundColor: "transparent",
           borderWidth: 1,
-          borderColor: colors.primary,
+          borderColor: theme.colors.brand.mint,
         };
       case "ghost":
         return {
@@ -104,7 +105,7 @@ export const Button: React.FC<ButtonProps> = ({
       default:
         return {
           ...baseStyle,
-          backgroundColor: colors.primary,
+          backgroundColor: theme.colors.brand.mint,
         };
     }
   };
@@ -113,7 +114,6 @@ export const Button: React.FC<ButtonProps> = ({
   const getTextStyle = () => {
     const baseTextStyle = {
       ...styles.text,
-      ...getSizeStyle(),
       ...textStyle,
     };
 
@@ -121,27 +121,27 @@ export const Button: React.FC<ButtonProps> = ({
       case "primary":
         return {
           ...baseTextStyle,
-          color: colors.background,
+          color: theme.colors.background,
         };
       case "secondary":
         return {
           ...baseTextStyle,
-          color: colors.text,
+          color: theme.colors.text.primary,
         };
       case "outline":
         return {
           ...baseTextStyle,
-          color: colors.primary,
+          color: theme.colors.brand.mint,
         };
       case "ghost":
         return {
           ...baseTextStyle,
-          color: colors.primary,
+          color: theme.colors.brand.mint,
         };
       default:
         return {
           ...baseTextStyle,
-          color: colors.background,
+          color: theme.colors.background,
         };
     }
   };
@@ -165,7 +165,7 @@ export const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 8,
+    borderRadius: theme.radius.BUTTON,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -175,11 +175,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   text: {
-    fontWeight: "600",
+    fontWeight: theme.typography.weight.semibold,
     textAlign: "center",
+    fontSize: theme.typography.size.md,
   },
   loadingText: {
-    marginRight: 4,
+    marginRight: theme.spacing.xs,
   },
   fullWidth: {
     width: "100%",

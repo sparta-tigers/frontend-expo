@@ -18,16 +18,15 @@ import React, { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Image,
   RefreshControl,
   StyleSheet,
-  Text,
   TouchableOpacity,
-  View,
 } from "react-native";
 import MapView from "react-native-map-clustering";
 import { Marker } from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Box, Typography } from "@/components/ui";
+import { Image } from "expo-image";
 
 /** 교환 화면 전용 레이아웃 상수 (theme에 올리지 않는 화면 로컬 수치) */
 const EXCHANGE_LAYOUT = {
@@ -213,39 +212,55 @@ export default function ExchangeScreen() {
   // --- 아이템 렌더 함수 ---
   const renderItem = useCallback(({ item }: { item: Item }) => (
     <TouchableOpacity
+      activeOpacity={0.7}
       style={styles.itemContainer}
       onPress={() => navigateToDetail(item.id)}
     >
-      {item.imageUrl ? (
-        <Image source={{ uri: getImageUrl(item.imageUrl) }} style={styles.itemImage} />
-      ) : (
-        <View style={[styles.itemImage, styles.emptyImageContainer]}>
-          <Text style={styles.emptyText}>이미지 없음</Text>
-        </View>
-      )}
+      <Box mr="md">
+        {item.imageUrl ? (
+          <Image source={{ uri: getImageUrl(item.imageUrl) }} style={styles.itemImage} />
+        ) : (
+          <Box 
+            width={EXCHANGE_LAYOUT.itemImageSize} 
+            height={EXCHANGE_LAYOUT.itemImageSize} 
+            bg="border.medium" 
+            rounded="md" 
+            align="center" 
+            justify="center"
+          >
+            <Typography variant="caption" color="text.tertiary">이미지 없음</Typography>
+          </Box>
+        )}
+      </Box>
 
-      <View style={styles.itemContent}>
-        <Text
-          style={styles.itemTitle}
-          numberOfLines={1}
-        >
-          {item.title}
-        </Text>
-        <Text
-          style={styles.itemDescription}
-          numberOfLines={2}
-        >
-          {item.description}
-        </Text>
-        <View style={styles.itemMeta}>
-          <Text style={styles.itemCategory}>
+      <Box flex={1} justify="space-between">
+        <Box>
+          <Typography
+            variant="body2"
+            weight="bold"
+            color="text.primary"
+            numberOfLines={1}
+          >
+            {item.title}
+          </Typography>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            numberOfLines={2}
+            mt="xs"
+          >
+            {item.description}
+          </Typography>
+        </Box>
+        <Box flexDir="row" justify="space-between" align="center">
+          <Typography variant="caption" color="primary" weight="semibold">
             {item.category === "TICKET" ? "티켓" : "굿즈"}
-          </Text>
-          <Text style={styles.itemDate}>
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
             {new Date(item.createdAt).toLocaleDateString()}
-          </Text>
-        </View>
-      </View>
+          </Typography>
+        </Box>
+      </Box>
     </TouchableOpacity>
   ), [navigateToDetail]);
 
@@ -280,35 +295,49 @@ export default function ExchangeScreen() {
         backgroundStyle={styles.bottomSheetBackground}
       >
         {/* 카테고리 필터 */}
-        <View style={styles.filterContainer}>
+        <Box flexDir="row" justify="center" py="sm" gap="sm" bg="background">
           <TouchableOpacity 
+            activeOpacity={0.8}
             style={[styles.filterButton, selectedCategory === "TICKET" && styles.filterButtonActive]}
             onPress={() => setSelectedCategory(selectedCategory === "TICKET" ? "ALL" : "TICKET")}
           >
-            <Text style={[styles.filterButtonText, selectedCategory === "TICKET" && styles.filterButtonTextActive]}>TICKET</Text>
+            <Typography 
+              variant="caption" 
+              color={selectedCategory === "TICKET" ? "background" : "text.secondary"}
+              weight={selectedCategory === "TICKET" ? "bold" : "regular"}
+            >
+              TICKET
+            </Typography>
           </TouchableOpacity>
           <TouchableOpacity 
+            activeOpacity={0.8}
             style={[styles.filterButton, selectedCategory === "GOODS" && styles.filterButtonActive]}
             onPress={() => setSelectedCategory(selectedCategory === "GOODS" ? "ALL" : "GOODS")}
           >
-            <Text style={[styles.filterButtonText, selectedCategory === "GOODS" && styles.filterButtonTextActive]}>ITEM</Text>
+            <Typography 
+              variant="caption" 
+              color={selectedCategory === "GOODS" ? "background" : "text.secondary"}
+              weight={selectedCategory === "GOODS" ? "bold" : "regular"}
+            >
+              ITEM
+            </Typography>
           </TouchableOpacity>
-        </View>
+        </Box>
 
         {/* 콘텐츠 영역 */}
-        <View style={styles.listContainer}>
+        <Box flex={1} px="SCREEN">
           {itemsState.status === "loading" && itemsState.data?.length === 0 ? (
-              <View style={styles.loadingContainer}>
+              <Box flex={1} justify="center" align="center" py="xxl">
                 <ActivityIndicator size="large" color={theme.colors.primary} />
-                <Text style={styles.loadingText}>
+                <Typography variant="body2" color="text.primary" mt="sm">
                   아이템 목록 로딩 중...
-                </Text>
-              </View>
+                </Typography>
+              </Box>
             ) : itemsState.status === "error" ? (
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>
+              <Box flex={1} justify="center" align="center" py="xxl">
+                <Typography variant="caption" color="text.primary" center mb="md">
                   {itemsState.error || "아이템 목록을 불러올 수 없습니다."}
-                </Text>
+                </Typography>
                 <Button
                   onPress={() => {
                     // 🚨 앙드레 카파시: 초기 로딩 실패 시 결정론적 재시도 경로
@@ -326,7 +355,7 @@ export default function ExchangeScreen() {
                 >
                   다시 시도
                 </Button>
-              </View>
+              </Box>
             ) : (
                 <BottomSheetFlatList
                 ref={listRef}
@@ -341,7 +370,7 @@ export default function ExchangeScreen() {
                 }
               />
             )}
-        </View>
+        </Box>
       </BottomSheet>
 
       {/* 3. 지도 오버레이 (FAB + 상단 버튼 + 재검색) */}
@@ -393,10 +422,6 @@ const styles = StyleSheet.create({
   bottomSheetBackground: {
     backgroundColor: theme.colors.background,
   },
-  listContainer: {
-    flex: 1,
-    paddingHorizontal: theme.spacing.SCREEN,
-  },
   itemContainer: {
     flexDirection: "row",
     padding: theme.spacing.lg,
@@ -408,74 +433,9 @@ const styles = StyleSheet.create({
     width: EXCHANGE_LAYOUT.itemImageSize,
     height: EXCHANGE_LAYOUT.itemImageSize,
     borderRadius: theme.radius.md,
-    backgroundColor: theme.colors.surface,
-    marginRight: theme.spacing.md,
-  },
-  itemContent: {
-    flex: 1,
-    justifyContent: "space-between",
-  },
-  itemTitle: {
-    fontSize: theme.typography.size.md,
-    color: theme.colors.text.primary,
-    fontWeight: theme.typography.weight.bold,
-  },
-  itemDescription: {
-    fontSize: theme.typography.size.xs,
-    color: theme.colors.text.secondary,
-    marginTop: theme.spacing.xs,
-  },
-  itemMeta: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  itemCategory: {
-    fontSize: theme.typography.size.xs,
-    color: theme.colors.primary,
-    fontWeight: theme.typography.weight.semibold,
-  },
-  itemDate: {
-    fontSize: theme.typography.size.xs,
-    color: theme.colors.text.secondary,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: EXCHANGE_LAYOUT.emptyPaddingVertical,
-  },
-  emptyText: {
-    fontSize: theme.typography.size.xs,
-    color: theme.colors.text.primary,
-    textAlign: "center",
-    marginBottom: theme.spacing.COMPONENT,
-  },
-  emptyImageContainer: {
-    backgroundColor: theme.colors.border.medium,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: EXCHANGE_LAYOUT.emptyPaddingVertical,
-  },
-  loadingText: {
-    fontSize: theme.typography.size.md,
-    color: theme.colors.text.primary,
-    marginTop: theme.spacing.sm,
   },
   emptyButton: {
     minWidth: EXCHANGE_LAYOUT.emptyButtonMinWidth,
-  },
-  filterContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    paddingVertical: theme.spacing.SMALL,
-    gap: theme.spacing.SMALL,
-    backgroundColor: theme.colors.background,
   },
   filterButton: {
     paddingHorizontal: theme.spacing.COMPONENT,
@@ -487,13 +447,5 @@ const styles = StyleSheet.create({
   filterButtonActive: {
     backgroundColor: theme.colors.text.secondary,
     borderColor: theme.colors.text.secondary,
-  },
-  filterButtonText: {
-    fontSize: theme.typography.size.SMALL,
-    color: theme.colors.text.secondary,
-  },
-  filterButtonTextActive: {
-    color: theme.colors.background,
-    fontWeight: theme.typography.weight.bold,
   },
 });

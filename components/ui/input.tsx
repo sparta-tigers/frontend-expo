@@ -1,3 +1,4 @@
+import { theme } from "@/src/styles/theme";
 import React from "react";
 import { TextInput } from "react-native-paper";
 
@@ -38,6 +39,7 @@ interface InputProps {
  * - Material Design 스타일 적용
  * - 플로팅 라벨 지원
  * - 에러 상태 표시
+ * - Zero-Magic UI: 테마 토큰 연동
  */
 export const Input: React.FC<InputProps> = ({
   value,
@@ -64,7 +66,24 @@ export const Input: React.FC<InputProps> = ({
     keyboardType,
     multiline,
     numberOfLines,
-    style: fullWidth ? { width: "100%" } : style,
+    outlineColor: theme.colors.border.medium,
+    activeOutlineColor: theme.colors.brand.mint,
+    placeholderTextColor: theme.colors.text.tertiary,
+    textColor: theme.colors.text.primary,
+    style: [
+      {
+        backgroundColor: theme.colors.surface,
+        fontSize: theme.typography.size.md,
+      },
+      fullWidth && { width: "100%" },
+      style,
+    ],
+    theme: {
+      colors: {
+        primary: theme.colors.brand.mint,
+        error: theme.colors.error,
+      },
+    },
   };
 
   if (label) {

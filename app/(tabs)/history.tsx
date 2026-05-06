@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import {
   exchangeGetReceivedAPI,
@@ -15,7 +14,8 @@ import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
 import { router } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
-import { Alert, FlatList, StyleSheet, Text, View } from "react-native";
+import { Alert, FlatList, StyleSheet } from "react-native";
+import { Box, Typography } from "@/components/ui";
 
 export default function HistoryScreen() {
   const { user } = useAuth();
@@ -92,36 +92,44 @@ export default function HistoryScreen() {
   const renderExchangeRequest = ({ item }: { item: ReceiveExchangeRequest }) => {
     const statusColor =
       item.exchangeStatus === ExchangeRequestStatus.PENDING
-        ? theme.colors.warning
+        ? "warning"
         : item.exchangeStatus === ExchangeRequestStatus.ACCEPTED
-          ? theme.colors.success
-          : theme.colors.error;
+          ? "success"
+          : "error";
 
     return (
-      <Card style={styles.requestCard}>
-        <View style={styles.requestHeader}>
-          <Text style={styles.itemTitle}>
+      <Box bg="card" p="SCREEN" rounded="lg" mb="sm" style={theme.shadow.card}>
+        <Box flexDir="row" justify="space-between" align="center" mb="sm">
+          <Typography variant="body2" weight="semibold" color="text.primary" style={styles.itemTitle}>
             {item.title || "아이템 정보 없음"}
-          </Text>
-          <Text style={[styles.status, { color: statusColor }]}>
-            {item.exchangeStatus === ExchangeRequestStatus.PENDING
-              ? "대기 중"
-              : item.exchangeStatus === ExchangeRequestStatus.ACCEPTED
-                ? "수락됨"
-                : "거절됨"}
-          </Text>
-        </View>
+          </Typography>
+          <Box 
+            bg="surface" 
+            px="sm" 
+            py={2} 
+            rounded="sm" 
+            style={[styles.statusBadge, { borderColor: theme.colors[statusColor] }]}
+          >
+            <Typography variant="caption" color={statusColor as any} weight="semibold">
+              {item.exchangeStatus === ExchangeRequestStatus.PENDING
+                ? "대기 중"
+                : item.exchangeStatus === ExchangeRequestStatus.ACCEPTED
+                  ? "수락됨"
+                  : "거절됨"}
+            </Typography>
+          </Box>
+        </Box>
 
-        <Text style={styles.requester}>
+        <Typography variant="body2" color="text.primary" mb="sm">
           요청자: {item.sender.userNickname || "알 수 없음"}
-        </Text>
+        </Typography>
 
-        <Text style={styles.date}>
+        <Typography variant="caption" color="text.secondary" mb="md">
           요청일: {new Date(item.createdAt).toLocaleDateString()}
-        </Text>
+        </Typography>
 
         {item.exchangeStatus === ExchangeRequestStatus.PENDING && (
-          <View style={styles.actionButtons}>
+          <Box flexDir="row" gap="sm">
             <Button
               variant="primary"
               size="sm"
@@ -129,7 +137,7 @@ export default function HistoryScreen() {
               onPress={() =>
                 handleUpdateStatus(item.exchangeRequestId, ExchangeRequestStatus.ACCEPTED)
               }
-              style={styles.acceptButton}
+              style={styles.flexButton}
             >
               수락
             </Button>
@@ -140,54 +148,54 @@ export default function HistoryScreen() {
               onPress={() =>
                 handleUpdateStatus(item.exchangeRequestId, ExchangeRequestStatus.REJECTED)
               }
-              style={styles.rejectButton}
+              style={styles.flexButton}
             >
               거절
             </Button>
-          </View>
+          </Box>
         )}
 
         {item.exchangeStatus === ExchangeRequestStatus.ACCEPTED && item.directRoomId && (
-          <View style={styles.actionButtons}>
+          <Box flexDir="row">
             <Button
               variant="primary"
               size="sm"
               onPress={() => router.push(`/exchange/chat/${item.directRoomId}`)}
-              style={styles.chatButton}
+              style={styles.flexButton}
             >
               채팅방 가기
             </Button>
-          </View>
+          </Box>
         )}
-      </Card>
+      </Box>
     );
   };
 
   if (loading) {
     return (
       <SafeLayout style={styles.safeLayout}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>
+        <Box flex={1} justify="center" align="center">
+          <Typography variant="body2" color="text.primary">
             교환 요청 목록을 불러오는 중...
-          </Text>
-        </View>
+          </Typography>
+        </Box>
       </SafeLayout>
     );
   }
 
   return (
     <SafeLayout style={styles.safeLayout}>
-      <View style={styles.container}>
-        <Text style={styles.title}>
+      <Box flex={1} p="SCREEN">
+        <Typography variant="h2" weight="bold" color="text.primary" mb="SCREEN">
           받은 교환 요청
-        </Text>
+        </Typography>
 
         {exchangeRequests.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
+          <Box flex={1} justify="center" align="center">
+            <Typography variant="body2" color="text.secondary" center>
               받은 교환 요청이 없습니다.
-            </Text>
-          </View>
+            </Typography>
+          </Box>
         ) : (
           <FlatList
             data={exchangeRequests}
@@ -197,94 +205,26 @@ export default function HistoryScreen() {
             showsVerticalScrollIndicator={false}
           />
         )}
-      </View>
+      </Box>
     </SafeLayout>
   );
 }
 
-// ========================================================
-// Styles — Co-location 유지, 하드코딩 제거
-// ========================================================
 const styles = StyleSheet.create({
   safeLayout: {
     backgroundColor: theme.colors.background,
   },
-  container: {
-    flex: 1,
-    padding: theme.spacing.SCREEN,
-  },
-  title: {
-    fontSize: theme.typography.size.TITLE,
-    fontWeight: theme.typography.weight.bold,
-    marginBottom: theme.spacing.SCREEN,
-    color: theme.colors.text.primary,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    fontSize: theme.typography.size.BODY,
-    color: theme.colors.text.primary,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  emptyText: {
-    fontSize: theme.typography.size.BODY,
-    textAlign: "center",
-    color: theme.colors.text.secondary,
-  },
   listContainer: {
     gap: theme.spacing.COMPONENT,
   },
-  requestCard: {
-    padding: theme.spacing.SCREEN,
-    marginBottom: theme.spacing.SMALL,
-  },
-  requestHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: theme.spacing.SMALL,
-  },
   itemTitle: {
-    fontSize: theme.typography.size.CARD_TITLE,
-    fontWeight: theme.typography.weight.semibold,
     flex: 1,
-    color: theme.colors.text.primary,
   },
-  status: {
-    fontSize: theme.typography.size.CAPTION,
-    fontWeight: theme.typography.weight.semibold,
-    paddingHorizontal: theme.spacing.SMALL,
-    paddingVertical: 2,
+  flexButton: {
+    flex: 1,
+  },
+  statusBadge: {
+    borderWidth: 1,
     borderRadius: theme.radius.sm,
-  },
-  requester: {
-    fontSize: theme.typography.size.BODY,
-    marginBottom: theme.spacing.SMALL,
-    color: theme.colors.text.primary,
-  },
-  date: {
-    fontSize: theme.typography.size.CAPTION,
-    marginBottom: theme.spacing.COMPONENT,
-    color: theme.colors.text.secondary,
-  },
-  actionButtons: {
-    flexDirection: "row",
-    gap: theme.spacing.SMALL,
-  },
-  acceptButton: {
-    flex: 1,
-  },
-  rejectButton: {
-    flex: 1,
-  },
-  chatButton: {
-    flex: 1,
   },
 });

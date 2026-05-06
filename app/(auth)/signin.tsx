@@ -10,18 +10,37 @@ import {
   Keyboard,
   Pressable,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
-  View,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image } from "expo-image";
+import { Box, Typography } from "@/components/ui";
 
 const loginLogo = require("@/assets/images/auth/yaguniv-logo.png");
 const kakaoIcon = require("@/assets/images/auth/kakao.png");
 const appleIcon = require("@/assets/images/auth/apple.png");
+
+// ========================================================
+// 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
+// ========================================================
+const LOCAL_LAYOUT = {
+  headerHeight: theme.layout.auth.headerHeight,
+  headerIconBox: theme.layout.auth.headerIconBox,
+  bodyPaddingHorizontal: theme.layout.auth.bodyPaddingHorizontal,
+  bodyPaddingVertical: theme.layout.auth.bodyPaddingVertical,
+  logoWidth: theme.layout.auth.logoWidth,
+  logoHeight: theme.layout.auth.logoHeight,
+  inputHeight: theme.layout.auth.inputHeight,
+  socialButtonSize: theme.layout.auth.socialButtonSize,
+  socialIconSize: theme.layout.auth.socialIconSize,
+  socialDividerHeight: theme.layout.auth.socialDividerHeight,
+  tabBarHeight: theme.layout.auth.tabBarHeight,
+  tabBarPaddingVertical: theme.layout.auth.tabBarPaddingVertical,
+  tabLabelWidth: theme.layout.auth.tabLabelWidth,
+  dividerLineHeight: StyleSheet.hairlineWidth,
+} as const;
 
 /**
  * 로그인 페이지 (`main_00`)
@@ -101,26 +120,37 @@ export default function SigninScreen() {
         extraScrollHeight={theme.spacing.xl}
       >
         <Pressable style={styles.pressableArea} onPress={Keyboard.dismiss}>
-          <View style={styles.header}>
-            <View style={styles.headerSide} />
-            <Text style={styles.headerTitle}>YAGUNIV</Text>
-            <View style={styles.headerSide} />
-          </View>
+          {/* Header */}
+          <Box 
+            height={LOCAL_LAYOUT.headerHeight} 
+            px="xl" 
+            pb="sm" 
+            flexDir="row" 
+            align="flex-end" 
+            justify="space-between" 
+            bg="background"
+          >
+            <Box width={LOCAL_LAYOUT.headerIconBox} height={LOCAL_LAYOUT.headerIconBox} />
+            <Typography variant="h3" weight="regular" color="brand.mint" center>
+              YAGUNIV
+            </Typography>
+            <Box width={LOCAL_LAYOUT.headerIconBox} height={LOCAL_LAYOUT.headerIconBox} />
+          </Box>
 
           <LinearGradient
             colors={theme.colors.brand.loginGradientStops}
             locations={[0, 0.55, 1]}
-            style={styles.body}
+            style={styles.gradientBody}
           >
-            <View style={styles.logoWrap}>
+            <Box width="100%" align="center" justify="center" mb="xxl">
               <Image
                 source={loginLogo}
                 style={styles.logo}
                 contentFit="contain"
               />
-            </View>
+            </Box>
 
-            <View style={styles.form}>
+            <Box width="100%" align="center" gap="md">
               <TextInput
                 value={email}
                 onChangeText={setEmail}
@@ -152,7 +182,9 @@ export default function SigninScreen() {
                 disabled={isLoading}
                 style={styles.loginButton}
               >
-                <Text style={styles.loginButtonText}>LOGIN</Text>
+                <Typography variant="body2" weight="regular" color="background" center>
+                  LOGIN
+                </Typography>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -161,14 +193,21 @@ export default function SigninScreen() {
                 disabled={isLoading}
                 style={styles.registerButton}
               >
-                <Text style={styles.registerText}>Register Now</Text>
+                <Typography variant="body2" weight="medium" color="brand.subtitle" center>
+                  Register Now
+                </Typography>
               </TouchableOpacity>
 
-              <View style={styles.socialDivider}>
-                <View style={styles.dividerLine} />
-              </View>
+              <Box width="100%" height={LOCAL_LAYOUT.socialDividerHeight} align="center" justify="center">
+                <Box 
+                  width="100%" 
+                  height={LOCAL_LAYOUT.dividerLineHeight} 
+                  bg="background" 
+                  style={styles.dividerLine}
+                />
+              </Box>
 
-              <View style={styles.socialRow}>
+              <Box flexDir="row" align="center" justify="center" gap="xl" mt={-theme.spacing.xxl}>
                 <TouchableOpacity
                   activeOpacity={0.85}
                   style={styles.socialButton}
@@ -194,56 +233,40 @@ export default function SigninScreen() {
                     contentFit="contain"
                   />
                 </TouchableOpacity>
-              </View>
-            </View>
+              </Box>
+            </Box>
           </LinearGradient>
 
-          <View style={styles.fakeTabBar}>
-            <View style={styles.fakeTabBarInner}>
-              <View style={styles.fakeTabIconsRow}>
-                <View style={styles.fakeTabItem}>
-                  <IconSymbol
-                    size={theme.typography.size.xl}
-                    name="house.fill"
-                    color={theme.colors.brand.inactive}
-                  />
-                  <Text style={styles.fakeTabLabel}>홈</Text>
-                </View>
-                <View style={styles.fakeTabItem}>
-                  <IconSymbol
-                    size={theme.typography.size.xl}
-                    name="chart.bar.fill"
-                    color={theme.colors.brand.inactive}
-                  />
-                  <Text style={styles.fakeTabLabel}>라이브보드</Text>
-                </View>
-                <View style={styles.fakeTabItem}>
-                  <IconSymbol
-                    size={theme.typography.size.xl}
-                    name="arrow.left.arrow.right"
-                    color={theme.colors.brand.inactive}
-                  />
-                  <Text style={styles.fakeTabLabel}>교환</Text>
-                </View>
-                <View style={styles.fakeTabItem}>
-                  <IconSymbol
-                    size={theme.typography.size.xl}
-                    name="bell.fill"
-                    color={theme.colors.brand.inactive}
-                  />
-                  <Text style={styles.fakeTabLabel}>예매알림</Text>
-                </View>
-                <View style={styles.fakeTabItem}>
-                  <IconSymbol
-                    size={theme.typography.size.xl}
-                    name="list.bullet"
-                    color={theme.colors.brand.inactive}
-                  />
-                  <Text style={styles.fakeTabLabel}>직관기록</Text>
-                </View>
-              </View>
-            </View>
-          </View>
+          {/* Fake Tab Bar (Figma Design Reproduction) */}
+          <Box 
+            height={LOCAL_LAYOUT.tabBarHeight} 
+            bg="card" 
+            roundedTop="tabBar" 
+            style={theme.shadow.card}
+          >
+            <Box flex={1} py={LOCAL_LAYOUT.tabBarPaddingVertical}>
+              <Box flex={1} flexDir="row" px="xl" justify="space-between" align="center">
+                {[
+                  { name: "house.fill", label: "홈" },
+                  { name: "chart.bar.fill", label: "라이브보드" },
+                  { name: "arrow.left.arrow.right", label: "교환" },
+                  { name: "bell.fill", label: "예매알림" },
+                  { name: "list.bullet", label: "직관기록" },
+                ].map((tab, idx) => (
+                  <Box key={idx} width={LOCAL_LAYOUT.tabLabelWidth} align="center" justify="center" gap="xs">
+                    <IconSymbol
+                      size={theme.typography.size.xl}
+                      name={tab.name as any}
+                      color={theme.colors.brand.inactive}
+                    />
+                    <Typography variant="caption" color="brand.inactive" center>
+                      {tab.label}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          </Box>
         </Pressable>
       </KeyboardAwareScrollView>
     </SafeLayout>
@@ -262,51 +285,21 @@ const styles = StyleSheet.create({
   pressableArea: {
     flex: 1,
   },
-  header: {
-    height: theme.layout.auth.headerHeight,
-    paddingHorizontal: theme.spacing.xl,
-    paddingBottom: theme.spacing.sm,
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-    backgroundColor: theme.colors.brand.background,
-  },
-  headerSide: {
-    width: theme.layout.auth.headerIconBox,
-    height: theme.layout.auth.headerIconBox,
-  },
-  headerTitle: {
-    fontSize: theme.typography.size.xl,
-    fontWeight: theme.typography.weight.regular,
-    color: theme.colors.brand.mint,
-    textAlign: "center",
-  },
-  body: {
+  gradientBody: {
     flex: 1,
-    paddingHorizontal: theme.layout.auth.bodyPaddingHorizontal,
-    paddingTop: theme.layout.auth.bodyPaddingVertical,
-    paddingBottom: theme.layout.auth.bodyPaddingVertical,
+    paddingHorizontal: LOCAL_LAYOUT.bodyPaddingHorizontal,
+    paddingTop: LOCAL_LAYOUT.bodyPaddingVertical,
+    paddingBottom: LOCAL_LAYOUT.bodyPaddingVertical,
     alignItems: "center",
     justifyContent: "flex-start",
   },
-  logoWrap: {
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: theme.spacing.xxl,
-  },
   logo: {
-    width: theme.layout.auth.logoWidth,
-    height: theme.layout.auth.logoHeight,
-  },
-  form: {
-    width: "100%",
-    alignItems: "center",
-    gap: theme.spacing.md,
+    width: LOCAL_LAYOUT.logoWidth,
+    height: LOCAL_LAYOUT.logoHeight,
   },
   input: {
     width: "100%",
-    height: theme.layout.auth.inputHeight,
+    height: LOCAL_LAYOUT.inputHeight,
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.full,
     paddingHorizontal: theme.spacing.lg,
@@ -315,88 +308,30 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     width: "100%",
-    height: theme.layout.auth.inputHeight,
+    height: LOCAL_LAYOUT.inputHeight,
     backgroundColor: theme.colors.brand.mint,
     borderRadius: theme.radius.full,
     alignItems: "center",
     justifyContent: "center",
   },
-  loginButtonText: {
-    fontSize: theme.typography.size.xs,
-    fontWeight: theme.typography.weight.regular,
-    color: theme.colors.background,
-    textAlign: "center",
-  },
   registerButton: {
-    height: theme.layout.auth.inputHeight,
+    height: LOCAL_LAYOUT.inputHeight,
     alignItems: "center",
     justifyContent: "center",
-  },
-  registerText: {
-    fontSize: theme.typography.size.xs,
-    fontWeight: theme.typography.weight.medium,
-    color: theme.colors.brand.subtitle,
-    textAlign: "center",
-  },
-  socialDivider: {
-    width: "100%",
-    height: theme.layout.auth.socialDividerHeight,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  dividerLine: {
-    width: "100%",
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: theme.colors.background,
-    opacity: 0.8,
-  },
-  socialRow: {
-    width: "100%",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: theme.spacing.xl,
-    marginTop: -theme.spacing.xxl,
   },
   socialButton: {
-    width: theme.layout.auth.socialButtonSize,
-    height: theme.layout.auth.socialButtonSize,
+    width: LOCAL_LAYOUT.socialButtonSize,
+    height: LOCAL_LAYOUT.socialButtonSize,
     borderRadius: theme.radius.lg,
     backgroundColor: theme.colors.card,
     alignItems: "center",
     justifyContent: "center",
   },
   socialIcon: {
-    width: theme.layout.auth.socialIconSize,
-    height: theme.layout.auth.socialIconSize,
+    width: LOCAL_LAYOUT.socialIconSize,
+    height: LOCAL_LAYOUT.socialIconSize,
   },
-  fakeTabBar: {
-    height: theme.layout.auth.tabBarHeight,
-    backgroundColor: theme.colors.card,
-    borderTopLeftRadius: theme.radius.tabBar,
-    borderTopRightRadius: theme.radius.tabBar,
-    ...theme.shadow.card,
-  },
-  fakeTabBarInner: {
-    flex: 1,
-    paddingVertical: theme.layout.auth.tabBarPaddingVertical,
-  },
-  fakeTabIconsRow: {
-    flex: 1,
-    flexDirection: "row",
-    paddingHorizontal: theme.spacing.xl,
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  fakeTabItem: {
-    width: theme.layout.auth.tabLabelWidth,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: theme.spacing.xs,
-  },
-  fakeTabLabel: {
-    fontSize: theme.typography.size.xs,
-    color: theme.colors.brand.inactive,
-    textAlign: "center",
+  dividerLine: {
+    opacity: 0.8,
   },
 });
