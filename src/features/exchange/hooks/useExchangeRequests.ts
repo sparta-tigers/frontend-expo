@@ -1,124 +1,71 @@
-import { Logger } from "@/src/utils/logger";
-import { useCallback, useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { exchangeGetMyRequestsAPI, exchangeUpdateStatusAPI } from "../api";
-import { ExchangeRequestStatus, ReceiveExchangeRequest } from "../types";
+import { ExchangeRequestStatus } from "../types";
 
 /**
- * 교환 요청(받은 것/보낸 것) 목록 관리 및 상태 업데이트를 담당하는 훅
+ * 🚨 앙드레 카파시: React Query를 이용한 교환 요청 목록 관리 및 상태 업데이트 훅
+ * 
+ * Why: 수동 useState/useEffect 관리로 인한 중복 호출 및 캐시 불일치 문제 해결.
+ * 캐싱, 자동 로딩 상태 관리, 윈도우 포커스 시 자동 갱신 기능을 활용함.
  *
  * @param role - "receiver" (받은 요청) | "sender" (보낸 요청)
  */
 export const useExchangeRequests = (role: "receiver" | "sender") => {
-  const [requests, setRequests] = useState<ReceiveExchangeRequest[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchRequests = useCallback(
-    async (
-      mode: "initial" | "refresh" | "silent" = "initial",
-      checkCancelled?: () => boolean,
-    ) => {
-      try {
-        if (mode === "initial") setLoading(true);
-        setError(null);
-        const response = await exchangeGetMyRequestsAPI(role, 0, 50);
+  const {
+    data,
+    isLoading,
+    isRefetching,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["exchangeRequests", role],
+    queryFn: () => exchangeGetMyRequestsAPI(role, 0, 50),
+    staleTime: 1000 * 30, // 30초 동안은 캐시된 데이터 사용
+  });
 
-        if (checkCancelled?.()) return;
+  const requests = data?.data?.content ?? [];
 
-        if (response.resultType === "SUCCESS" && response.data) {
-          setRequests(response.data.content);
-        } else {
-          throw new Error(
-            response.error?.message || "데이터를 불러오는데 실패했습니다.",
-          );
-        }
-      } catch (err) {
-        if (checkCancelled?.()) return;
-        const msg =
-          err instanceof Error ? err.message : "알 수 없는 에러가 발생했습니다.";
-        Logger.error(`[useExchangeRequests] ${role} fetch error:`, msg);
-        setError(msg);
-      } finally {
-        if (!checkCancelled?.()) {
-          setLoading(false);
-          setRefreshing(false);
-        }
+  // 🚨 앙드레 카파시: 상태 변경 Mutation
+  // onSuccess 시 ["exchangeRequests"] 키를 무효화하여 보낸/받은 목록 모두를 최신화함
+  const { mutateAsync: handleAccept } = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await exchangeUpdateStatusAPI(id, {
+        status: ExchangeRequestStatus.ACCEPTED,
+      });
+      if (response.resultType !== "SUCCESS") {
+        throw new Error(response.error?.message || "수락 처리 실패");
       }
+      return response;
     },
-    [role],
-  );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["exchangeRequests"] });
+    },
+  });
 
-  const handleRefresh = useCallback(() => {
-    setRefreshing(true);
-    fetchRequests("refresh");
-  }, [fetchRequests]);
-
-  const handleAccept = useCallback(
-    async (id: number) => {
-      try {
-        const response = await exchangeUpdateStatusAPI(id, {
-          status: ExchangeRequestStatus.ACCEPTED,
-        });
-        if (response.resultType === "SUCCESS") {
-          // 상태 업데이트 후 목록 새로고침
-          fetchRequests();
-        } else {
-          throw new Error(
-            response.error?.message || "요청 수락에 실패했습니다.",
-          );
-        }
-      } catch (err) {
-        const msg =
-          err instanceof Error ? err.message : "수락 처리 중 에러 발생";
-        Logger.error(`[useExchangeRequests] accept error:`, msg);
-        throw err; // UI에서 Alert 처리를 위해 throw
+  const { mutateAsync: handleReject } = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await exchangeUpdateStatusAPI(id, {
+        status: ExchangeRequestStatus.REJECTED,
+      });
+      if (response.resultType !== "SUCCESS") {
+        throw new Error(response.error?.message || "거절 처리 실패");
       }
+      return response;
     },
-    [fetchRequests],
-  );
-
-  const handleReject = useCallback(
-    async (id: number) => {
-      try {
-        const response = await exchangeUpdateStatusAPI(id, {
-          status: ExchangeRequestStatus.REJECTED,
-        });
-        if (response.resultType === "SUCCESS") {
-          fetchRequests();
-        } else {
-          throw new Error(
-            response.error?.message || "요청 거절에 실패했습니다.",
-          );
-        }
-      } catch (err) {
-        const msg =
-          err instanceof Error ? err.message : "거절 처리 중 에러 발생";
-        Logger.error(`[useExchangeRequests] reject error:`, msg);
-        throw err;
-      }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["exchangeRequests"] });
     },
-    [fetchRequests],
-  );
-
-  useEffect(() => {
-    let cancelled = false;
-    const checkCancelled = () => cancelled;
-
-    fetchRequests("initial", checkCancelled);
-
-    return () => {
-      cancelled = true;
-    };
-  }, [fetchRequests]);
+  });
 
   return {
     requests,
-    loading,
-    refreshing,
-    error,
-    fetchRequests,
-    handleRefresh,
+    loading: isLoading,
+    refreshing: isRefetching,
+    error: error instanceof Error ? error.message : null,
+    fetchRequests: refetch,
+    handleRefresh: refetch,
     handleAccept,
     handleReject,
   };

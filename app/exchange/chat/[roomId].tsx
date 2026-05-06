@@ -238,7 +238,7 @@ export default function ChatRoomScreen() {
       );
       return response.data as ExchangeItem;
     },
-    enabled: !!roomId,
+    enabled: !isRoomIdInvalid,
   });
 
   const isInputDisabled = useMemo(() => {

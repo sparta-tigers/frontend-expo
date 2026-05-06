@@ -1,6 +1,6 @@
 import { theme } from "@/src/styles/theme";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
     Alert,
@@ -34,12 +34,6 @@ export default function ExchangeRequestsScreen() {
     fetchRequests
   } = useExchangeRequests(activeTab);
 
-  // 화면 진입 시마다 데이터 페칭
-  useFocusEffect(
-    useCallback(() => {
-      fetchRequests();
-    }, [fetchRequests])
-  );
 
   const onAccept = useCallback(async (id: number) => {
     Alert.alert("교환 승낙", "이 교환 요청을 승낙하시겠습니까?", [

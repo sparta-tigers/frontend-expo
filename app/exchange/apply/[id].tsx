@@ -192,6 +192,7 @@ export default function ApplyExchangeScreen() {
       const roomId = data?.directRoomId ?? data?.roomId;
 
       queryClient.invalidateQueries({ queryKey: ["item", id] });
+      queryClient.invalidateQueries({ queryKey: ["exchangeRequests"] });
 
       if (roomId) {
         Alert.alert("성공", "교환 제안이 전달되었습니다!");
