@@ -43,10 +43,10 @@ export async function itemsGetListAPI(
   if (status) params.status = status;
 
   // 좌표 기반 검색 파라미터 추가
-  if (lat && lng) {
+  if (lat !== undefined && lng !== undefined) {
     params.latitude = lat;
     params.longitude = lng;
-    params.radius = radiusKm || 2; // 기본 반경 2km
+    params.radius = radiusKm ?? 2; // 기본 반경 2km
   }
 
   // try-catch 제거하고 바로 리턴

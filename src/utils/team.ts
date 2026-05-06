@@ -46,10 +46,20 @@ const TEAM_NAME_TO_COLOR: Record<string, string> = {
   "KT": theme.colors.team.kt,
   "키움": theme.colors.team.kiwoom,
   "KIA": theme.colors.team.kia,
-  // 영문 ID (신규 추가)
+
+  // 영문 ID 및 풀네임
   "KIA_TIGERS": theme.colors.team.kia,
   "LG_TWINS": theme.colors.team.lg,
-  // 풀네임 (schedule.tsx 등에서 사용)
+  "HANWHA_EAGLES": theme.colors.team.hanwha,
+  "LOTTE_GIANTS": theme.colors.team.lotte,
+  "SAMSUNG_LIONS": theme.colors.team.samsung,
+  "SSG_LANDERS": theme.colors.team.ssg,
+  "NC_DINOS": theme.colors.team.nc,
+  "KT_WIZ": theme.colors.team.kt,
+  "DOOSAN_BEARS": theme.colors.team.doosan,
+  "KIWOOM_HEROES": theme.colors.team.kiwoom,
+
+  // 경기 일정 등에서 사용되는 풀네임
   "한화 이글스": theme.colors.team.hanwha,
   "LG 트윈스": theme.colors.team.lg,
   "롯데 자이언츠": theme.colors.team.lotte,

@@ -22,6 +22,7 @@ import {
   useState,
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const getMyTeamKey = (userId?: number) =>
@@ -359,11 +360,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
    * @param teamName - 변경할 팀 명칭
    */
   const updateMyTeam = async (teamName: string): Promise<void> => {
+    const previousTeam = myTeam; // 🚨 [Data Integrity] 1. 롤백을 위한 이전 상태 캡처
     try {
-      // 1. 상태 즉시 업데이트 (UI 반응성 확보)
+      // 2. 상태 즉시 업데이트 (UI 반응성 확보)
       setMyTeam(teamName);
 
-      // 2. 로컬 스토리지 저장 (사용자별 고유 키 사용)
+      // 3. 로컬 스토리지 저장 (사용자별 고유 키 사용)
       await AsyncStorage.setItem(getMyTeamKey(user?.userId), teamName);
 
       if (__DEV__) {
@@ -371,6 +373,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       }
     } catch (error) {
       Logger.error("[AuthContext] 응원팀 변경 실패:", error);
+      
+      // 4. 롤백 처리: 이전 상태로 명시적 복구
+      setMyTeam(previousTeam);
+      
+      // 5. 사용자에게 에러 전파
+      Alert.alert("알림", "팀 정보를 저장하는 중 오류가 발생했습니다. 다시 시도해주세요.");
     }
   };
 

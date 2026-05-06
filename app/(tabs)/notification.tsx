@@ -74,12 +74,24 @@ export default function NotificationScreen() {
         {
           text: "추가",
           onPress: async () => {
+            // 🚨 [Data Integrity] 2. 상대팀 데이터 누락 시 방어 로직 (Fail-fast)
+            // 고정 문자열 "상대팀" 대신 실제 데이터가 없을 경우 생성을 차단합니다.
+            const opponentTeamCandidate = undefined; // TODO: 실제 경기 일정 객체에서 상대팀 ID/명칭을 가져와야 함
+
+            if (!opponentTeamCandidate) {
+              Alert.alert(
+                "데이터 누락",
+                "상대팀 정보가 확인되지 않습니다. 경기 일정을 통해 다시 시도해주세요.",
+              );
+              return; // Early Return
+            }
+
             setLoading(true);
             try {
               const request: AddTicketAlarmRequest = {
                 stadiumName: stadium.name,
                 gameDate: today,
-                opponentTeam: "상대팀",
+                opponentTeam: opponentTeamCandidate,
               };
 
               const response = await ticketAlarmAddAPI(request);

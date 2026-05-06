@@ -94,17 +94,17 @@ export function useFakeHomeData(myTeamId: string | null) {
       { day: 1, location: "H", opponentShort: "SSG", timeText: "18:30" },
       { day: 2, location: "H", opponentShort: "SSG", timeText: "18:30" },
       { day: 3, location: "H", opponentShort: "SSG", timeText: "18:30" },
-      { day: 4, location: "H", opponentShort: "LOT", timeText: "18:30" },
-      { day: 5, location: "H", opponentShort: "LOT", timeText: "18:30" },
-      { day: 7, location: "H", opponentShort: "LOT", timeText: "18:30" },
-      { day: 10, location: "A", opponentShort: "HH", timeText: "18:30", isSelected: true },
+      { day: 4, location: "H", opponentShort: "LOTTE", timeText: "18:30" },
+      { day: 5, location: "H", opponentShort: "LOTTE", timeText: "18:30" },
+      { day: 7, location: "H", opponentShort: "LOTTE", timeText: "18:30" },
+      { day: 10, location: "A", opponentShort: "HANWHA", timeText: "18:30", isSelected: true },
       { day: 18, location: "H", opponentShort: "NC", timeText: "18:30" },
       { day: 19, location: "H", opponentShort: "NC", timeText: "18:30" },
       { day: 22, location: "H", opponentShort: "LG", timeText: "18:30" },
       { day: 23, location: "H", opponentShort: "LG", timeText: "18:30" },
       { day: 24, location: "H", opponentShort: "LG", timeText: "18:30" },
-      { day: 30, location: "H", opponentShort: "DOO", timeText: "18:30" },
-      { day: 31, location: "H", opponentShort: "DOO", timeText: "18:30" },
+      { day: 30, location: "H", opponentShort: "DOOSAN", timeText: "18:30" },
+      { day: 31, location: "H", opponentShort: "DOOSAN", timeText: "18:30" },
     ];
 
     return {
