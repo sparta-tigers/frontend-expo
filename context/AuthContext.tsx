@@ -21,9 +21,11 @@ import {
   useEffect,
   useState,
 } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const MY_TEAM_STORAGE_KEY = "yaguniv_my_team";
+const getMyTeamKey = (userId?: number) =>
+  userId ? `yaguniv_my_team_${userId}` : "yaguniv_my_team_guest";
 
 /**
  * 단순화된 토큰 타입
@@ -129,6 +131,7 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<SimpleToken | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [myTeam, setMyTeam] = useState<string | null>(null);
@@ -146,28 +149,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const loadToken = async (): Promise<void> => {
     try {
       setIsLoading(true);
-      
-      // 🚨 응원팀 정보 로드 (Optimistic Update를 위한 초기화)
-      const savedTeam = await AsyncStorage.getItem(MY_TEAM_STORAGE_KEY);
-      if (savedTeam) {
-        setMyTeam(savedTeam);
-      }
 
       const accessToken = await getAccessToken();
 
       if (__DEV__) {
         Logger.debug("[AuthContext] 토큰 로드 시도");
         Logger.debug("- Access Token 존재 여부:", !!accessToken);
-        Logger.debug("- Access Token:", maskSensitive(accessToken));
       }
 
       if (accessToken) {
         const refreshToken = await getRefreshToken();
-
-        if (__DEV__) {
-          Logger.debug("- Refresh Token 존재 여부:", !!refreshToken);
-          Logger.debug("- Refresh Token:", maskSensitive(refreshToken));
-        }
 
         if (refreshToken) {
           // 토큰 저장
@@ -183,21 +174,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
           setUser(tokenPayload);
 
+          // 🚨 [Sequence] 2. 토큰 복원 후 해당 사용자의 응원팀 정보 로드
+          const userId = tokenPayload.userId;
+          const savedTeam = await AsyncStorage.getItem(getMyTeamKey(userId));
+          if (savedTeam) {
+            setMyTeam(savedTeam);
+          }
+
           if (__DEV__) {
-            Logger.debug(
-              "✅ [AuthContext] 토큰 로드 성공 - 사용자 상태 설정 완료",
-              maskSensitive(accessToken),
-            );
+            Logger.debug("✅ [AuthContext] 토큰 및 사용자 환경 설정 로드 성공");
           }
         } else {
-          if (__DEV__) {
-            Logger.warn(
-              "⚠️ [AuthContext] Access Token만 존재 - Refresh Token 없음",
-            );
-          }
           await clearTokens();
         }
       } else {
+        // 비로그인 상태의 게스트 팀 정보 로드
+        const guestTeam = await AsyncStorage.getItem(getMyTeamKey(undefined));
+        if (guestTeam) {
+          setMyTeam(guestTeam);
+        }
         if (__DEV__) {
           Logger.info("ℹ️ [AuthContext] 저장된 토큰 없음 - 비로그인 상태");
         }
@@ -341,21 +336,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
    */
   const signout = async (): Promise<void> => {
     try {
-      // 현재 리프레시 토큰 가져오기
       const currentRefreshToken = await getRefreshToken();
-
       if (currentRefreshToken) {
-        // 서버에 로그아웃 통보 (실패하더라도 로컬 정리는 진행)
         await authSignoutAPI(currentRefreshToken);
       }
     } catch (error) {
       Logger.error("서버 로그아웃 통보 실패:", error);
     } finally {
-      // TokenStore에서 토큰 삭제
-      await clearTokens();
+      // 🚨 [Auth Stability] 1. React Query 캐시 즉시 초기화 (이전 사용자 데이터 제거)
+      queryClient.clear();
 
-      // 상태 초기화
+      // 2. TokenStore 및 상태 초기화
+      await clearTokens();
       setUser(null);
+      setMyTeam(null);
     }
   };
 
@@ -368,15 +362,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     try {
       // 1. 상태 즉시 업데이트 (UI 반응성 확보)
       setMyTeam(teamName);
-      
-      // 2. 로컬 스토리지 저장 (영속성 확보)
-      await AsyncStorage.setItem(MY_TEAM_STORAGE_KEY, teamName);
-      
-      // 3. API 연동 (백엔드 반영 - 필요 시 구현)
-      // TODO: await userUpdateAPI({ favoriteTeam: teamName });
-      
+
+      // 2. 로컬 스토리지 저장 (사용자별 고유 키 사용)
+      await AsyncStorage.setItem(getMyTeamKey(user?.userId), teamName);
+
       if (__DEV__) {
-        Logger.debug(`✅ [AuthContext] 응원팀 변경 완료: ${teamName}`);
+        Logger.debug(`✅ [AuthContext] 응원팀 변경 완료 (${user?.userId || "Guest"}): ${teamName}`);
       }
     } catch (error) {
       Logger.error("[AuthContext] 응원팀 변경 실패:", error);

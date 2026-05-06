@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
  */
 export default function ItemDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -209,14 +209,14 @@ export default function ItemDetailScreen() {
 
   const {
     data: item,
-    isLoading,
+    isLoading: isItemLoading,
     error,
     refetch,
   } = useQuery({
     queryKey: ["item", id],
     queryFn: () => itemsGetDetailAPI(itemIdNumber),
     staleTime: 0,
-    enabled: !!id && user !== null,
+    enabled: !!id && !isAuthLoading && user !== null,
   });
 
   const itemUserObjId = item?.data?.user?.userId ?? item?.data?.userId;
@@ -354,7 +354,7 @@ export default function ItemDetailScreen() {
     ]);
   }, [deleteItem]);
 
-  if (user === null && !isLoading) {
+  if (user === null && !isAuthLoading && !isItemLoading) {
     return (
       <SafeLayout style={styles.container}>
         <Box style={styles.errorContainer}>
@@ -367,7 +367,7 @@ export default function ItemDetailScreen() {
     );
   }
 
-  if (isLoading) {
+  if (isAuthLoading || isItemLoading) {
     return (
       <SafeLayout style={styles.container}>
         <Box style={styles.loadingContainer}>

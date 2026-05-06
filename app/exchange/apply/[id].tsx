@@ -130,7 +130,7 @@ export default function ApplyExchangeScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
 
   const targetItemId = Number(id);
   const isTargetItemIdValid = !!id && Number.isFinite(targetItemId) && targetItemId > 0;
@@ -140,6 +140,9 @@ export default function ApplyExchangeScreen() {
 
   // [EB-1] 마운트 시 유효성 검사 및 딥링크 비로그인 접근 차단
   React.useEffect(() => {
+    // 🚨 [Auth Stability] 하이드레이션 중에는 체크를 유보함
+    if (isAuthLoading) return;
+
     // 1. 로그인 상태 체크
     if (user === null) {
       Alert.alert("인증 오류", "로그인 후 이용해주세요.", [
@@ -155,13 +158,13 @@ export default function ApplyExchangeScreen() {
         { text: "확인", onPress: () => router.back() }
       ]);
     }
-  }, [user, router, isTargetItemIdValid, id]);
+  }, [user, isAuthLoading, router, isTargetItemIdValid, id]);
 
   // 교환 대상 아이템 조회 (receiverId 추출용)
   const { data: targetItem, isLoading: isItemLoading } = useQuery({
     queryKey: ["item", id],
     queryFn: () => itemsGetDetailAPI(targetItemId),
-    enabled: isTargetItemIdValid && user !== null,
+    enabled: isTargetItemIdValid && !isAuthLoading && user !== null,
   });
 
   const { mutate: requestExchange, isPending } = useMutation({
@@ -227,7 +230,8 @@ export default function ApplyExchangeScreen() {
     return null; // Early Return 처리 중 (Alert 표시 중)
   }
 
-  if (isItemLoading) {
+  // 🚨 [Auth Stability] 인증 정보 로딩 중이거나 아이템 로딩 중일 때 로딩 화면 표시
+  if (isAuthLoading || isItemLoading) {
     return (
       <>
         <Stack.Screen

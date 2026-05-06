@@ -23,7 +23,7 @@ export default function TabLayout() {
   const { user } = useAuth();
 
   const { data: receiveResponse, refetch } = useQuery({
-    queryKey: ["exchangeRequests", "receiver", "PENDING"],
+    queryKey: ["exchangeRequests", user?.userId, "receiver", "PENDING"],
     queryFn: () => exchangeGetMyRequestsAPI("receiver", 0, 1, "PENDING"),
     enabled: !!user?.userId,
     refetchInterval: 30000,
