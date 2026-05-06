@@ -5,8 +5,14 @@ import { View, ViewProps, ViewStyle } from "react-native";
 /**
  * 테마 컬러를 재귀적으로 찾아주는 유틸리티
  */
-const resolveThemeColor = (path: string, obj: any): string | undefined => {
-  return path.split(".").reduce((acc, part) => acc && acc[part], obj);
+const resolveThemeColor = (path: string, obj: Record<string, unknown>): string | undefined => {
+  const result = path.split(".").reduce((acc: unknown, part) => {
+    if (acc && typeof acc === "object" && part in acc) {
+      return (acc as Record<string, unknown>)[part];
+    }
+    return undefined;
+  }, obj);
+  return typeof result === "string" ? result : undefined;
 };
 
 /**
@@ -170,7 +176,7 @@ export const Box = ({
   if (justify !== undefined) boxStyle.justifyContent = justify;
   if (width !== undefined) boxStyle.width = width;
   if (height !== undefined) boxStyle.height = height;
-  if (gap !== undefined) boxStyle.gap = getSpacing(gap as any);
+  if (gap !== undefined) boxStyle.gap = getSpacing(gap);
   
   if (rounded !== undefined) boxStyle.borderRadius = getRadius(rounded);
   if (roundedTop !== undefined) {

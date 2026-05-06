@@ -23,6 +23,9 @@ const MAPPING = {
   'chart.bar.fill': 'bar-chart',
   'clock.fill': 'schedule',
   'star.fill': 'star',
+  'arrow.left.arrow.right': 'swap-horiz',
+  'bell.fill': 'notifications',
+  'list.bullet': 'list',
 } as IconMapping;
 
 /**

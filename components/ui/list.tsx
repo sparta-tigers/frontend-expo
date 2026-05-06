@@ -28,11 +28,11 @@ interface ListItemProps {
 /**
  * 리스트 컴포넌트 속성
  */
-interface ListProps {
+interface ListProps<T> {
   /** 리스트 데이터 */
-  data: any[];
+  data: T[];
   /** 아이템 렌더 함수 */
-  renderItem: ListRenderItem<any>;
+  renderItem: ListRenderItem<T>;
   /** 로딩 상태 */
   loading?: boolean;
   /** 더 불러오기 핸들러 */
@@ -53,7 +53,7 @@ interface ListProps {
  * - 무한 스크롤 지원
  * - 빈 상태 처리
  */
-export const List: React.FC<ListProps> = ({
+export const List = <T,>({
   data,
   renderItem,
   loading = false,
@@ -61,7 +61,7 @@ export const List: React.FC<ListProps> = ({
   emptyMessage = "데이터가 없습니다.",
   style,
   showSeparator = true,
-}) => {
+}: ListProps<T>) => {
   const theme = useTheme();
 
   const renderSeparator = () => {
@@ -126,9 +126,14 @@ export const List: React.FC<ListProps> = ({
       <FlatList
         data={data}
         renderItem={renderItem}
-        keyExtractor={(item, index) =>
-          item?.id?.toString() || item?.key?.toString() || index.toString()
-        }
+        keyExtractor={(item, index) => {
+          const it = item as Record<string, unknown>;
+          return (
+            (it.id as string | number | undefined)?.toString() ||
+            (it.key as string | number | undefined)?.toString() ||
+            index.toString()
+          );
+        }}
         ItemSeparatorComponent={renderSeparator}
         ListEmptyComponent={renderEmpty}
         ListFooterComponent={renderFooter}

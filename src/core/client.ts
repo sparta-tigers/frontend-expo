@@ -14,8 +14,8 @@ import { z } from "zod";
  */
 let isRefreshing = false;
 let failedQueue: {
-  resolve: (value?: any) => void;
-  reject: (error: any) => void;
+  resolve: (value: string | PromiseLike<string>) => void;
+  reject: (error: unknown) => void;
 }[] = [];
 
 /**
@@ -23,7 +23,7 @@ let failedQueue: {
  * @param token - 새로운 액세스 토큰
  * @param error - 에러 (실패 시)
  */
-const processQueue = (token?: string, error?: any) => {
+const processQueue = (token?: string, error?: unknown) => {
   failedQueue.forEach(({ resolve, reject }) => {
     if (token) {
       resolve(token);
@@ -309,9 +309,9 @@ export const apiClient = {
   /**
    * GET 요청
    */
-  get: async <T = any>(
+  get: async <T = unknown>(
     url: string,
-    params?: Record<string, any>,
+    params?: Record<string, unknown>,
     schema?: z.ZodType<T>,
   ): Promise<T> => {
     try {
@@ -346,9 +346,9 @@ export const apiClient = {
   /**
    * POST 요청
    */
-  post: async <T = any>(
+  post: async <T = unknown>(
     url: string,
-    data?: Record<string, any>,
+    data?: unknown,
     config?: AxiosRequestConfig & { schema?: z.ZodType<T> },
   ): Promise<T> => {
     try {
@@ -383,9 +383,9 @@ export const apiClient = {
   /**
    * PUT 요청
    */
-  put: async <T = any>(
+  put: async <T = unknown>(
     url: string,
-    data?: Record<string, any>,
+    data?: unknown,
     schema?: z.ZodType<T>,
   ): Promise<T> => {
     try {
@@ -420,7 +420,7 @@ export const apiClient = {
   /**
    * DELETE 요청
    */
-  delete: async <T = any>(url: string, schema?: z.ZodType<T>): Promise<T> => {
+  delete: async <T = unknown>(url: string, schema?: z.ZodType<T>): Promise<T> => {
     try {
       const response = await axiosInstance.delete(url);
       const responseData = response.data;
@@ -453,9 +453,9 @@ export const apiClient = {
   /**
    * PATCH 요청
    */
-  patch: async <T = any>(
+  patch: async <T = unknown>(
     url: string,
-    data?: Record<string, any>,
+    data?: unknown,
     schema?: z.ZodType<T>,
   ): Promise<T> => {
     try {

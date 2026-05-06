@@ -90,7 +90,7 @@ export default function HistoryScreen() {
   }, [fetchExchangeRequests]);
 
   const renderExchangeRequest = ({ item }: { item: ReceiveExchangeRequest }) => {
-    const statusColor =
+    const statusColor: keyof typeof theme.colors =
       item.exchangeStatus === ExchangeRequestStatus.PENDING
         ? "warning"
         : item.exchangeStatus === ExchangeRequestStatus.ACCEPTED
@@ -110,7 +110,7 @@ export default function HistoryScreen() {
             rounded="sm" 
             style={[styles.statusBadge, { borderColor: theme.colors[statusColor] }]}
           >
-            <Typography variant="caption" color={statusColor as any} weight="semibold">
+            <Typography variant="caption" color={statusColor} weight="semibold">
               {item.exchangeStatus === ExchangeRequestStatus.PENDING
                 ? "대기 중"
                 : item.exchangeStatus === ExchangeRequestStatus.ACCEPTED

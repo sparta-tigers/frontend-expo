@@ -24,6 +24,7 @@ import {
 import { apiClient } from "@/src/core/client";
 import { chatroomsGetMessagesAPI } from "@/src/features/chat/api";
 import { itemsUpdateStatusAPI } from "@/src/features/exchange/api";
+import { ApiResponse } from "@/src/shared/types/common";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useWebSocket } from "@/src/hooks/useWebSocket";
 import { theme } from "@/src/styles/theme";
@@ -233,7 +234,7 @@ export default function ChatRoomScreen() {
   const { data: exchangeItem, isLoading: itemLoading } = useQuery({
     queryKey: ["exchangeItem", roomIdNumber],
     queryFn: async () => {
-      const response = await apiClient.get(
+      const response = await apiClient.get<ApiResponse<ExchangeItem>>(
         `/api/direct-rooms/${roomIdNumber}/item`,
       );
       return response.data as ExchangeItem;

@@ -1,7 +1,6 @@
-/* eslint-disable react-native/no-unused-styles */
 import { theme } from "@/src/styles/theme";
 import React from "react";
-import { Text, TextProps, TextStyle, StyleSheet } from "react-native";
+import { Text, TextProps, TextStyle } from "react-native";
 
 export type TypographyVariant = 
   | "h1" 
@@ -11,6 +10,19 @@ export type TypographyVariant =
   | "body2" 
   | "caption" 
   | "label";
+
+/**
+ * 테마 컬러를 재귀적으로 찾아주는 유틸리티
+ */
+const resolveThemeColor = (path: string, obj: Record<string, unknown>): string | undefined => {
+  const result = path.split(".").reduce((acc: unknown, part) => {
+    if (acc && typeof acc === "object" && part in acc) {
+      return (acc as Record<string, unknown>)[part];
+    }
+    return undefined;
+  }, obj);
+  return typeof result === "string" ? result : undefined;
+};
 
 /**
  * Typography 컴포넌트의 커스텀 Props
@@ -61,18 +73,22 @@ export const Typography = ({
   children,
   ...rest
 }: TypographyProps) => {
-  const variantStyle = styles[variant];
+  const variantStyle = VARIANT_STYLES[variant];
 
   const getSpacing = (val: keyof typeof theme.spacing | number | undefined) => {
     if (typeof val === "number") return val;
     return val ? theme.spacing[val] : undefined;
   };
   
+  const resolvedColor = color 
+    ? (color.includes('.') 
+        ? resolveThemeColor(color, theme.colors) 
+        : ((theme.colors as Record<string, any>)[color] || color))
+    : theme.colors.text.primary;
+
   const customStyle: TextStyle = {
     fontWeight: weight ? theme.typography.weight[weight] : variantStyle.fontWeight,
-    color: color 
-      ? (color.includes('.') ? color.split('.').reduce((obj: any, key) => obj?.[key], theme.colors) : ((theme.colors as any)[color] || color))
-      : (theme.colors.text.primary),
+    color: resolvedColor as string,
     textAlign: center ? "center" : undefined,
     marginTop: getSpacing(mt),
     marginBottom: getSpacing(mb),
@@ -89,7 +105,7 @@ export const Typography = ({
   );
 };
 
-const styles = StyleSheet.create({
+const VARIANT_STYLES = {
   h1: {
     fontSize: theme.typography.size.TITLE,
     fontWeight: theme.typography.weight.bold,
@@ -118,4 +134,4 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.size.xs,
     fontWeight: theme.typography.weight.regular,
   },
-});
+} as const;

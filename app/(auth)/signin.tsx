@@ -2,7 +2,7 @@ import { SafeLayout } from "@/components/ui/safe-layout";
 import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { IconSymbol, type IconSymbolName } from "@/components/ui/icon-symbol";
 import { type Href, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -246,17 +246,17 @@ export default function SigninScreen() {
           >
             <Box flex={1} py={LOCAL_LAYOUT.tabBarPaddingVertical}>
               <Box flex={1} flexDir="row" px="xl" justify="space-between" align="center">
-                {[
+                {([
                   { name: "house.fill", label: "홈" },
                   { name: "chart.bar.fill", label: "라이브보드" },
                   { name: "arrow.left.arrow.right", label: "교환" },
                   { name: "bell.fill", label: "예매알림" },
                   { name: "list.bullet", label: "직관기록" },
-                ].map((tab, idx) => (
+                ] as const satisfies { readonly name: IconSymbolName; readonly label: string }[]).map((tab, idx) => (
                   <Box key={idx} width={LOCAL_LAYOUT.tabLabelWidth} align="center" justify="center" gap="xs">
                     <IconSymbol
                       size={theme.typography.size.xl}
-                      name={tab.name as any}
+                      name={tab.name}
                       color={theme.colors.brand.inactive}
                     />
                     <Typography variant="caption" color="brand.inactive" center>

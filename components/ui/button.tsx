@@ -6,6 +6,9 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ViewStyle,
+  TextStyle,
+  StyleProp,
 } from "react-native";
 
 /**
@@ -27,9 +30,9 @@ interface ButtonProps {
   /** 전체 너비 차지 */
   fullWidth?: boolean;
   /** 커스텀 스타일 */
-  style?: any;
+  style?: StyleProp<ViewStyle>;
   /** 텍스트 스타일 */
-  textStyle?: any;
+  textStyle?: StyleProp<TextStyle>;
 }
 
 /**
@@ -69,81 +72,64 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   // variant별 버튼 스타일
-  const getButtonStyle = () => {
-    const baseStyle = {
-      ...styles.button,
-      ...getSizeStyle(),
-      ...(fullWidth && styles.fullWidth),
-      ...style,
-    };
+  const getButtonStyle = (): StyleProp<ViewStyle> => {
+    const baseStyle: any[] = [
+      styles.button,
+      getSizeStyle(),
+      fullWidth && styles.fullWidth,
+      style,
+    ];
 
+    let variantStyle: ViewStyle = {};
     switch (variant) {
       case "primary":
-        return {
-          ...baseStyle,
-          backgroundColor: theme.colors.brand.mint, // 1:1 매핑: 기존 colors.primary가 가리키던 메인 컬러
-        };
+        variantStyle = { backgroundColor: theme.colors.brand.mint };
+        break;
       case "secondary":
-        return {
-          ...baseStyle,
+        variantStyle = {
           backgroundColor: theme.colors.surface,
           borderWidth: 1,
           borderColor: theme.colors.border.medium,
         };
+        break;
       case "outline":
-        return {
-          ...baseStyle,
+        variantStyle = {
           backgroundColor: "transparent",
           borderWidth: 1,
           borderColor: theme.colors.brand.mint,
         };
+        break;
       case "ghost":
-        return {
-          ...baseStyle,
-          backgroundColor: "transparent",
-        };
+        variantStyle = { backgroundColor: "transparent" };
+        break;
       default:
-        return {
-          ...baseStyle,
-          backgroundColor: theme.colors.brand.mint,
-        };
+        variantStyle = { backgroundColor: theme.colors.brand.mint };
     }
+
+    return [baseStyle, variantStyle];
   };
 
   // variant별 텍스트 스타일
-  const getTextStyle = () => {
-    const baseTextStyle = {
-      ...styles.text,
-      ...textStyle,
-    };
+  const getTextStyle = (): StyleProp<TextStyle> => {
+    const baseTextStyle: any[] = [styles.text, textStyle];
 
+    let variantTextStyle: TextStyle = {};
     switch (variant) {
       case "primary":
-        return {
-          ...baseTextStyle,
-          color: theme.colors.background,
-        };
+        variantTextStyle = { color: theme.colors.background };
+        break;
       case "secondary":
-        return {
-          ...baseTextStyle,
-          color: theme.colors.text.primary,
-        };
+        variantTextStyle = { color: theme.colors.text.primary };
+        break;
       case "outline":
-        return {
-          ...baseTextStyle,
-          color: theme.colors.brand.mint,
-        };
       case "ghost":
-        return {
-          ...baseTextStyle,
-          color: theme.colors.brand.mint,
-        };
+        variantTextStyle = { color: theme.colors.brand.mint };
+        break;
       default:
-        return {
-          ...baseTextStyle,
-          color: theme.colors.background,
-        };
+        variantTextStyle = { color: theme.colors.background };
     }
+
+    return [baseTextStyle, variantTextStyle];
   };
 
   return (
