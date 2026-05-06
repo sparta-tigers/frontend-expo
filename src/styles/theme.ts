@@ -267,6 +267,15 @@ export const theme = {
    * 컴포넌트 코드에서 숫자 하드코딩을 제거하고 일관성을 유지한다.
    */
   layout: {
+    /** 공통 레이아웃 토큰 (3개 이상의 화면에서 재사용) */
+    common: {
+      /** 표준 리스트 아이템 높이 (교환 아이템, 랭킹 카드 등) */
+      standardItemHeight: 52,
+      /** 대시보드/교환 등 주요 화면 헤더 타이틀 크기 */
+      headerTitleSize: 24,
+      /** 하단 고정 버튼이 있는 스크롤 뷰의 최하단 패딩 */
+      bottomPadding: 100,
+    },
     /** 전역 헤더 레이아웃 토큰 */
     header: {
       backIconSize: 36,

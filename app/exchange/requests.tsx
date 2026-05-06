@@ -1,19 +1,26 @@
 import { theme } from "@/src/styles/theme";
 import { Ionicons } from "@expo/vector-icons";
+import {
+  Alert,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import {
-    Alert,
-    FlatList,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from "react-native";
 import { SafeLayout } from "@/components/ui/safe-layout";
+import { Box, Typography } from "@/components/ui";
 import { useExchangeRequests } from "@/src/features/exchange/hooks/useExchangeRequests";
 import { ReceiveExchangeRequest, ExchangeRequestStatus } from "@/src/features/exchange/types";
+
+/**
+ * 교환 요청 관리 화면 전용 레이아웃 상수
+ */
+const LOCAL_LAYOUT = {
+  headerRightSpacer: 40,
+  tabTextSize: 16,
+} as const;
 
 /**
  * 교환 요청 관리 화면
@@ -67,10 +74,10 @@ export default function ExchangeRequestsScreen() {
   }, [handleReject]);
 
   const renderRequestItem = useCallback(({ item }: { item: ReceiveExchangeRequest }) => (
-    <View style={styles.requestItem}>
-      <View style={styles.requestHeader}>
-        <Text style={styles.itemTitle}>{item.title}</Text>
-        <Text style={[
+    <Box style={styles.requestItem}>
+      <Box style={styles.requestHeader}>
+        <Typography variant="h3" style={styles.itemTitle}>{item.title}</Typography>
+        <Typography style={[
           styles.statusText,
           item.exchangeStatus === ExchangeRequestStatus.ACCEPTED && styles.statusAccepted,
           item.exchangeStatus === ExchangeRequestStatus.REJECTED && styles.statusRejected
@@ -78,78 +85,78 @@ export default function ExchangeRequestsScreen() {
           {item.exchangeStatus === ExchangeRequestStatus.PENDING ? "대기 중" :
            item.exchangeStatus === ExchangeRequestStatus.ACCEPTED ? "승낙됨" : 
            item.exchangeStatus === ExchangeRequestStatus.REJECTED ? "거절됨" : "완료됨"}
-        </Text>
-      </View>
+        </Typography>
+      </Box>
 
-      <View style={styles.requestInfo}>
+      <Box style={styles.requestInfo}>
         {activeTab === "receiver" && (
-          <Text style={styles.requesterText}>요청자: {item.sender.userNickname}</Text>
+          <Typography variant="body2" style={styles.requesterText}>요청자: {item.sender.userNickname}</Typography>
         )}
-        <Text style={styles.categoryText}>카테고리: {item.category === "TICKET" ? "티켓" : "굿즈"}</Text>
-        <Text style={styles.dateText}>요청일: {new Date(item.createdAt).toLocaleDateString()}</Text>
-      </View>
+        <Typography variant="body2" style={styles.categoryText}>카테고리: {item.category === "TICKET" ? "티켓" : "굿즈"}</Typography>
+        <Typography variant="caption" style={styles.dateText}>요청일: {new Date(item.createdAt).toLocaleDateString()}</Typography>
+      </Box>
 
       {item.exchangeStatus === ExchangeRequestStatus.PENDING && activeTab === "receiver" && (
-        <View style={styles.actionButtons}>
+        <Box style={styles.actionButtons}>
           <TouchableOpacity
             style={styles.acceptButton}
             onPress={() => onAccept(item.exchangeRequestId)}
           >
-            <Text style={styles.buttonText}>승낙</Text>
+            <Typography style={styles.buttonText}>승낙</Typography>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.rejectButton}
             onPress={() => onReject(item.exchangeRequestId)}
           >
-            <Text style={styles.buttonText}>거절</Text>
+            <Typography style={styles.buttonText}>거절</Typography>
           </TouchableOpacity>
-        </View>
+        </Box>
       )}
-    </View>
+    </Box>
   ), [activeTab, onAccept, onReject]);
 
   if (loading && !refreshing && requests.length === 0) {
     return (
       <SafeLayout style={styles.safeLayout}>
-        <View style={styles.centered}>
-          <Text style={styles.loadingText}>로딩 중...</Text>
-        </View>
+        <Box style={styles.centered}>
+          <Typography style={styles.loadingText}>로딩 중...</Typography>
+        </Box>
       </SafeLayout>
     );
   }
 
   return (
     <SafeLayout style={styles.safeLayout}>
-      <View style={styles.container}>
-        <View style={styles.header}>
+      <Box style={styles.container}>
+        <Box style={styles.header}>
           <TouchableOpacity
             onPress={() => router.back()}
             style={styles.tabArrowButton}
           >
             <Ionicons name="chevron-back" size={24} color={theme.colors.text.primary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>교환 요청</Text>
-          <View style={styles.headerRightSpacer} />
-        </View>
+          <Typography variant="h1" style={styles.headerTitle}>교환 요청</Typography>
+          <Box style={styles.headerRightSpacer} />
+        </Box>
 
-        <View style={styles.tabsContainer}>
+        <Box style={styles.tabsContainer}>
           <TouchableOpacity
             style={[styles.tab, activeTab === "receiver" && styles.activeTab]}
             onPress={() => setActiveTab("receiver")}
           >
-            <Text style={[styles.tabText, activeTab === "receiver" && styles.activeTabText]}>
+            <Typography style={[styles.tabText, activeTab === "receiver" && styles.activeTabText]}>
               받은 요청
-            </Text>
+            </Typography>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.tab, activeTab === "sender" && styles.activeTab]}
             onPress={() => setActiveTab("sender")}
           >
-            <Text style={[styles.tabText, activeTab === "sender" && styles.activeTabText]}>
+            <Typography style={[styles.tabText, activeTab === "sender" && styles.activeTabText]}>
               보낸 요청
-            </Text>
+            </Typography>
           </TouchableOpacity>
-        </View>
+        </Box>
 
         <FlatList
           data={requests}
@@ -165,21 +172,21 @@ export default function ExchangeRequestsScreen() {
             />
           }
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>
+            <Box style={styles.emptyContainer}>
+              <Typography style={styles.emptyText}>
                 {error ? `에러: ${error}` : (activeTab === "receiver"
                   ? "받은 교환 요청이 없습니다."
                   : "보낸 교환 요청이 없습니다.")}
-              </Text>
+              </Typography>
               {(requests.length === 0 || error) && !loading && (
                 <TouchableOpacity style={styles.retryButton} onPress={() => fetchRequests()}>
-                  <Text style={styles.retryButtonText}>다시 시도</Text>
+                  <Typography style={styles.retryButtonText}>다시 시도</Typography>
                 </TouchableOpacity>
               )}
-            </View>
+            </Box>
           }
         />
-      </View>
+      </Box>
     </SafeLayout>
   );
 }
@@ -202,14 +209,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
   },
   headerTitle: {
-    fontSize: 24, // theme.ts에 24 토큰 없음, 디자인 정합성 위해 유지하거나 추가 필요
-    fontWeight: "700",
+    fontWeight: theme.typography.weight.bold,
     textAlign: "center",
     flex: 1,
     color: theme.colors.text.primary,
   },
   headerRightSpacer: {
-    width: 40,
+    width: LOCAL_LAYOUT.headerRightSpacer,
   },
   tabsContainer: {
     flexDirection: "row",
@@ -231,7 +237,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.primary,
   },
   tabText: {
-    fontSize: 16,
+    fontSize: LOCAL_LAYOUT.tabTextSize,
     fontWeight: "600",
     color: theme.colors.text.secondary,
   },
@@ -258,14 +264,11 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   itemTitle: {
-    fontSize: theme.typography.size.CARD_TITLE,
-    fontWeight: "700",
     color: theme.colors.text.primary,
     flex: 1,
   },
   statusText: {
-    fontSize: theme.typography.size.sm,
-    fontWeight: "600",
+    fontWeight: theme.typography.weight.semibold,
     color: theme.colors.primary,
   },
   statusAccepted: {
@@ -278,17 +281,14 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.lg,
   },
   requesterText: {
-    fontSize: theme.typography.size.sm,
     color: theme.colors.text.secondary,
     marginBottom: theme.spacing.xs,
   },
   categoryText: {
-    fontSize: theme.typography.size.sm,
     color: theme.colors.text.secondary,
     marginBottom: theme.spacing.xs,
   },
   dateText: {
-    fontSize: theme.typography.size.xs,
     color: theme.colors.text.tertiary,
   },
   actionButtons: {
@@ -310,8 +310,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.error,
   },
   buttonText: {
-    fontSize: theme.typography.size.sm,
-    fontWeight: "700",
+    fontWeight: theme.typography.weight.bold,
     color: theme.colors.card,
   },
   centered: {
@@ -329,7 +328,6 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
   },
   emptyText: {
-    fontSize: theme.typography.size.md,
     textAlign: "center",
     color: theme.colors.text.secondary,
     marginBottom: theme.spacing.lg,

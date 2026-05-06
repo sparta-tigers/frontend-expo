@@ -1,4 +1,3 @@
-// app/exchange/apply/[id].tsx
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
@@ -6,23 +5,25 @@ import {
   ActivityIndicator,
   Alert,
   StyleSheet,
-  Text,
   TouchableOpacity,
-  View,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { Box, Typography } from "@/components/ui";
 import { Input } from "@/components/ui/input";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { exchangeCreateAPI, itemsGetDetailAPI, ExchangeRoomResponseDto } from "@/src/features/exchange/api";
+import { ExchangeRoomResponseDto, exchangeCreateAPI, itemsGetDetailAPI } from "@/src/features/exchange/api";
 import { CreateExchangeDto } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
-import { FONT_SIZE, SPACING } from "@/src/styles/unified-design";
 import { Logger } from "@/src/utils/logger";
-const APPLY_CONTENT_PADDING_BOTTOM = 100;
-const APPLY_BUTTON_HEIGHT = 52;
+
+const LOCAL_LAYOUT = {
+  contentPaddingBottom: theme.layout.common.bottomPadding,
+  buttonHeight: theme.layout.common.standardItemHeight,
+  haveInputMinHeight: 120,
+} as const;
 
 const styles = StyleSheet.create({
   container: {
@@ -30,9 +31,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   content: {
-    paddingHorizontal: SPACING.SCREEN,
-    paddingTop: SPACING.COMPONENT,
-    paddingBottom: APPLY_CONTENT_PADDING_BOTTOM,
+    paddingHorizontal: theme.spacing.SCREEN,
+    paddingTop: theme.spacing.COMPONENT,
+    paddingBottom: LOCAL_LAYOUT.contentPaddingBottom,
   },
   loadingContainer: {
     flex: 1,
@@ -46,49 +47,43 @@ const styles = StyleSheet.create({
   targetItemBox: {
     borderRadius: theme.radius.lg,
     borderWidth: 1,
-    padding: SPACING.COMPONENT,
-    marginBottom: SPACING.SECTION,
+    padding: theme.spacing.COMPONENT,
+    marginBottom: theme.spacing.SECTION,
     backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border.medium,
   },
   targetItemLabel: {
-    fontSize: FONT_SIZE.SMALL,
     marginBottom: theme.spacing.xs,
     color: theme.colors.text.tertiary,
   },
   targetItemTitle: {
-    fontSize: FONT_SIZE.BODY,
-    fontWeight: "700",
+    fontWeight: theme.typography.weight.bold,
     color: theme.colors.text.primary,
   },
   header: {
-    marginBottom: SPACING.SECTION,
+    marginBottom: theme.spacing.SECTION,
   },
   title: {
-    fontSize: FONT_SIZE.TITLE,
-    fontWeight: "bold",
-    marginBottom: SPACING.SMALL / 2,
+    marginBottom: theme.spacing.sm / 2,
     color: theme.colors.text.primary,
   },
   subtitle: {
-    fontSize: FONT_SIZE.BODY,
     color: theme.colors.text.tertiary,
   },
   inputContainer: {
-    marginBottom: SPACING.SECTION,
+    marginBottom: theme.spacing.SECTION,
   },
   inputLabel: {
-    fontSize: FONT_SIZE.BODY,
-    fontWeight: "600",
-    marginBottom: SPACING.SMALL,
+    fontWeight: theme.typography.weight.semibold,
+    marginBottom: theme.spacing.sm,
     color: theme.colors.text.primary,
   },
   requiredMark: {
-    fontWeight: "700",
+    fontWeight: theme.typography.weight.bold,
     color: theme.colors.error,
   },
   haveInput: {
-    minHeight: 120,
+    minHeight: LOCAL_LAYOUT.haveInputMinHeight,
     textAlignVertical: "top",
   },
   bottomContainer: {
@@ -105,13 +100,11 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   submitButtonText: {
-    fontSize: FONT_SIZE.BODY,
-    fontWeight: "600",
-    textAlign: "center",
+    fontWeight: theme.typography.weight.semibold,
     color: theme.colors.background,
   },
   applyButton: {
-    height: APPLY_BUTTON_HEIGHT,
+    height: LOCAL_LAYOUT.buttonHeight,
     borderRadius: theme.radius.md,
     justifyContent: "center",
     alignItems: "center",
@@ -243,9 +236,9 @@ export default function ApplyExchangeScreen() {
           }}
         />
         <SafeLayout style={styles.loadingWrapper}>
-          <View style={styles.loadingContainer}>
+          <Box style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.colors.primary} />
-          </View>
+          </Box>
         </SafeLayout>
       </>
     );
@@ -270,27 +263,27 @@ export default function ApplyExchangeScreen() {
         >
           {/* 교환 대상 아이템 표시 */}
           {targetItem?.data && (
-            <View style={styles.targetItemBox}>
-              <Text style={styles.targetItemLabel}>교환 요청 대상 아이템</Text>
-              <Text style={styles.targetItemTitle}>
+            <Box style={styles.targetItemBox}>
+              <Typography variant="body2" style={styles.targetItemLabel}>교환 요청 대상 아이템</Typography>
+              <Typography variant="h3" style={styles.targetItemTitle}>
                 {targetItem.data.title}
-              </Text>
-            </View>
+              </Typography>
+            </Box>
           )}
 
           {/* 헤더 안내 */}
-          <View style={styles.header}>
-            <Text style={styles.title}>내가 제안하는 물건</Text>
-            <Text style={styles.subtitle}>
+          <Box style={styles.header}>
+            <Typography variant="h2" style={styles.title}>내가 제안하는 물건</Typography>
+            <Typography variant="body2" style={styles.subtitle}>
               교환하고 싶은 내 물건을 설명해주세요. 상대방에게 전달됩니다.
-            </Text>
-          </View>
+            </Typography>
+          </Box>
 
           {/* have 입력 폼 (필수) */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>
-              교환 물건 설명 <Text style={styles.requiredMark}>*</Text>
-            </Text>
+          <Box style={styles.inputContainer}>
+            <Typography variant="body1" style={styles.inputLabel}>
+              교환 물건 설명 <Typography style={styles.requiredMark}>*</Typography>
+            </Typography>
             <Input
               placeholder="예: BTS 콘서트 포토카드 세트, 상태 최상 / 스타필드 팝업 굿즈"
               value={have}
@@ -299,11 +292,11 @@ export default function ApplyExchangeScreen() {
               numberOfLines={6}
               style={styles.haveInput}
             />
-          </View>
+          </Box>
         </KeyboardAwareScrollView>
 
         {/* 하단 고정 제출 영역 */}
-        <View
+        <Box
           style={[
             styles.bottomContainer,
             {
@@ -319,11 +312,11 @@ export default function ApplyExchangeScreen() {
             onPress={handleSubmit}
             disabled={!have.trim() || isPending}
           >
-            <Text style={styles.submitButtonText}>
+            <Typography style={styles.submitButtonText}>
               {isPending ? "신청 중..." : "제안 보내기"}
-            </Text>
+            </Typography>
           </TouchableOpacity>
-        </View>
+        </Box>
       </SafeLayout>
     </>
   );

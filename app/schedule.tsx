@@ -1,8 +1,9 @@
 import { SafeLayout } from "@/components/ui/safe-layout";
+import { Box, Typography } from "@/components/ui";
 import { theme } from "@/src/styles/theme";
 import { Stack, useLocalSearchParams } from "expo-router";
 import React, { useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
 // ========================================================
@@ -28,17 +29,15 @@ interface CalendarDayDto {
 // ========================================================
 // 화면 전용 레이아웃 상수 (theme 비대화 방지)
 // ========================================================
-const SCHEDULE_LAYOUT = {
+const LOCAL_LAYOUT = {
   teamLogoSubFontSize: 28,
   teamLogoMarginTop: -4,
   togglePadding: 2,
-  rankCardHeight: 52,
   rankNumberWidth: 30,
   statColWidth: 35,
   calendarHeaderHeight: 36,
   calendarCellHeight: 80,
   opponentBadgeSize: 24,
-  scrollBottomPadding: 100,
   letterSpacing: 2,
   dateMinWidth: 100,
   myTeamBorderWidth: 1.5,
@@ -134,57 +133,57 @@ export default function ScheduleScreen() {
     <SafeLayout style={styles.safeLayout} edges={["top", "left", "right"]}>
       <Stack.Screen options={{ headerShown: false }} />
       {/* 1. 상단 로고 및 헤더 영역 */}
-      <View style={styles.topHeader}>
+      <Box style={styles.topHeader}>
         {/* KIA TIGERS 로고 (가짜 뷰로 대체) */}
-        <View style={styles.teamLogoContainer}>
-          <Text style={styles.teamLogoText}>{myTeam.shortName}</Text>
-          <Text style={styles.teamLogoSubText}>{myTeam.subName}</Text>
-        </View>
-      </View>
+        <Box style={styles.teamLogoContainer}>
+          <Typography variant="h3" style={styles.teamLogoText}>{myTeam.shortName}</Typography>
+          <Typography style={styles.teamLogoSubText}>{myTeam.subName}</Typography>
+        </Box>
+      </Box>
 
       {/* 2. 공통 필터 영역 (Toggle, Date, League) */}
-      <View style={styles.filterSection}>
-        <View style={styles.filterRow}>
+      <Box style={styles.filterSection}>
+        <Box style={styles.filterRow}>
           {/* 일자별 / 연도별 토글 */}
-          <View style={styles.toggleGroup}>
+          <Box style={styles.toggleGroup}>
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => setView("day")}
               style={[styles.togglePill, view === "day" && styles.togglePillActive]}
             >
-              <Text style={[styles.togglePillText, view === "day" && styles.togglePillTextActive]}>
+              <Typography style={[styles.togglePillText, view === "day" && styles.togglePillTextActive]}>
                 일자별
-              </Text>
+              </Typography>
             </TouchableOpacity>
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => setView("year")}
               style={[styles.togglePill, view === "year" && styles.togglePillActive]}
             >
-              <Text style={[styles.togglePillText, view === "year" && styles.togglePillTextActive]}>
+              <Typography style={[styles.togglePillText, view === "year" && styles.togglePillTextActive]}>
                 연도별
-              </Text>
+              </Typography>
             </TouchableOpacity>
-          </View>
+          </Box>
 
           {/* 중앙: 날짜 선택기 */}
-          <View style={styles.dateSelector}>
+          <Box style={styles.dateSelector}>
             <TouchableOpacity activeOpacity={0.7} onPress={handlePrev} style={styles.iconButton} accessibilityRole="button" accessibilityLabel="이전">
               <MaterialIcons name="chevron-left" size={28} color={theme.colors.team.neutralDark} />
             </TouchableOpacity>
-            <Text style={styles.dateText}>{dateText}</Text>
+            <Typography variant="h1" style={styles.dateText}>{dateText}</Typography>
             <TouchableOpacity activeOpacity={0.7} onPress={handleNext} style={styles.iconButton} accessibilityRole="button" accessibilityLabel="다음">
               <MaterialIcons name="chevron-right" size={28} color={theme.colors.team.neutralDark} />
             </TouchableOpacity>
-          </View>
+          </Box>
 
           {/* 우측: 정규리그 드롭다운 */}
           <TouchableOpacity activeOpacity={0.8} style={styles.leagueDropdown}>
-            <Text style={styles.leagueDropdownText}>정규리그</Text>
+            <Typography style={styles.leagueDropdownText}>정규리그</Typography>
             <MaterialIcons name="keyboard-arrow-down" size={theme.typography.size.md} color={theme.colors.team.kiaRed} />
           </TouchableOpacity>
-        </View>
-      </View>
+        </Box>
+      </Box>
 
       {/* 3. 본문 렌더링 (main_1 or main_2) */}
       {view === "year" ? (
@@ -213,45 +212,45 @@ function Main1RankingView() {
   return (
     <ScrollView style={styles.contentScroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContentPad}>
       {/* 컬럼 헤더 */}
-      <View style={styles.tableHeaderRow}>
-        <Text style={[styles.tableHeaderText, styles.colRank]}>순위</Text>
-        <Text style={[styles.tableHeaderText, styles.colTeam]}>팀명</Text>
-        <Text style={[styles.tableHeaderText, styles.colStat]}>경기수</Text>
-        <Text style={[styles.tableHeaderText, styles.colStat]}>승</Text>
-        <Text style={[styles.tableHeaderText, styles.colStat]}>패</Text>
-        <Text style={[styles.tableHeaderText, styles.colStat]}>무</Text>
-        <Text style={[styles.tableHeaderText, styles.colStat]}>승률</Text>
-      </View>
+      <Box style={styles.tableHeaderRow}>
+        <Typography style={[styles.tableHeaderText, styles.colRank]}>순위</Typography>
+        <Typography style={[styles.tableHeaderText, styles.colTeam]}>팀명</Typography>
+        <Typography style={[styles.tableHeaderText, styles.colStat]}>경기수</Typography>
+        <Typography style={[styles.tableHeaderText, styles.colStat]}>승</Typography>
+        <Typography style={[styles.tableHeaderText, styles.colStat]}>패</Typography>
+        <Typography style={[styles.tableHeaderText, styles.colStat]}>무</Typography>
+        <Typography style={[styles.tableHeaderText, styles.colStat]}>승률</Typography>
+      </Box>
 
       {/* 랭킹 리스트 */}
-      <View style={styles.rankingList}>
+      <Box style={styles.rankingList}>
         {rankingData.map((row) => {
           const isMyTeam = !!row.isMyTeam;
           return (
-            <View key={row.team.name} style={styles.rankingRow}>
-              <Text style={[styles.rankNumberText, isMyTeam && styles.myTeamRankNumber]}>{row.rank}</Text>
+            <Box key={row.team.name} style={styles.rankingRow}>
+              <Typography variant="h1" style={[styles.rankNumberText, isMyTeam && styles.myTeamRankNumber]}>{row.rank}</Typography>
               
-              <View style={[styles.rankingCard, isMyTeam && styles.myTeamRankingCard]}>
-                <View style={styles.teamInfoArea}>
+              <Box style={[styles.rankingCard, isMyTeam && styles.myTeamRankingCard]}>
+                <Box style={styles.teamInfoArea}>
                   {/* 로고 더미 */}
-                  <View style={[styles.teamBadge, { backgroundColor: getTeamColor(row.team.name) }]} />
-                  <Text style={[styles.teamNameText, isMyTeam && styles.myTeamText]} numberOfLines={1}>
+                  <Box style={[styles.teamBadge, { backgroundColor: getTeamColor(row.team.name) }]} />
+                  <Typography style={[styles.teamNameText, isMyTeam && styles.myTeamText]} numberOfLines={1}>
                     {row.team.name}
-                  </Text>
-                </View>
+                  </Typography>
+                </Box>
                 
-                <View style={styles.statsArea}>
-                  <Text style={[styles.statValueText, isMyTeam && styles.myTeamStatText]}>{row.games}</Text>
-                  <Text style={[styles.statValueText, isMyTeam && styles.myTeamStatText]}>{row.win}</Text>
-                  <Text style={[styles.statValueText, isMyTeam && styles.myTeamStatText]}>{row.lose}</Text>
-                  <Text style={[styles.statValueText, isMyTeam && styles.myTeamStatText]}>{row.draw}</Text>
-                  <Text style={[styles.statValueText, isMyTeam && styles.myTeamStatText]}>{row.winRate.toFixed(3)}</Text>
-                </View>
-              </View>
-            </View>
+                <Box style={styles.statsArea}>
+                  <Typography style={[styles.statValueText, isMyTeam && styles.myTeamStatText]}>{row.games}</Typography>
+                  <Typography style={[styles.statValueText, isMyTeam && styles.myTeamStatText]}>{row.win}</Typography>
+                  <Typography style={[styles.statValueText, isMyTeam && styles.myTeamStatText]}>{row.lose}</Typography>
+                  <Typography style={[styles.statValueText, isMyTeam && styles.myTeamStatText]}>{row.draw}</Typography>
+                  <Typography style={[styles.statValueText, isMyTeam && styles.myTeamStatText]}>{row.winRate.toFixed(3)}</Typography>
+                </Box>
+              </Box>
+            </Box>
           );
         })}
-      </View>
+      </Box>
     </ScrollView>
   );
 }
@@ -275,12 +274,12 @@ function Main2CalendarView({
 
   return (
     <ScrollView style={styles.contentScroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContentPad}>
-      <View style={styles.calendarWrap}>
+      <Box style={styles.calendarWrap}>
         {/* 요일 헤더 */}
-        <View style={styles.calendarHeader}>
+        <Box style={styles.calendarHeader}>
           {weekDays.map((d, idx) => (
-            <View key={d} style={styles.calendarHeaderCell}>
-              <Text
+            <Box key={d} style={styles.calendarHeaderCell}>
+              <Typography
                 style={[
                   styles.calendarHeaderText,
                   idx === 0 && styles.calendarTextRed,
@@ -288,15 +287,15 @@ function Main2CalendarView({
                 ]}
               >
                 {d}
-              </Text>
-            </View>
+              </Typography>
+            </Box>
           ))}
-        </View>
+        </Box>
 
         {/* 달력 그리드 */}
-        <View style={styles.calendarGrid}>
+        <Box style={styles.calendarGrid}>
           {days.map((cell, idx) => (
-            <View 
+            <Box 
               key={`${cell.day || "empty"}-${idx}`} 
               style={[
                 styles.calendarCell, 
@@ -306,33 +305,33 @@ function Main2CalendarView({
             >
               {cell.day ? (
                 <>
-                  <View style={styles.calendarCellTopRow}>
-                    <Text style={styles.calendarDayText}>{cell.day}</Text>
+                  <Box style={styles.calendarCellTopRow}>
+                    <Typography style={styles.calendarDayText}>{cell.day}</Typography>
                     {cell.hasGame && cell.location ? (
-                      <Text style={[styles.calendarLocationText, cell.location === "A" && styles.calendarLocationAway]}>
+                      <Typography style={[styles.calendarLocationText, cell.location === "A" && styles.calendarLocationAway]}>
                         {cell.location}
-                      </Text>
+                      </Typography>
                     ) : null}
-                  </View>
+                  </Box>
 
                   {cell.hasGame && cell.opponentShort ? (
-                    <View style={styles.calendarOpponentWrap}>
-                      <View style={[styles.opponentBadgeDummy, { backgroundColor: cell.opponentColor ?? theme.colors.team.fallback }]} />
-                      <Text style={styles.calendarOpponentText}>{cell.opponentShort}</Text>
-                    </View>
+                    <Box style={styles.calendarOpponentWrap}>
+                      <Box style={[styles.opponentBadgeDummy, { backgroundColor: cell.opponentColor ?? theme.colors.team.fallback }]} />
+                      <Typography style={styles.calendarOpponentText}>{cell.opponentShort}</Typography>
+                    </Box>
                   ) : (
-                    <View style={styles.calendarEmptySpacer} />
+                    <Box style={styles.calendarEmptySpacer} />
                   )}
 
                   {cell.hasGame && cell.timeText ? (
-                    <Text style={styles.calendarTimeText}>{cell.timeText}</Text>
+                    <Typography style={styles.calendarTimeText}>{cell.timeText}</Typography>
                   ) : null}
                 </>
               ) : null}
-            </View>
+            </Box>
           ))}
-        </View>
-      </View>
+        </Box>
+      </Box>
     </ScrollView>
   );
 }
@@ -423,18 +422,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   teamLogoText: {
-    fontSize: theme.typography.size.lg,
     fontWeight: theme.typography.weight.black,
     color: theme.colors.text.primary,
     fontStyle: "italic",
   },
   teamLogoSubText: {
-    fontSize: SCHEDULE_LAYOUT.teamLogoSubFontSize,
+    fontSize: LOCAL_LAYOUT.teamLogoSubFontSize,
     fontWeight: theme.typography.weight.black,
     color: theme.colors.team.kiaRed,
     fontStyle: "italic",
-    letterSpacing: SCHEDULE_LAYOUT.letterSpacing,
-    marginTop: SCHEDULE_LAYOUT.teamLogoMarginTop,
+    letterSpacing: LOCAL_LAYOUT.letterSpacing,
+    marginTop: LOCAL_LAYOUT.teamLogoMarginTop,
   },
   filterSection: {
     paddingHorizontal: theme.spacing.lg,
@@ -449,7 +447,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderRadius: theme.radius.full,
-    padding: SCHEDULE_LAYOUT.togglePadding,
+    padding: LOCAL_LAYOUT.togglePadding,
     borderWidth: 1,
     borderColor: theme.colors.team.neutralLight,
     backgroundColor: theme.colors.surface,
@@ -482,10 +480,8 @@ const styles = StyleSheet.create({
     padding: theme.spacing.xs,
   },
   dateText: {
-    fontSize: theme.typography.size.xl,
-    fontWeight: theme.typography.weight.bold,
     color: theme.colors.text.primary,
-    minWidth: SCHEDULE_LAYOUT.dateMinWidth,
+    minWidth: LOCAL_LAYOUT.dateMinWidth,
     textAlign: "center",
   },
   leagueDropdown: {
@@ -499,7 +495,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.team.kiaRed,
   },
   leagueDropdownText: {
-    fontSize: SCHEDULE_LAYOUT.dropdownLabelFontSize,
+    fontSize: LOCAL_LAYOUT.dropdownLabelFontSize,
     fontWeight: theme.typography.weight.bold,
     color: theme.colors.team.kiaRed,
   },
@@ -507,7 +503,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContentPad: {
-    paddingBottom: SCHEDULE_LAYOUT.scrollBottomPadding,
+    paddingBottom: theme.layout.common.bottomPadding,
   },
   tableHeaderRow: {
     flexDirection: "row",
@@ -516,14 +512,14 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xs,
   },
   tableHeaderText: {
-    fontSize: SCHEDULE_LAYOUT.headerLabelFontSize,
+    fontSize: LOCAL_LAYOUT.headerLabelFontSize,
     color: theme.colors.brand.subtitle,
     fontWeight: theme.typography.weight.bold,
     textAlign: "center",
   },
-  colRank: { width: SCHEDULE_LAYOUT.rankNumberWidth },
+  colRank: { width: LOCAL_LAYOUT.rankNumberWidth },
   colTeam: { flex: 1, textAlign: "left", paddingLeft: theme.spacing.xl },
-  colStat: { width: SCHEDULE_LAYOUT.statColWidth },
+  colStat: { width: LOCAL_LAYOUT.statColWidth },
   rankingList: {
     paddingHorizontal: theme.spacing.xl,
     gap: theme.spacing.sm,
@@ -534,10 +530,8 @@ const styles = StyleSheet.create({
     gap: theme.spacing.md,
   },
   rankNumberText: {
-    width: SCHEDULE_LAYOUT.rankNumberWidth,
+    width: LOCAL_LAYOUT.rankNumberWidth,
     textAlign: "center",
-    fontSize: theme.typography.size.xl,
-    fontWeight: theme.typography.weight.black,
     color: theme.colors.brand.subtitle,
   },
   myTeamRankNumber: {
@@ -549,12 +543,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.full,
-    height: SCHEDULE_LAYOUT.rankCardHeight,
+    height: theme.layout.common.standardItemHeight,
     paddingHorizontal: theme.spacing.md,
     ...theme.shadow.card,
   },
   myTeamRankingCard: {
-    borderWidth: SCHEDULE_LAYOUT.myTeamBorderWidth,
+    borderWidth: LOCAL_LAYOUT.myTeamBorderWidth,
     borderColor: theme.colors.brand.mint,
   },
   teamInfoArea: {
@@ -564,12 +558,11 @@ const styles = StyleSheet.create({
     gap: theme.spacing.sm,
   },
   teamBadge: {
-    width: SCHEDULE_LAYOUT.opponentBadgeSize,
-    height: SCHEDULE_LAYOUT.opponentBadgeSize,
+    width: LOCAL_LAYOUT.opponentBadgeSize,
+    height: LOCAL_LAYOUT.opponentBadgeSize,
     borderRadius: theme.radius.full,
   },
   teamNameText: {
-    fontSize: theme.typography.size.md,
     fontWeight: theme.typography.weight.bold,
     color: theme.colors.text.primary,
   },
@@ -581,10 +574,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   statValueText: {
-    width: SCHEDULE_LAYOUT.statColWidth,
+    width: LOCAL_LAYOUT.statColWidth,
     textAlign: "center",
-    fontSize: theme.typography.size.xs,
-    fontWeight: theme.typography.weight.medium,
     color: theme.colors.brand.subtitle,
   },
   myTeamStatText: {
@@ -598,7 +589,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.team.neutralLight,
     borderTopLeftRadius: theme.radius.dashboardCard,
     borderTopRightRadius: theme.radius.dashboardCard,
-    height: SCHEDULE_LAYOUT.calendarHeaderHeight,
+    height: LOCAL_LAYOUT.calendarHeaderHeight,
   },
   calendarHeaderCell: {
     flex: 1,
@@ -618,12 +609,12 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.card,
     borderBottomLeftRadius: theme.radius.dashboardCard,
     borderBottomRightRadius: theme.radius.dashboardCard,
-    borderWidth: SCHEDULE_LAYOUT.calendarBorderWidth,
+    borderWidth: LOCAL_LAYOUT.calendarBorderWidth,
     borderColor: theme.colors.team.neutralLight,
   },
   calendarCell: {
     width: `${100 / 7}%`,
-    height: SCHEDULE_LAYOUT.calendarCellHeight,
+    height: LOCAL_LAYOUT.calendarCellHeight,
     borderRightWidth: StyleSheet.hairlineWidth,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: theme.colors.team.neutralLight,
@@ -646,7 +637,7 @@ const styles = StyleSheet.create({
     fontWeight: theme.typography.weight.medium,
   },
   calendarLocationText: {
-    fontSize: SCHEDULE_LAYOUT.calendarLocationFontSize,
+    fontSize: LOCAL_LAYOUT.calendarLocationFontSize,
     color: theme.colors.brand.mint,
     fontWeight: theme.typography.weight.bold,
   },
@@ -658,13 +649,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   opponentBadgeDummy: {
-    width: SCHEDULE_LAYOUT.opponentBadgeSize,
-    height: SCHEDULE_LAYOUT.opponentBadgeSize,
+    width: LOCAL_LAYOUT.opponentBadgeSize,
+    height: LOCAL_LAYOUT.opponentBadgeSize,
     borderRadius: theme.radius.full,
-    marginBottom: SCHEDULE_LAYOUT.opponentBadgeMarginBottom,
+    marginBottom: LOCAL_LAYOUT.opponentBadgeMarginBottom,
   },
   calendarOpponentText: {
-    fontSize: SCHEDULE_LAYOUT.calendarOpponentFontSize,
+    fontSize: LOCAL_LAYOUT.calendarOpponentFontSize,
     fontWeight: theme.typography.weight.bold,
     color: theme.colors.text.primary,
   },
@@ -672,7 +663,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   calendarTimeText: {
-    fontSize: SCHEDULE_LAYOUT.calendarTimeFontSize,
+    fontSize: LOCAL_LAYOUT.calendarTimeFontSize,
     color: theme.colors.brand.subtitle,
   },
   calendarCellSelected: {
