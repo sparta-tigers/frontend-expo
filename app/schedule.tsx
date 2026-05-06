@@ -9,6 +9,7 @@ import { RankingRowDto, CalendarGameDto } from "@/src/features/home/types";
 import { getTeamColor } from "@/src/utils/team";
 import { useFakeHomeData } from "@/src/features/home/mocks";
 import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
+import { useAuth } from "@/context/AuthContext";
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (theme 비대화 방지)
@@ -49,7 +50,8 @@ export default function ScheduleScreen() {
     month?: string;
   }>();
   
-  const { myTeam } = useFakeHomeData();
+  const { myTeam: myTeamId } = useAuth();
+  const { myTeam } = useFakeHomeData(myTeamId);
   
   const initialView = params.view === "day" ? "day" : "year";
   

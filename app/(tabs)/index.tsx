@@ -19,7 +19,7 @@ import { router } from "expo-router";
  */
 export default function HomeScreen() {
   const { myTeam: myTeamId } = useAuth();
-  const mockData = useFakeHomeData();
+  const mockData = useFakeHomeData(myTeamId);
 
   // 🚨 앙드레 카파시: 낙관적 업데이트를 고려한 데이터 병합
   // Why: AsyncStorage에서 로드된 실제 응원팀 정보가 있다면 우선 사용, 없으면 목 데이터 사용.
