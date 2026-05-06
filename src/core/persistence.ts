@@ -11,6 +11,6 @@ export const asyncStoragePersister = createAsyncStoragePersister({
   storage: AsyncStorage,
   /** 캐시 키 (애플리케이션별 고유 키 권장) */
   key: "YAGUNIV_QUERY_CACHE",
-  /** 스토리지 제한에 걸릴 경우 오래된 데이터부터 삭제하는 로직 (기본값 활용) */
+  /** AsyncStorage에 캐시를 저장할 때 쓰기 빈도를 제한하는 옵션 (기본값 1000ms) */
   throttleTime: 1000,
 });
