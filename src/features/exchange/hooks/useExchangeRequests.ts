@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useState } from "react";
 import { exchangeGetMyRequestsAPI, exchangeUpdateStatusAPI } from "../api";
 import { ExchangeRequestStatus } from "../types";
 
@@ -16,7 +17,6 @@ export const useExchangeRequests = (role: "receiver" | "sender") => {
   const {
     data,
     isLoading,
-    isRefetching,
     error,
     refetch,
   } = useQuery({
@@ -59,13 +59,26 @@ export const useExchangeRequests = (role: "receiver" | "sender") => {
     },
   });
 
+  const [manualRefreshing, setManualRefreshing] = useState(false);
+
+  // 🚨 앙드레 카파시: 수동 새로고침 핸들러
+  // Why: 자동 배경 refetch 시 스피너가 도는 것을 방지하고, 수동 조작 시에만 시각적 피드백 제공
+  const handleRefresh = useCallback(async () => {
+    setManualRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setManualRefreshing(false);
+    }
+  }, [refetch]);
+
   return {
     requests,
     loading: isLoading,
-    refreshing: isRefetching,
+    refreshing: manualRefreshing,
     error: error instanceof Error ? error.message : null,
     fetchRequests: refetch,
-    handleRefresh: refetch,
+    handleRefresh,
     handleAccept,
     handleReject,
   };

@@ -82,7 +82,9 @@ export default function ExchangeRequestsScreen() {
       </View>
 
       <View style={styles.requestInfo}>
-        <Text style={styles.requesterText}>상대방: {item.sender.userNickname}</Text>
+        {activeTab === "receiver" && (
+          <Text style={styles.requesterText}>요청자: {item.sender.userNickname}</Text>
+        )}
         <Text style={styles.categoryText}>카테고리: {item.category === "TICKET" ? "티켓" : "굿즈"}</Text>
         <Text style={styles.dateText}>요청일: {new Date(item.createdAt).toLocaleDateString()}</Text>
       </View>
