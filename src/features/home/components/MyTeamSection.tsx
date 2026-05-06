@@ -15,7 +15,7 @@ import { styles } from "../styles";
  * @param props.stats 표시할 미니 통계 배열 (MiniStatDto[])
  * @param props.onPressChangeTeam 팀 변경 버튼 클릭 시 콜백
  */
-export function MyTeamSection(props: {
+export const MyTeamSection = React.memo(function MyTeamSection(props: {
   userNickname: string;
   daysInSchool: number;
   myTeam: TeamDto;
@@ -56,14 +56,14 @@ export function MyTeamSection(props: {
           ))}
 
           <View style={styles.mascotBox}>
-            <Text style={styles.mascotEmoji}>🐯</Text>
+            <Text style={styles.mascotEmoji}>{myTeam.mascotEmoji}</Text>
             <Text style={styles.mascotTeamText}>{myTeam.shortName}</Text>
           </View>
         </View>
       </View>
     </View>
   );
-}
+});
 
 /**
  * 미니 통계 카드 컴포넌트 (내부용)
@@ -71,7 +71,7 @@ export function MyTeamSection(props: {
  * Why: MyTeamSection 내에서 개별 통계 항목(직관 횟수, 알람 등)을 카드 형태로 일관되게 렌더링하기 위함.
  * @param props.item 표시할 통계 데이터 (MiniStatDto)
  */
-function MiniStatCard(props: { item: MiniStatDto }) {
+const MiniStatCard = React.memo(function MiniStatCard(props: { item: MiniStatDto }) {
   const { item } = props;
   const toneStyle =
     item.tone === "pink"
@@ -82,10 +82,10 @@ function MiniStatCard(props: { item: MiniStatDto }) {
 
   const iconColor =
     item.tone === "pink"
-      ? theme.colors.team.kiaRed
+      ? theme.colors.dashboard.statIconPink
       : item.tone === "yellow"
-        ? theme.colors.warning
-        : theme.colors.success;
+        ? theme.colors.dashboard.statIconYellow
+        : theme.colors.dashboard.statIconGreen;
 
   return (
     <View style={[styles.miniStatCard, toneStyle]}>
@@ -102,4 +102,4 @@ function MiniStatCard(props: { item: MiniStatDto }) {
       <Text style={styles.miniStatLabel}>{item.label}</Text>
     </View>
   );
-}
+});

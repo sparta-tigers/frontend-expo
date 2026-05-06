@@ -34,6 +34,7 @@ interface MatchWeatherDto {
 
 /** 라이브보드 매치 카드 전체 */
 interface MatchDto {
+  id: string;
   away: MatchTeamDto;
   home: MatchTeamDto;
   time: string;
@@ -107,8 +108,8 @@ export default function LiveboardScreen() {
 
       {/* 4. 매치 리스트 */}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.matchList}>
-        {matches.map((match, idx) => (
-          <View key={idx} style={styles.matchCard}>
+        {matches.map((match) => (
+          <View key={match.id} style={styles.matchCard}>
             {/* 어웨이 팀 */}
             <View style={styles.teamBlock}>
               <View style={[styles.teamLogoDummy, getTeamBgStyle(match.away.name)]}>
@@ -164,6 +165,7 @@ function useFakeMatchData(): MatchDto[] {
   return useMemo(() => {
     return [
       {
+        id: "match-1",
         away: { name: "한화" },
         home: { name: "LG" },
         time: "18:30",
@@ -171,6 +173,7 @@ function useFakeMatchData(): MatchDto[] {
         weather: { text: "맑음", icon: "wb-sunny" }
       },
       {
+        id: "match-2",
         away: { name: "롯데" },
         home: { name: "삼성" },
         time: "18:30",
@@ -178,6 +181,7 @@ function useFakeMatchData(): MatchDto[] {
         weather: { text: "맑음", icon: "wb-sunny" }
       },
       {
+        id: "match-3",
         away: { name: "NC" },
         home: { name: "SSG" },
         time: "18:30",
@@ -185,6 +189,7 @@ function useFakeMatchData(): MatchDto[] {
         weather: { text: "맑음", icon: "wb-sunny" }
       },
       {
+        id: "match-4",
         away: { name: "두산" },
         home: { name: "KT" },
         time: "18:30",
@@ -192,6 +197,7 @@ function useFakeMatchData(): MatchDto[] {
         weather: { text: "맑음", icon: "wb-sunny" }
       },
       {
+        id: "match-5",
         away: { name: "키움" },
         home: { name: "KIA" },
         time: "18:30",

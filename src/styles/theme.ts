@@ -161,6 +161,9 @@ export const theme = {
       statTonePink: "rgba(234, 0, 41, 0.12)",
       statToneYellow: "rgba(245, 158, 11, 0.18)",
       statToneGreen: "rgba(16, 185, 129, 0.18)",
+      statIconPink: "#EA0029",
+      statIconYellow: "#F59E0B",
+      statIconGreen: "#10B981",
     },
     text: {
       primary: "#111827", // 기본 텍스트 (gray-900)

@@ -22,6 +22,7 @@ import { useCheckActiveItem } from "@/src/features/exchange/queries";
 import { ItemCategory, LocationDto } from "@/src/features/exchange/types";
 import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 
 interface ReactNativeFile {
   uri: string;
@@ -209,7 +210,14 @@ export default function CreateItemScreen() {
   return (
     <SafeLayout edges={["top", "bottom"]} style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.backButton} />
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="뒤로가기"
+        >
+          <IconSymbol name="chevron.left" size={24} color={theme.colors.text.primary} />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>교환글 쓰기</Text>
         <TouchableOpacity onPress={handleSubmit} disabled={isPending}>
           <Text
@@ -476,6 +484,8 @@ const styles = StyleSheet.create({
   backButton: {
     width: 40,
     height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   submitButton: {
     fontSize: theme.typography.size.md,

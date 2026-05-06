@@ -11,7 +11,7 @@ import { getTeamColor } from "@/src/utils/team";
  * @param props.lineup 표시할 LineupRowDto 배열
  * @param props.teamName 사용자의 팀명 (색상 주입용)
  */
-export function LineupSection(props: { lineup: LineupRowDto[]; teamName?: string }) {
+export const LineupSection = React.memo(function LineupSection(props: { lineup: LineupRowDto[]; teamName?: string }) {
   const { lineup, teamName } = props;
   const teamColor = getTeamColor(teamName ?? "");
 
@@ -35,4 +35,4 @@ export function LineupSection(props: { lineup: LineupRowDto[]; teamName?: string
       </View>
     </View>
   );
-}
+});

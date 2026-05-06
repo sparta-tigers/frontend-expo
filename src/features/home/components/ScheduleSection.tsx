@@ -4,7 +4,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 import { styles } from "../styles";
 import { CalendarCellModel, CalendarGameDto } from "../types";
 
-export function ScheduleSection(props: { 
+export const ScheduleSection = React.memo(function ScheduleSection(props: { 
   schedule: CalendarGameDto[];
   year?: number;
   month?: number;
@@ -35,73 +35,86 @@ export function ScheduleSection(props: {
         </View>
 
         <View style={styles.calendarGrid}>
-          {days.map((cell, idx) => (
-            <TouchableOpacity
-              key={`${cell.day}-${idx}`}
-              activeOpacity={0.85}
-              disabled={!cell.hasGame}
-              accessibilityRole="button"
-              accessibilityLabel={
-                cell.hasGame
-                  ? `${cell.day}일 ${cell.opponentShort}전`
-                  : `${cell.day}일 경기 없음`
-              }
-              onPress={() =>
-                router.push({
-                  pathname: "/schedule",
-                  params: { 
-                    view: "day", 
-                    day: cell.day.toString(),
-                    year: year.toString(),
-                    month: month.toString(),
-                  },
-                })
-              }
-              style={styles.calendarCell}
-            >
-              <View style={styles.calendarCellTopRow}>
-                {cell.day > 0 && <Text style={styles.calendarDayText}>{cell.day}</Text>}
-                {cell.day > 0 && cell.location ? (
-                  <Text style={styles.calendarLocationText}>
-                    {cell.location}
-                  </Text>
-                ) : (
-                  <View style={styles.calendarLocationSpacer} />
-                )}
-              </View>
+          {days.map((cell, idx) => {
+            if (cell.day === 0) {
+              return (
+                <View 
+                  key={`empty-${idx}`} 
+                  style={styles.calendarCell}
+                  importantForAccessibility="no-hide-descendants"
+                  accessibilityElementsHidden
+                />
+              );
+            }
 
-              {cell.hasGame ? (
-                <View
-                  style={[
-                    styles.calendarOpponentBadge,
-                    cell.isSelected && styles.calendarOpponentBadgeSelected,
-                  ]}
-                >
-                  <Text
+            return (
+              <TouchableOpacity
+                key={`${cell.day}-${idx}`}
+                activeOpacity={0.85}
+                disabled={!cell.hasGame}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  cell.hasGame
+                    ? `${cell.day}일 ${cell.opponentShort}전`
+                    : `${cell.day}일 경기 없음`
+                }
+                onPress={() =>
+                  router.push({
+                    pathname: "/schedule",
+                    params: { 
+                      view: "day", 
+                      day: cell.day.toString(),
+                      year: year.toString(),
+                      month: month.toString(),
+                    },
+                  })
+                }
+                style={styles.calendarCell}
+              >
+                <View style={styles.calendarCellTopRow}>
+                  {cell.day > 0 && <Text style={styles.calendarDayText}>{cell.day}</Text>}
+                  {cell.day > 0 && cell.location ? (
+                    <Text style={styles.calendarLocationText}>
+                      {cell.location}
+                    </Text>
+                  ) : (
+                    <View style={styles.calendarLocationSpacer} />
+                  )}
+                </View>
+
+                {cell.hasGame ? (
+                  <View
                     style={[
-                      styles.calendarOpponentText,
-                      cell.isSelected && styles.calendarOpponentTextSelected,
+                      styles.calendarOpponentBadge,
+                      cell.isSelected && styles.calendarOpponentBadgeSelected,
                     ]}
                   >
-                    {cell.opponentShort}
-                  </Text>
-                </View>
-              ) : (
-                <View style={styles.calendarEmptySpacer} />
-              )}
+                    <Text
+                      style={[
+                        styles.calendarOpponentText,
+                        cell.isSelected && styles.calendarOpponentTextSelected,
+                      ]}
+                    >
+                      {cell.opponentShort}
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.calendarEmptySpacer} />
+                )}
 
-              {cell.timeText ? (
-                <Text style={styles.calendarTimeText}>{cell.timeText}</Text>
-              ) : (
-                <View style={styles.calendarTimeSpacer} />
-              )}
-            </TouchableOpacity>
-          ))}
+                {cell.timeText ? (
+                  <Text style={styles.calendarTimeText}>{cell.timeText}</Text>
+                ) : (
+                  <View style={styles.calendarTimeSpacer} />
+                )}
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
     </View>
   );
-}
+});
 
 function buildCalendarDays(
   schedule: CalendarGameDto[],

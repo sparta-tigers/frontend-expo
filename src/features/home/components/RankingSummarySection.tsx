@@ -3,7 +3,7 @@ import { View, Text } from "react-native";
 import { RankingRowDto } from "../types";
 import { styles } from "../styles";
 
-export function RankingSummarySection(props: { ranking: RankingRowDto[] }) {
+export const RankingSummarySection = React.memo(function RankingSummarySection(props: { ranking: RankingRowDto[] }) {
   const { ranking } = props;
   const myTeamRank = ranking.find((r) => r.isMyTeam)?.rank ?? 0;
 
@@ -20,9 +20,9 @@ export function RankingSummarySection(props: { ranking: RankingRowDto[] }) {
       </View>
     </View>
   );
-}
+});
 
-function RankingRow(props: { row: RankingRowDto }) {
+const RankingRow = React.memo(function RankingRow(props: { row: RankingRowDto }) {
   const { row } = props;
   const isMyTeam = row.isMyTeam === true;
 
@@ -52,4 +52,4 @@ function RankingRow(props: { row: RankingRowDto }) {
       </View>
     </View>
   );
-}
+});

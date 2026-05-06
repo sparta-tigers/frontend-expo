@@ -14,8 +14,8 @@ import { ErrorBoundary } from "react-error-boundary";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { MaterialIcons } from "@expo/vector-icons";
 import { theme } from "@/src/styles/theme";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 
 /**
  * 푸시 알림 핸들러 설정 (모듈 스코프)
@@ -136,25 +136,25 @@ function RootLayoutInner() {
             {!netInfo.isConnected && <OfflineBanner />}
 
             {/* 1. 고정 헤더 (전역) - 특정 화면에서는 숨김 처리 */}
-            {!inAuthGroup && segments[0] !== "schedule" && (
+            {!inAuthGroup && segments[0] !== "schedule" && segments[1] !== "create" && (
               <View style={styles.topHeader}>
-                <TouchableOpacity 
-                  activeOpacity={0.7} 
-                  style={styles.headerIconBtn}
-                  onPress={() => {
-                    if (router.canGoBack()) {
-                      router.back();
-                    }
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel="뒤로가기"
-                >
-                  <MaterialIcons 
-                    name="chevron-left" 
-                    size={theme.layout.header.backIconSize} 
-                    color={router.canGoBack() ? theme.colors.team.neutralDark : "transparent"} 
-                  />
-                </TouchableOpacity>
+                {router.canGoBack() ? (
+                  <TouchableOpacity 
+                    activeOpacity={0.7} 
+                    style={styles.headerIconBtn}
+                    onPress={() => router.back()}
+                    accessibilityRole="button"
+                    accessibilityLabel="뒤로가기"
+                  >
+                    <IconSymbol
+                      size={theme.typography.size.xl}
+                      name="chevron.left"
+                      color={theme.colors.team.neutralDark}
+                    />
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.headerIconBtn} />
+                )}
                 
                 <Text style={styles.mainTitleText}>YAGUNIV</Text>
                 
@@ -166,7 +166,7 @@ function RootLayoutInner() {
                   accessibilityRole="button"
                   accessibilityLabel="프로필"
                 >
-                  <MaterialIcons name="person-outline" size={theme.layout.header.profileIconSize} color={theme.colors.team.neutralDark} />
+                  <IconSymbol name="person.fill" size={theme.layout.header.profileIconSize} color={theme.colors.team.neutralDark} />
                 </TouchableOpacity>
               </View>
             )}

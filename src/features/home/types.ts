@@ -6,8 +6,14 @@ import { IconSymbolName } from "@/components/ui/icon-symbol";
  * Why: 팀명과 약칭(두 글자)을 관리하여 UI의 배지나 텍스트 영역에서 공통으로 사용하기 위함.
  */
 export interface TeamDto {
+  /** 팀 전체 명칭 (예: "KIA 타이거즈") */
   name: string;
+  /** 팀 약칭 (예: "KIA") */
   shortName: string;
+  /** 팀 서브 명칭 (예: "타이거즈") */
+  subName: string;
+  /** 팀 마스코트 이모지 (예: "🐯") */
+  mascotEmoji: string;
 }
 
 

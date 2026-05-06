@@ -204,7 +204,7 @@ export default function SigninScreen() {
                 <View style={styles.fakeTabItem}>
                   <IconSymbol
                     size={theme.typography.size.xl}
-                    name="location.fill"
+                    name="house.fill"
                     color={theme.colors.brand.inactive}
                   />
                   <Text style={styles.fakeTabLabel}>홈</Text>
