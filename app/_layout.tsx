@@ -86,19 +86,19 @@ function RootLayoutInner() {
   }, []);
 
   // 🚨 앙드레 카파시: 안전한 리디렉션 로직
-  const safeRedirect = useCallback((href: string) => {
+  const safeRedirect = useCallback((href: Href) => {
     if (!navigationReady.current) {
       // 네비게이터가 준비되지 않았으면 지연 실행
       redirectTimeoutRef.current = setTimeout(() => {
         Logger.debug("[Navigation] 지연된 리디렉션 실행:", href);
-        router.replace(href as Href);
+        router.replace(href);
       }, 200);
       return;
     }
 
     // 네비게이터가 준비되었으면 즉시 실행
     Logger.debug("[Navigation] 즉시 리디렉션 실행:", href);
-    router.replace(href as Href);
+    router.replace(href);
   }, []);
 
   // 🚨 앙드레 카파시: 안전한 리디렉션 적용

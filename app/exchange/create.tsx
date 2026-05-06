@@ -24,6 +24,13 @@ import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 
+/**
+ * React Native FormData에 첨부할 파일 객체 형태.
+ *
+ * Why: 웹 표준 Blob/File과 달리, RN의 FormData는 { uri, name, type }
+ * 형태의 파일 객체를 직접 받아 멀티파트로 직렬화한다. 백엔드에서
+ * 파일명/MIME 타입을 인식할 수 있도록 세 필드 모두 명시적으로 정의한다.
+ */
 interface ReactNativeFile {
   uri: string;
   name: string;
@@ -84,7 +91,9 @@ export default function CreateItemScreen() {
           type,
         };
 
-        requestFormData.append("images", file as any); // RN FormData 스펙상 불가피한 any이나, 변수를 통해 구조를 명시함
+        // RN의 FormData는 { uri, name, type } 형태의 파일 객체를 받지만,
+        // 표준 DOM 타입에는 표현이 없어 unknown을 경유한 Blob 캐스트로 우회한다.
+        requestFormData.append("images", file as unknown as Blob);
       });
 
       return createExchangeItem(requestFormData);

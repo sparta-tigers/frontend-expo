@@ -3,6 +3,12 @@ import { View, Text } from "react-native";
 import { RankingRowDto } from "../types";
 import { styles } from "../styles";
 
+/**
+ * 순위 요약 섹션
+ *
+ * Why: 홈 화면에서 KBO 리그 순위와 내 응원팀 위치를 한눈에 보여주기 위해 분리.
+ * @param props.ranking 표시할 RankingRowDto 배열
+ */
 export const RankingSummarySection = React.memo(function RankingSummarySection(props: { ranking: RankingRowDto[] }) {
   const { ranking } = props;
   const myTeamRank = ranking.find((r) => r.isMyTeam)?.rank ?? 0;
@@ -22,6 +28,12 @@ export const RankingSummarySection = React.memo(function RankingSummarySection(p
   );
 });
 
+/**
+ * 순위 행 (내부용)
+ *
+ * Why: 순위/팀/전적 통계를 일관된 행 형태로 렌더링하며, 내 응원팀일 때 강조 스타일을 적용.
+ * @param props.row 렌더링할 RankingRowDto 데이터
+ */
 const RankingRow = React.memo(function RankingRow(props: { row: RankingRowDto }) {
   const { row } = props;
   const isMyTeam = row.isMyTeam === true;
