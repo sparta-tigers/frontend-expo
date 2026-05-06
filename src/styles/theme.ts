@@ -112,6 +112,8 @@ export const theme = {
      */
     brand: {
       mint: "#4BBDBD",
+      /** 선택 상태 배경(라이브보드 날짜 등) — 민트의 10% 투명도 헥사값 */
+      mintAlpha10: "#4BBDBD1A",
       /** 선택 상태 배경(라이브보드 날짜 등) — 민트의 밝은 파생 톤 */
       mintLight: "#DCF5F2",
       background: "#F8F8FA",

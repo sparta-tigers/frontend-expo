@@ -73,6 +73,27 @@ const TEAM_NAME_TO_COLOR: Record<string, string> = {
 } as const;
 
 /**
+ * 팀명으로부터 테마 컬러 경로(dot notation)를 반환하는 유틸리티
+ * 
+ * Why: Typography의 color prop에 "team.kia"와 같은 토큰을 직접 전달하기 위함.
+ */
+export const getTeamColorPath = (teamName: string) => {
+  const mapping: Record<string, string> = {
+    "KIA": "team.kia", "KIA 타이거즈": "team.kia", "KIA_TIGERS": "team.kia",
+    "LG": "team.lg", "LG 트윈스": "team.lg", "LG_TWINS": "team.lg",
+    "한화": "team.hanwha", "한화 이글스": "team.hanwha", "HANWHA_EAGLES": "team.hanwha",
+    "롯데": "team.lotte", "롯데 자이언츠": "team.lotte", "LOTTE_GIANTS": "team.lotte",
+    "삼성": "team.samsung", "삼성 라이온즈": "team.samsung", "SAMSUNG_LIONS": "team.samsung",
+    "SSG": "team.ssg", "SSG 랜더스": "team.ssg", "SSG_LANDERS": "team.ssg",
+    "NC": "team.nc", "NC 다이노스": "team.nc", "NC_DINOS": "team.nc",
+    "KT": "team.kt", "KT 위즈": "team.kt", "KT_WIZ": "team.kt",
+    "두산": "team.doosan", "두산 베어스": "team.doosan", "DOOSAN_BEARS": "team.doosan",
+    "키움": "team.kiwoom", "키움 히어로즈": "team.kiwoom", "KIWOOM_HEROES": "team.kiwoom",
+  };
+  return (mapping[teamName] ?? "text.primary") as any;
+};
+
+/**
  * 팀명으로부터 컬러 값을 반환하는 순수 함수
  *
  * @param teamName - KBO 팀 약칭 또는 풀네임
@@ -99,10 +120,26 @@ export const TEAM_BG_STYLES = StyleSheet.create(
 );
 
 /**
+ * 팀별 테두리색 StyleSheet 사전 정의 맵
+ */
+export const TEAM_BORDER_STYLES = StyleSheet.create(
+  Object.fromEntries(
+    Object.entries(TEAM_NAME_TO_COLOR).map(([name, color]) => [
+      name,
+      { borderColor: color },
+    ]),
+  ) as Record<string, { borderColor: string }>,
+);
+
+/**
+ * 팀명에 대한 테두리색 스타일 반환
+ */
+export const getTeamBorderStyle = (teamName: string) => {
+  return TEAM_BORDER_STYLES[teamName] ?? { borderColor: theme.colors.team.fallback };
+};
+
+/**
  * 팀명에 대한 배경색 스타일 반환
- *
- * @param teamName - KBO 팀 약칭 또는 풀네임
- * @returns StyleSheet에 사전 정의된 배경색 스타일 객체, 없으면 fallback
  */
 export const getTeamBgStyle = (teamName: string) => {
   return TEAM_BG_STYLES[teamName] ?? { backgroundColor: theme.colors.team.fallback };

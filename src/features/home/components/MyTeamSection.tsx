@@ -1,4 +1,4 @@
-import { TEAM_DATA } from "@/src/utils/team";
+import { TEAM_DATA, getTeamColorPath } from "@/src/utils/team";
 import { theme } from "@/src/styles/theme";
 import { Box } from "@/components/ui/box";
 import { Typography } from "@/components/ui/typography";
@@ -62,7 +62,6 @@ export const MyTeamSection = memo(({
 }: MyTeamSectionProps) => {
   // Why: 선택된 팀의 ID를 기반으로 메타데이터 및 테마 컬러 추출.
   const myTeam = (myTeamId && TEAM_DATA[myTeamId]) || TEAM_DATA["KIA"];
-  const teamColor = myTeam.color;
 
   const stats = [
     { key: "rank", label: "순위", value: "3위" },
@@ -70,10 +69,7 @@ export const MyTeamSection = memo(({
     { key: "recent", label: "최근", value: "3승 2패" },
   ];
 
-  // 동적 스타일 (응원팀 테마 컬러 반영)
-  const dynamicCardStyle = { borderLeftColor: teamColor };
-  const dynamicDaysTextStyle = { color: teamColor };
-  const dynamicMascotTextStyle = { color: teamColor };
+  const teamColorPath = getTeamColorPath(myTeamId || "KIA");
 
   return (
     <Box mt="xxl" px="SCREEN_DASHBOARD">
@@ -102,7 +98,8 @@ export const MyTeamSection = memo(({
         bg="surface" 
         rounded="lg" 
         p="lg" 
-        style={[styles.myTeamCard, dynamicCardStyle]}
+        borderColor={teamColorPath}
+        style={styles.myTeamCard}
       >
         <Box flexDir="row" align="baseline" mb="lg">
           <Typography variant="h3" weight="bold">
@@ -114,7 +111,7 @@ export const MyTeamSection = memo(({
             variant="h2" 
             weight="black" 
             mx="xxs" 
-            style={dynamicDaysTextStyle}
+            color={teamColorPath}
           >
             {daysInSchool}
           </Typography>
@@ -135,7 +132,8 @@ export const MyTeamSection = memo(({
             <Typography 
               variant="caption" 
               weight="bold" 
-              style={[styles.mascotTeamText, dynamicMascotTextStyle]}
+              color={teamColorPath}
+              style={styles.mascotTeamText}
             >
               {myTeam.shortName}
             </Typography>

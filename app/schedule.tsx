@@ -15,24 +15,24 @@ import { useAuth } from "@/context/AuthContext";
 // 화면 전용 레이아웃 상수 (theme 비대화 방지)
 // ========================================================
 const LOCAL_LAYOUT = {
-  teamLogoSubFontSize: 28,
+  teamLogoSubFontSize: theme.typography.size.TITLE,
   teamLogoMarginTop: -4,
   togglePadding: 2,
   rankNumberWidth: 30,
   statColWidth: 35,
   calendarHeaderHeight: 36,
   calendarCellHeight: 80,
-  opponentBadgeSize: 24,
+  opponentBadgeSize: theme.spacing.xxl,
   letterSpacing: 2,
   dateMinWidth: 100,
   myTeamBorderWidth: 1.5,
   calendarBorderWidth: 1,
   opponentBadgeMarginBottom: 2,
-  calendarLocationFontSize: 10,  // xs - 2
-  calendarOpponentFontSize: 9,   // xs - 3
-  calendarTimeFontSize: 10,      // xs - 2
-  headerLabelFontSize: 11,       // xs - 1
-  dropdownLabelFontSize: 10,     // xs - 2
+  calendarLocationFontSize: theme.typography.size.xs,
+  calendarOpponentFontSize: 9,   // 전용 미세 수치
+  calendarTimeFontSize: theme.typography.size.xs,
+  headerLabelFontSize: 11,       // 전용 미세 수치
+  dropdownLabelFontSize: theme.typography.size.xs,
 } as const;
 
 /**
@@ -637,7 +637,7 @@ const styles = StyleSheet.create({
     color: theme.colors.brand.subtitle,
   },
   calendarCellSelected: {
-    backgroundColor: theme.colors.brand.mint + "10", // 10% 투명도
+    backgroundColor: theme.colors.brand.mintAlpha10,
     borderColor: theme.colors.brand.mint,
     borderWidth: 1,
   },

@@ -2,7 +2,7 @@ import React from "react";
 import { Box, Typography } from "@/components/ui";
 import { LineupRowDto } from "../types";
 import { theme } from "@/src/styles/theme";
-import { getTeamColor } from "@/src/utils/team";
+import { getTeamColorPath } from "@/src/utils/team";
 import { StyleSheet } from "react-native";
 
 // ========================================================
@@ -30,7 +30,7 @@ interface LineupSectionProps {
  * Zero-Magic UI 원칙에 따라 프리미티브 컴포넌트를 사용하고 절대 수치를 상수로 관리함.
  */
 export const LineupSection = React.memo(function LineupSection({ lineup, teamName }: LineupSectionProps) {
-  const teamColor = getTeamColor(teamName ?? "");
+  const teamColorPath = getTeamColorPath(teamName ?? "");
 
   return (
     <Box mt="xl" px="SCREEN_DASHBOARD">
@@ -65,7 +65,7 @@ export const LineupSection = React.memo(function LineupSection({ lineup, teamNam
                 <Typography 
                   variant="h2" 
                   weight="bold" 
-                  style={{ color: teamColor }}
+                  color={teamColorPath}
                 >
                   {row.order}
                 </Typography>
@@ -85,7 +85,7 @@ export const LineupSection = React.memo(function LineupSection({ lineup, teamNam
               <Typography 
                 variant="h3" 
                 weight="bold" 
-                style={{ color: teamColor }}
+                color={teamColorPath}
               >
                 {row.position}
               </Typography>
