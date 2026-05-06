@@ -31,7 +31,7 @@ interface ExchangeProfileModalProps {
 export const ExchangeProfileModal = React.memo(
   ({ visible, onClose }: ExchangeProfileModalProps) => {
     const router = useRouter();
-    const { colors } = useTheme();
+    useTheme();
 
     /**
      * 모달을 닫고 지정 경로로 이동
@@ -66,7 +66,7 @@ export const ExchangeProfileModal = React.memo(
               onPress={() => handleNavigate("/exchange/my-items")}
             >
               <Text style={styles.modalMenuButtonText}>내가 등록한 물건</Text>
-              <Text style={[{ color: colors.muted }]}>{">"}</Text>
+              <Text style={styles.menuArrow}>{">"}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -74,7 +74,7 @@ export const ExchangeProfileModal = React.memo(
               onPress={() => handleNavigate("/exchange/history")}
             >
               <Text style={styles.modalMenuButtonText}>종료된 교환 내역</Text>
-              <Text style={[{ color: colors.muted }]}>{">"}</Text>
+              <Text style={styles.menuArrow}>{">"}</Text>
             </TouchableOpacity>
           </Pressable>
         </Pressable>
@@ -129,5 +129,9 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.size.BODY,
     color: theme.colors.text.primary,
     fontWeight: theme.typography.weight.medium,
+  },
+  menuArrow: {
+    color: theme.colors.text.tertiary,
+    fontSize: theme.typography.size.md,
   },
 });

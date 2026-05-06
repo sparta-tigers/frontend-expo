@@ -147,7 +147,7 @@ function RootLayoutInner() {
                     accessibilityLabel="뒤로가기"
                   >
                     <IconSymbol
-                      size={theme.typography.size.xl}
+                      size={theme.layout.header.backIconSize}
                       name="chevron.left"
                       color={theme.colors.team.neutralDark}
                     />

@@ -5,7 +5,14 @@
  * 모든 디자인 토큰을 단일 theme 객체로 통합
  */
 
-import { Platform } from "react-native";
+import { Platform, Dimensions } from "react-native";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+// 🚨 앙드레 카파시: 대시보드 레이아웃 고정 상수 정의
+// Why: 계산식에서 중복 참조되는 값을 변수로 추출하여 undefined 방지 및 가독성 확보
+const DASHBOARD_PADDING_HORIZONTAL = 30;
+const CALENDAR_WIDTH = SCREEN_WIDTH - DASHBOARD_PADDING_HORIZONTAL * 2;
 
 const tintColorLight = "#0a7ea4";
 const tintColorDark = "#fff";
@@ -282,7 +289,7 @@ export const theme = {
       tabLabelWidth: 54,
     },
     dashboard: {
-      screenPaddingHorizontal: 30,
+      screenPaddingHorizontal: DASHBOARD_PADDING_HORIZONTAL,
       sectionGap: 20,
       sectionTitleHeight: 24,
       myTeamCardHeight: 118,
@@ -292,10 +299,10 @@ export const theme = {
       rankingRowHeight: 25,
       rankingRowHeightActive: 37,
       rankingMyTeamBorderWidth: 2,
-      lineupRowWidth: 234,
+      lineupRowWidth: CALENDAR_WIDTH * 0.7, // 고정 234px 대신 캘린더 너비의 70%로 반응형 대응
       lineupRowHeight: 30,
-      calendarWidth: 340,
-      calendarCellWidth: 48, // 340 / 7 을 내림; 미세 여백은 flex로 흡수
+      calendarWidth: CALENDAR_WIDTH,
+      calendarCellWidth: Math.floor(CALENDAR_WIDTH / 7), // 7등분 후 정수화
       calendarHeaderHeight: 32,
       calendarCellHeight: 61,
       calendarRadius: 13, // 12.687 반올림; 정수화하여 렌더링 일관성 확보
