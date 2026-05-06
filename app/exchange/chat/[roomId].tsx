@@ -301,7 +301,17 @@ export default function ChatRoomScreen() {
       queryClient.setQueryData(
         ["chatMessages", roomIdNumber],
         (oldData: InfiniteData<ChatMessagesPage, number> | undefined) => {
-          if (!oldData || oldData.pages.length === 0) return oldData;
+          if (!oldData || oldData.pages.length === 0) {
+            return {
+              pages: [
+                {
+                  content: [newMessage],
+                  hasNext: false,
+                },
+              ],
+              pageParams: [0],
+            };
+          }
 
           const prevContent = oldData.pages[0].content;
 
@@ -464,9 +474,8 @@ export default function ChatRoomScreen() {
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       if (nextAppState === "active") {
         void connect();
-        queryClient.invalidateQueries({
-          queryKey: ["chatMessages", roomIdNumber],
-        });
+        // 🚨 앙드레 카파시: 수동 invalidateQueries 제거
+        // Why: 전역 focusManager가 이미 활성화되어 있어 중복 요청 발생 방지
       } else if (nextAppState === "background") {
         void client?.deactivate();
       }
