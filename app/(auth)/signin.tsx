@@ -242,7 +242,7 @@ export default function SigninScreen() {
             height={LOCAL_LAYOUT.tabBarHeight} 
             bg="card" 
             roundedTop="tabBar" 
-            style={theme.shadow.card}
+            style={styles.fakeTabBar}
           >
             <Box flex={1} py="AUTH_TAB">
               <Box flex={1} flexDir="row" px="xl" justify="space-between" align="center">
@@ -336,5 +336,8 @@ const styles = StyleSheet.create({
   },
   socialButtonsContainer: {
     marginTop: -theme.spacing.xxl,
+  },
+  fakeTabBar: {
+    ...theme.shadow.card,
   },
 });

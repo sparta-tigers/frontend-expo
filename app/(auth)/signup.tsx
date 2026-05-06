@@ -85,7 +85,7 @@ export default function SignupScreen() {
         keyboardShouldPersistTaps="handled"
         extraScrollHeight={theme.spacing.xl}
       >
-        <Box bg="card" p="xl" rounded="lg" style={theme.shadow.card}>
+        <Box bg="card" p="xl" rounded="lg" style={styles.card}>
           <Typography variant="h2" weight="bold" color="text.primary" center mb="xl">
             회원가입
           </Typography>
@@ -149,5 +149,8 @@ const styles = StyleSheet.create({
   },
   signupButton: {
     marginTop: LOCAL_LAYOUT.buttonTopMargin,
+  },
+  card: {
+    ...theme.shadow.card,
   },
 });

@@ -10,11 +10,12 @@
 - [x] **Phase 3: Core Business Logic and Data Integrity** (Completed 2026-05-06)
   - Goal: Refactor business logic for better maintainability and data consistency.
   - Success Criteria: Parameter handling fixed, AsyncStorage error handling improved, and mock data normalized.
-- [ ] **Phase 4: Type Safety and Hook/Component Optimization**
+- [x] **Phase 4: Type Safety and Hook/Component Optimization** (Completed 2026-05-06)
   - Goal: Eliminate 'any' types and optimize common hooks/components.
   - Success Criteria: `any` types removed from core hooks/components, button/typography types strengthened.
 - [ ] **Phase 5: UX Improvement and UI Rendering Logic**
-  - Goal: Smooth out animations and improve general user experience.
+  - Goal: Fix profile update behavior, upgrade team selection UI to BottomSheet, and resolve UI rendering logic errors.
+  - Success Criteria: No forced redirect on profile update, 10 teams supported in selection UI, correct color logic in liveboard.
 - [ ] **Phase 6: Inline Style and Shadow Removal**
   - Goal: Clean up styling patterns and remove hardcoded shadows.
 - [ ] **Phase 7: Local Layout and Theme Token Mapping**

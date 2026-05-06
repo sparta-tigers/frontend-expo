@@ -155,7 +155,7 @@ export default function NotificationScreen() {
   };
 
   const renderAlarmItem = ({ item }: { item: TicketAlarm }) => (
-    <Box bg="card" p="SCREEN" rounded="md" mb="sm" flexDir="row" style={[styles.alarmItem, theme.shadow.card]}>
+    <Box bg="card" p="SCREEN" rounded="md" mb="sm" flexDir="row" style={styles.alarmItem}>
       <Box flex={1}>
         <Typography variant="body1" weight="semibold" color="text.primary" mb="xs">
           {item.stadiumName}
@@ -170,7 +170,7 @@ export default function NotificationScreen() {
           <Box 
             bg={item.isNotified ? "error" : "primary"} 
             px="sm" 
-            py="xxs" 
+            py="xs" 
             rounded="sm"
           >
             <Typography variant="caption" color="background" weight="bold">
@@ -180,7 +180,7 @@ export default function NotificationScreen() {
         </Box>
       </Box>
       <TouchableOpacity
-        style={[styles.deleteButton, { borderColor: theme.colors.error }]}
+        style={styles.deleteButton}
         onPress={() => handleDeleteAlarm(item)}
         disabled={loading}
       >
@@ -236,9 +236,11 @@ const styles = StyleSheet.create({
   alarmItem: {
     borderWidth: 1,
     borderColor: theme.colors.border.light,
+    ...theme.shadow.card,
   },
   deleteButton: {
     borderWidth: 1,
+    borderColor: theme.colors.error,
     borderRadius: theme.radius.sm,
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xs,

@@ -51,7 +51,7 @@ const MapMarkers = React.memo(({ items, currentLocation, onMarkerPress }: {
           coordinate={currentLocation}
           title="내 위치"
           description="현재 내 위치"
-          pinColor="blue"
+          pinColor={theme.colors.primary}
         />
       )}
       {items?.map((item: Item) => {
