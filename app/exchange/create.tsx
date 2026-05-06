@@ -23,6 +23,12 @@ import { ItemCategory, LocationDto } from "@/src/features/exchange/types";
 import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
 
+interface ReactNativeFile {
+  uri: string;
+  name: string;
+  type: string;
+}
+
 /**
  * 교환글 작성 화면 컴포넌트
  */
@@ -71,11 +77,13 @@ export default function CreateItemScreen() {
         const match = /\.(\w+)$/.exec(filename);
         const type = match ? `image/${match[1]}` : "image/jpeg";
 
-        requestFormData.append("images", {
+        const file: ReactNativeFile = {
           uri: uri,
           name: filename,
           type,
-        } as unknown as Blob);
+        };
+
+        requestFormData.append("images", file as any); // RN FormData 스펙상 불가피한 any이나, 변수를 통해 구조를 명시함
       });
 
       return createExchangeItem(requestFormData);

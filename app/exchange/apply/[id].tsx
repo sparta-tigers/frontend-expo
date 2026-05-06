@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Input } from "@/components/ui/input";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { exchangeCreateAPI, itemsGetDetailAPI } from "@/src/features/exchange/api";
+import { exchangeCreateAPI, itemsGetDetailAPI, ExchangeRoomResponseDto } from "@/src/features/exchange/api";
 import { CreateExchangeDto } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
@@ -188,10 +188,8 @@ export default function ApplyExchangeScreen() {
       }
       return response.data;
     },
-    onSuccess: (data) => {
-      const roomId =
-        (data as { directRoomId?: number; roomId?: number })?.directRoomId ??
-        (data as { directRoomId?: number; roomId?: number })?.roomId;
+    onSuccess: (data: ExchangeRoomResponseDto | null) => {
+      const roomId = data?.directRoomId ?? data?.roomId;
 
       queryClient.invalidateQueries({ queryKey: ["item", id] });
 
