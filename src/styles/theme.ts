@@ -193,6 +193,7 @@ export const theme = {
     info: "#3B82F6",
   },
   spacing: {
+    xxs: 2,
     xs: 4,
     sm: 8,
     md: 12,
@@ -209,11 +210,14 @@ export const theme = {
   },
   typography: {
     size: {
+      xxs: 11,
       xs: 12,
       sm: 14,
       md: 16,
       lg: 18,
       xl: 20,
+      xxl: 24,
+      xxxl: 28,
       // 기존 호환성을 위한 별칭
       CAPTION: 12,
       SMALL: 14,
@@ -235,9 +239,12 @@ export const theme = {
     sm: 4,
     md: 8,
     lg: 12,
+    xl: 16,
+    xxl: 20,
     tabBar: 15,
     dashboardCard: 10,
     full: 9999,
+    round: 9999,
     // 기존 호환성을 위한 별칭
     BUTTON: 6,
     INPUT: 8,

@@ -1,8 +1,27 @@
 import { TEAM_DATA } from "@/src/utils/team";
 import { theme } from "@/src/styles/theme";
+import { Box } from "@/components/ui/box";
+import { Typography } from "@/components/ui/typography";
 import React, { memo } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TouchableOpacity } from "react-native";
 
+// ========================================================
+// 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
+// ========================================================
+const LOCAL_LAYOUT = {
+  headerLetterSpacing: 1,
+  changeTeamPaddingVertical: 4,
+  changeTeamPaddingHorizontal: 8,
+  cardBorderLeftWidth: 4,
+  cardShadowOpacity: 0.05,
+  mascotLetterSpacing: -0.5,
+} as const;
+
+/**
+ * 미니 통계 카드 컴포넌트
+ * 
+ * Why: 순위, 승률 등 주요 지표를 간결하게 표현하기 위함.
+ */
 interface MiniStatCardProps {
   item: {
     label: string;
@@ -11,10 +30,14 @@ interface MiniStatCardProps {
 }
 
 const MiniStatCard = memo(({ item }: MiniStatCardProps) => (
-  <View style={styles.miniStatCard}>
-    <Text style={styles.miniStatLabel}>{item.label}</Text>
-    <Text style={styles.miniStatValue}>{item.value}</Text>
-  </View>
+  <Box align="center" mr="lg">
+    <Typography variant="caption" color="secondary" mb="xs">
+      {item.label}
+    </Typography>
+    <Typography weight="semibold">
+      {item.value}
+    </Typography>
+  </Box>
 ));
 MiniStatCard.displayName = "MiniStatCard";
 
@@ -25,6 +48,12 @@ interface MyTeamSectionProps {
   onPressChangeTeam?: () => void;
 }
 
+/**
+ * 홈 화면 상단 '나의 팀' 섹션
+ * 
+ * Why: 사용자의 소속감 고취 및 핵심 데이터(순위, 승률 등) 가시성 확보.
+ * Zero-Magic UI 원칙을 준수하여 Box와 Typography 프리미티브로 구현됨.
+ */
 export const MyTeamSection = memo(({
   userNickname,
   daysInSchool,
@@ -41,16 +70,18 @@ export const MyTeamSection = memo(({
     { key: "recent", label: "최근", value: "3승 2패" },
   ];
 
-  // Dynamic Styles (Must be handled carefully to avoid no-inline-styles)
-  // Since teamColor is dynamic, we use a single style object but avoid literals in JSX
+  // 동적 스타일 (응원팀 테마 컬러 반영)
   const dynamicCardStyle = { borderLeftColor: teamColor };
   const dynamicDaysTextStyle = { color: teamColor };
   const dynamicMascotTextStyle = { color: teamColor };
 
   return (
-    <View style={styles.section}>
-      <View style={styles.sectionHeaderRow}>
-        <Text style={styles.sectionHeaderLabel}>MY TEAM</Text>
+    <Box mt="xxl" px={theme.layout.dashboard.screenPaddingHorizontal}>
+      {/* 섹션 헤더 */}
+      <Box flexDir="row" justify="space-between" align="center" mb="md">
+        <Typography variant="label" color="secondary" style={styles.headerLabel}>
+          MY TEAM
+        </Typography>
         {onPressChangeTeam && (
           <TouchableOpacity
             activeOpacity={0.75}
@@ -59,122 +90,77 @@ export const MyTeamSection = memo(({
             accessibilityRole="button"
             accessibilityLabel="응원팀 변경"
           >
-            <Text style={styles.changeTeamButtonText}>응원팀 변경</Text>
+            <Typography variant="caption" color="primary" weight="semibold">
+              응원팀 변경
+            </Typography>
           </TouchableOpacity>
         )}
-      </View>
+      </Box>
 
-      <View style={[styles.myTeamCard, dynamicCardStyle]}>
-        <View style={styles.myTeamTitleRow}>
-          <Text style={styles.myTeamNicknameText}>{userNickname}</Text>
-          <Text style={styles.myTeamSubText}>님,</Text>
-          <Text style={styles.myTeamSubText}>입학한지 </Text>
-          <Text style={[styles.myTeamDaysText, dynamicDaysTextStyle]}>{daysInSchool}</Text>
-          <Text style={styles.myTeamSubText}>일째 !</Text>
-        </View>
+      {/* 팀 카드 */}
+      <Box 
+        bg="surface" 
+        rounded="lg" 
+        p="lg" 
+        style={[styles.myTeamCard, dynamicCardStyle]}
+      >
+        <Box flexDir="row" align="baseline" mb="lg">
+          <Typography variant="h3" weight="bold">
+            {userNickname}
+          </Typography>
+          <Typography ml="xxs">님,</Typography>
+          <Typography ml="xxs">입학한지 </Typography>
+          <Typography 
+            variant="h2" 
+            weight="black" 
+            mx="xxs" 
+            style={dynamicDaysTextStyle}
+          >
+            {daysInSchool}
+          </Typography>
+          <Typography>일째 !</Typography>
+        </Box>
 
-        <View style={styles.myTeamStatsRow}>
-          {stats.map((item) => (
-            <MiniStatCard key={item.key} item={item} />
-          ))}
+        <Box flexDir="row" justify="space-between" align="flex-end">
+          <Box flexDir="row">
+            {stats.map((item) => (
+              <MiniStatCard key={item.key} item={item} />
+            ))}
+          </Box>
 
-          <View style={styles.mascotBox}>
-            <Text style={styles.mascotEmoji}>{myTeam.mascotEmoji}</Text>
-            <Text style={[styles.mascotTeamText, dynamicMascotTextStyle]}>{myTeam.shortName}</Text>
-          </View>
-        </View>
-      </View>
-    </View>
+          <Box align="center">
+            <Typography variant="h3" mb="xxs">
+              {myTeam.mascotEmoji}
+            </Typography>
+            <Typography 
+              variant="caption" 
+              weight="bold" 
+              style={[styles.mascotTeamText, dynamicMascotTextStyle]}
+            >
+              {myTeam.shortName}
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 });
 MyTeamSection.displayName = "MyTeamSection";
 
 const styles = StyleSheet.create({
-  section: {
-    marginTop: 24,
-    paddingHorizontal: theme.layout.dashboard.screenPaddingHorizontal,
-  },
-  sectionHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  sectionHeaderLabel: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: theme.colors.text.secondary,
-    letterSpacing: 1,
+  headerLabel: {
+    letterSpacing: LOCAL_LAYOUT.headerLetterSpacing,
   },
   changeTeamButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-  },
-  changeTeamButtonText: {
-    fontSize: 12,
-    color: theme.colors.primary,
-    fontWeight: "600",
+    paddingVertical: LOCAL_LAYOUT.changeTeamPaddingVertical,
+    paddingHorizontal: LOCAL_LAYOUT.changeTeamPaddingHorizontal,
   },
   myTeamCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    borderLeftWidth: 4,
-    shadowColor: theme.colors.text.primary, // Fixed literal #000
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  myTeamTitleRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    marginBottom: 16,
-  },
-  myTeamNicknameText: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: theme.colors.text.primary,
-  },
-  myTeamSubText: {
-    fontSize: 15,
-    color: theme.colors.text.primary,
-    marginLeft: 2,
-  },
-  myTeamDaysText: {
-    fontSize: 20,
-    fontWeight: "800",
-    marginHorizontal: 2,
-  },
-  myTeamStatsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-  },
-  miniStatCard: {
-    alignItems: "center",
-    marginRight: 16,
-  },
-  miniStatLabel: {
-    fontSize: 11,
-    color: theme.colors.text.secondary,
-    marginBottom: 4,
-  },
-  miniStatValue: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: theme.colors.text.primary,
-  },
-  mascotBox: {
-    alignItems: "center",
-  },
-  mascotEmoji: {
-    fontSize: 24,
-    marginBottom: 2,
+    borderLeftWidth: LOCAL_LAYOUT.cardBorderLeftWidth,
+    ...theme.shadow.card,
+    shadowOpacity: LOCAL_LAYOUT.cardShadowOpacity,
   },
   mascotTeamText: {
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: -0.5,
+    letterSpacing: LOCAL_LAYOUT.mascotLetterSpacing,
   },
 });

@@ -6,6 +6,36 @@ import { Stack, router } from "expo-router";
 import React from "react";
 import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 
+// ========================================================
+// 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
+// ========================================================
+const LOCAL_LAYOUT = {
+  headerMarginBottom: 24,
+  titleFontSize: 22,
+  titleWeight: "700" as const,
+  titleBottomGap: 8,
+  subtitleFontSize: 14,
+  cardWidth: "48%",
+  cardRadius: 16,
+  cardPadding: 16,
+  cardBottomMargin: 16,
+  cardBorderWidth: 1,
+  avatarSize: 60,
+  avatarRadius: 30,
+  avatarBottomGap: 12,
+  avatarShadowOpacity: 0.1,
+  avatarShadowRadius: 8,
+  avatarElevation: 3,
+  mascotSize: 30,
+  teamNameSize: 15,
+  checkBadgeTop: 8,
+  checkBadgeRight: 8,
+  checkPaddingHorizontal: 6,
+  checkPaddingVertical: 2,
+  checkRadius: 4,
+  checkFontSize: 10,
+} as const;
+
 const TEAMS = [
   { id: "KIA", name: "KIA 타이거즈", mascot: "🐯", color: theme.colors.team.kia },
   { id: "LG", name: "LG 트윈스", mascot: "👯", color: theme.colors.team.lg },
@@ -19,6 +49,12 @@ const TEAMS = [
   { id: "KIWOOM", name: "키움 히어로즈", mascot: "🦸", color: theme.colors.team.kiwoom },
 ];
 
+/**
+ * 응원팀 변경 화면
+ * 
+ * Why: 사용자의 소속 팀을 변경하고, 그에 따른 앱 테마 색상을 동적으로 적용하기 위함.
+ * Zero-Magic UI 원칙에 따라 모든 수치는 LOCAL_LAYOUT 및 theme 토큰을 참조함.
+ */
 export default function ChangeTeamScreen() {
   const { myTeam, updateMyTeam } = useAuth();
 
@@ -41,19 +77,33 @@ export default function ChangeTeamScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Box style={styles.header}>
-          <Typography style={styles.title}>응원하는 팀을 선택해주세요</Typography>
-          <Typography style={styles.subtitle}>선택한 팀에 맞춰 앱의 테마 색상이 변경됩니다.</Typography>
+        <Box mb={LOCAL_LAYOUT.headerMarginBottom}>
+          <Typography 
+            variant="h3" 
+            weight="bold" 
+            mb={LOCAL_LAYOUT.titleBottomGap}
+          >
+            응원하는 팀을 선택해주세요
+          </Typography>
+          <Typography variant="body2" color="secondary">
+            선택한 팀에 맞춰 앱의 테마 색상이 변경됩니다.
+          </Typography>
         </Box>
 
-        <Box style={styles.grid}>
+        <Box flexDir="row" flexWrap="wrap" justify="space-between">
           {TEAMS.map((team) => {
             const isSelected = myTeam === team.id;
             
-            // Generate dynamic styles without literals in JSX
-            const cardDynamicStyle = isSelected ? { borderColor: team.color, borderWidth: 2 } : null;
+            // 동적 스타일 — 원시 수치 없이 LOCAL_LAYOUT 참조
+            const cardDynamicStyle = isSelected ? { 
+              borderColor: team.color, 
+              borderWidth: 2 
+            } : null;
             const badgeDynamicStyle = { backgroundColor: team.color };
-            const textDynamicStyle = isSelected ? { color: team.color, fontWeight: "700" as const } : null;
+            const textDynamicStyle = isSelected ? { 
+              color: team.color, 
+              fontWeight: "700" as const 
+            } : null;
 
             return (
               <TouchableOpacity
@@ -62,15 +112,39 @@ export default function ChangeTeamScreen() {
                 onPress={() => handleSelectTeam(team.id)}
                 style={[styles.teamCard, cardDynamicStyle]}
               >
-                <Box style={[styles.colorBadge, badgeDynamicStyle]}>
+                <Box 
+                  width={LOCAL_LAYOUT.avatarSize}
+                  height={LOCAL_LAYOUT.avatarSize}
+                  rounded={LOCAL_LAYOUT.avatarRadius}
+                  justify="center"
+                  align="center"
+                  mb={LOCAL_LAYOUT.avatarBottomGap}
+                  style={[styles.colorBadge, badgeDynamicStyle]}
+                >
                   <Typography style={styles.mascot}>{team.mascot}</Typography>
                 </Box>
-                <Typography style={[styles.teamName, textDynamicStyle]}>
+                <Typography 
+                  variant="caption" 
+                  weight="semibold" 
+                  center
+                  style={textDynamicStyle}
+                >
                   {team.name}
                 </Typography>
                 {isSelected && (
-                  <Box style={[styles.checkBadge, badgeDynamicStyle]}>
-                    <Typography style={styles.checkText}>선택됨</Typography>
+                  <Box 
+                    rounded={LOCAL_LAYOUT.checkRadius}
+                    px={LOCAL_LAYOUT.checkPaddingHorizontal}
+                    py={LOCAL_LAYOUT.checkPaddingVertical}
+                    style={[styles.checkBadge, badgeDynamicStyle]}
+                  >
+                    <Typography 
+                      color="background" 
+                      weight="bold"
+                      style={styles.checkText}
+                    >
+                      선택됨
+                    </Typography>
                   </Box>
                 )}
               </TouchableOpacity>
@@ -90,67 +164,32 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: theme.layout.dashboard.screenPaddingHorizontal,
   },
-  header: {
-    marginBottom: 24,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: theme.colors.text.primary,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: theme.colors.text.secondary,
-  },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
   teamCard: {
-    width: "48%",
+    width: LOCAL_LAYOUT.cardWidth,
     backgroundColor: theme.colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: LOCAL_LAYOUT.cardRadius,
+    padding: LOCAL_LAYOUT.cardPadding,
+    marginBottom: LOCAL_LAYOUT.cardBottomMargin,
     alignItems: "center",
-    borderWidth: 1,
+    borderWidth: LOCAL_LAYOUT.cardBorderWidth,
     borderColor: theme.colors.border.light,
   },
   colorBadge: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 12,
     shadowColor: theme.colors.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOpacity: LOCAL_LAYOUT.avatarShadowOpacity,
+    shadowRadius: LOCAL_LAYOUT.avatarShadowRadius,
+    elevation: LOCAL_LAYOUT.avatarElevation,
   },
   mascot: {
-    fontSize: 30,
-  },
-  teamName: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: theme.colors.text.primary,
-    textAlign: "center",
+    fontSize: LOCAL_LAYOUT.mascotSize,
   },
   checkBadge: {
     position: "absolute",
-    top: 8,
-    right: 8,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    top: LOCAL_LAYOUT.checkBadgeTop,
+    right: LOCAL_LAYOUT.checkBadgeRight,
   },
   checkText: {
-    fontSize: 10,
-    color: theme.colors.background,
-    fontWeight: "700",
+    fontSize: LOCAL_LAYOUT.checkFontSize,
   },
 });

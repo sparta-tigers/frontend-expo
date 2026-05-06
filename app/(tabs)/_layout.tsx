@@ -2,7 +2,7 @@ import { Tabs } from "expo-router";
 import React, { useEffect } from "react";
 
 import { useQuery } from "@tanstack/react-query";
-import { View, StyleSheet, AppState, AppStateStatus } from "react-native";
+import { AppState, AppStateStatus } from "react-native";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -10,7 +10,14 @@ import { useTheme } from "@/hooks/useTheme";
 import { theme } from "@/src/styles/theme";
 import { useAuth } from "@/src/hooks/useAuth";
 import { exchangeGetMyRequestsAPI } from "@/src/features/exchange/api";
+import { Box } from "@/components/ui";
 
+/**
+ * 탭 네비게이션 레이아웃
+ * 
+ * Why: 앱의 주요 도메인 화면(홈, 라이브보드, 교환 등)을 하단 탭으로 구성.
+ * Zero-Magic UI 원칙에 따라 배지 및 레이아웃을 Box 프리미티브로 관리함.
+ */
 export default function TabLayout() {
   const { colors } = useTheme();
   const { user } = useAuth();
@@ -36,6 +43,8 @@ export default function TabLayout() {
 
   const hasNewExchangeRequest = (receiveResponse?.data?.totalElements ?? 0) > 0;
 
+  const TAB_ICON_SIZE = 28;
+
   return (
     <Tabs
       screenOptions={{
@@ -49,7 +58,7 @@ export default function TabLayout() {
         options={{
           title: "홈",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="house.fill" color={color} />
+            <IconSymbol size={TAB_ICON_SIZE} name="house.fill" color={color} />
           ),
         }}
       />
@@ -58,7 +67,7 @@ export default function TabLayout() {
         options={{
           title: "라이브보드",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="chart.bar.fill" color={color} />
+            <IconSymbol size={TAB_ICON_SIZE} name="chart.bar.fill" color={color} />
           ),
         }}
       />
@@ -67,12 +76,20 @@ export default function TabLayout() {
         options={{
           title: "교환",
           tabBarIcon: ({ color }) => (
-            <View>
-              <IconSymbol size={28} name="arrow.left.arrow.right" color={color} />
+            <Box>
+              <IconSymbol size={TAB_ICON_SIZE} name="arrow.left.arrow.right" color={color} />
               {hasNewExchangeRequest && (
-                <View style={styles.badge} />
+                <Box 
+                  position="absolute" 
+                  right={theme.layout.tabBar.badgeOffset} 
+                  top={theme.layout.tabBar.badgeOffset} 
+                  width={theme.layout.tabBar.badgeSize} 
+                  height={theme.layout.tabBar.badgeSize} 
+                  rounded={theme.layout.tabBar.badgeRadius} 
+                  bg="error" 
+                />
               )}
-            </View>
+            </Box>
           ),
         }}
       />
@@ -81,7 +98,7 @@ export default function TabLayout() {
         options={{
           title: "예매알림",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="bell.fill" color={color} />
+            <IconSymbol size={TAB_ICON_SIZE} name="bell.fill" color={color} />
           ),
         }}
       />
@@ -90,7 +107,7 @@ export default function TabLayout() {
         options={{
           title: "직관기록",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="list.bullet" color={color} />
+            <IconSymbol size={TAB_ICON_SIZE} name="list.bullet" color={color} />
           ),
         }}
       />
@@ -98,14 +115,4 @@ export default function TabLayout() {
   );
 }
 
-const styles = StyleSheet.create({
-  badge: {
-    position: "absolute",
-    right: theme.layout.tabBar.badgeOffset,
-    top: theme.layout.tabBar.badgeOffset,
-    width: theme.layout.tabBar.badgeSize,
-    height: theme.layout.tabBar.badgeSize,
-    borderRadius: theme.layout.tabBar.badgeRadius,
-    backgroundColor: theme.colors.error,
-  },
-});
+// 🚨 앙드레 카파시: 모든 스타일을 Box 프리미티브로 이전함.

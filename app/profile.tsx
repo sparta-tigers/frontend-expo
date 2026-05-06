@@ -1,6 +1,8 @@
+import { Box } from "@/components/ui/box";
 import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { useTheme } from "@/hooks/useTheme";
+import { Typography } from "@/components/ui/typography";
+import { theme } from "@/src/styles/theme";
 import {
     usersDeleteAccountAPI,
     usersUpdateProfileAPI,
@@ -13,7 +15,6 @@ import {
     favoriteTeamGetListAPI,
 } from "@/src/features/user/favorite-team-api";
 import { useAuth } from "@/src/hooks/useAuth";
-import { SPACING } from "@/src/styles/unified-design";
 import { Logger } from "@/src/utils/logger";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -21,13 +22,32 @@ import {
     Alert,
     ScrollView,
     StyleSheet,
-    Text,
     TouchableOpacity,
-    View,
 } from "react-native";
 
+// ========================================================
+// 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
+// ========================================================
+const LOCAL_LAYOUT = {
+  guestAvatarSize: 80,
+  userAvatarSize: 60,
+  dividerHeight: 1,
+  headerBorderWidth: 1,
+  logoutBorderWidth: 1,
+  menuItemVerticalPadding: theme.spacing.md,
+  menuItemHorizontalPadding: theme.spacing.xl,
+  teamDeletePaddingVertical: theme.spacing.xs,
+  teamDeletePaddingHorizontal: theme.spacing.sm,
+  scrollBottomPadding: 40,
+} as const;
+
+/**
+ * 프로필 화면 컴포넌트
+ * 
+ * Why: 사용자의 개인 정보 관리, 즐겨찾기 팀 설정, 계정 관리 기능을 제공하기 위함.
+ * Zero-Magic UI 원칙에 따라 모든 레이아웃은 Box와 Typography 프리미티브를 사용함.
+ */
 export default function ProfileScreen() {
-  const { colors } = useTheme();
   const { user, signout } = useAuth();
   const [loading, setLoading] = useState(false);
   const [favoriteTeams, setFavoriteTeams] = useState<FavoriteTeam[]>([]);
@@ -90,8 +110,6 @@ export default function ProfileScreen() {
                   {
                     text: "확인",
                     onPress: () => {
-                      // 프로필 정보 새로고침을 위해 로그아웃 후 재로그인 유도
-                      // 또는 useAuth 훅에서 사용자 정보 업데이트 로직 추가
                       router.replace("/(auth)/signin");
                     },
                   },
@@ -127,7 +145,6 @@ export default function ProfileScreen() {
           text: "탈퇴",
           style: "destructive",
           onPress: async () => {
-            // 최종 확인
             Alert.alert(
               "최종 확인",
               "정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
@@ -208,7 +225,7 @@ export default function ProfileScreen() {
 
           if (response.resultType === "SUCCESS") {
             Alert.alert("성공", `${team.name}을 즐겨찾기에 추가했습니다.`);
-            loadFavoriteTeams(); // 목록 새로고침
+            loadFavoriteTeams();
           } else {
             Alert.alert("오류", "즐겨찾기 추가에 실패했습니다.");
           }
@@ -247,7 +264,7 @@ export default function ProfileScreen() {
                   "성공",
                   `${team.teamName}을 즐겨찾기에서 삭제했습니다.`,
                 );
-                loadFavoriteTeams(); // 목록 새로고침
+                loadFavoriteTeams();
               } else {
                 Alert.alert("오류", "즐겨찾기 삭제에 실패했습니다.");
               }
@@ -264,447 +281,270 @@ export default function ProfileScreen() {
   // 로그인되지 않은 상태
   if (!user?.accessToken) {
     return (
-      <SafeLayout style={{ backgroundColor: colors.background }}>
-        <View style={styles.container}>
-          <View style={[styles.topNav, styles.topNavCenter, { borderBottomColor: colors.border }]}>
-            <Text style={[styles.navTitle, { color: colors.text }]}>
-              프로필
-            </Text>
-          </View>
+      <SafeLayout>
+        <Box flex={1}>
+          <Box 
+            py="lg" 
+            align="center" 
+            style={styles.header}
+          >
+            <Typography variant="h3">프로필</Typography>
+          </Box>
 
-          {/* 게스트 상태 콘텐츠 */}
           <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            <View style={[styles.guestCard, { backgroundColor: colors.card }]}>
-              <View
-                style={[styles.guestAvatar, { backgroundColor: colors.muted }]}
+            <Box bg="card" p="xl" rounded="xl" align="center" mb="xxl">
+              <Box 
+                bg="muted" 
+                rounded="full" 
+                align="center" 
+                justify="center" 
+                mb="md"
+                width={LOCAL_LAYOUT.guestAvatarSize}
+                height={LOCAL_LAYOUT.guestAvatarSize}
               >
-                <Text style={[styles.avatarText, { color: colors.text }]}>
-                  G
-                </Text>
-              </View>
-              <Text style={[styles.guestTitle, { color: colors.text }]}>
-                게스트 모드
-              </Text>
-              <Text style={[styles.guestDesc, { color: colors.muted }]}>
+                <Typography variant="h1" color="background">G</Typography>
+              </Box>
+              <Typography variant="h2" mb="sm">게스트 모드</Typography>
+              <Typography variant="body2" color="secondary" center>
                 로그인하면 더 많은 기능을 이용할 수 있어요
-              </Text>
-            </View>
+              </Typography>
+            </Box>
 
-            <View style={styles.actionButtons}>
+            <Box gap="md">
               <Button
                 variant="primary"
-                style={styles.primaryButton}
                 onPress={() => router.push("/(auth)/signin")}
               >
                 로그인
               </Button>
               <Button
                 variant="outline"
-                style={styles.outlineButton}
                 onPress={() => router.push("/(auth)/signup")}
               >
                 회원가입
               </Button>
-            </View>
+            </Box>
           </ScrollView>
-        </View>
+        </Box>
       </SafeLayout>
     );
   }
 
   // 로그인된 상태
   return (
-    <SafeLayout style={{ backgroundColor: colors.background }}>
-      <View style={styles.container}>
-        <View style={[styles.topNav, styles.topNavCenter, { borderBottomColor: colors.border }]}>
-          <Text style={[styles.navTitle, { color: colors.text }]}>프로필</Text>
-        </View>
+    <SafeLayout>
+      <Box flex={1}>
+        <Box 
+          py="lg" 
+          align="center" 
+          style={styles.header}
+        >
+          <Typography variant="h3">프로필</Typography>
+        </Box>
 
-        {/* 스크롤 가능한 콘텐츠 */}
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
           {/* 사용자 정보 */}
-          <View style={[styles.profileCard, { backgroundColor: colors.card }]}>
-            <View style={styles.profileHeader}>
-              <View
-                style={[styles.userAvatar, { backgroundColor: colors.primary }]}
+          <Box bg="card" p="lg" rounded="xl" mb="lg">
+            <Box flexDir="row" align="center">
+              <Box 
+                bg="primary" 
+                rounded="full" 
+                align="center" 
+                justify="center" 
+                mr="md"
+                width={LOCAL_LAYOUT.userAvatarSize}
+                height={LOCAL_LAYOUT.userAvatarSize}
               >
-                <Text style={[styles.avatarText, { color: colors.background }]}>
-                  U
-                </Text>
-              </View>
-              <View style={styles.userDetails}>
-                <Text style={[styles.userName, { color: colors.text }]}>
+                <Typography variant="h3" color="background">U</Typography>
+              </Box>
+              <Box flex={1}>
+                <Typography weight="bold" mb="xxs">
                   {user?.nickname ?? user?.email ?? ""}
-                </Text>
-                <Text style={[styles.userStatus, { color: colors.muted }]}>
+                </Typography>
+                <Typography variant="caption" color="secondary">
                   활성 상태
-                </Text>
-              </View>
-            </View>
-          </View>
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
 
-          {/* 메뉴 그룹 */}
-          <View style={styles.menuGroup}>
-            <Text style={[styles.menuGroupTitle, { color: colors.text }]}>
-              교환 관리
-            </Text>
-            <View style={[styles.menuCard, { backgroundColor: colors.card }]}>
+          {/* 메뉴 그룹 - 교환 관리 */}
+          <Box mb="lg">
+            <Typography variant="label" ml="sm" mb="sm">교환 관리</Typography>
+            <Box bg="card" rounded="lg" style={styles.menuCard}>
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => router.push("/(tabs)/exchange")}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.menuItemText, { color: colors.text }]}>
-                  내 티켓 목록
-                </Text>
-                <Text style={[styles.menuItemArrow, { color: colors.muted }]}>
-                  ›
-                </Text>
+                <Typography>내 티켓 목록</Typography>
+                <Typography color="secondary" weight="bold">›</Typography>
               </TouchableOpacity>
-              <View
-                style={[styles.menuDivider, { backgroundColor: colors.border }]}
-              />
+              <Box mx="lg" style={styles.divider} />
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => router.push("/exchange/create")}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.menuItemText, { color: colors.text }]}>
-                  티켓 등록하기
-                </Text>
-                <Text style={[styles.menuItemArrow, { color: colors.muted }]}>
-                  ›
-                </Text>
+                <Typography>티켓 등록하기</Typography>
+                <Typography color="secondary" weight="bold">›</Typography>
               </TouchableOpacity>
-              <View
-                style={[styles.menuDivider, { backgroundColor: colors.border }]}
-              />
+              <Box mx="lg" style={styles.divider} />
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => router.push("/chat/chat")}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.menuItemText, { color: colors.text }]}>
-                  채팅방 목록
-                </Text>
-                <Text style={[styles.menuItemArrow, { color: colors.muted }]}>
-                  ›
-                </Text>
+                <Typography>채팅방 목록</Typography>
+                <Typography color="secondary" weight="bold">›</Typography>
               </TouchableOpacity>
-            </View>
-          </View>
+            </Box>
+          </Box>
 
-          <View style={styles.menuGroup}>
-            <Text style={[styles.menuGroupTitle, { color: colors.text }]}>
-              계정 관리
-            </Text>
-            <View style={[styles.menuCard, { backgroundColor: colors.card }]}>
+          {/* 메뉴 그룹 - 계정 관리 */}
+          <Box mb="lg">
+            <Typography variant="label" ml="sm" mb="sm">계정 관리</Typography>
+            <Box bg="card" rounded="lg" style={styles.menuCard}>
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={handleEditProfile}
                 disabled={loading}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.menuItemText, { color: colors.text }]}>
-                  프로필 수정
-                </Text>
-                <Text style={[styles.menuItemArrow, { color: colors.muted }]}>
-                  ›
-                </Text>
+                <Typography>프로필 수정</Typography>
+                <Typography color="secondary" weight="bold">›</Typography>
               </TouchableOpacity>
-              <View
-                style={[styles.menuDivider, { backgroundColor: colors.border }]}
-              />
+              <Box mx="lg" style={styles.divider} />
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={handleDeleteAccount}
                 disabled={loading}
                 activeOpacity={0.7}
               >
-                <Text
-                  style={[styles.menuItemText, { color: colors.destructive }]}
-                >
-                  회원 탈퇴
-                </Text>
-                <Text
-                  style={[styles.menuItemArrow, { color: colors.destructive }]}
-                >
-                  ›
-                </Text>
+                <Typography color="destructive">회원 탈퇴</Typography>
+                <Typography color="destructive" weight="bold">›</Typography>
               </TouchableOpacity>
-            </View>
-          </View>
+            </Box>
+          </Box>
 
-          <View style={styles.menuGroup}>
-            <Text style={[styles.menuGroupTitle, { color: colors.text }]}>
-              즐겨찾기 팀
-            </Text>
-            <View style={[styles.menuCard, { backgroundColor: colors.card }]}>
+          {/* 즐겨찾기 팀 */}
+          <Box mb="lg">
+            <Typography variant="label" ml="sm" mb="sm">즐겨찾기 팀</Typography>
+            <Box bg="card" rounded="lg" style={styles.menuCard}>
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={handleAddFavoriteTeam}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.menuItemText, { color: colors.text }]}>
-                  팀 추가하기
-                </Text>
-                <Text style={[styles.menuItemArrow, { color: colors.muted }]}>
-                  ›
-                </Text>
+                <Typography>팀 추가하기</Typography>
+                <Typography color="secondary" weight="bold">›</Typography>
               </TouchableOpacity>
 
               {favoriteTeams.length > 0 && (
                 <>
-                  <View
-                    style={[
-                      styles.menuDivider,
-                      { backgroundColor: colors.border },
-                    ]}
-                  />
-                  {favoriteTeams.map((team) => (
-                    <View key={team.id}>
-                      <TouchableOpacity
-                        style={styles.menuItem}
-                        activeOpacity={0.7}
-                      >
-                        <Text
-                          style={[styles.menuItemText, { color: colors.text }]}
-                        >
-                          {team.teamName}
-                        </Text>
+                  <Box mx="lg" style={styles.divider} />
+                  {favoriteTeams.map((team, index) => (
+                    <React.Fragment key={team.id}>
+                      <Box flexDir="row" align="center" justify="space-between" px="lg" py="md">
+                        <Typography>{team.teamName}</Typography>
                         <TouchableOpacity
                           onPress={() => handleDeleteFavoriteTeam(team)}
                           style={styles.teamDeleteButton}
                         >
-                          <Text
-                            style={[
-                              styles.teamDeleteText,
-                              { color: colors.destructive },
-                            ]}
-                          >
+                          <Typography variant="caption" color="destructive" weight="bold">
                             삭제
-                          </Text>
+                          </Typography>
                         </TouchableOpacity>
-                      </TouchableOpacity>
-                      {favoriteTeams[favoriteTeams.length - 1].id !==
-                        team.id && (
-                        <View
-                          style={[
-                            styles.menuDivider,
-                            { backgroundColor: colors.border },
-                          ]}
-                        />
+                      </Box>
+                      {index < favoriteTeams.length - 1 && (
+                        <Box mx="lg" style={styles.divider} />
                       )}
-                    </View>
+                    </React.Fragment>
                   ))}
                 </>
               )}
-            </View>
-          </View>
+            </Box>
+          </Box>
 
-          <View style={styles.menuGroup}>
-            <Text style={[styles.menuGroupTitle, { color: colors.text }]}>
-              설정
-            </Text>
-            <View style={[styles.menuCard, { backgroundColor: colors.card }]}>
+          {/* 설정 */}
+          <Box mb="lg">
+            <Typography variant="label" ml="sm" mb="sm">설정</Typography>
+            <Box bg="card" rounded="lg" style={styles.menuCard}>
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => {}}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.menuItemText, { color: colors.text }]}>
-                  알림 설정
-                </Text>
-                <Text style={[styles.menuItemArrow, { color: colors.muted }]}>
-                  ›
-                </Text>
+                <Typography>알림 설정</Typography>
+                <Typography color="secondary" weight="bold">›</Typography>
               </TouchableOpacity>
-              <View
-                style={[styles.menuDivider, { backgroundColor: colors.border }]}
-              />
+              <Box mx="lg" style={styles.divider} />
               <TouchableOpacity
                 style={styles.menuItem}
                 onPress={() => {}}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.menuItemText, { color: colors.text }]}>
-                  테마 설정
-                </Text>
-                <Text style={[styles.menuItemArrow, { color: colors.muted }]}>
-                  ›
-                </Text>
+                <Typography>테마 설정</Typography>
+                <Typography color="secondary" weight="bold">›</Typography>
               </TouchableOpacity>
-            </View>
-          </View>
+            </Box>
+          </Box>
 
           {/* 로그아웃 버튼 */}
           <Button
             variant="ghost"
-            style={[styles.logoutButton, { borderColor: colors.destructive }]}
+            style={styles.logoutButton}
             onPress={handleLogout}
           >
-            <Text
-              style={[styles.logoutButtonText, { color: colors.destructive }]}
-            >
-              로그아웃
-            </Text>
+            <Typography color="destructive" weight="bold">로그아웃</Typography>
           </Button>
         </ScrollView>
-      </View>
+      </Box>
     </SafeLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  // 스크롤뷰 스타일
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    padding: SPACING.SCREEN,
-    paddingBottom: SPACING.SCREEN * 2, // 하단 여백 추가
+    padding: theme.spacing.xl,
+    paddingBottom: LOCAL_LAYOUT.scrollBottomPadding,
   },
-  // 상단 네비게이션
-  topNav: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: SPACING.SCREEN,
-    borderBottomWidth: 1,
-  },
-  topNavCenter: {
-    justifyContent: "center",
-  },
-  navTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-  },
-
-  // 콘텐츠 영역 (기존 content 스타일 제거됨)
-  // 게스트 상태
-  guestCard: {
-    borderRadius: 16,
-    padding: SPACING.SCREEN * 1.5,
-    alignItems: "center",
-    marginBottom: SPACING.SCREEN * 2,
-  },
-  guestAvatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: SPACING.COMPONENT,
-  },
-  avatarText: {
-    fontSize: 28,
-    fontWeight: "bold",
-  },
-  guestTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    marginBottom: SPACING.SMALL,
-  },
-  guestDesc: {
-    fontSize: 16,
-    textAlign: "center",
-    lineHeight: 22,
-  },
-  // 액션 버튼들
-  actionButtons: {
-    gap: SPACING.COMPONENT,
-  },
-  primaryButton: {},
-  outlineButton: {},
-  // 로그인된 상태
-  profileCard: {
-    borderRadius: 16,
-    padding: SPACING.SCREEN,
-    marginBottom: SPACING.SCREEN,
-  },
-  profileHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  userAvatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: SPACING.COMPONENT,
-  },
-  userDetails: {
-    flex: 1,
-  },
-  userName: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 2,
-  },
-  userStatus: {
-    fontSize: 14,
-  },
-  // 메뉴 그룹
-  menuGroup: {
-    marginBottom: SPACING.SCREEN,
-  },
-  menuGroupTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: SPACING.SMALL,
-    paddingHorizontal: SPACING.SMALL,
+  header: {
+    borderBottomWidth: LOCAL_LAYOUT.headerBorderWidth,
+    borderBottomColor: theme.colors.border.medium,
   },
   menuCard: {
-    borderRadius: 12,
     overflow: "hidden",
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: SPACING.COMPONENT,
-    paddingHorizontal: SPACING.SCREEN,
+    paddingVertical: LOCAL_LAYOUT.menuItemVerticalPadding,
+    paddingHorizontal: LOCAL_LAYOUT.menuItemHorizontalPadding,
   },
-  menuItemText: {
-    fontSize: 16,
-  },
-  menuItemArrow: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  menuDivider: {
-    height: 1,
-    marginHorizontal: SPACING.SCREEN,
-  },
-  // 로그아웃 버튼
-  logoutButton: {
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: SPACING.COMPONENT,
-    marginTop: SPACING.SMALL,
-  },
-  logoutButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
+  divider: {
+    height: LOCAL_LAYOUT.dividerHeight,
+    backgroundColor: theme.colors.border.medium,
   },
   teamDeleteButton: {
-    paddingHorizontal: SPACING.SMALL,
-    paddingVertical: SPACING.SMALL / 2,
+    paddingHorizontal: LOCAL_LAYOUT.teamDeletePaddingHorizontal,
+    paddingVertical: LOCAL_LAYOUT.teamDeletePaddingVertical,
   },
-  teamDeleteText: {
-    fontSize: 12,
-    fontWeight: "600",
+  logoutButton: {
+    borderColor: theme.colors.error,
+    borderWidth: LOCAL_LAYOUT.logoutBorderWidth,
+    marginTop: theme.spacing.sm,
   },
 });

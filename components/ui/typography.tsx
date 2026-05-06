@@ -24,6 +24,18 @@ interface TypographyCustomProps {
   color?: keyof typeof theme.colors.text | keyof typeof theme.colors | string;
   /** 가운데 정렬 여부 */
   center?: boolean;
+  /** 상단 마진 */
+  mt?: keyof typeof theme.spacing | number;
+  /** 하단 마진 */
+  mb?: keyof typeof theme.spacing | number;
+  /** 좌측 마진 */
+  ml?: keyof typeof theme.spacing | number;
+  /** 우측 마진 */
+  mr?: keyof typeof theme.spacing | number;
+  /** 수평 마진 */
+  mx?: keyof typeof theme.spacing | number;
+  /** 수직 마진 */
+  my?: keyof typeof theme.spacing | number;
 }
 
 export interface TypographyProps extends TextProps, TypographyCustomProps {}
@@ -39,18 +51,35 @@ export const Typography = ({
   weight,
   color,
   center,
+  mx,
+  my,
+  mt,
+  mb,
+  ml,
+  mr,
   style,
   children,
   ...rest
 }: TypographyProps) => {
   const variantStyle = styles[variant];
+
+  const getSpacing = (val: keyof typeof theme.spacing | number | undefined) => {
+    if (typeof val === "number") return val;
+    return val ? theme.spacing[val] : undefined;
+  };
   
   const customStyle: TextStyle = {
     fontWeight: weight ? theme.typography.weight[weight] : variantStyle.fontWeight,
     color: color 
-      ? ((theme.colors.text as any)[color] || (theme.colors as any)[color] || color)
+      ? (color.includes('.') ? color.split('.').reduce((obj: any, key) => obj?.[key], theme.colors) : ((theme.colors as any)[color] || color))
       : (theme.colors.text.primary),
     textAlign: center ? "center" : undefined,
+    marginTop: getSpacing(mt),
+    marginBottom: getSpacing(mb),
+    marginLeft: getSpacing(ml),
+    marginRight: getSpacing(mr),
+    marginHorizontal: getSpacing(mx),
+    marginVertical: getSpacing(my),
   };
 
   return (
