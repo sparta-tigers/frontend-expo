@@ -81,6 +81,21 @@ export default function ScheduleScreen() {
   const [view, setView] = useState<"year" | "day">(initialView);
   const [currentDate, setCurrentDate] = useState(initialDate);
 
+  // 🚨 앙드레 카파시: 라우트 파라미터 변경 시 상태 동기화 (외부 진입 대응)
+  // Why: 이미 마운트된 상태에서 다른 파라미터로 재진입 시 상태가 갱신되지 않는 문제 해결
+  React.useEffect(() => {
+    if (params.view === "day" || params.view === "year") {
+      setView(params.view as "year" | "day");
+    }
+    
+    if (params.year || params.month || params.day) {
+      const y = params.year ? parseInt(params.year) : 2026;
+      const m = params.month ? parseInt(params.month) : 2;
+      const d = params.day ? parseInt(params.day) : 1;
+      setCurrentDate(new Date(y, m, d));
+    }
+  }, [params.view, params.year, params.month, params.day]);
+
   const handlePrev = () => {
     setCurrentDate((prev) => {
       const newDate = new Date(prev);

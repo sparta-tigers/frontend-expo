@@ -134,7 +134,7 @@ export default function CreateItemScreen() {
     setLocationLoading(true);
 
     try {
-      let { status } = await Location.requestForegroundPermissionsAsync();
+      const { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status !== "granted") {
         Alert.alert("권한 필요", "위치 정보를 사용하려면 권한이 필요합니다.");
@@ -194,11 +194,10 @@ export default function CreateItemScreen() {
   const handleImagePicker = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
+        mediaTypes: ["images"],
         quality: 0.8,
         allowsMultipleSelection: true,
+        selectionLimit: 5 - selectedImages.length,
       });
 
       if (!result.canceled && result.assets) {
