@@ -176,7 +176,7 @@ export default function ExchangeRequestsScreen() {
                   : "보낸 교환 요청이 없습니다.")}
               </Text>
               {(requests.length === 0 || error) && !loading && (
-                <TouchableOpacity style={styles.retryButton} onPress={fetchRequests}>
+                <TouchableOpacity style={styles.retryButton} onPress={() => fetchRequests()}>
                   <Text style={styles.retryButtonText}>다시 시도</Text>
                 </TouchableOpacity>
               )}
