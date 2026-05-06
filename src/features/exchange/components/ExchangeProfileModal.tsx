@@ -54,7 +54,7 @@ export const ExchangeProfileModal = React.memo(
         <Pressable style={styles.modalOverlay} onPress={onClose}>
           <Pressable
             style={styles.modalContent}
-            onPress={(e) => e.stopPropagation()}
+            onPress={() => {}}
           >
             <View style={styles.modalHeader}>
               <View style={styles.modalHandle} />
