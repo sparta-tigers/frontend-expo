@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     right: -8,
     width: 20,
     height: 20,
-    borderRadius: 10,
+    borderRadius: theme.spacing.md / 2 + 4, // 10
     backgroundColor: theme.colors.error,
     justifyContent: "center",
     alignItems: "center",

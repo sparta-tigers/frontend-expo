@@ -12,15 +12,15 @@ import { MaterialIcons } from "@expo/vector-icons";
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
 // ========================================================
 const LOCAL_LAYOUT = {
-  dateCircleSize: 32,
-  dotSize: 5,
-  teamLogoSize: 48,
+  dateCircleSize: theme.layout.dashboard.calendarHeaderHeight,
+  dotSize: 5, // 도메인 특화 수치 유지
+  teamLogoSize: 48, // 도메인 특화 수치 유지
   teamBlockWidth: 60,
   dayColGap: 6,
   weatherIconSize: 14,
-  navArrowPadding: 4,
+  navArrowPadding: theme.spacing.xs,
   matchListHorizontalPadding: theme.spacing.xl,
-  matchListBottomPadding: 40,
+  matchListBottomPadding: theme.layout.dashboard.matchListBottomPadding,
   matchListGap: theme.spacing.md,
 } as const;
 

@@ -304,7 +304,7 @@ export default function ApplyExchangeScreen() {
           style={[
             styles.bottomContainer,
             {
-              paddingBottom: Math.max(insets.bottom, 20),
+              paddingBottom: Math.max(insets.bottom, theme.spacing.xl),
             },
           ]}
         >

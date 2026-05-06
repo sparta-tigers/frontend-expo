@@ -10,9 +10,9 @@ import { StyleSheet, TouchableOpacity } from "react-native";
 // ========================================================
 const LOCAL_LAYOUT = {
   headerLetterSpacing: 1,
-  changeTeamPaddingVertical: 4,
-  changeTeamPaddingHorizontal: 8,
-  cardBorderLeftWidth: 4,
+  changeTeamPaddingVertical: theme.spacing.xs,
+  changeTeamPaddingHorizontal: theme.spacing.sm,
+  cardBorderLeftWidth: theme.spacing.xs,
   cardShadowOpacity: 0.05,
   mascotLetterSpacing: -0.5,
 } as const;

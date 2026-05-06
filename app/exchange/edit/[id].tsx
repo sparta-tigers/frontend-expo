@@ -34,8 +34,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loadingText: {
-    marginTop: SPACING.SMALL,
-    fontSize: 16,
+    marginTop: theme.spacing.sm,
+    fontSize: theme.typography.size.md,
     color: theme.colors.text.primary,
   },
   errorContainer: {
@@ -58,8 +58,8 @@ const styles = StyleSheet.create({
   },
   itemImage: {
     width: "100%",
-    height: 200,
-    borderRadius: 8,
+    height: 200, // 도메인 특화 수치 유지
+    borderRadius: theme.radius.md,
   },
   formCard: {
     margin: SPACING.SCREEN,
@@ -84,15 +84,15 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderRadius: 8,
-    padding: SPACING.SMALL,
-    fontSize: 16,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.sm,
+    fontSize: theme.typography.size.md,
     backgroundColor: theme.colors.surface,
     borderColor: theme.colors.border.medium,
     color: theme.colors.text.primary,
   },
   textArea: {
-    height: 120,
+    height: 120, // 도메인 특화 수치 유지
   },
   categoryContainer: {
     flexDirection: "row",

@@ -149,8 +149,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingTop: 12,
-    paddingHorizontal: 20,
+    paddingTop: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xl,
     borderTopWidth: 1,
     borderColor: theme.colors.border.medium,
     backgroundColor: theme.colors.background,
@@ -158,8 +158,8 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   applyButton: {
-    height: 52,
-    borderRadius: 8,
+    height: theme.layout.common.standardItemHeight,
+    borderRadius: theme.radius.md,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: theme.colors.primary,
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   customHeader: {
     flexDirection: "row",
     alignItems: "center",
-    height: 52,
+    height: theme.layout.common.standardItemHeight,
     paddingHorizontal: theme.spacing.COMPONENT,
     borderBottomWidth: 1,
     backgroundColor: theme.colors.background,
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   },
   headerActionButton: {
     paddingHorizontal: theme.spacing.SMALL,
-    paddingVertical: 4,
+    paddingVertical: theme.spacing.xs,
   },
   headerTitle: {
     flex: 1,
