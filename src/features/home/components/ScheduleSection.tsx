@@ -3,7 +3,7 @@ import React from "react";
 import { Box, Typography } from "@/components/ui";
 import { TouchableOpacity, StyleSheet } from "react-native";
 import { theme } from "@/src/styles/theme";
-import { CalendarGameDto } from "../types";
+import { MatchScheduleDto } from "../../match/types";
 import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
 
 // ========================================================
@@ -19,9 +19,10 @@ const LOCAL_LAYOUT = {
 } as const;
 
 interface ScheduleSectionProps {
-  schedule: CalendarGameDto[];
-  year?: number;
-  month?: number;
+  schedule: MatchScheduleDto[];
+  year: number;
+  month: number;
+  todayDay?: number; // 🚨 앙드레 카파시: 결정론적 렌더링을 위해 외부에서 주입받음
 }
 
 /**
@@ -32,10 +33,11 @@ interface ScheduleSectionProps {
  */
 export const ScheduleSection = React.memo(function ScheduleSection({ 
   schedule, 
-  year = 2026, 
-  month = 2 
+  year, 
+  month,
+  todayDay
 }: ScheduleSectionProps) {
-  const days = useCalendarGrid(year, month, schedule);
+  const days = useCalendarGrid(year, month, schedule, todayDay);
 
   return (
     <Box mt="xl" pb="xxl" px="SCREEN_DASHBOARD">
@@ -96,7 +98,10 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                     },
                   })
                 }
-                style={styles.cell}
+                style={[
+                  styles.cell,
+                  cell.isToday && styles.todayCell
+                ]}
                 accessibilityRole={isEmpty ? undefined : "button"}
                 accessibilityLabel={
                   isEmpty ? undefined : (cell.hasGame ? `${cell.day}일 ${cell.opponentShort}전` : `${cell.day}일 경기 없음`)
@@ -105,7 +110,11 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                 {!isEmpty && (
                   <>
                     <Box flexDir="row" align="center" justify="space-between" width="100%">
-                      <Typography variant="caption" weight="medium" color="brand.subtitle">
+                      <Typography 
+                        variant="caption" 
+                        weight={cell.isToday ? "bold" : "medium"} 
+                        color={cell.isToday ? "brand.mint" : "brand.subtitle"}
+                      >
                         {cell.day}
                       </Typography>
                       {cell.location ? (
@@ -169,6 +178,11 @@ const styles = StyleSheet.create({
     padding: theme.spacing.xs,
     alignItems: "center",
     justifyContent: "space-between",
+  },
+  todayCell: {
+    borderWidth: 1.5,
+    borderColor: theme.colors.brand.mint,
+    zIndex: 10, // 보더가 겹칠 때 위로 올라오도록
   },
   opponentText: {
     fontSize: theme.typography.size.xs,
