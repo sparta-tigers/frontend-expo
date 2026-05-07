@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { TEAM_DATA } from "@/src/utils/team";
 import {
   TeamDto,
   MiniStatDto,
@@ -11,16 +12,14 @@ import {
  * 홈 화면 가짜 데이터 생성 훅
  *
  * Why: 실제 API 연동 전 홈 화면의 각 섹션(마이팀, 순위, 라인업, 일정)을 테스트하기 위한 데이터를 통합 제공하기 위함.
+ * @param myTeamId - 현재 선택된 응원팀 ID (nullable)
  * @returns 홈 화면에 필요한 목(Mock) 데이터 객체
  */
-export function useFakeHomeData() {
+export function useFakeHomeData(myTeamId: string | null) {
   return useMemo(() => {
-    const myTeam: TeamDto = { 
-      name: "KIA 타이거즈", 
-      shortName: "KIA", 
-      subName: "타이거즈", 
-      mascotEmoji: "🐯" 
-    };
+    // 1. 응원팀 정보 (없으면 KIA 기본)
+    const activeTeamId = myTeamId || "KIA";
+    const myTeam: TeamDto = TEAM_DATA[activeTeamId] || TEAM_DATA["KIA"];
 
     const myTeamStats: MiniStatDto[] = [
       {
@@ -46,63 +45,37 @@ export function useFakeHomeData() {
       },
     ];
 
-    const rankingSummary: RankingRowDto[] = [
-      {
-        rank: 1,
-        team: { name: "LG 트윈스", shortName: "LG", subName: "트윈스", mascotEmoji: "👯" },
-        games: 144,
-        win: 85,
-        lose: 56,
-        draw: 3,
-        winRate: 0.603,
-      },
-      {
-        rank: 2,
-        team: { name: "한화 이글스", shortName: "HH", subName: "이글스", mascotEmoji: "🦅" },
-        games: 144,
-        win: 83,
-        lose: 57,
-        draw: 4,
-        winRate: 0.593,
-      },
-      {
-        rank: 3,
-        team: { name: "SSG 랜더스", shortName: "SSG", subName: "랜더스", mascotEmoji: "🛸" },
-        games: 144,
-        win: 75,
-        lose: 65,
-        draw: 4,
-        winRate: 0.536,
-      },
-      {
-        rank: 4,
-        team: { name: "삼성 라이온즈", shortName: "SS", subName: "라이온즈", mascotEmoji: "🦁" },
-        games: 144,
-        win: 74,
-        lose: 68,
-        draw: 2,
-        winRate: 0.521,
-      },
-      {
-        rank: 5,
-        team: { name: "NC 다이노스", shortName: "NC", subName: "다이노스", mascotEmoji: "🦖" },
-        games: 144,
-        win: 71,
-        lose: 67,
-        draw: 6,
-        winRate: 0.514,
-      },
-      {
-        rank: 8,
-        team: myTeam,
-        games: 144,
-        win: 65,
-        lose: 75,
-        draw: 4,
-        winRate: 0.464,
-        isMyTeam: true,
-      },
+    // 2. 전체 구단 가공 (순위 데이터 시뮬레이션)
+    const allRankings: RankingRowDto[] = [
+      { rank: 1, team: TEAM_DATA["LG"], games: 144, win: 85, lose: 56, draw: 3, winRate: 0.603 },
+      { rank: 2, team: TEAM_DATA["HANWHA"], games: 144, win: 83, lose: 57, draw: 4, winRate: 0.593 },
+      { rank: 3, team: TEAM_DATA["SSG"], games: 144, win: 75, lose: 65, draw: 4, winRate: 0.536 },
+      { rank: 4, team: TEAM_DATA["SAMSUNG"], games: 144, win: 74, lose: 68, draw: 2, winRate: 0.521 },
+      { rank: 5, team: TEAM_DATA["NC"], games: 144, win: 71, lose: 67, draw: 6, winRate: 0.514 },
+      { rank: 6, team: TEAM_DATA["KT"], games: 144, win: 71, lose: 68, draw: 5, winRate: 0.511 },
+      { rank: 7, team: TEAM_DATA["LOTTE"], games: 144, win: 66, lose: 72, draw: 6, winRate: 0.478 },
+      { rank: 8, team: TEAM_DATA["KIA"], games: 144, win: 65, lose: 75, draw: 4, winRate: 0.464 },
+      { rank: 9, team: TEAM_DATA["DOOSAN"], games: 144, win: 61, lose: 77, draw: 6, winRate: 0.442 },
+      { rank: 10, team: TEAM_DATA["KIWOOM"], games: 144, win: 47, lose: 93, draw: 4, winRate: 0.336 },
     ];
+
+    // 3. 순위 요약 데이터 필터링 로직
+    // - 상위 5위는 무조건 노출
+    // - 내 응원팀이 5위 안에 있으면 해당 행 강조
+    // - 내 응원팀이 5위 밖이면 5위 다음에 내 팀 행 추가하여 노출
+    const displayRanking: RankingRowDto[] = allRankings.slice(0, 5).map(row => ({
+      ...row,
+      isMyTeam: row.team.shortName === myTeam.shortName
+    }));
+
+    const isMyTeamInTop5 = displayRanking.some(row => row.isMyTeam);
+
+    if (!isMyTeamInTop5) {
+      const myTeamRankingRow = allRankings.find(row => row.team.shortName === myTeam.shortName);
+      if (myTeamRankingRow) {
+        displayRanking.push({ ...myTeamRankingRow, isMyTeam: true });
+      }
+    }
 
     const todayLineup: LineupRowDto[] = [
       { order: 1, name: "김도영", position: "3B" },
@@ -121,17 +94,17 @@ export function useFakeHomeData() {
       { day: 1, location: "H", opponentShort: "SSG", timeText: "18:30" },
       { day: 2, location: "H", opponentShort: "SSG", timeText: "18:30" },
       { day: 3, location: "H", opponentShort: "SSG", timeText: "18:30" },
-      { day: 4, location: "H", opponentShort: "LOT", timeText: "18:30" },
-      { day: 5, location: "H", opponentShort: "LOT", timeText: "18:30" },
-      { day: 7, location: "H", opponentShort: "LOT", timeText: "18:30" },
-      { day: 10, location: "A", opponentShort: "HH", timeText: "18:30", isSelected: true },
+      { day: 4, location: "H", opponentShort: "LOTTE", timeText: "18:30" },
+      { day: 5, location: "H", opponentShort: "LOTTE", timeText: "18:30" },
+      { day: 7, location: "H", opponentShort: "LOTTE", timeText: "18:30" },
+      { day: 10, location: "A", opponentShort: "HANWHA", timeText: "18:30", isSelected: true },
       { day: 18, location: "H", opponentShort: "NC", timeText: "18:30" },
       { day: 19, location: "H", opponentShort: "NC", timeText: "18:30" },
       { day: 22, location: "H", opponentShort: "LG", timeText: "18:30" },
       { day: 23, location: "H", opponentShort: "LG", timeText: "18:30" },
       { day: 24, location: "H", opponentShort: "LG", timeText: "18:30" },
-      { day: 30, location: "H", opponentShort: "DOO", timeText: "18:30" },
-      { day: 31, location: "H", opponentShort: "DOO", timeText: "18:30" },
+      { day: 30, location: "H", opponentShort: "DOOSAN", timeText: "18:30" },
+      { day: 31, location: "H", opponentShort: "DOOSAN", timeText: "18:30" },
     ];
 
     return {
@@ -139,9 +112,9 @@ export function useFakeHomeData() {
       daysInSchool: 1378,
       myTeam,
       myTeamStats,
-      rankingSummary,
+      rankingSummary: displayRanking,
       todayLineup,
       monthSchedule,
     };
-  }, []);
+  }, [myTeamId]);
 }

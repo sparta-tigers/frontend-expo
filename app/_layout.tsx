@@ -11,17 +11,17 @@ import * as Notifications from "expo-notifications";
 import { Href, router, Stack, useSegments } from "expo-router";
 import { useCallback, useEffect, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, StyleSheet, TouchableOpacity } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { theme } from "@/src/styles/theme";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Box, Typography } from "@/components/ui";
 
 /**
  * 푸시 알림 핸들러 설정 (모듈 스코프)
  *
  * Why: 컴포넌트 렌더 본문에 두면 매 렌더마다 핸들러가 재설정됨.
- * 모듈 로드 시 1회만 실행되도록 컴포넌트 밖으로 이동.
  */
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -31,7 +31,6 @@ Notifications.setNotificationHandler({
     shouldShowList: true,
   }),
 });
-
 
 /**
  * 루트 레이아웃
@@ -47,35 +46,28 @@ export default function RootLayout() {
 
 /**
  * 내부 레이아웃 컴포넌트
- * AuthProvider와 ThemeProvider 내부에서 훅들을 사용하기 위한 분리
  */
 function RootLayoutInner() {
   const { user, isLoading } = useAuth();
   const { expoPushToken } = usePushNotifications();
   const { colors } = useTheme();
   const segments = useSegments();
-
-  // 🚨 앙드레 카파시: 네트워크 상태 감지
   const netInfo = useNetInfo();
 
-  // 🚨 앙드레 카파시: 네비게이터 준비 상태 추적
   const navigationReady = useRef(false);
   const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const inAuthGroup = segments[0] === "(auth)";
 
-  // 🚨 앙드레 카파시: 푸시 토큰 발급 확인 (보안을 위해 실제 값은 로깅하지 않음)
   if (__DEV__ && expoPushToken) {
-    Logger.debug("[Push] Expo Push Token 발급 완료 (토큰 정보는 보안상 숨김)");
+    Logger.debug("[Push] Expo Push Token 발급 완료");
   }
 
-  // 🚨 앙드레 카파시: 네비게이터 준비 상태 관리
   useEffect(() => {
-    // 네비게이션이 준비되었음을 표시
     const timer = setTimeout(() => {
       navigationReady.current = true;
       Logger.debug("[Navigation] 네비게이터 준비 완료");
-    }, 100); // 100ms 지연으로 안정화
+    }, 100);
 
     return () => {
       clearTimeout(timer);
@@ -85,52 +77,41 @@ function RootLayoutInner() {
     };
   }, []);
 
-  // 🚨 앙드레 카파시: 안전한 리디렉션 로직
   const safeRedirect = useCallback((href: Href) => {
-    // 기존에 대기 중인 리디렉션이 있다면 취소 (Race Condition 방지)
     if (redirectTimeoutRef.current) {
       clearTimeout(redirectTimeoutRef.current);
       redirectTimeoutRef.current = null;
     }
 
     if (!navigationReady.current) {
-      // 네비게이터가 준비되지 않았으면 지연 실행
       redirectTimeoutRef.current = setTimeout(() => {
-        Logger.debug("[Navigation] 지연된 리디렉션 실행:", href);
         router.replace(href);
         redirectTimeoutRef.current = null;
       }, 200);
       return;
     }
 
-    // 네비게이터가 준비되었으면 즉시 실행
-    Logger.debug("[Navigation] 즉시 리디렉션 실행:", href);
     router.replace(href);
   }, []);
 
-  // 🚨 앙드레 카파시: 안전한 리디렉션 적용
   useEffect(() => {
-    // 로그인되지 않은 경우: (auth) 그룹이 아닐 때만 signin으로 이동 (Redirect 루프 방지)
     if (!user && !inAuthGroup && !isLoading) {
       safeRedirect("/(auth)/signin");
     }
 
-    // 로그인된 경우: (auth) 그룹에 있으면 메인 탭으로 이동
     if (user && inAuthGroup && !isLoading) {
       safeRedirect("/(tabs)");
     }
   }, [user, inAuthGroup, isLoading, safeRedirect]);
 
-  // 로딩 중인 경우 ActivityIndicator 표시
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
+      <Box flex={1} justify="center" align="center" bg="background">
         <ActivityIndicator size="large" color={colors.primary} />
-      </View>
+      </Box>
     );
   }
 
-  // 🚨 앙드레 카파시: Error Boundary로 전체 앱 감싸기
   return (
     <ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
       <GestureHandlerRootView style={styles.gestureContainer}>
@@ -139,61 +120,69 @@ function RootLayoutInner() {
             style={[styles.safeArea, { backgroundColor: colors.background }]}
             edges={["top", "left", "right"]}
           >
-            {/* 🚨 앙드레 카파시: 오프라인 배너 */}
             {!netInfo.isConnected && <OfflineBanner />}
 
-            {/* 1. 고정 헤더 (전역) - 특정 화면에서는 숨김 처리 */}
+            {/* 1. 고정 헤더 (전역) */}
             {!inAuthGroup && segments[0] !== "schedule" && segments[1] !== "create" && (
-              <View style={styles.topHeader}>
-                {router.canGoBack() ? (
+              <Box 
+                flexDir="row" 
+                align="center" 
+                justify="space-between" 
+                px="xl" 
+                py="lg"
+              >
+                <Box width={48} align="flex-start">
+                  {router.canGoBack() && (
+                    <TouchableOpacity 
+                      activeOpacity={0.7} 
+                      style={styles.headerIconBtn}
+                      onPress={() => router.back()}
+                    >
+                      <IconSymbol
+                        size={theme.layout.header.backIconSize}
+                        name="chevron.left"
+                        color={theme.colors.team.neutralDark}
+                      />
+                    </TouchableOpacity>
+                  )}
+                </Box>
+                
+                <Typography 
+                  variant="h3" 
+                  weight="black" 
+                  color="brand.mint"
+                  style={styles.headerTitle}
+                >
+                  YAGUNIV
+                </Typography>
+                
+                <Box width={48} align="flex-end">
                   <TouchableOpacity 
                     activeOpacity={0.7} 
-                    style={styles.headerIconBtn}
-                    onPress={() => router.back()}
-                    accessibilityRole="button"
-                    accessibilityLabel="뒤로가기"
+                    style={styles.headerIconBtn} 
+                    onPress={() => router.push("/profile")}
                   >
-                    <IconSymbol
-                      size={theme.layout.header.backIconSize}
-                      name="chevron.left"
-                      color={theme.colors.team.neutralDark}
+                    <IconSymbol 
+                      name="person.fill" 
+                      size={theme.layout.header.profileIconSize} 
+                      color={theme.colors.team.neutralDark} 
                     />
                   </TouchableOpacity>
-                ) : (
-                  <View style={styles.headerIconBtn} />
-                )}
-                
-                <Text style={styles.mainTitleText}>YAGUNIV</Text>
-                
-                {/* 프로필 버튼 */}
-                <TouchableOpacity 
-                  activeOpacity={0.7} 
-                  style={styles.headerIconBtn} 
-                  onPress={() => router.push("/profile")}
-                  accessibilityRole="button"
-                  accessibilityLabel="프로필"
-                >
-                  <IconSymbol name="person.fill" size={theme.layout.header.profileIconSize} color={theme.colors.team.neutralDark} />
-                </TouchableOpacity>
-              </View>
+                </Box>
+              </Box>
             )}
 
             {/* 2. 하위 라우팅 화면 */}
-            <View
-              style={[
-                styles.contentContainer,
-                { backgroundColor: colors.background },
-              ]}
-            >
+            <Box flex={1} bg="background">
               <Stack
                 screenOptions={{
                   headerShown: false,
                   gestureEnabled: true,
                   animation: "slide_from_right",
-                  fullScreenGestureEnabled: true, // Android에서도 제스처 가능하도록 설정
+                  fullScreenGestureEnabled: true,
                 }}
               />
-            </View>
+            </Box>
           </SafeAreaView>
         </SafeAreaProvider>
       </GestureHandlerRootView>
@@ -202,35 +191,17 @@ function RootLayoutInner() {
 }
 
 const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
   gestureContainer: {
     flex: 1,
   },
   safeArea: {
     flex: 1,
   },
-  topHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: theme.spacing.xl,
-    paddingTop: theme.spacing.lg,
-    paddingBottom: theme.spacing.lg,
-  },
   headerIconBtn: {
     padding: theme.spacing.xs,
   },
-  mainTitleText: {
+  headerTitle: {
     fontSize: theme.layout.header.titleFontSize,
-    fontWeight: theme.typography.weight.black,
-    color: theme.colors.brand.mint,
     letterSpacing: 1,
-  },
-  contentContainer: {
-    flex: 1,
   },
 });

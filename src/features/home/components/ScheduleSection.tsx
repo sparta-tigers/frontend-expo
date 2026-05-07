@@ -1,63 +1,90 @@
 import { router } from "expo-router";
-import React, { useMemo } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
-import { styles } from "../styles";
-import { CalendarCellModel, CalendarGameDto } from "../types";
+import React from "react";
+import { Box, Typography } from "@/components/ui";
+import { TouchableOpacity, StyleSheet } from "react-native";
+import { theme } from "@/src/styles/theme";
+import { CalendarGameDto } from "../types";
+import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
 
-export const ScheduleSection = React.memo(function ScheduleSection(props: { 
+// ========================================================
+// 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
+// ========================================================
+const LOCAL_LAYOUT = {
+  wrapWidth: theme.layout.dashboard.calendarWidth,
+  headerHeight: theme.layout.dashboard.calendarHeaderHeight,
+  cellWidth: theme.layout.dashboard.calendarCellWidth,
+  cellHeight: theme.layout.dashboard.calendarCellHeight,
+  calendarRadius: theme.layout.dashboard.calendarRadius,
+  borderWidth: StyleSheet.hairlineWidth,
+} as const;
+
+interface ScheduleSectionProps {
   schedule: CalendarGameDto[];
   year?: number;
   month?: number;
-}) {
-  const { schedule, year = 2026, month = 2 } = props; // 기본값: 2026년 3월 (month=2)
-  const days = useMemo(() => buildCalendarDays(schedule, year, month), [schedule, year, month]);
+}
+
+/**
+ * 경기 일정 섹션 (캘린더 뷰)
+ * 
+ * Why: 홈 화면 하단에서 월간 경기 일정을 시각적으로 요약하여 제공.
+ * Zero-Magic UI 원칙에 따라 모든 수치는 테마 토큰 및 LOCAL_LAYOUT을 참조함.
+ */
+export const ScheduleSection = React.memo(function ScheduleSection({ 
+  schedule, 
+  year = 2026, 
+  month = 2 
+}: ScheduleSectionProps) {
+  const days = useCalendarGrid(year, month, schedule);
 
   return (
-    <View style={[styles.section, styles.sectionBottomPad]}>
-      <View style={styles.sectionTitleRow}>
-        <Text style={styles.sectionTitleText}>{month + 1}월, 우리팀 경기 일정이에요</Text>
-      </View>
+    <Box mt="xl" pb="xxl" px="SCREEN_DASHBOARD">
+      <Box height={theme.layout.dashboard.sectionTitleHeight} align="center" justify="center" mb="md">
+        <Typography variant="h3" weight="bold" center>
+          {month + 1}월, 우리팀 경기 일정이에요
+        </Typography>
+      </Box>
 
-      <View style={styles.calendarWrap}>
-        <View style={styles.calendarHeader}>
+      <Box width={LOCAL_LAYOUT.wrapWidth} alignSelf="center">
+        {/* Calendar Header */}
+        <Box 
+          height={LOCAL_LAYOUT.headerHeight} 
+          bg="team.neutralLight" 
+          roundedTop="calendar" 
+          flexDir="row" 
+          overflow="hidden"
+        >
           {["일", "월", "화", "수", "목", "금", "토"].map((d) => (
-            <View key={d} style={styles.calendarHeaderCell}>
-              <Text
-                style={[
-                  styles.calendarHeaderText,
-                  (d === "일" || d === "토") && styles.calendarHeaderTextAccent,
-                ]}
+            <Box key={d} flex={1} align="center" justify="center">
+              <Typography 
+                variant="caption" 
+                weight="bold" 
+                color={(d === "일" || d === "토") ? "brand.mint" : "brand.subtitle"}
               >
                 {d}
-              </Text>
-            </View>
+              </Typography>
+            </Box>
           ))}
-        </View>
+        </Box>
 
-        <View style={styles.calendarGrid}>
+        {/* Calendar Grid */}
+        <Box 
+          bg="card" 
+          roundedBottom="calendar" 
+          flexDir="row" 
+          flexWrap="wrap" 
+          overflow="hidden" 
+          borderWidth={LOCAL_LAYOUT.borderWidth} 
+          borderColor="team.neutralLight"
+        >
           {days.map((cell, idx) => {
-            if (cell.day === 0) {
-              return (
-                <View 
-                  key={`empty-${idx}`} 
-                  style={styles.calendarCell}
-                  importantForAccessibility="no-hide-descendants"
-                  accessibilityElementsHidden
-                />
-              );
-            }
+            const isEmpty = cell.day === 0;
 
             return (
               <TouchableOpacity
                 key={`${cell.day}-${idx}`}
                 activeOpacity={0.85}
-                disabled={!cell.hasGame}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  cell.hasGame
-                    ? `${cell.day}일 ${cell.opponentShort}전`
-                    : `${cell.day}일 경기 없음`
-                }
+                disabled={isEmpty || !cell.hasGame}
                 onPress={() =>
                   router.push({
                     pathname: "/schedule",
@@ -69,102 +96,84 @@ export const ScheduleSection = React.memo(function ScheduleSection(props: {
                     },
                   })
                 }
-                style={styles.calendarCell}
+                style={styles.cell}
+                accessibilityRole={isEmpty ? undefined : "button"}
+                accessibilityLabel={
+                  isEmpty ? undefined : (cell.hasGame ? `${cell.day}일 ${cell.opponentShort}전` : `${cell.day}일 경기 없음`)
+                }
               >
-                <View style={styles.calendarCellTopRow}>
-                  {cell.day > 0 && <Text style={styles.calendarDayText}>{cell.day}</Text>}
-                  {cell.day > 0 && cell.location ? (
-                    <Text style={styles.calendarLocationText}>
-                      {cell.location}
-                    </Text>
-                  ) : (
-                    <View style={styles.calendarLocationSpacer} />
-                  )}
-                </View>
+                {!isEmpty && (
+                  <>
+                    <Box flexDir="row" align="center" justify="space-between" width="100%">
+                      <Typography variant="caption" weight="medium" color="brand.subtitle">
+                        {cell.day}
+                      </Typography>
+                      {cell.location ? (
+                        <Typography variant="caption" weight="bold" color="brand.mint">
+                          {cell.location}
+                        </Typography>
+                      ) : (
+                        <Box width={theme.spacing.lg} height={theme.spacing.lg} />
+                      )}
+                    </Box>
 
-                {cell.hasGame ? (
-                  <View
-                    style={[
-                      styles.calendarOpponentBadge,
-                      cell.isSelected && styles.calendarOpponentBadgeSelected,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.calendarOpponentText,
-                        cell.isSelected && styles.calendarOpponentTextSelected,
-                      ]}
-                    >
-                      {cell.opponentShort}
-                    </Text>
-                  </View>
-                ) : (
-                  <View style={styles.calendarEmptySpacer} />
-                )}
+                    {cell.hasGame ? (
+                      <Box
+                        width={theme.spacing.xxl}
+                        height={theme.spacing.xl}
+                        rounded="full"
+                        bg="surface"
+                        align="center"
+                        justify="center"
+                        borderWidth={cell.isSelected ? LOCAL_LAYOUT.borderWidth : 0}
+                        borderColor={cell.isSelected ? "brand.mint" : "transparent"}
+                      >
+                        <Typography 
+                          variant="caption" 
+                          weight="bold" 
+                          color={cell.isSelected ? "brand.mint" : "team.neutralDark"}
+                          style={styles.opponentText}
+                        >
+                          {cell.opponentShort}
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Box height={theme.spacing.xl} />
+                    )}
 
-                {cell.timeText ? (
-                  <Text style={styles.calendarTimeText}>{cell.timeText}</Text>
-                ) : (
-                  <View style={styles.calendarTimeSpacer} />
+                    {cell.timeText ? (
+                      <Typography variant="caption" color="brand.subtitle" style={styles.timeText}>
+                        {cell.timeText}
+                      </Typography>
+                    ) : (
+                      <Box height={theme.spacing.md} />
+                    )}
+                  </>
                 )}
               </TouchableOpacity>
             );
           })}
-        </View>
-      </View>
-    </View>
+        </Box>
+      </Box>
+    </Box>
   );
 });
 
-function buildCalendarDays(
-  schedule: CalendarGameDto[],
-  year: number,
-  month: number
-): CalendarCellModel[] {
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  
-  const dayToGame = new Map<number, CalendarGameDto>();
-  schedule.forEach((g) => dayToGame.set(g.day, g));
-
-  const daysArray: CalendarCellModel[] = [];
-
-  // 1. 월 시작 전 빈 셀 채우기
-  for (let i = 0; i < firstDay; i++) {
-    daysArray.push({
-      day: 0, // 빈 셀 식별용
-      hasGame: false,
-      opponentShort: "",
-      isSelected: false,
-    });
-  }
-
-  // 2. 실제 날짜 채우기
-  for (let d = 1; d <= daysInMonth; d++) {
-    const game = dayToGame.get(d);
-    const cell: CalendarCellModel = {
-      day: d,
-      hasGame: !!game,
-      opponentShort: game?.opponentShort ?? "",
-      isSelected: game?.isSelected === true,
-      location: game?.location,
-      timeText: game?.timeText,
-    };
-    daysArray.push(cell);
-  }
-
-  // 3. 5주(35칸) 또는 6주(42칸) 그리드 맞추기 (최소 35칸)
-  const totalCells = Math.ceil(daysArray.length / 7) * 7;
-  const finalTotal = Math.max(totalCells, 35);
-  
-  while (daysArray.length < finalTotal) {
-    daysArray.push({
-      day: 0,
-      hasGame: false,
-      opponentShort: "",
-      isSelected: false,
-    });
-  }
-
-  return daysArray;
-}
+const styles = StyleSheet.create({
+  cell: {
+    width: LOCAL_LAYOUT.cellWidth,
+    height: LOCAL_LAYOUT.cellHeight,
+    borderRightWidth: LOCAL_LAYOUT.borderWidth,
+    borderBottomWidth: LOCAL_LAYOUT.borderWidth,
+    borderColor: theme.colors.team.neutralLight,
+    padding: theme.spacing.xs,
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  opponentText: {
+    fontSize: theme.typography.size.xs,
+  },
+  timeText: {
+    fontSize: theme.typography.size.xs,
+  },
+});

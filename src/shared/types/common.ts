@@ -18,14 +18,14 @@ export interface ApiResponse<T> {
  */
 export interface PaginatedResponse<T> {
   content: T[];
-  page: {
-    number: number;
-    size: number;
-    totalElements: number;
-    totalPages: number;
-    first: boolean;
-    last: boolean;
-  };
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+  numberOfElements?: number;
+  empty: boolean;
 }
 
 /**

@@ -1,33 +1,83 @@
-import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { TEAM_DATA, getTeamColorPath } from "@/src/utils/team";
 import { theme } from "@/src/styles/theme";
-import { TeamDto, MiniStatDto } from "../types";
-import { styles } from "../styles";
+import { Box } from "@/components/ui/box";
+import { Typography } from "@/components/ui/typography";
+import React, { memo } from "react";
+import { StyleSheet, TouchableOpacity } from "react-native";
+
+// ========================================================
+// 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
+// ========================================================
+const LOCAL_LAYOUT = {
+  headerLetterSpacing: 1,
+  changeTeamPaddingVertical: theme.spacing.xs,
+  changeTeamPaddingHorizontal: theme.spacing.sm,
+  cardBorderLeftWidth: theme.spacing.xs,
+  cardShadowOpacity: 0.05,
+  mascotLetterSpacing: -0.5,
+} as const;
 
 /**
- * 마이팀 요약 섹션
- *
- * Why: 홈 화면 최상단에서 사용자의 닉네임, 활동 일수, 응원팀 정보 및 주요 통계(직관 횟수 등)를 요약해서 보여주기 위함.
- * @param props.userNickname 사용자 닉네임
- * @param props.daysInSchool 서비스 이용 일수
- * @param props.myTeam 응원팀 정보 (TeamDto)
- * @param props.stats 표시할 미니 통계 배열 (MiniStatDto[])
- * @param props.onPressChangeTeam 팀 변경 버튼 클릭 시 콜백
+ * 미니 통계 카드 컴포넌트
+ * 
+ * Why: 순위, 승률 등 주요 지표를 간결하게 표현하기 위함.
  */
-export const MyTeamSection = React.memo(function MyTeamSection(props: {
+interface MiniStatCardProps {
+  item: {
+    label: string;
+    value: string;
+  };
+}
+
+const MiniStatCard = memo(({ item }: MiniStatCardProps) => (
+  <Box align="center" mr="lg">
+    <Typography variant="caption" color="text.secondary" mb="xs">
+      {item.label}
+    </Typography>
+    <Typography weight="semibold">
+      {item.value}
+    </Typography>
+  </Box>
+));
+MiniStatCard.displayName = "MiniStatCard";
+
+interface MyTeamSectionProps {
   userNickname: string;
   daysInSchool: number;
-  myTeam: TeamDto;
-  stats: MiniStatDto[];
+  myTeamId?: string | null;
   onPressChangeTeam?: () => void;
-}) {
-  const { userNickname, daysInSchool, myTeam, stats, onPressChangeTeam } = props;
+}
+
+/**
+ * 홈 화면 상단 '나의 팀' 섹션
+ * 
+ * Why: 사용자의 소속감 고취 및 핵심 데이터(순위, 승률 등) 가시성 확보.
+ * Zero-Magic UI 원칙을 준수하여 Box와 Typography 프리미티브로 구현됨.
+ */
+export const MyTeamSection = memo(({
+  userNickname,
+  daysInSchool,
+  myTeamId,
+  onPressChangeTeam,
+}: MyTeamSectionProps) => {
+  // Why: 선택된 팀의 ID를 기반으로 메타데이터 및 테마 컬러 추출.
+  const myTeam = (myTeamId && TEAM_DATA[myTeamId]) || TEAM_DATA["KIA"];
+
+  const stats = [
+    { key: "rank", label: "순위", value: "3위" },
+    { key: "winRate", label: "승률", value: "0.542" },
+    { key: "recent", label: "최근", value: "3승 2패" },
+  ];
+
+  const teamColorPath = getTeamColorPath(myTeamId || "KIA");
 
   return (
-    <View style={styles.section}>
-      <View style={styles.sectionHeaderRow}>
-        <Text style={styles.sectionHeaderLabel}>MY TEAM</Text>
+    <Box mt="xxl" px="SCREEN_DASHBOARD">
+      {/* 섹션 헤더 */}
+      <Box flexDir="row" justify="space-between" align="center" mb="md">
+        <Typography variant="label" color="text.secondary" style={styles.headerLabel}>
+          MY TEAM
+        </Typography>
         {onPressChangeTeam && (
           <TouchableOpacity
             activeOpacity={0.75}
@@ -36,70 +86,79 @@ export const MyTeamSection = React.memo(function MyTeamSection(props: {
             accessibilityRole="button"
             accessibilityLabel="응원팀 변경"
           >
-            <Text style={styles.changeTeamButtonText}>응원팀 변경</Text>
+            <Typography variant="caption" color="primary" weight="semibold">
+              응원팀 변경
+            </Typography>
           </TouchableOpacity>
         )}
-      </View>
+      </Box>
 
-      <View style={styles.myTeamCard}>
-        <View style={styles.myTeamTitleRow}>
-          <Text style={styles.myTeamNicknameText}>{userNickname}</Text>
-          <Text style={styles.myTeamSubText}>님,</Text>
-          <Text style={styles.myTeamSubText}>입학한지 </Text>
-          <Text style={styles.myTeamDaysText}>{daysInSchool}</Text>
-          <Text style={styles.myTeamSubText}>일째 !</Text>
-        </View>
+      {/* 팀 카드 */}
+      <Box 
+        bg="surface" 
+        rounded="lg" 
+        p="lg" 
+        borderColor={teamColorPath}
+        style={styles.myTeamCard}
+      >
+        <Box flexDir="row" align="baseline" mb="lg">
+          <Typography variant="h3" weight="bold">
+            {userNickname}
+          </Typography>
+          <Typography ml="xxs">님,</Typography>
+          <Typography ml="xxs">입학한지 </Typography>
+          <Typography 
+            variant="h2" 
+            weight="black" 
+            mx="xxs" 
+            color={teamColorPath}
+          >
+            {daysInSchool}
+          </Typography>
+          <Typography>일째 !</Typography>
+        </Box>
 
-        <View style={styles.myTeamStatsRow}>
-          {stats.map((item) => (
-            <MiniStatCard key={item.key} item={item} />
-          ))}
+        <Box flexDir="row" justify="space-between" align="flex-end">
+          <Box flexDir="row">
+            {stats.map((item) => (
+              <MiniStatCard key={item.key} item={item} />
+            ))}
+          </Box>
 
-          <View style={styles.mascotBox}>
-            <Text style={styles.mascotEmoji}>{myTeam.mascotEmoji}</Text>
-            <Text style={styles.mascotTeamText}>{myTeam.shortName}</Text>
-          </View>
-        </View>
-      </View>
-    </View>
+          <Box align="center">
+            <Typography variant="h3" mb="xxs">
+              {myTeam.mascotEmoji}
+            </Typography>
+            <Typography 
+              variant="caption" 
+              weight="bold" 
+              color={teamColorPath}
+              style={styles.mascotTeamText}
+            >
+              {myTeam.shortName}
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 });
+MyTeamSection.displayName = "MyTeamSection";
 
-/**
- * 미니 통계 카드 컴포넌트 (내부용)
- *
- * Why: MyTeamSection 내에서 개별 통계 항목(직관 횟수, 알람 등)을 카드 형태로 일관되게 렌더링하기 위함.
- * @param props.item 표시할 통계 데이터 (MiniStatDto)
- */
-const MiniStatCard = React.memo(function MiniStatCard(props: { item: MiniStatDto }) {
-  const { item } = props;
-  const toneStyle =
-    item.tone === "pink"
-      ? styles.miniStatTonePink
-      : item.tone === "yellow"
-        ? styles.miniStatToneYellow
-        : styles.miniStatToneGreen;
-
-  const iconColor =
-    item.tone === "pink"
-      ? theme.colors.dashboard.statIconPink
-      : item.tone === "yellow"
-        ? theme.colors.dashboard.statIconYellow
-        : theme.colors.dashboard.statIconGreen;
-
-  return (
-    <View style={[styles.miniStatCard, toneStyle]}>
-      <View style={styles.miniStatIconRow}>
-        <View style={styles.miniStatIconBadge}>
-          <IconSymbol
-            size={theme.typography.size.xs}
-            name={item.iconName}
-            color={iconColor}
-          />
-        </View>
-      </View>
-      <Text style={styles.miniStatValue}>{item.valueText}</Text>
-      <Text style={styles.miniStatLabel}>{item.label}</Text>
-    </View>
-  );
+const styles = StyleSheet.create({
+  headerLabel: {
+    letterSpacing: LOCAL_LAYOUT.headerLetterSpacing,
+  },
+  changeTeamButton: {
+    paddingVertical: LOCAL_LAYOUT.changeTeamPaddingVertical,
+    paddingHorizontal: LOCAL_LAYOUT.changeTeamPaddingHorizontal,
+  },
+  myTeamCard: {
+    borderLeftWidth: LOCAL_LAYOUT.cardBorderLeftWidth,
+    ...theme.shadow.card,
+    shadowOpacity: LOCAL_LAYOUT.cardShadowOpacity,
+  },
+  mascotTeamText: {
+    letterSpacing: LOCAL_LAYOUT.mascotLetterSpacing,
+  },
 });

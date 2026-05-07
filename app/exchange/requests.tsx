@@ -1,17 +1,14 @@
 import { theme } from "@/src/styles/theme";
 import { Ionicons } from "@expo/vector-icons";
+import {
+  Alert,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import {
-    Alert,
-    FlatList,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from "react-native";
 import { SafeLayout } from "@/components/ui/safe-layout";
+import { Box, Typography, List, Button } from "@/components/ui";
 import { useExchangeRequests } from "@/src/features/exchange/hooks/useExchangeRequests";
 import { ReceiveExchangeRequest, ExchangeRequestStatus } from "@/src/features/exchange/types";
 
@@ -33,7 +30,6 @@ export default function ExchangeRequestsScreen() {
     handleReject,
     fetchRequests
   } = useExchangeRequests(activeTab);
-
 
   const onAccept = useCallback(async (id: number) => {
     Alert.alert("교환 승낙", "이 교환 요청을 승낙하시겠습니까?", [
@@ -67,155 +63,141 @@ export default function ExchangeRequestsScreen() {
   }, [handleReject]);
 
   const renderRequestItem = useCallback(({ item }: { item: ReceiveExchangeRequest }) => (
-    <View style={styles.requestItem}>
-      <View style={styles.requestHeader}>
-        <Text style={styles.itemTitle}>{item.title}</Text>
-        <Text style={[
-          styles.statusText,
-          item.exchangeStatus === ExchangeRequestStatus.ACCEPTED && styles.statusAccepted,
-          item.exchangeStatus === ExchangeRequestStatus.REJECTED && styles.statusRejected
-        ]}>
+    <Box 
+      bg="card" 
+      rounded="lg" 
+      p="lg" 
+      borderWidth={1} 
+      borderColor="border.medium" 
+      style={theme.shadow.card}
+    >
+      <Box flexDir="row" justify="space-between" align="center" mb="sm">
+        <Typography variant="h3" weight="bold" color="text.primary" flex={1}>
+          {item.title}
+        </Typography>
+        <Typography 
+          variant="body2" 
+          weight="semibold" 
+          color={
+            item.exchangeStatus === ExchangeRequestStatus.ACCEPTED ? "success" : 
+            item.exchangeStatus === ExchangeRequestStatus.REJECTED ? "error" : "primary"
+          }
+        >
           {item.exchangeStatus === ExchangeRequestStatus.PENDING ? "대기 중" :
            item.exchangeStatus === ExchangeRequestStatus.ACCEPTED ? "승낙됨" : 
            item.exchangeStatus === ExchangeRequestStatus.REJECTED ? "거절됨" : "완료됨"}
-        </Text>
-      </View>
+        </Typography>
+      </Box>
 
-      <View style={styles.requestInfo}>
+      <Box mb="lg">
         {activeTab === "receiver" && (
-          <Text style={styles.requesterText}>요청자: {item.sender.userNickname}</Text>
+          <Typography variant="body2" color="text.secondary" mb="xxs">
+            요청자: {item.sender.userNickname}
+          </Typography>
         )}
-        <Text style={styles.categoryText}>카테고리: {item.category === "TICKET" ? "티켓" : "굿즈"}</Text>
-        <Text style={styles.dateText}>요청일: {new Date(item.createdAt).toLocaleDateString()}</Text>
-      </View>
+        <Typography variant="body2" color="text.secondary" mb="xxs">
+          카테고리: {item.category === "TICKET" ? "티켓" : "굿즈"}
+        </Typography>
+        <Typography variant="caption" color="text.tertiary">
+          요청일: {new Date(item.createdAt).toLocaleDateString()}
+        </Typography>
+      </Box>
 
       {item.exchangeStatus === ExchangeRequestStatus.PENDING && activeTab === "receiver" && (
-        <View style={styles.actionButtons}>
-          <TouchableOpacity
-            style={styles.acceptButton}
-            onPress={() => onAccept(item.exchangeRequestId)}
-          >
-            <Text style={styles.buttonText}>승낙</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.rejectButton}
-            onPress={() => onReject(item.exchangeRequestId)}
-          >
-            <Text style={styles.buttonText}>거절</Text>
-          </TouchableOpacity>
-        </View>
+        <Box flexDir="row" gap="md">
+          <Box flex={1}>
+            <Button onPress={() => onAccept(item.exchangeRequestId)}>승낙</Button>
+          </Box>
+          <Box flex={1}>
+            <Button variant="outline" onPress={() => onReject(item.exchangeRequestId)}>
+              거절
+            </Button>
+          </Box>
+        </Box>
       )}
-    </View>
+    </Box>
   ), [activeTab, onAccept, onReject]);
 
   if (loading && !refreshing && requests.length === 0) {
     return (
       <SafeLayout style={styles.safeLayout}>
-        <View style={styles.centered}>
-          <Text style={styles.loadingText}>로딩 중...</Text>
-        </View>
+        <Box flex={1} justify="center" align="center">
+          <Typography color="text.primary">로딩 중...</Typography>
+        </Box>
       </SafeLayout>
     );
   }
 
   return (
     <SafeLayout style={styles.safeLayout}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.tabArrowButton}
-          >
+      <Box flex={1}>
+        <Box flexDir="row" align="center" justify="space-between" mb="lg" px="md">
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="chevron-back" size={24} color={theme.colors.text.primary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>교환 요청</Text>
-          <View style={styles.headerRightSpacer} />
-        </View>
+          <Typography variant="h2" weight="bold" center flex={1}>
+            교환 요청
+          </Typography>
+          <Box width={40} />
+        </Box>
 
-        <View style={styles.tabsContainer}>
+        <Box flexDir="row" mb="lg" px="md" gap="md">
           <TouchableOpacity
             style={[styles.tab, activeTab === "receiver" && styles.activeTab]}
             onPress={() => setActiveTab("receiver")}
           >
-            <Text style={[styles.tabText, activeTab === "receiver" && styles.activeTabText]}>
+            <Typography 
+              weight="semibold" 
+              color={activeTab === "receiver" ? "card" : "text.secondary"}
+            >
               받은 요청
-            </Text>
+            </Typography>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.tab, activeTab === "sender" && styles.activeTab]}
             onPress={() => setActiveTab("sender")}
           >
-            <Text style={[styles.tabText, activeTab === "sender" && styles.activeTabText]}>
+            <Typography 
+              weight="semibold" 
+              color={activeTab === "sender" ? "card" : "text.secondary"}
+            >
               보낸 요청
-            </Text>
+            </Typography>
           </TouchableOpacity>
-        </View>
+        </Box>
 
-        <FlatList
+        <List
           data={requests}
           renderItem={renderRequestItem}
           keyExtractor={(item) => item.exchangeRequestId.toString()}
           contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor={theme.colors.primary}
-            />
-          }
+          onRefresh={handleRefresh}
+          refreshing={refreshing}
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>
+            <Box flex={1} justify="center" align="center" p="lg">
+              <Typography center color="text.secondary" mb="lg">
                 {error ? `에러: ${error}` : (activeTab === "receiver"
                   ? "받은 교환 요청이 없습니다."
                   : "보낸 교환 요청이 없습니다.")}
-              </Text>
+              </Typography>
               {(requests.length === 0 || error) && !loading && (
-                <TouchableOpacity style={styles.retryButton} onPress={() => fetchRequests()}>
-                  <Text style={styles.retryButtonText}>다시 시도</Text>
-                </TouchableOpacity>
+                <Button onPress={() => fetchRequests()}>다시 시도</Button>
               )}
-            </View>
+            </Box>
           }
         />
-      </View>
+      </Box>
     </SafeLayout>
   );
 }
 
-// --- Styles — Co-location & Static Analysis Optimized ---
 const styles = StyleSheet.create({
   safeLayout: {
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.md,
-  },
-  headerTitle: {
-    fontSize: 24, // theme.ts에 24 토큰 없음, 디자인 정합성 위해 유지하거나 추가 필요
-    fontWeight: "700",
-    textAlign: "center",
-    flex: 1,
-    color: theme.colors.text.primary,
-  },
-  headerRightSpacer: {
-    width: 40,
-  },
-  tabsContainer: {
-    flexDirection: "row",
-    marginBottom: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.md,
-    gap: theme.spacing.md,
+  backButton: {
+    padding: theme.spacing.sm,
   },
   tab: {
     flex: 1,
@@ -230,122 +212,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
     borderColor: theme.colors.primary,
   },
-  tabText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: theme.colors.text.secondary,
-  },
-  activeTabText: {
-    color: theme.colors.card,
-  },
   listContainer: {
     paddingHorizontal: theme.spacing.md,
     paddingBottom: theme.spacing.xxl,
     gap: theme.spacing.md,
-  },
-  requestItem: {
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.radius.lg,
-    padding: theme.spacing.lg,
-    borderWidth: 1,
-    borderColor: theme.colors.border.medium,
-    ...theme.shadow.card,
-  },
-  requestHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: theme.spacing.sm,
-  },
-  itemTitle: {
-    fontSize: theme.typography.size.CARD_TITLE,
-    fontWeight: "700",
-    color: theme.colors.text.primary,
-    flex: 1,
-  },
-  statusText: {
-    fontSize: theme.typography.size.sm,
-    fontWeight: "600",
-    color: theme.colors.primary,
-  },
-  statusAccepted: {
-    color: theme.colors.success,
-  },
-  statusRejected: {
-    color: theme.colors.error,
-  },
-  requestInfo: {
-    marginBottom: theme.spacing.lg,
-  },
-  requesterText: {
-    fontSize: theme.typography.size.sm,
-    color: theme.colors.text.secondary,
-    marginBottom: theme.spacing.xs,
-  },
-  categoryText: {
-    fontSize: theme.typography.size.sm,
-    color: theme.colors.text.secondary,
-    marginBottom: theme.spacing.xs,
-  },
-  dateText: {
-    fontSize: theme.typography.size.xs,
-    color: theme.colors.text.tertiary,
-  },
-  actionButtons: {
-    flexDirection: "row",
-    gap: theme.spacing.md,
-  },
-  acceptButton: {
-    flex: 1,
-    padding: theme.spacing.md,
-    borderRadius: theme.radius.md,
-    alignItems: "center",
-    backgroundColor: theme.colors.primary,
-  },
-  rejectButton: {
-    flex: 1,
-    padding: theme.spacing.md,
-    borderRadius: theme.radius.md,
-    alignItems: "center",
-    backgroundColor: theme.colors.error,
-  },
-  buttonText: {
-    fontSize: theme.typography.size.sm,
-    fontWeight: "700",
-    color: theme.colors.card,
-  },
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    color: theme.colors.text.primary,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: theme.spacing.lg,
-  },
-  emptyText: {
-    fontSize: theme.typography.size.md,
-    textAlign: "center",
-    color: theme.colors.text.secondary,
-    marginBottom: theme.spacing.lg,
-  },
-  retryButton: {
-    paddingHorizontal: theme.spacing.xl,
-    paddingVertical: theme.spacing.md,
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.md,
-  },
-  retryButtonText: {
-    color: theme.colors.card,
-    fontSize: theme.typography.size.md,
-    fontWeight: "600",
-  },
-  tabArrowButton: {
-    padding: theme.spacing.sm,
   },
 });

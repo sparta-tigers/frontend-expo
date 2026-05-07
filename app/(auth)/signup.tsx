@@ -1,15 +1,24 @@
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { useTheme } from "@/hooks/useTheme";
+import { theme } from "@/src/styles/theme";
 import { useAuth } from "@/src/hooks/useAuth";
-import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/unified-design";
 import { Logger } from "@/src/utils/logger";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, StyleSheet, Text } from "react-native";
+import { Alert, StyleSheet } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { Box, Typography, Input, Button } from "@/components/ui";
+
+// ========================================================
+// 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
+// ========================================================
+const LOCAL_LAYOUT = {
+  containerPadding: theme.spacing.SCREEN,
+  cardRadius: theme.radius.lg,
+  titleBottomMargin: theme.spacing.SCREEN,
+  inputBottomMargin: theme.spacing.md,
+  buttonTopMargin: theme.spacing.sm,
+  linkButtonTopMargin: theme.spacing.md,
+} as const;
 
 /**
  * 회원가입 페이지
@@ -18,7 +27,6 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 export default function SignupScreen() {
   const { signup, isLoading } = useAuth();
   const router = useRouter();
-  const { colors } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nickname, setNickname] = useState("");
@@ -70,85 +78,79 @@ export default function SignupScreen() {
   };
 
   return (
-    <SafeLayout style={{ backgroundColor: colors.background }}>
+    <SafeLayout style={styles.safeLayout}>
       <KeyboardAwareScrollView
         contentContainerStyle={styles.contentContainer}
         enableOnAndroid={true}
         keyboardShouldPersistTaps="handled"
-        extraScrollHeight={20}
+        extraScrollHeight={theme.spacing.xl}
       >
-        <Card style={styles.card}>
-          <Text style={[styles.title, { color: colors.text }]}>회원가입</Text>
-
-          <Input
-            value={email}
-            onChangeText={setEmail}
-            placeholder="이메일"
-            keyboardType="email-address"
-            style={styles.input}
-          />
-
-          <Input
-            value={nickname}
-            onChangeText={setNickname}
-            placeholder="닉네임"
-            style={styles.input}
-          />
-
-          <Input
-            value={password}
-            onChangeText={setPassword}
-            placeholder="비밀번호"
-            secureTextEntry
-            style={styles.input}
-          />
-
-          <Button
-            onPress={handleSignup}
-            loading={isLoading}
-            disabled={isLoading}
-            fullWidth
-            style={styles.button}
-          >
+        <Box bg="card" p="xl" rounded="lg" style={styles.card}>
+          <Typography variant="h2" weight="bold" color="text.primary" center mb="xl">
             회원가입
-          </Button>
+          </Typography>
 
-          <Button
-            onPress={() => router.push("/(auth)/signin")}
-            variant="ghost"
-            style={styles.linkButton}
-          >
-            이미 계정이 있나요? 로그인하기
-          </Button>
-        </Card>
+          <Box gap="md">
+            <Input
+              value={email}
+              onChangeText={setEmail}
+              placeholder="이메일"
+              keyboardType="email-address"
+              fullWidth
+            />
+
+            <Input
+              value={nickname}
+              onChangeText={setNickname}
+              placeholder="닉네임"
+              fullWidth
+            />
+
+            <Input
+              value={password}
+              onChangeText={setPassword}
+              placeholder="비밀번호"
+              secureTextEntry
+              fullWidth
+            />
+
+            <Button
+              onPress={handleSignup}
+              loading={isLoading}
+              disabled={isLoading}
+              fullWidth
+              style={styles.signupButton}
+            >
+              회원가입
+            </Button>
+
+            <Button
+              onPress={() => router.push("/(auth)/signin")}
+              variant="ghost"
+              fullWidth
+            >
+              이미 계정이 있나요? 로그인하기
+            </Button>
+          </Box>
+        </Box>
       </KeyboardAwareScrollView>
     </SafeLayout>
   );
 }
 
 const styles = StyleSheet.create({
+  safeLayout: {
+    backgroundColor: theme.colors.background,
+  },
   contentContainer: {
     flex: 1,
     justifyContent: "center",
-    padding: SPACING.SCREEN,
+    padding: LOCAL_LAYOUT.containerPadding,
+  },
+  signupButton: {
+    marginTop: LOCAL_LAYOUT.buttonTopMargin,
   },
   card: {
-    padding: SPACING.SCREEN,
-    borderRadius: BORDER_RADIUS.CARD,
-  },
-  title: {
-    fontSize: FONT_SIZE.TITLE,
-    fontWeight: "bold",
-    marginBottom: SPACING.SCREEN,
-    textAlign: "center",
-  },
-  input: {
-    marginBottom: SPACING.COMPONENT,
-  },
-  button: {
-    marginTop: SPACING.SMALL,
-  },
-  linkButton: {
-    marginTop: SPACING.COMPONENT,
+    ...theme.shadow.card,
   },
 });

@@ -9,7 +9,7 @@ import {
     View,
     ViewStyle,
 } from "react-native";
-import { useTheme } from "react-native-paper";
+import { theme } from "@/src/styles/theme";
 
 /**
  * 리스트 아이템 속성
@@ -28,21 +28,31 @@ interface ListItemProps {
 /**
  * 리스트 컴포넌트 속성
  */
-interface ListProps {
+interface ListProps<T> {
   /** 리스트 데이터 */
-  data: any[];
+  data: T[];
   /** 아이템 렌더 함수 */
-  renderItem: ListRenderItem<any>;
-  /** 로딩 상태 */
+  renderItem: ListRenderItem<T>;
+  /** 아이템 키 추출 함수 (필수) */
+  keyExtractor: (item: T, index: number) => string;
+  /** 로딩 상태 (푸터 인디케이터용) */
   loading?: boolean;
+  /** 새로고침 상태 */
+  refreshing?: boolean;
+  /** 새로고침 핸들러 */
+  onRefresh?: () => void;
   /** 더 불러오기 핸들러 */
   onEndReached?: () => void;
   /** 빈 상태 메시지 */
   emptyMessage?: string;
-  /** 커스텀 스타일 */
+  /** 리스트 컨테이너 스타일 */
   style?: ViewStyle;
+  /** 아이템 컨테이너 스타일 */
+  contentContainerStyle?: ViewStyle;
   /** 아이템 구분선 표시 */
   showSeparator?: boolean;
+  /** 빈 상태 컴포넌트 (선택) */
+  ListEmptyComponent?: React.ReactElement | null;
 }
 
 /**
@@ -53,30 +63,34 @@ interface ListProps {
  * - 무한 스크롤 지원
  * - 빈 상태 처리
  */
-export const List: React.FC<ListProps> = ({
+export const List = <T,>({
   data,
   renderItem,
+  keyExtractor,
   loading = false,
+  refreshing = false,
+  onRefresh,
   onEndReached,
   emptyMessage = "데이터가 없습니다.",
   style,
+  contentContainerStyle,
   showSeparator = true,
-}) => {
-  const theme = useTheme();
+  ListEmptyComponent,
+}: ListProps<T>) => {
 
   const renderSeparator = () => {
     if (!showSeparator) return null;
 
     return (
       <View
-        style={[styles.separator, { backgroundColor: theme.colors.outline }]}
+        style={[styles.separator, { backgroundColor: theme.colors.border.medium }]}
       />
     );
   };
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
-      <Text style={[styles.emptyText, { color: theme.colors.onSurface }]}>
+      <Text style={[styles.emptyText, { color: theme.colors.text.primary }]}>
         {emptyMessage}
       </Text>
     </View>
@@ -87,7 +101,7 @@ export const List: React.FC<ListProps> = ({
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color={theme.colors.primary} />
-          <Text style={[styles.loadingText, { color: theme.colors.onSurface }]}>
+          <Text style={[styles.loadingText, { color: theme.colors.text.primary }]}>
             더 불러오는 중...
           </Text>
         </View>
@@ -107,7 +121,7 @@ export const List: React.FC<ListProps> = ({
       >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={[styles.loadingText, { color: theme.colors.onSurface }]}>
+          <Text style={[styles.loadingText, { color: theme.colors.text.primary }]}>
             로딩 중...
           </Text>
         </View>
@@ -119,25 +133,26 @@ export const List: React.FC<ListProps> = ({
     <View
       style={[
         styles.container,
-        { backgroundColor: theme.colors.surface },
+        { backgroundColor: theme.colors.background },
         style,
       ]}
     >
       <FlatList
         data={data}
         renderItem={renderItem}
-        keyExtractor={(item, index) =>
-          item?.id?.toString() || item?.key?.toString() || index.toString()
-        }
+        keyExtractor={keyExtractor}
         ItemSeparatorComponent={renderSeparator}
-        ListEmptyComponent={renderEmpty}
+        ListEmptyComponent={ListEmptyComponent || renderEmpty}
         ListFooterComponent={renderFooter}
         onEndReached={onEndReached}
         onEndReachedThreshold={0.1}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={
-          data.length === 0 ? styles.emptyContent : undefined
-        }
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        contentContainerStyle={[
+          data.length === 0 ? styles.emptyContent : undefined,
+          contentContainerStyle
+        ]}
       />
     </View>
   );
@@ -153,7 +168,6 @@ export const ListItem: React.FC<ListItemProps> = ({
   onPress,
   style,
 }) => {
-  const theme = useTheme();
 
   return (
     <TouchableOpacity

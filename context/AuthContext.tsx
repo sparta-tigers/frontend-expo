@@ -21,6 +21,12 @@ import {
   useEffect,
   useState,
 } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Alert } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const getMyTeamKey = (userId?: number) =>
+  userId ? `yaguniv_my_team_${userId}` : "yaguniv_my_team_guest";
 
 /**
  * 단순화된 토큰 타입
@@ -88,10 +94,13 @@ interface AuthContextType {
   user: SimpleToken | null;
   isLoading: boolean;
   isLoggedIn: boolean;
+  myTeam: string | null;
   signin: (credentials: AuthSigninRequest) => Promise<boolean>;
   signup: (userData: AuthSignupRequest) => Promise<boolean>;
   signout: () => Promise<void>;
   loadToken: () => Promise<void>;
+  updateMyTeam: (teamName: string) => Promise<void>;
+  updateUser: (partialUser: Partial<SimpleToken>) => void;
 }
 
 /**
@@ -124,8 +133,10 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<SimpleToken | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [myTeam, setMyTeam] = useState<string | null>(null);
 
   /**
    * 로그인 여부 확인
@@ -140,21 +151,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const loadToken = async (): Promise<void> => {
     try {
       setIsLoading(true);
+
       const accessToken = await getAccessToken();
 
       if (__DEV__) {
         Logger.debug("[AuthContext] 토큰 로드 시도");
         Logger.debug("- Access Token 존재 여부:", !!accessToken);
-        Logger.debug("- Access Token:", maskSensitive(accessToken));
       }
 
       if (accessToken) {
         const refreshToken = await getRefreshToken();
-
-        if (__DEV__) {
-          Logger.debug("- Refresh Token 존재 여부:", !!refreshToken);
-          Logger.debug("- Refresh Token:", maskSensitive(refreshToken));
-        }
 
         if (refreshToken) {
           // 토큰 저장
@@ -170,21 +176,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
           setUser(tokenPayload);
 
+          // 🚨 [Sequence] 2. 토큰 복원 후 해당 사용자의 응원팀 정보 로드
+          const userId = tokenPayload.userId;
+          const savedTeam = await AsyncStorage.getItem(getMyTeamKey(userId));
+          if (savedTeam) {
+            setMyTeam(savedTeam);
+          }
+
           if (__DEV__) {
-            Logger.debug(
-              "✅ [AuthContext] 토큰 로드 성공 - 사용자 상태 설정 완료",
-              maskSensitive(accessToken),
-            );
+            Logger.debug("✅ [AuthContext] 토큰 및 사용자 환경 설정 로드 성공");
           }
         } else {
-          if (__DEV__) {
-            Logger.warn(
-              "⚠️ [AuthContext] Access Token만 존재 - Refresh Token 없음",
-            );
-          }
           await clearTokens();
         }
       } else {
+        // 비로그인 상태의 게스트 팀 정보 로드
+        const guestTeam = await AsyncStorage.getItem(getMyTeamKey(undefined));
+        if (guestTeam) {
+          setMyTeam(guestTeam);
+        }
         if (__DEV__) {
           Logger.info("ℹ️ [AuthContext] 저장된 토큰 없음 - 비로그인 상태");
         }
@@ -328,21 +338,68 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
    */
   const signout = async (): Promise<void> => {
     try {
-      // 현재 리프레시 토큰 가져오기
       const currentRefreshToken = await getRefreshToken();
-
       if (currentRefreshToken) {
-        // 서버에 로그아웃 통보 (실패하더라도 로컬 정리는 진행)
         await authSignoutAPI(currentRefreshToken);
       }
     } catch (error) {
       Logger.error("서버 로그아웃 통보 실패:", error);
     } finally {
-      // TokenStore에서 토큰 삭제
-      await clearTokens();
+      // 🚨 [Auth Stability] 1. React Query 캐시 즉시 초기화 (이전 사용자 데이터 제거)
+      queryClient.clear();
 
-      // 상태 초기화
+      // 2. TokenStore 및 상태 초기화
+      await clearTokens();
       setUser(null);
+      setMyTeam(null);
+    }
+  };
+
+  /**
+   * 응원팀 업데이트 함수 (Optimistic Update)
+   * 
+   * @param teamName - 변경할 팀 명칭
+   */
+  const updateMyTeam = async (teamName: string): Promise<void> => {
+    const previousTeam = myTeam; // 🚨 [Data Integrity] 1. 롤백을 위한 이전 상태 캡처
+    try {
+      // 2. 상태 즉시 업데이트 (UI 반응성 확보)
+      setMyTeam(teamName);
+
+      // 3. 로컬 스토리지 저장 (사용자별 고유 키 사용)
+      await AsyncStorage.setItem(getMyTeamKey(user?.userId), teamName);
+
+      if (__DEV__) {
+        Logger.debug(`✅ [AuthContext] 응원팀 변경 완료 (${user?.userId || "Guest"}): ${teamName}`);
+      }
+    } catch (error) {
+      Logger.error("[AuthContext] 응원팀 변경 실패:", error);
+      
+      // 4. 롤백 처리: 이전 상태로 명시적 복구
+      setMyTeam(previousTeam);
+      
+      // 5. 사용자에게 에러 전파
+      Alert.alert("알림", "팀 정보를 저장하는 중 오류가 발생했습니다. 다시 시도해주세요.");
+    }
+  };
+  
+  /**
+   * 사용자 정보 부분 업데이트 함수
+   * 닉네임 등 변경된 정보만 유저 상태에 병합 (토큰 등 기존 정보 보호)
+   * 
+   * @param partialUser - 업데이트할 사용자 정보 조각
+   */
+  const updateUser = (partialUser: Partial<SimpleToken>): void => {
+    setUser((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        ...partialUser,
+      };
+    });
+    
+    if (__DEV__) {
+      Logger.debug("✅ [AuthContext] 사용자 정보 부분 업데이트 완료", partialUser);
     }
   };
 
@@ -355,10 +412,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     user,
     isLoading,
     isLoggedIn,
+    myTeam,
     signin,
     signup,
     signout,
     loadToken,
+    updateMyTeam,
+    updateUser,
   };
 
   return (

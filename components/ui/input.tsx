@@ -1,4 +1,6 @@
-import React from "react";
+import { theme } from "@/src/styles/theme";
+import React, { ComponentProps } from "react";
+import { StyleProp, TextStyle } from "react-native";
 import { TextInput } from "react-native-paper";
 
 /**
@@ -22,7 +24,7 @@ interface InputProps {
   /** 전체 너비 차지 */
   fullWidth?: boolean;
   /** 커스텀 스타일 */
-  style?: any;
+  style?: StyleProp<TextStyle>;
   /** 라벨 텍스트 */
   label?: string;
   /** 여러 줄 입력 */
@@ -38,6 +40,7 @@ interface InputProps {
  * - Material Design 스타일 적용
  * - 플로팅 라벨 지원
  * - 에러 상태 표시
+ * - Zero-Magic UI: 테마 토큰 연동
  */
 export const Input: React.FC<InputProps> = ({
   value,
@@ -53,23 +56,37 @@ export const Input: React.FC<InputProps> = ({
   multiline = false,
   numberOfLines,
 }) => {
-  const inputProps: any = {
+  const inputProps: ComponentProps<typeof TextInput> = {
     value,
     onChangeText,
-    placeholder,
     secureTextEntry,
     disabled,
     error,
-    mode: "outlined" as const,
+    mode: "outlined",
     keyboardType,
     multiline,
-    numberOfLines,
-    style: fullWidth ? { width: "100%" } : style,
+    outlineColor: theme.colors.border.medium,
+    activeOutlineColor: theme.colors.brand.mint,
+    placeholderTextColor: theme.colors.text.tertiary,
+    textColor: theme.colors.text.primary,
+    style: [
+      {
+        backgroundColor: theme.colors.surface,
+        fontSize: theme.typography.size.md,
+      },
+      fullWidth ? { width: "100%" } : null,
+      style,
+    ] as StyleProp<TextStyle>,
+    theme: {
+      colors: {
+        primary: theme.colors.brand.mint,
+        error: theme.colors.error,
+      },
+    },
+    ...(label !== undefined ? { label } : {}),
+    ...(placeholder !== undefined ? { placeholder } : {}),
+    ...(numberOfLines !== undefined ? { numberOfLines } : {}),
   };
-
-  if (label) {
-    inputProps.label = label;
-  }
 
   return <TextInput {...inputProps} />;
 };

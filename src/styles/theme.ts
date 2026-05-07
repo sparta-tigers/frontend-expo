@@ -112,6 +112,8 @@ export const theme = {
      */
     brand: {
       mint: "#4BBDBD",
+      /** 선택 상태 배경(라이브보드 날짜 등) — 민트의 10% 투명도 헥사값 */
+      mintAlpha10: "#4BBDBD1A",
       /** 선택 상태 배경(라이브보드 날짜 등) — 민트의 밝은 파생 톤 */
       mintLight: "#DCF5F2",
       background: "#F8F8FA",
@@ -193,12 +195,14 @@ export const theme = {
     info: "#3B82F6",
   },
   spacing: {
+    xxs: 2,
     xs: 4,
     sm: 8,
     md: 12,
     lg: 16,
     xl: 20,
     xxl: 24,
+    xxxl: 30,
     // 기존 호환성을 위한 별칭
     TINY: 4,
     SMALL: 8,
@@ -206,14 +210,19 @@ export const theme = {
     CARD: 16,
     SECTION: 20,
     SCREEN: 20,
+    SCREEN_DASHBOARD: DASHBOARD_PADDING_HORIZONTAL,
+    AUTH_TAB: 13,
   },
   typography: {
     size: {
+      xxs: 11,
       xs: 12,
       sm: 14,
       md: 16,
       lg: 18,
       xl: 20,
+      xxl: 24,
+      xxxl: 28,
       // 기존 호환성을 위한 별칭
       CAPTION: 12,
       SMALL: 14,
@@ -235,14 +244,18 @@ export const theme = {
     sm: 4,
     md: 8,
     lg: 12,
+    xl: 16,
+    xxl: 20,
     tabBar: 15,
     dashboardCard: 10,
     full: 9999,
+    round: 9999,
     // 기존 호환성을 위한 별칭
     BUTTON: 6,
     INPUT: 8,
     IMAGE: 8,
     CARD: 8,
+    calendar: 13,
   },
   shadow: {
     card: {
@@ -267,6 +280,15 @@ export const theme = {
    * 컴포넌트 코드에서 숫자 하드코딩을 제거하고 일관성을 유지한다.
    */
   layout: {
+    /** 공통 레이아웃 토큰 (3개 이상의 화면에서 재사용) */
+    common: {
+      /** 표준 리스트 아이템 높이 (교환 아이템, 랭킹 카드 등) */
+      standardItemHeight: 52,
+      /** 대시보드/교환 등 주요 화면 헤더 타이틀 크기 */
+      headerTitleSize: 24,
+      /** 하단 고정 버튼이 있는 스크롤 뷰의 최하단 패딩 */
+      bottomPadding: 100,
+    },
     /** 전역 헤더 레이아웃 토큰 */
     header: {
       backIconSize: 36,
@@ -306,6 +328,7 @@ export const theme = {
       calendarHeaderHeight: 32,
       calendarCellHeight: 61,
       calendarRadius: 13, // 12.687 반올림; 정수화하여 렌더링 일관성 확보
+      matchListBottomPadding: 40,
     },
     tabBar: {
       badgeSize: 8,

@@ -1,5 +1,5 @@
 import { apiClient } from "@/src/core/client";
-import type { ApiResponse } from "@/src/shared/types/common";
+import type { ApiResponse, PaginatedResponse } from "@/src/shared/types/common";
 import {
   CreateExchangeDto,
   ExchangeRequestListResponse,
@@ -37,16 +37,16 @@ export async function itemsGetListAPI(
   lat?: number,
   lng?: number,
   radiusKm?: number,
-): Promise<ApiResponse<any>> {
-  const params: any = { page, size };
+): Promise<ApiResponse<PaginatedResponse<Item>>> {
+  const params: Record<string, unknown> = { page, size };
   if (category) params.category = category;
   if (status) params.status = status;
 
   // 좌표 기반 검색 파라미터 추가
-  if (lat && lng) {
+  if (lat !== undefined && lng !== undefined) {
     params.latitude = lat;
     params.longitude = lng;
-    params.radius = radiusKm || 2; // 기본 반경 2km
+    params.radius = radiusKm ?? 2; // 기본 반경 2km
   }
 
   // try-catch 제거하고 바로 리턴
@@ -76,7 +76,7 @@ export async function itemsGetDetailAPI(
 export async function createExchangeItem(
   formData: FormData,
 ): Promise<ApiResponse<Item>> {
-  const response = await apiClient.post("/api/items", formData, {
+  return apiClient.post<ApiResponse<Item>>("/api/items", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -85,7 +85,6 @@ export async function createExchangeItem(
       return data;
     },
   });
-  return response.data;
 }
 
 /**
@@ -127,7 +126,7 @@ export async function itemsDeleteAPI(
 export async function itemsGetMyItemsAPI(
   page: number = 0,
   size: number = 20,
-): Promise<ApiResponse<any>> {
+): Promise<ApiResponse<PaginatedResponse<Item>>> {
   return apiClient.get("/api/items/my", { page, size });
 }
 
@@ -144,7 +143,7 @@ export async function itemsSearchAPI(
   keyword: string,
   page: number = 0,
   size: number = 20,
-): Promise<ApiResponse<any>> {
+): Promise<ApiResponse<PaginatedResponse<Item>>> {
   return apiClient.get("/api/items/search", { keyword, page, size });
 }
 
@@ -209,7 +208,7 @@ export async function exchangeGetMyRequestsAPI(
   size: number = 20,
   status?: string,
 ): Promise<ApiResponse<ExchangeRequestListResponse>> {
-  const params: Record<string, any> = { role, page, size };
+  const params: Record<string, string | number> = { role, page, size };
   if (status) params.status = status;
   return apiClient.get("/api/exchanges/my", params);
 }

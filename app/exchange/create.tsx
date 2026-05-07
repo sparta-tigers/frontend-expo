@@ -9,14 +9,13 @@ import {
     Image,
     ScrollView,
     StyleSheet,
-    Text,
     TextInput,
     TouchableOpacity,
-    View,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 import { SafeLayout } from "@/components/ui/safe-layout";
+import { Box, Typography } from "@/components/ui";
 import { createExchangeItem } from "@/src/features/exchange/api";
 import { useCheckActiveItem } from "@/src/features/exchange/queries";
 import { ItemCategory, LocationDto } from "@/src/features/exchange/types";
@@ -24,26 +23,15 @@ import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 
-/**
- * React Native FormData에 첨부할 파일 객체 형태.
- *
- * Why: 웹 표준 Blob/File과 달리, RN의 FormData는 { uri, name, type }
- * 형태의 파일 객체를 직접 받아 멀티파트로 직렬화한다. 백엔드에서
- * 파일명/MIME 타입을 인식할 수 있도록 세 필드 모두 명시적으로 정의한다.
- */
 interface ReactNativeFile {
   uri: string;
   name: string;
   type: string;
 }
 
-/**
- * 교환글 작성 화면 컴포넌트
- */
 export default function CreateItemScreen() {
   const queryClient = useQueryClient();
 
-  // 폼 데이터 상태
   const [formData, setFormData] = React.useState({
     title: "",
     desiredItem: "",
@@ -53,7 +41,6 @@ export default function CreateItemScreen() {
 
   const [selectedImages, setSelectedImages] = React.useState<string[]>([]);
 
-  // 위치 정보 상태
   const [currentLocation, setCurrentLocation] = React.useState<LocationDto>({
     latitude: 37.5665,
     longitude: 126.978,
@@ -61,7 +48,6 @@ export default function CreateItemScreen() {
   });
   const [locationLoading, setLocationLoading] = React.useState(false);
 
-  // React Query Mutation으로 제출 처리
   const { mutate, isPending } = useMutation({
     mutationFn: async (data: typeof formData) => {
       const requestFormData = new FormData();
@@ -91,8 +77,6 @@ export default function CreateItemScreen() {
           type,
         };
 
-        // RN의 FormData는 { uri, name, type } 형태의 파일 객체를 받지만,
-        // 표준 DOM 타입에는 표현이 없어 unknown을 경유한 Blob 캐스트로 우회한다.
         requestFormData.append("images", file as unknown as Blob);
       });
 
@@ -129,7 +113,6 @@ export default function CreateItemScreen() {
     mutate(formData);
   };
 
-  // 위치 정보 가져오기
   const getCurrentLocation = async () => {
     setLocationLoading(true);
 
@@ -221,27 +204,34 @@ export default function CreateItemScreen() {
 
   return (
     <SafeLayout edges={["top", "bottom"]} style={styles.container}>
-      <View style={styles.header}>
+      <Box 
+        flexDir="row" 
+        justify="space-between" 
+        align="center" 
+        px="lg" 
+        py="sm" 
+        borderBottomWidth={1} 
+        borderColor="border.medium"
+      >
         <TouchableOpacity 
           style={styles.backButton} 
           onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="뒤로가기"
         >
           <IconSymbol name="chevron.left" size={24} color={theme.colors.text.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>교환글 쓰기</Text>
+        <Typography variant="h2" weight="bold" color="text.primary" flex={1} center>
+          교환글 쓰기
+        </Typography>
         <TouchableOpacity onPress={handleSubmit} disabled={isPending}>
-          <Text
-            style={[
-              styles.submitButton,
-              isPending && styles.submitButtonDisabled,
-            ]}
+          <Typography 
+            weight="bold" 
+            color="primary" 
+            style={isPending ? styles.submitButtonDisabled : undefined}
           >
             {isPending ? "등록 중..." : "등록"}
-          </Text>
+          </Typography>
         </TouchableOpacity>
-      </View>
+      </Box>
 
       <KeyboardAwareScrollView
         style={styles.scrollView}
@@ -254,105 +244,98 @@ export default function CreateItemScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={styles.imageScrollContainer}
+          contentContainerStyle={styles.imageScrollContent}
         >
-          {selectedImages.length < 5 && (
-            <TouchableOpacity
-              style={styles.imageAddButton}
-              onPress={handleImagePicker}
-            >
-              <Text style={styles.imageAddIcon}>📷</Text>
-              <Text style={styles.imageCountText}>
-                {selectedImages.length}/5
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          {selectedImages.map((imageUri, index) => (
-            <View key={index} style={styles.imageItemWrapper}>
-              <Image source={{ uri: imageUri }} style={styles.imageThumbnail} />
+          <Box flexDir="row" p="lg" gap="sm">
+            {selectedImages.length < 5 && (
               <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => removeImage(index)}
+                style={styles.imageAddButton}
+                onPress={handleImagePicker}
               >
-                <Text style={styles.deleteButtonText}>×</Text>
+                <Typography variant="h1" color="text.tertiary">📷</Typography>
+                <Typography variant="caption" color="text.tertiary">
+                  {selectedImages.length}/5
+                </Typography>
               </TouchableOpacity>
-            </View>
-          ))}
+            )}
+
+            {selectedImages.map((imageUri, index) => (
+              <Box key={index} style={styles.imageItemWrapper}>
+                <Image source={{ uri: imageUri }} style={styles.imageThumbnail} />
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => removeImage(index)}
+                >
+                  <Typography variant="caption" weight="bold" color="background">×</Typography>
+                </TouchableOpacity>
+              </Box>
+            ))}
+          </Box>
         </ScrollView>
 
-        <View style={styles.locationContainer}>
-          <View style={styles.locationHeader}>
-            <Text style={styles.locationTitle}>📍 위치 정보</Text>
+        <Box px="lg" py="md" borderBottomWidth={1} borderColor="border.medium">
+          <Box flexDir="row" justify="space-between" align="center" mb="sm">
+            <Typography variant="body1" weight="bold" color="text.primary">📍 위치 정보</Typography>
             <TouchableOpacity
               onPress={getCurrentLocation}
               disabled={locationLoading}
             >
-              <Text style={styles.locationRefreshButton}>
+              <Typography variant="caption" color="primary">
                 {locationLoading ? "로딩 중..." : "🔄 새로고침"}
-              </Text>
+              </Typography>
             </TouchableOpacity>
-          </View>
+          </Box>
 
-          <View style={styles.locationContent}>
-            <Text style={styles.locationIcon}>📍</Text>
-            <Text style={styles.locationText}>{currentLocation.address}</Text>
+          <Box flexDir="row" align="center" p="sm" bg="surface" rounded="md">
+            <Typography variant="body1" mr="sm">📍</Typography>
+            <Typography variant="body2" color="text.secondary" flex={1}>
+              {currentLocation.address}
+            </Typography>
             {locationLoading && (
               <ActivityIndicator
                 size="small"
                 color={theme.colors.primary}
-                style={styles.locationLoading}
               />
             )}
-          </View>
-        </View>
+          </Box>
+        </Box>
 
-        <View style={styles.formContainer}>
-          <View style={styles.categoryContainer}>
-            <Text style={styles.label}>카테고리</Text>
-            <View style={styles.categoryButtons}>
+        <Box px="lg">
+          <Box py="md" borderBottomWidth={1} borderColor="border.medium">
+            <Typography variant="body1" weight="bold" color="text.primary" mb="sm">
+              카테고리
+            </Typography>
+            <Box flexDir="row" gap="sm">
               <TouchableOpacity
                 style={[
                   styles.categoryButton,
-                  formData.itemCategory === "TICKET" &&
-                    styles.categoryButtonActive,
+                  formData.itemCategory === "TICKET" && styles.categoryButtonActive,
                 ]}
-                onPress={() =>
-                  setFormData({ ...formData, itemCategory: "TICKET" })
-                }
+                onPress={() => setFormData({ ...formData, itemCategory: "TICKET" })}
               >
-                <Text
-                  style={[
-                    styles.categoryButtonText,
-                    formData.itemCategory === "TICKET" &&
-                      styles.categoryButtonTextActive,
-                  ]}
+                <Typography
+                  weight={formData.itemCategory === "TICKET" ? "bold" : "medium"}
+                  color={formData.itemCategory === "TICKET" ? "background" : "text.secondary"}
                 >
                   티켓
-                </Text>
+                </Typography>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
                   styles.categoryButton,
-                  formData.itemCategory === "GOODS" &&
-                    styles.categoryButtonActive,
+                  formData.itemCategory === "GOODS" && styles.categoryButtonActive,
                 ]}
-                onPress={() =>
-                  setFormData({ ...formData, itemCategory: "GOODS" })
-                }
+                onPress={() => setFormData({ ...formData, itemCategory: "GOODS" })}
               >
-                <Text
-                  style={[
-                    styles.categoryButtonText,
-                    formData.itemCategory === "GOODS" &&
-                      styles.categoryButtonTextActive,
-                  ]}
+                <Typography
+                  weight={formData.itemCategory === "GOODS" ? "bold" : "medium"}
+                  color={formData.itemCategory === "GOODS" ? "background" : "text.secondary"}
                 >
                   굿즈
-                </Text>
+                </Typography>
               </TouchableOpacity>
-            </View>
-          </View>
+            </Box>
+          </Box>
 
           <TextInput
             placeholder="제목"
@@ -366,9 +349,7 @@ export default function CreateItemScreen() {
             placeholder="희망 아이템 (선택)"
             style={styles.desiredItemInput}
             value={formData.desiredItem}
-            onChangeText={(text) =>
-              setFormData({ ...formData, desiredItem: text })
-            }
+            onChangeText={(text) => setFormData({ ...formData, desiredItem: text })}
             placeholderTextColor={theme.colors.text.tertiary}
           />
 
@@ -380,13 +361,12 @@ export default function CreateItemScreen() {
             onChangeText={(text) => setFormData({ ...formData, content: text })}
             placeholderTextColor={theme.colors.text.tertiary}
           />
-        </View>
+        </Box>
       </KeyboardAwareScrollView>
     </SafeLayout>
   );
 }
 
-// --- Styles — Co-location & Static Analysis Optimized ---
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -398,23 +378,18 @@ const styles = StyleSheet.create({
   submitButtonDisabled: {
     opacity: 0.6,
   },
-  imageItemWrapper: {
-    position: "relative",
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  imageAddIcon: {
-    fontSize: theme.typography.size.xl,
-    color: theme.colors.text.tertiary,
-  },
-  imageCountText: {
-    fontSize: theme.typography.size.xs,
-    color: theme.colors.text.tertiary,
-    marginTop: theme.spacing.xs,
-  },
-  imageScrollContainer: {
-    padding: theme.spacing.lg,
-    paddingBottom: theme.spacing.xl,
+  imageScrollContent: {
     borderBottomWidth: 1,
     borderColor: theme.colors.border.medium,
+  },
+  imageItemWrapper: {
+    position: "relative",
   },
   imageAddButton: {
     width: 72,
@@ -424,14 +399,12 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border.medium,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: theme.spacing.sm,
     backgroundColor: theme.colors.surface,
   },
   imageThumbnail: {
     width: 72,
     height: 72,
     borderRadius: theme.radius.md,
-    marginRight: theme.spacing.sm,
   },
   deleteButton: {
     position: "absolute",
@@ -439,18 +412,23 @@ const styles = StyleSheet.create({
     right: -8,
     width: 20,
     height: 20,
-    borderRadius: 10,
+    borderRadius: theme.spacing.md / 2 + 4, // 10
     backgroundColor: theme.colors.error,
     justifyContent: "center",
     alignItems: "center",
   },
-  deleteButtonText: {
-    color: theme.colors.background,
-    fontSize: theme.typography.size.xs,
-    fontWeight: theme.typography.weight.bold,
+  categoryButton: {
+    flex: 1,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border.medium,
+    backgroundColor: theme.colors.background,
+    alignItems: "center",
   },
-  formContainer: {
-    paddingHorizontal: theme.spacing.lg,
+  categoryButtonActive: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.primary,
   },
   titleInput: {
     height: 60,
@@ -476,111 +454,5 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: theme.colors.border.medium,
     color: theme.colors.text.primary,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.sm,
-    borderBottomWidth: 1,
-    borderColor: theme.colors.border.medium,
-  },
-  headerTitle: {
-    fontSize: theme.typography.size.lg,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.text.primary,
-    flex: 1,
-    textAlign: "center",
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  submitButton: {
-    fontSize: theme.typography.size.md,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.primary,
-  },
-  locationContainer: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
-    borderBottomWidth: 1,
-    borderColor: theme.colors.border.medium,
-  },
-  locationHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: theme.spacing.sm,
-  },
-  locationTitle: {
-    fontSize: theme.typography.size.md,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.text.primary,
-  },
-  locationRefreshButton: {
-    fontSize: theme.typography.size.sm,
-    color: theme.colors.primary,
-  },
-  locationContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: theme.spacing.sm,
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.radius.md,
-  },
-  locationIcon: {
-    fontSize: theme.typography.size.lg,
-    marginRight: theme.spacing.sm,
-  },
-  locationText: {
-    flex: 1,
-    fontSize: theme.typography.size.sm,
-    color: theme.colors.text.secondary,
-  },
-  locationLoading: {
-    marginLeft: theme.spacing.sm,
-  },
-  categoryContainer: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
-    borderBottomWidth: 1,
-    borderColor: theme.colors.border.medium,
-  },
-  label: {
-    fontSize: theme.typography.size.md,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing.sm,
-  },
-  categoryButtons: {
-    flexDirection: "row",
-    gap: theme.spacing.sm,
-  },
-  categoryButton: {
-    flex: 1,
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border.medium,
-    backgroundColor: theme.colors.background,
-    alignItems: "center",
-  },
-  categoryButtonActive: {
-    backgroundColor: theme.colors.primary,
-    borderColor: theme.colors.primary,
-  },
-  categoryButtonText: {
-    fontSize: theme.typography.size.md,
-    color: theme.colors.text.secondary,
-    fontWeight: theme.typography.weight.medium,
-  },
-  categoryButtonTextActive: {
-    color: theme.colors.background,
-    fontWeight: theme.typography.weight.bold,
   },
 });

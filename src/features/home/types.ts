@@ -14,6 +14,8 @@ export interface TeamDto {
   subName: string;
   /** 팀 마스코트 이모지 (예: "🐯") */
   mascotEmoji: string;
+  /** 팀 고유 컬러 (Hex) */
+  color: string;
 }
 
 
@@ -69,6 +71,7 @@ export interface CalendarGameDto {
   opponentShort: string;
   timeText?: string | undefined;
   isSelected?: boolean | undefined;
+  opponentColor?: string | undefined;
 }
 
 /**
@@ -83,4 +86,5 @@ export type CalendarCellModel = {
   opponentShort: string;
   timeText?: string | undefined;
   isSelected: boolean;
+  opponentColor?: string | undefined;
 };

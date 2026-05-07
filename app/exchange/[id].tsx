@@ -9,7 +9,7 @@ import { theme } from "@/src/styles/theme";
 
 import { getImageUrl } from "@/src/utils/url";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { type Href, Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -17,12 +17,13 @@ import {
   Image,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
-  View,
   FlatList,
   Dimensions,
 } from "react-native";
+
+import { Box } from "@/components/ui/box";
+import { Typography } from "@/components/ui/typography";
 
 import ImageViewing from "react-native-image-viewing";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -58,10 +59,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  imagePlaceholderText: {
-    fontSize: theme.typography.size.BODY,
-    color: theme.colors.text.secondary,
-  },
   profileRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -74,34 +71,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: theme.colors.border.medium,
   },
-  nickname: {
-    fontSize: theme.typography.size.md,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.text.primary,
-  },
   contentContainer: {
     padding: theme.spacing.COMPONENT,
-  },
-  title: {
-    fontSize: theme.typography.size.lg,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing.SMALL,
-  },
-  description: {
-    fontSize: theme.typography.size.BODY,
-    lineHeight: 22,
-    color: theme.colors.text.primary,
-  },
-  desiredItemLabel: {
-    fontSize: theme.typography.size.xs,
-    color: theme.colors.text.secondary,
-  },
-  desiredItemText: {
-    fontSize: theme.typography.size.md,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.text.primary,
-    marginTop: 2,
   },
   bottomBar: {
     flexDirection: "row",
@@ -125,14 +96,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: theme.spacing.TINY,
   },
-  statusLabel: {
-    fontSize: theme.typography.size.xs,
-    color: theme.colors.text.secondary,
-  },
-  statusValue: {
-    fontSize: theme.typography.size.SMALL,
-    fontWeight: theme.typography.weight.bold,
-  },
   statusActionsRow: {
     flexDirection: "row",
     gap: theme.spacing.TINY,
@@ -142,41 +105,20 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: theme.spacing.TINY,
   },
-  statusActionText: {
-    fontSize: theme.typography.size.xs,
-    fontWeight: theme.typography.weight.medium,
-    textAlign: "center",
-    color: theme.colors.background,
-  },
   buttonRow: {
     flexDirection: "row",
     gap: 8,
-  },
-  exchangeButtonText: {
-    fontWeight: "bold",
-    fontSize: 15,
-    color: theme.colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-  loadingText: {
-    color: theme.colors.text.primary,
-    marginTop: theme.spacing.SMALL,
-  },
   errorContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: theme.spacing.SCREEN,
-  },
-  errorText: {
-    fontSize: theme.typography.size.BODY,
-    textAlign: "center",
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing.COMPONENT,
   },
   imageCarousel: {
     width: "100%",
@@ -202,18 +144,13 @@ const styles = StyleSheet.create({
   indicatorDotInactive: {
     backgroundColor: theme.colors.background,
   },
-  profileInitialText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: theme.colors.text.secondary,
-  },
   bottomContainer: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    paddingTop: 12,
-    paddingHorizontal: 20,
+    paddingTop: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xl,
     borderTopWidth: 1,
     borderColor: theme.colors.border.medium,
     backgroundColor: theme.colors.background,
@@ -221,8 +158,8 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   applyButton: {
-    height: 52,
-    borderRadius: 8,
+    height: theme.layout.common.standardItemHeight,
+    borderRadius: theme.radius.md,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: theme.colors.primary,
@@ -237,42 +174,21 @@ const styles = StyleSheet.create({
   customHeader: {
     flexDirection: "row",
     alignItems: "center",
-    height: 52,
+    height: theme.layout.common.standardItemHeight,
     paddingHorizontal: theme.spacing.COMPONENT,
     borderBottomWidth: 1,
     backgroundColor: theme.colors.background,
     borderBottomColor: theme.colors.border.medium,
   },
-  headerTitle: {
-    flex: 1,
-    fontSize: theme.typography.size.md,
-    fontWeight: theme.typography.weight.bold,
-    textAlign: "center",
-    color: theme.colors.text.primary,
-  },
   headerActionButton: {
     paddingHorizontal: theme.spacing.SMALL,
-    paddingVertical: 4,
+    paddingVertical: theme.spacing.xs,
   },
-  editText: {
-    fontSize: theme.typography.size.BODY,
-    color: theme.colors.primary,
+  headerTitle: {
+    flex: 1,
   },
-  deleteText: {
-    fontSize: theme.typography.size.BODY,
-    color: theme.colors.error,
-  },
-  statusCompleted: {
-    color: theme.colors.primary,
-  },
-  statusFailed: {
-    color: theme.colors.error,
-  },
-  statusDefault: {
-    color: theme.colors.text.primary,
-  },
-  statusActionTextDestructive: {
-    color: theme.colors.error,
+  descriptionText: {
+    lineHeight: 22,
   },
 });
 
@@ -281,7 +197,7 @@ const styles = StyleSheet.create({
  */
 export default function ItemDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -293,14 +209,14 @@ export default function ItemDetailScreen() {
 
   const {
     data: item,
-    isLoading,
+    isLoading: isItemLoading,
     error,
     refetch,
   } = useQuery({
     queryKey: ["item", id],
     queryFn: () => itemsGetDetailAPI(itemIdNumber),
     staleTime: 0,
-    enabled: !!id && user !== null,
+    enabled: !!id && !isAuthLoading && user !== null,
   });
 
   const itemUserObjId = item?.data?.user?.userId ?? item?.data?.userId;
@@ -316,11 +232,11 @@ export default function ItemDetailScreen() {
 
     if (images.length === 0) {
       return (
-        <View style={styles.imageContainer}>
-          <View style={styles.imagePlaceholder}>
-            <Text style={styles.imagePlaceholderText}>이미지 없음</Text>
-          </View>
-        </View>
+        <Box style={styles.imageContainer}>
+          <Box style={styles.imagePlaceholder}>
+            <Typography variant="body2" color="text.secondary">이미지 없음</Typography>
+          </Box>
+        </Box>
       );
     }
 
@@ -329,7 +245,7 @@ export default function ItemDetailScreen() {
     }));
 
     return (
-      <View style={styles.imageCarousel}>
+      <Box style={styles.imageCarousel}>
         <FlatList
           data={images}
           horizontal
@@ -355,9 +271,9 @@ export default function ItemDetailScreen() {
         />
 
         {images.length > 1 && (
-          <View style={styles.indicatorContainer}>
+          <Box style={styles.indicatorContainer}>
             {images.map((_: string, index: number) => (
-              <View
+              <Box
                 key={index}
                 style={[
                   styles.indicatorDot,
@@ -365,7 +281,7 @@ export default function ItemDetailScreen() {
                 ]}
               />
             ))}
-          </View>
+          </Box>
         )}
 
         <ImageViewing
@@ -375,7 +291,7 @@ export default function ItemDetailScreen() {
           onRequestClose={() => setIsImageViewerVisible(false)}
           swipeToCloseEnabled={true}
         />
-      </View>
+      </Box>
     );
   }, [item, currentImageIndex, imageViewerIndex, isImageViewerVisible]);
 
@@ -384,7 +300,7 @@ export default function ItemDetailScreen() {
       Alert.alert("로그인 필요", "교환 신청을 위해 로그인이 필요합니다.");
       return;
     }
-    router.push(`/exchange/apply/${id}` as any);
+    router.push(`/exchange/apply/${id}` as Href);
   }, [user, id, router]);
 
   const { mutate: updateItemStatus, isPending: isUpdatingStatus } = useMutation({
@@ -438,24 +354,28 @@ export default function ItemDetailScreen() {
     ]);
   }, [deleteItem]);
 
-  if (user === null && !isLoading) {
+  if (user === null && !isAuthLoading && !isItemLoading) {
     return (
       <SafeLayout style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>로그인이 필요합니다.</Text>
+        <Box style={styles.errorContainer}>
+          <Typography variant="body1" center mb="md">
+            로그인이 필요합니다.
+          </Typography>
           <Button onPress={() => router.back()} variant="outline">돌아가기</Button>
-        </View>
+        </Box>
       </SafeLayout>
     );
   }
 
-  if (isLoading) {
+  if (isAuthLoading || isItemLoading) {
     return (
       <SafeLayout style={styles.container}>
-        <View style={styles.loadingContainer}>
+        <Box style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={styles.loadingText}>불러오는 중...</Text>
-        </View>
+          <Typography variant="body2" color="text.secondary" mt="sm">
+            불러오는 중...
+          </Typography>
+        </Box>
       </SafeLayout>
     );
   }
@@ -463,37 +383,41 @@ export default function ItemDetailScreen() {
   if (error || !item?.data) {
     return (
       <SafeLayout style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>정보를 불러올 수 없습니다.</Text>
+        <Box style={styles.errorContainer}>
+          <Typography variant="body1" center mb="md">
+            정보를 불러올 수 없습니다.
+          </Typography>
           <Button onPress={() => refetch()}>다시 시도</Button>
-        </View>
+        </Box>
       </SafeLayout>
     );
   }
 
   return (
     <>
-      <Stack.Screen options={{ headerShown: false, gestureEnabled: true } as any} />
+      <Stack.Screen options={{ headerShown: false, gestureEnabled: true }} />
 
       <SafeLayout edges={["top", "bottom"]} style={styles.container}>
-        <View style={styles.customHeader}>
-          <Text style={styles.headerTitle} numberOfLines={1}>아이템 상세</Text>
-          <View style={styles.headerRightContainer}>
+        <Box style={styles.customHeader}>
+          <Typography variant="body1" weight="bold" center style={styles.headerTitle}>
+            아이템 상세
+          </Typography>
+          <Box style={styles.headerRightContainer}>
             {isOwner && (
               <>
                 <TouchableOpacity
-                  onPress={() => router.push(`/exchange/edit/${id}` as any)}
+                  onPress={() => router.push(`/exchange/edit/${id}` as Href)}
                   style={styles.headerActionButton}
                 >
-                  <Text style={styles.editText}>수정</Text>
+                  <Typography variant="body2" color="brand.mint">수정</Typography>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handleDelete} style={styles.headerActionButton}>
-                  <Text style={styles.deleteText}>삭제</Text>
+                  <Typography variant="body2" color="error">삭제</Typography>
                 </TouchableOpacity>
               </>
             )}
-          </View>
-        </View>
+          </Box>
+        </Box>
         
         <ScrollView
           style={styles.scrollView}
@@ -502,52 +426,63 @@ export default function ItemDetailScreen() {
         >
           {renderImageCarousel()}
 
-          <View style={styles.profileRow}>
+          <Box style={styles.profileRow}>
             {item.data.user?.profileImage ? (
               <Image source={{ uri: getImageUrl(item.data.user.profileImage) }} style={styles.profileImage} />
             ) : (
-              <View style={styles.profileImage}>
-                <Text style={styles.profileInitialText}>
+              <Box style={styles.profileImage} justify="center" align="center">
+                <Typography variant="body1" weight="bold" color="text.secondary">
                   {item.data.user?.userNickname?.[0]?.toUpperCase() || "U"}
-                </Text>
-              </View>
+                </Typography>
+              </Box>
             )}
-            <Text style={styles.nickname}>{item.data.user?.userNickname || "알 수 없음"}</Text>
-          </View>
+            <Typography variant="body1" weight="bold">{item.data.user?.userNickname || "알 수 없음"}</Typography>
+          </Box>
 
-          <View style={styles.contentContainer}>
-            <Text style={styles.title}>{item.data.title}</Text>
-            <Text style={styles.description}>{item.data.description}</Text>
-          </View>
+          <Box style={styles.contentContainer}>
+            <Typography variant="h3" weight="bold" mb="sm">
+              {item.data.title}
+            </Typography>
+            <Typography variant="body1" style={styles.descriptionText}>
+              {item.data.description}
+            </Typography>
+          </Box>
 
-          <View style={styles.bottomBar}>
-            <View style={styles.desiredItemContainer}>
-              <Text style={styles.desiredItemLabel}>희망 아이템</Text>
-              <Text style={styles.desiredItemText}>{item.data.desiredItem || "없음"}</Text>
-            </View>
+          <Box style={styles.bottomBar}>
+            <Box style={styles.desiredItemContainer}>
+              <Typography variant="caption" color="text.secondary">희망 아이템</Typography>
+              <Typography variant="body1" weight="bold" mt="xxs">
+                {item.data.desiredItem || "없음"}
+              </Typography>
+            </Box>
 
             {isOwner && (
-              <View style={styles.buttonRow}>
-                <View style={styles.statusSection}>
-                  <View style={styles.statusInfoRow}>
-                    <Text style={styles.statusLabel}>현재 상태</Text>
-                    <Text style={[
-                      styles.statusValue,
-                      item.data.status === "COMPLETED" ? styles.statusCompleted : 
-                      item.data.status === "FAILED" ? styles.statusFailed : styles.statusDefault
-                    ]}>
+              <Box style={styles.buttonRow}>
+                <Box style={styles.statusSection}>
+                  <Box style={styles.statusInfoRow}>
+                    <Typography variant="caption" color="text.secondary">현재 상태</Typography>
+                    <Typography
+                      variant="body2"
+                      weight="bold"
+                      color={
+                        item.data.status === "COMPLETED" ? "brand.mint" : 
+                        item.data.status === "FAILED" ? "error" : "primary"
+                      }
+                    >
                       {item.data.status === "REGISTERED" ? "교환 대기" : 
                        item.data.status === "COMPLETED" ? "교환 완료" : "교환 취소"}
-                    </Text>
-                  </View>
+                    </Typography>
+                  </Box>
 
-                  <View style={styles.statusActionsRow}>
+                  <Box style={styles.statusActionsRow}>
                     <Button
                       style={styles.statusActionButton}
                       disabled={item.data.status !== "REGISTERED" || isUpdatingStatus}
                       onPress={() => handleStatusChange("COMPLETED")}
                     >
-                      <Text style={styles.statusActionText}>교환 완료로 표시</Text>
+                      <Typography variant="caption" weight="medium" color="background" center>
+                        교환 완료로 표시
+                      </Typography>
                     </Button>
                     <Button
                       variant="outline"
@@ -555,21 +490,21 @@ export default function ItemDetailScreen() {
                       disabled={item.data.status !== "REGISTERED" || isUpdatingStatus}
                       onPress={() => handleStatusChange("FAILED")}
                     >
-                      <Text style={[styles.statusActionText, styles.statusActionTextDestructive]}>
+                      <Typography variant="caption" weight="medium" color="error" center>
                         교환 취소로 표시
-                      </Text>
+                      </Typography>
                     </Button>
-                  </View>
-                </View>
-              </View>
+                  </Box>
+                </Box>
+              </Box>
             )}
-          </View>
+          </Box>
         </ScrollView>
 
-        <View style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+        <Box style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 20) }]}>
           {isOwner ? (
-            <TouchableOpacity style={styles.applyButton} onPress={() => router.push("/exchange/requests")}>
-              <Text style={styles.exchangeButtonText}>대화중인 채팅</Text>
+            <TouchableOpacity style={styles.applyButton} onPress={() => router.push("/exchange/requests" as Href)}>
+              <Typography variant="body1" weight="bold" color="background">대화중인 채팅</Typography>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
@@ -577,10 +512,10 @@ export default function ItemDetailScreen() {
               onPress={handleExchangeRequest}
               disabled={item.data.status !== "REGISTERED"}
             >
-              <Text style={styles.exchangeButtonText}>교환 제안하기</Text>
+              <Typography variant="body1" weight="bold" color="background">교환 제안하기</Typography>
             </TouchableOpacity>
           )}
-        </View>
+        </Box>
       </SafeLayout>
     </>
   );

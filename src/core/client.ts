@@ -7,14 +7,15 @@ import {
 } from "@/src/utils/tokenStore";
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import { Platform } from "react-native";
+import { z } from "zod";
 
 /**
  * Mutex 상태 변수 (Race Condition 방지)
  */
 let isRefreshing = false;
 let failedQueue: {
-  resolve: (value?: any) => void;
-  reject: (error: any) => void;
+  resolve: (value: string | PromiseLike<string>) => void;
+  reject: (error: unknown) => void;
 }[] = [];
 
 /**
@@ -22,7 +23,7 @@ let failedQueue: {
  * @param token - 새로운 액세스 토큰
  * @param error - 에러 (실패 시)
  */
-const processQueue = (token?: string, error?: any) => {
+const processQueue = (token?: string, error?: unknown) => {
   failedQueue.forEach(({ resolve, reject }) => {
     if (token) {
       resolve(token);
@@ -308,13 +309,28 @@ export const apiClient = {
   /**
    * GET 요청
    */
-  get: async <T = any>(
+  get: async <T = unknown>(
     url: string,
-    params?: Record<string, any>,
+    params?: Record<string, unknown>,
+    schema?: z.ZodType<T>,
   ): Promise<T> => {
     try {
       const response = await axiosInstance.get(url, { params });
-      return response.data;
+      const data = response.data;
+
+      if (schema) {
+        const result = schema.safeParse(data);
+        if (!result.success) {
+          Logger.error(
+            `🚨 [Zod Validation Failed] GET ${url}:`,
+            result.error.format(),
+          );
+          throw new Error(`Data validation failed for GET ${url}`);
+        }
+        return result.data;
+      }
+
+      return data;
     } catch (error) {
       // 🚨 네트워크 에러 강제 로깅
       Logger.networkError(`GET ${url} 요청 실패`, error);
@@ -330,14 +346,28 @@ export const apiClient = {
   /**
    * POST 요청
    */
-  post: async <T = any>(
+  post: async <T = unknown>(
     url: string,
-    data?: Record<string, any>,
-    config?: AxiosRequestConfig,
+    data?: unknown,
+    config?: AxiosRequestConfig & { schema?: z.ZodType<T> },
   ): Promise<T> => {
     try {
       const response = await axiosInstance.post(url, data, config);
-      return response.data;
+      const responseData = response.data;
+
+      if (config?.schema) {
+        const result = config.schema.safeParse(responseData);
+        if (!result.success) {
+          Logger.error(
+            `🚨 [Zod Validation Failed] POST ${url}:`,
+            result.error.format(),
+          );
+          throw new Error(`Data validation failed for POST ${url}`);
+        }
+        return result.data;
+      }
+
+      return responseData;
     } catch (error) {
       // 🚨 네트워크 에러 강제 로깅
       Logger.networkError(`POST ${url} 요청 실패`, error);
@@ -353,10 +383,28 @@ export const apiClient = {
   /**
    * PUT 요청
    */
-  put: async <T = any>(url: string, data?: Record<string, any>): Promise<T> => {
+  put: async <T = unknown>(
+    url: string,
+    data?: unknown,
+    schema?: z.ZodType<T>,
+  ): Promise<T> => {
     try {
       const response = await axiosInstance.put(url, data);
-      return response.data;
+      const responseData = response.data;
+
+      if (schema) {
+        const result = schema.safeParse(responseData);
+        if (!result.success) {
+          Logger.error(
+            `🚨 [Zod Validation Failed] PUT ${url}:`,
+            result.error.format(),
+          );
+          throw new Error(`Data validation failed for PUT ${url}`);
+        }
+        return result.data;
+      }
+
+      return responseData;
     } catch (error) {
       // 🚨 네트워크 에러 강제 로깅
       Logger.networkError(`PUT ${url} 요청 실패`, error);
@@ -372,10 +420,24 @@ export const apiClient = {
   /**
    * DELETE 요청
    */
-  delete: async <T = any>(url: string): Promise<T> => {
+  delete: async <T = unknown>(url: string, schema?: z.ZodType<T>): Promise<T> => {
     try {
       const response = await axiosInstance.delete(url);
-      return response.data;
+      const responseData = response.data;
+
+      if (schema) {
+        const result = schema.safeParse(responseData);
+        if (!result.success) {
+          Logger.error(
+            `🚨 [Zod Validation Failed] DELETE ${url}:`,
+            result.error.format(),
+          );
+          throw new Error(`Data validation failed for DELETE ${url}`);
+        }
+        return result.data;
+      }
+
+      return responseData;
     } catch (error) {
       // 🚨 네트워크 에러 강제 로깅
       Logger.networkError(`DELETE ${url} 요청 실패`, error);
@@ -391,13 +453,28 @@ export const apiClient = {
   /**
    * PATCH 요청
    */
-  patch: async <T = any>(
+  patch: async <T = unknown>(
     url: string,
-    data?: Record<string, any>,
+    data?: unknown,
+    schema?: z.ZodType<T>,
   ): Promise<T> => {
     try {
       const response = await axiosInstance.patch(url, data);
-      return response.data;
+      const responseData = response.data;
+
+      if (schema) {
+        const result = schema.safeParse(responseData);
+        if (!result.success) {
+          Logger.error(
+            `🚨 [Zod Validation Failed] PATCH ${url}:`,
+            result.error.format(),
+          );
+          throw new Error(`Data validation failed for PATCH ${url}`);
+        }
+        return result.data;
+      }
+
+      return responseData;
     } catch (error) {
       // 🚨 네트워크 에러 강제 로깅
       Logger.networkError(`PATCH ${url} 요청 실패`, error);

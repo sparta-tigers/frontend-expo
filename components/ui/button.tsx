@@ -1,4 +1,4 @@
-import { useTheme } from "@/hooks/useTheme";
+import { theme } from "@/src/styles/theme";
 import React from "react";
 import {
   GestureResponderEvent,
@@ -6,6 +6,9 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ViewStyle,
+  TextStyle,
+  StyleProp,
 } from "react-native";
 
 /**
@@ -27,9 +30,9 @@ interface ButtonProps {
   /** 전체 너비 차지 */
   fullWidth?: boolean;
   /** 커스텀 스타일 */
-  style?: any;
+  style?: StyleProp<ViewStyle>;
   /** 텍스트 스타일 */
-  textStyle?: any;
+  textStyle?: StyleProp<TextStyle>;
 }
 
 /**
@@ -51,99 +54,82 @@ export const Button: React.FC<ButtonProps> = ({
   style,
   textStyle,
 }) => {
-  const { colors } = useTheme();
+  // 🚨 앙드레 카파시: Props 인터페이스는 외부 호환성을 위해 유지함.
 
-  // 크기별 스타일
+  // 🚨 앙드레 카파시: Props 인터페이스는 외부 호환성을 위해 유지함.
+  // 내부 구현만 테마 토큰 기반으로 리팩토링.
   const getSizeStyle = () => {
     switch (size) {
       case "sm":
-        return { height: 36, paddingHorizontal: 12 };
+        return { height: 36, paddingHorizontal: theme.spacing.md };
       case "md":
-        return { height: 44, paddingHorizontal: 16 };
+        return { height: 44, paddingHorizontal: theme.spacing.lg };
       case "lg":
-        return { height: 52, paddingHorizontal: 24 };
+        return { height: 52, paddingHorizontal: theme.spacing.xxl };
       default:
-        return { height: 44, paddingHorizontal: 16 };
+        return { height: 44, paddingHorizontal: theme.spacing.lg };
     }
   };
 
   // variant별 버튼 스타일
-  const getButtonStyle = () => {
-    const baseStyle = {
-      ...styles.button,
-      ...getSizeStyle(),
-      ...(fullWidth && styles.fullWidth),
-      ...style,
-    };
+  const getButtonStyle = (): StyleProp<ViewStyle> => {
+    const baseStyle: StyleProp<ViewStyle> = [
+      styles.button,
+      getSizeStyle(),
+      fullWidth && styles.fullWidth,
+      style,
+    ];
 
+    let variantStyle: ViewStyle = {};
     switch (variant) {
       case "primary":
-        return {
-          ...baseStyle,
-          backgroundColor: colors.primary,
-        };
+        variantStyle = { backgroundColor: theme.colors.brand.mint };
+        break;
       case "secondary":
-        return {
-          ...baseStyle,
-          backgroundColor: colors.surface,
+        variantStyle = {
+          backgroundColor: theme.colors.surface,
           borderWidth: 1,
-          borderColor: colors.border,
+          borderColor: theme.colors.border.medium,
         };
+        break;
       case "outline":
-        return {
-          ...baseStyle,
+        variantStyle = {
           backgroundColor: "transparent",
           borderWidth: 1,
-          borderColor: colors.primary,
+          borderColor: theme.colors.brand.mint,
         };
+        break;
       case "ghost":
-        return {
-          ...baseStyle,
-          backgroundColor: "transparent",
-        };
+        variantStyle = { backgroundColor: "transparent" };
+        break;
       default:
-        return {
-          ...baseStyle,
-          backgroundColor: colors.primary,
-        };
+        variantStyle = { backgroundColor: theme.colors.brand.mint };
     }
+
+    return [baseStyle, variantStyle];
   };
 
   // variant별 텍스트 스타일
-  const getTextStyle = () => {
-    const baseTextStyle = {
-      ...styles.text,
-      ...getSizeStyle(),
-      ...textStyle,
-    };
+  const getTextStyle = (): StyleProp<TextStyle> => {
+    const baseTextStyle: StyleProp<TextStyle> = [styles.text, textStyle];
 
+    let variantTextStyle: TextStyle = {};
     switch (variant) {
       case "primary":
-        return {
-          ...baseTextStyle,
-          color: colors.background,
-        };
+        variantTextStyle = { color: theme.colors.background };
+        break;
       case "secondary":
-        return {
-          ...baseTextStyle,
-          color: colors.text,
-        };
+        variantTextStyle = { color: theme.colors.text.primary };
+        break;
       case "outline":
-        return {
-          ...baseTextStyle,
-          color: colors.primary,
-        };
       case "ghost":
-        return {
-          ...baseTextStyle,
-          color: colors.primary,
-        };
+        variantTextStyle = { color: theme.colors.brand.mint };
+        break;
       default:
-        return {
-          ...baseTextStyle,
-          color: colors.background,
-        };
+        variantTextStyle = { color: theme.colors.background };
     }
+
+    return [baseTextStyle, variantTextStyle];
   };
 
   return (
@@ -165,7 +151,7 @@ export const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 8,
+    borderRadius: theme.radius.BUTTON,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -175,11 +161,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   text: {
-    fontWeight: "600",
+    fontWeight: theme.typography.weight.semibold,
     textAlign: "center",
+    fontSize: theme.typography.size.md,
   },
   loadingText: {
-    marginRight: 4,
+    marginRight: theme.spacing.xs,
   },
   fullWidth: {
     width: "100%",

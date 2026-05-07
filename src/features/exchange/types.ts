@@ -1,3 +1,5 @@
+import { PaginatedResponse } from "@/src/shared/types/common";
+
 export type ItemCategory = "TICKET" | "GOODS";
 
 export interface ItemDto {
@@ -183,13 +185,4 @@ export interface ReceiveExchangeRequest {
  * 교환 요청 목록 페이징 응답
  * content 항목은 ReceiveExchangeRequest 구조임
  */
-export interface ExchangeRequestListResponse {
-  content: ReceiveExchangeRequest[];
-  totalElements: number;
-  totalPages: number;
-  size: number;
-  number: number;
-  first: boolean;
-  last: boolean;
-  empty: boolean;
-}
+export type ExchangeRequestListResponse = PaginatedResponse<ReceiveExchangeRequest>;
