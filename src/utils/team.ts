@@ -16,17 +16,24 @@ import { ThemeColorPath } from "@/components/ui/box";
  * Why: 팀 ID(코드)만으로 마스코트, 약칭, 풀네임 등을 즉시 조회하기 위함.
  */
 export const TEAM_DATA: Record<string, TeamDto> = {
-  KIA: { name: "KIA 타이거즈", shortName: "KIA", subName: "타이거즈", mascotEmoji: "🐯", color: theme.colors.team.kia },
-  LG: { name: "LG 트윈스", shortName: "LG", subName: "트윈스", mascotEmoji: "👯", color: theme.colors.team.lg },
-  KT: { name: "KT 위즈", shortName: "KT", subName: "위즈", mascotEmoji: "🧙", color: theme.colors.team.kt },
-  SSG: { name: "SSG 랜더스", shortName: "SSG", subName: "랜더스", mascotEmoji: "🛸", color: theme.colors.team.ssg },
-  NC: { name: "NC 다이노스", shortName: "NC", subName: "다이노스", mascotEmoji: "🦖", color: theme.colors.team.nc },
-  DOOSAN: { name: "두산 베어스", shortName: "두산", subName: "베어스", mascotEmoji: "🐻", color: theme.colors.team.doosan },
-  LOTTE: { name: "롯데 자이언츠", shortName: "롯데", subName: "자이언츠", mascotEmoji: "⚓", color: theme.colors.team.lotte },
-  SAMSUNG: { name: "삼성 라이온즈", shortName: "삼성", subName: "라이온즈", mascotEmoji: "🦁", color: theme.colors.team.samsung },
-  HANWHA: { name: "한화 이글스", shortName: "한화", subName: "이글스", mascotEmoji: "🦅", color: theme.colors.team.hanwha },
-  KIWOOM: { name: "키움 히어로즈", shortName: "키움", subName: "히어로즈", mascotEmoji: "🦸", color: theme.colors.team.kiwoom },
+  KIA: { name: "KIA 타이거즈", shortName: "KIA", subName: "타이거즈", mascotEmoji: "🐯", color: theme.colors.team.kia, backendCode: "HT" },
+  LG: { name: "LG 트윈스", shortName: "LG", subName: "트윈스", mascotEmoji: "👯", color: theme.colors.team.lg, backendCode: "LG" },
+  KT: { name: "KT 위즈", shortName: "KT", subName: "위즈", mascotEmoji: "🧙", color: theme.colors.team.kt, backendCode: "KT" },
+  SSG: { name: "SSG 랜더스", shortName: "SSG", subName: "랜더스", mascotEmoji: "🛸", color: theme.colors.team.ssg, backendCode: "SK" },
+  NC: { name: "NC 다이노스", shortName: "NC", subName: "다이노스", mascotEmoji: "🦖", color: theme.colors.team.nc, backendCode: "NC" },
+  DOOSAN: { name: "두산 베어스", shortName: "두산", subName: "베어스", mascotEmoji: "🐻", color: theme.colors.team.doosan, backendCode: "OB" },
+  LOTTE: { name: "롯데 자이언츠", shortName: "롯데", subName: "자이언츠", mascotEmoji: "⚓", color: theme.colors.team.lotte, backendCode: "LT" },
+  SAMSUNG: { name: "삼성 라이온즈", shortName: "삼성", subName: "라이온즈", mascotEmoji: "🦁", color: theme.colors.team.samsung, backendCode: "SS" },
+  HANWHA: { name: "한화 이글스", shortName: "한화", subName: "이글스", mascotEmoji: "🦅", color: theme.colors.team.hanwha, backendCode: "HH" },
+  KIWOOM: { name: "키움 히어로즈", shortName: "키움", subName: "히어로즈", mascotEmoji: "🦸", color: theme.colors.team.kiwoom, backendCode: "WO" },
 } as const;
+
+/**
+ * 백엔드 코드(HT, OB 등)로부터 팀 데이터를 조회하는 유틸리티
+ */
+export const getTeamByBackendCode = (backendCode: string): TeamDto | undefined => {
+  return Object.values(TEAM_DATA).find(team => team.backendCode === backendCode);
+};
 
 /**
  * KBO 팀 약칭 → theme 컬러 매핑 테이블
@@ -79,7 +86,8 @@ const TEAM_NAME_TO_COLOR: Record<string, string> = {
  * Why: Typography나 Box의 color/bg prop에 "team.kia"와 같은 토큰을 직접 전달하기 위함.
  */
 export const getTeamColorPath = (teamName: string): ThemeColorPath => {
-  const mapping: Record<string, ThemeColorPath> = {
+  // 1. 직접 매핑 시도 (KIA, LG 등)
+  const directMapping: Record<string, ThemeColorPath> = {
     "KIA": "team.kia", "KIA 타이거즈": "team.kia", "KIA_TIGERS": "team.kia",
     "LG": "team.lg", "LG 트윈스": "team.lg", "LG_TWINS": "team.lg",
     "한화": "team.hanwha", "한화 이글스": "team.hanwha", "HANWHA_EAGLES": "team.hanwha",
@@ -91,10 +99,20 @@ export const getTeamColorPath = (teamName: string): ThemeColorPath => {
     "두산": "team.doosan", "두산 베어스": "team.doosan", "DOOSAN_BEARS": "team.doosan",
     "키움": "team.kiwoom", "키움 히어로즈": "team.kiwoom", "KIWOOM_HEROES": "team.kiwoom",
   };
+
+  if (directMapping[teamName]) return directMapping[teamName];
+
+  // 2. 백엔드 코드(HT, OB 등)로 매핑 시도
+  const team = getTeamByBackendCode(teamName);
+  if (team) {
+    // backendCode(HT) -> frontendCode(KIA)로 변환 후 재귀 호출 또는 직접 반환
+    const frontendCode = Object.keys(TEAM_DATA).find(key => TEAM_DATA[key].backendCode === team.backendCode);
+    if (frontendCode && directMapping[frontendCode]) {
+      return directMapping[frontendCode];
+    }
+  }
   
-  // 🚨 앙드레 카파시: 타입 안정성 확보
-  // any 대신 리터럴 타입 연산을 고려할 수 있으나, 현재는 유효한 키인지 확인 후 기본값 반환
-  return mapping[teamName] ?? "team.neutralDark";
+  return "team.neutralDark";
 };
 
 /**

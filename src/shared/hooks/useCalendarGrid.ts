@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { MatchScheduleDto } from "@/src/features/match/types";
 import { CalendarCellModel } from "@/src/features/home/types";
-import { TEAM_DATA } from "@/src/utils/team";
+import { getTeamByBackendCode } from "@/src/utils/team";
 
 /**
  * 전역 달력 그리드 생성 엔진 (Deterministic)
@@ -47,8 +47,8 @@ export const useCalendarGrid = (
     // 2. 실제 날짜 데이터 매핑
     for (let d = 1; d <= daysInMonth; d++) {
       const game = dayToGame.get(d);
-      // TEAM_DATA에서 실시간 매핑 (DRY 원칙)
-      const opponentInfo = game?.opponentCode ? TEAM_DATA[game.opponentCode as keyof typeof TEAM_DATA] : null;
+      // 백엔드 코드(HT, OB 등)를 통해 팀 정보 조회 (Safe Mapping)
+      const opponentInfo = game?.opponentCode ? getTeamByBackendCode(game.opponentCode) : null;
 
       daysArray.push({
         day: d,

@@ -16,6 +16,8 @@ export interface TeamDto {
   mascotEmoji: string;
   /** 팀 고유 컬러 (Hex) */
   color: string;
+  /** 백엔드 매핑 코드 (예: "HT", "OB") */
+  backendCode: string;
 }
 
 

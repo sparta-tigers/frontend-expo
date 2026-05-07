@@ -7,6 +7,12 @@ import {
   AuthSigninRequest,
   AuthSignupRequest,
 } from "@/src/features/auth/types";
+import {
+  favoriteTeamAddAPI,
+  favoriteTeamGetAPI,
+  favoriteTeamUpdateAPI,
+} from "@/src/features/user/favorite-team-api";
+import { TEAM_DATA } from "@/src/utils/team";
 import { Logger, maskSensitive } from "@/src/utils/logger";
 import {
   clearTokens,
@@ -175,12 +181,39 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           };
 
           setUser(tokenPayload);
-
-          // 🚨 [Sequence] 2. 토큰 복원 후 해당 사용자의 응원팀 정보 로드
-          const userId = tokenPayload.userId;
-          const savedTeam = await AsyncStorage.getItem(getMyTeamKey(userId));
-          if (savedTeam) {
-            setMyTeam(savedTeam);
+          
+          // 🚨 [Data Sync] 1. 백엔드에서 응원팀 정보 우선 조회
+          try {
+            const teamRes = await favoriteTeamGetAPI();
+            if (teamRes.resultType === "SUCCESS" && teamRes.data) {
+              const backendTeamCode = teamRes.data.teamCode;
+              // 백엔드 코드(HT) -> 프론트엔드 코드(KIA) 역매핑 찾기
+              const frontendTeamCode = Object.entries(TEAM_DATA).find(
+                ([_, data]) => data.backendCode === backendTeamCode
+              )?.[0];
+              
+              if (frontendTeamCode) {
+                setMyTeam(frontendTeamCode);
+                await AsyncStorage.setItem(getMyTeamKey(tokenPayload.userId), frontendTeamCode);
+              }
+            } else {
+              // 백엔드에 없으면 로컬 스토리지 확인
+              const savedTeam = await AsyncStorage.getItem(getMyTeamKey(tokenPayload.userId));
+              if (savedTeam) {
+                setMyTeam(savedTeam);
+                // 🚨 [Data Sync] 백엔드에 자동 등록 시도
+                const backendCode = TEAM_DATA[savedTeam]?.backendCode;
+                if (backendCode) {
+                  await favoriteTeamAddAPI({ teamCode: backendCode });
+                }
+              }
+            }
+          } catch {
+            // API 실패 시 로컬 스토리지로 폴백
+            const savedTeam = await AsyncStorage.getItem(getMyTeamKey(tokenPayload.userId));
+            if (savedTeam) {
+              setMyTeam(savedTeam);
+            }
           }
 
           if (__DEV__) {
@@ -361,24 +394,45 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
    * @param teamName - 변경할 팀 명칭
    */
   const updateMyTeam = async (teamName: string): Promise<void> => {
-    const previousTeam = myTeam; // 🚨 [Data Integrity] 1. 롤백을 위한 이전 상태 캡처
+    const previousTeam = myTeam;
     try {
-      // 2. 상태 즉시 업데이트 (UI 반응성 확보)
+      // 1. UI 즉시 업데이트 (Optimistic)
       setMyTeam(teamName);
-
-      // 3. 로컬 스토리지 저장 (사용자별 고유 키 사용)
+      
+      // 2. 로컬 스토리지 저장
       await AsyncStorage.setItem(getMyTeamKey(user?.userId), teamName);
+      
+      // 3. 로그인 상태라면 백엔드와 동기화
+      if (isLoggedIn && user?.userId) {
+        const backendCode = TEAM_DATA[teamName]?.backendCode;
+        if (backendCode) {
+          // 기존에 팀이 설정되어 있었는지 확인 (GET API 활용 또는 로컬 상태 활용)
+          // 여기서는 단순화를 위해 GET을 먼저 하거나, 
+          // 백엔드 서비스에서 등록된 게 있으면 update, 없으면 add 하도록 처리되어 있으므로 
+          // 클라이언트에서도 존재 여부에 따라 분기
+          
+          let teamExists = false;
+          try {
+            const checkRes = await favoriteTeamGetAPI();
+            teamExists = checkRes.resultType === "SUCCESS" && !!checkRes.data;
+          } catch {
+            teamExists = false;
+          }
+          
+          if (teamExists) {
+            await favoriteTeamUpdateAPI({ teamCode: backendCode });
+          } else {
+            await favoriteTeamAddAPI({ teamCode: backendCode });
+          }
+        }
+      }
 
       if (__DEV__) {
-        Logger.debug(`✅ [AuthContext] 응원팀 변경 완료 (${user?.userId || "Guest"}): ${teamName}`);
+        Logger.debug(`✅ [AuthContext] 응원팀 변경 및 서버 동기화 완료: ${teamName}`);
       }
     } catch (error) {
       Logger.error("[AuthContext] 응원팀 변경 실패:", error);
-      
-      // 4. 롤백 처리: 이전 상태로 명시적 복구
       setMyTeam(previousTeam);
-      
-      // 5. 사용자에게 에러 전파
       Alert.alert("알림", "팀 정보를 저장하는 중 오류가 발생했습니다. 다시 시도해주세요.");
     }
   };
