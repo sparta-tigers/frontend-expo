@@ -8,6 +8,7 @@
 import { StyleSheet } from "react-native";
 import { theme } from "@/src/styles/theme";
 import { TeamDto } from "@/src/features/home/types";
+import { ThemeColorPath } from "@/components/ui/box";
 
 /**
  * KBO 10개 구단 상세 데이터 맵
@@ -75,10 +76,10 @@ const TEAM_NAME_TO_COLOR: Record<string, string> = {
 /**
  * 팀명으로부터 테마 컬러 경로(dot notation)를 반환하는 유틸리티
  * 
- * Why: Typography의 color prop에 "team.kia"와 같은 토큰을 직접 전달하기 위함.
+ * Why: Typography나 Box의 color/bg prop에 "team.kia"와 같은 토큰을 직접 전달하기 위함.
  */
-export const getTeamColorPath = (teamName: string) => {
-  const mapping: Record<string, string> = {
+export const getTeamColorPath = (teamName: string): ThemeColorPath => {
+  const mapping: Record<string, ThemeColorPath> = {
     "KIA": "team.kia", "KIA 타이거즈": "team.kia", "KIA_TIGERS": "team.kia",
     "LG": "team.lg", "LG 트윈스": "team.lg", "LG_TWINS": "team.lg",
     "한화": "team.hanwha", "한화 이글스": "team.hanwha", "HANWHA_EAGLES": "team.hanwha",
@@ -90,7 +91,10 @@ export const getTeamColorPath = (teamName: string) => {
     "두산": "team.doosan", "두산 베어스": "team.doosan", "DOOSAN_BEARS": "team.doosan",
     "키움": "team.kiwoom", "키움 히어로즈": "team.kiwoom", "KIWOOM_HEROES": "team.kiwoom",
   };
-  return (mapping[teamName] ?? "text.primary") as any;
+  
+  // 🚨 앙드레 카파시: 타입 안정성 확보
+  // any 대신 리터럴 타입 연산을 고려할 수 있으나, 현재는 유효한 키인지 확인 후 기본값 반환
+  return mapping[teamName] ?? "team.neutralDark";
 };
 
 /**

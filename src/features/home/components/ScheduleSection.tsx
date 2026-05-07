@@ -1,10 +1,11 @@
+import { Box, Typography } from "@/components/ui";
+import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
+import { theme } from "@/src/styles/theme";
+import { getTeamColorPath } from "@/src/utils/team";
 import { router } from "expo-router";
 import React from "react";
-import { Box, Typography } from "@/components/ui";
-import { TouchableOpacity, StyleSheet } from "react-native";
-import { theme } from "@/src/styles/theme";
+import { StyleSheet, TouchableOpacity } from "react-native";
 import { MatchScheduleDto } from "../../match/types";
-import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -27,21 +28,26 @@ interface ScheduleSectionProps {
 
 /**
  * 경기 일정 섹션 (캘린더 뷰)
- * 
+ *
  * Why: 홈 화면 하단에서 월간 경기 일정을 시각적으로 요약하여 제공.
  * Zero-Magic UI 원칙에 따라 모든 수치는 테마 토큰 및 LOCAL_LAYOUT을 참조함.
  */
-export const ScheduleSection = React.memo(function ScheduleSection({ 
-  schedule, 
-  year, 
+export const ScheduleSection = React.memo(function ScheduleSection({
+  schedule,
+  year,
   month,
-  todayDay
+  todayDay,
 }: ScheduleSectionProps) {
   const days = useCalendarGrid(year, month, schedule, todayDay);
 
   return (
     <Box mt="xl" pb="xxl" px="SCREEN_DASHBOARD">
-      <Box height={theme.layout.dashboard.sectionTitleHeight} align="center" justify="center" mb="md">
+      <Box
+        height={theme.layout.dashboard.sectionTitleHeight}
+        align="center"
+        justify="center"
+        mb="md"
+      >
         <Typography variant="h3" weight="bold" center>
           {month + 1}월, 우리팀 경기 일정이에요
         </Typography>
@@ -49,19 +55,21 @@ export const ScheduleSection = React.memo(function ScheduleSection({
 
       <Box width={LOCAL_LAYOUT.wrapWidth} alignSelf="center">
         {/* Calendar Header */}
-        <Box 
-          height={LOCAL_LAYOUT.headerHeight} 
-          bg="team.neutralLight" 
-          roundedTop="calendar" 
-          flexDir="row" 
+        <Box
+          height={LOCAL_LAYOUT.headerHeight}
+          bg="team.neutralLight"
+          roundedTop="calendar"
+          flexDir="row"
           overflow="hidden"
         >
           {["일", "월", "화", "수", "목", "금", "토"].map((d) => (
             <Box key={d} flex={1} align="center" justify="center">
-              <Typography 
-                variant="caption" 
-                weight="bold" 
-                color={(d === "일" || d === "토") ? "brand.mint" : "brand.subtitle"}
+              <Typography
+                variant="caption"
+                weight="bold"
+                color={
+                  d === "일" || d === "토" ? "brand.mint" : "brand.subtitle"
+                }
               >
                 {d}
               </Typography>
@@ -70,13 +78,13 @@ export const ScheduleSection = React.memo(function ScheduleSection({
         </Box>
 
         {/* Calendar Grid */}
-        <Box 
-          bg="card" 
-          roundedBottom="calendar" 
-          flexDir="row" 
-          flexWrap="wrap" 
-          overflow="hidden" 
-          borderWidth={LOCAL_LAYOUT.borderWidth} 
+        <Box
+          bg="card"
+          roundedBottom="calendar"
+          flexDir="row"
+          flexWrap="wrap"
+          overflow="hidden"
+          borderWidth={LOCAL_LAYOUT.borderWidth}
           borderColor="team.neutralLight"
         >
           {days.map((cell, idx) => {
@@ -90,39 +98,52 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                 onPress={() =>
                   router.push({
                     pathname: "/schedule",
-                    params: { 
-                      view: "day", 
+                    params: {
+                      view: "day",
                       day: cell.day.toString(),
                       year: year.toString(),
                       month: month.toString(),
                     },
                   })
                 }
-                style={[
-                  styles.cell,
-                  cell.isToday && styles.todayCell
-                ]}
+                style={[styles.cell, cell.isToday && styles.todayCell]}
                 accessibilityRole={isEmpty ? undefined : "button"}
                 accessibilityLabel={
-                  isEmpty ? undefined : (cell.hasGame ? `${cell.day}일 ${cell.opponentShort}전` : `${cell.day}일 경기 없음`)
+                  isEmpty
+                    ? undefined
+                    : cell.hasGame
+                      ? `${cell.day}일 ${cell.opponentShort}전`
+                      : `${cell.day}일 경기 없음`
                 }
               >
                 {!isEmpty && (
                   <>
-                    <Box flexDir="row" align="center" justify="space-between" width="100%">
-                      <Typography 
-                        variant="caption" 
-                        weight={cell.isToday ? "bold" : "medium"} 
+                    <Box
+                      flexDir="row"
+                      align="center"
+                      justify="space-between"
+                      width="100%"
+                    >
+                      <Typography
+                        variant="caption"
+                        weight={cell.isToday ? "bold" : "medium"}
                         color={cell.isToday ? "brand.mint" : "brand.subtitle"}
                       >
                         {cell.day}
                       </Typography>
                       {cell.location ? (
-                        <Typography variant="caption" weight="bold" color="brand.mint">
+                        <Typography
+                          variant="caption"
+                          weight="bold"
+                          color="brand.mint"
+                        >
                           {cell.location}
                         </Typography>
                       ) : (
-                        <Box width={theme.spacing.lg} height={theme.spacing.lg} />
+                        <Box
+                          width={theme.spacing.lg}
+                          height={theme.spacing.lg}
+                        />
                       )}
                     </Box>
 
@@ -131,16 +152,28 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                         width={theme.spacing.xxl}
                         height={theme.spacing.xl}
                         rounded="full"
-                        bg="surface"
+                        // 해결: TEAM_DATA와 연동된 브랜드 컬러를 테마 토큰으로 주입 (No any)
+                        bg={
+                          cell.opponentCode
+                            ? getTeamColorPath(cell.opponentCode)
+                            : "surface"
+                        }
                         align="center"
                         justify="center"
-                        borderWidth={cell.isSelected ? LOCAL_LAYOUT.borderWidth : 0}
-                        borderColor={cell.isSelected ? "brand.mint" : "transparent"}
+                        borderWidth={
+                          cell.isSelected ? LOCAL_LAYOUT.borderWidth : 0
+                        }
+                        borderColor={
+                          cell.isSelected ? "brand.mint" : "transparent"
+                        }
                       >
-                        <Typography 
-                          variant="caption" 
-                          weight="bold" 
-                          color={cell.isSelected ? "brand.mint" : "team.neutralDark"}
+                        <Typography
+                          variant="caption"
+                          weight="bold"
+                          // 해결: 테마에 정의된 card(#FFFFFF) 토큰을 사용하여 흰색 텍스트 구현
+                          color={
+                            cell.opponentCode ? "card" : "team.neutralDark"
+                          }
                           style={styles.opponentText}
                         >
                           {cell.opponentShort}
@@ -151,7 +184,11 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                     )}
 
                     {cell.timeText ? (
-                      <Typography variant="caption" color="brand.subtitle" style={styles.timeText}>
+                      <Typography
+                        variant="caption"
+                        color="brand.subtitle"
+                        style={styles.timeText}
+                      >
                         {cell.timeText}
                       </Typography>
                     ) : (

@@ -7,8 +7,7 @@
 
 export interface MatchScheduleDto {
   day: number;           // 경기 일 (1-31)
-  opponentCode: string;  // 상대 팀 코드 (예: "LG", "SSG")
-  opponentName: string;  // 상대 팀 약칭 (예: "LG", "SSG")
+  opponentCode: string;  // 상대 팀 코드 (예: "OB", "HT", "LG")
   location: "H" | "A";   // 홈/어웨이 여부
   timeText: string;      // 경기 시작 시간 (HH:mm)
 }

@@ -2,7 +2,7 @@ import { theme } from "@/src/styles/theme";
 import React from "react";
 import { View, ViewProps, ViewStyle } from "react-native";
 
-type ThemeColorPath = 
+export type ThemeColorPath = 
   | keyof typeof theme.colors 
   | `text.${keyof typeof theme.colors.text}`
   | `brand.${keyof typeof theme.colors.brand}`

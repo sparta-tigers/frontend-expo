@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { MatchScheduleDto } from "@/src/features/match/types";
 import { CalendarCellModel } from "@/src/features/home/types";
+import { TEAM_DATA } from "@/src/utils/team";
 
 /**
  * 전역 달력 그리드 생성 엔진 (Deterministic)
@@ -46,15 +47,19 @@ export const useCalendarGrid = (
     // 2. 실제 날짜 데이터 매핑
     for (let d = 1; d <= daysInMonth; d++) {
       const game = dayToGame.get(d);
+      // TEAM_DATA에서 실시간 매핑 (DRY 원칙)
+      const opponentInfo = game?.opponentCode ? TEAM_DATA[game.opponentCode as keyof typeof TEAM_DATA] : null;
+
       daysArray.push({
         day: d,
         hasGame: !!game,
-        opponentShort: game?.opponentName ?? "", // DTO의 명칭 사용
+        opponentCode: game?.opponentCode,
+        opponentShort: opponentInfo?.shortName ?? "", 
         isSelected: d === selectedDay,
-        isToday: d === todayDay, // 외부에서 주입받은 todayDay로 판단
+        isToday: d === todayDay, 
         location: game?.location,
         timeText: game?.timeText,
-        opponentColor: undefined, // 테마 컬러는 프론트엔드 유틸에서 팀 코드로 매핑하므로 제거
+        opponentColor: undefined,
       });
     }
 

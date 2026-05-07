@@ -68,6 +68,7 @@ export interface LineupRowDto {
 export interface CalendarGameDto {
   day: number;
   location?: "H" | "A" | undefined;
+  opponentCode?: string | undefined; // 🚨 팀 식별을 위한 코드 추가
   opponentShort: string;
   timeText?: string | undefined;
   isSelected?: boolean | undefined;
@@ -83,6 +84,7 @@ export type CalendarCellModel = {
   day: number;
   hasGame: boolean;
   location?: "H" | "A" | undefined;
+  opponentCode?: string | undefined; // 🚨 팀 식별을 위한 코드 추가
   opponentShort: string;
   timeText?: string | undefined;
   isSelected: boolean;
