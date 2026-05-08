@@ -15,7 +15,7 @@ import { ThemeColorPath } from "@/components/ui/box";
  * 
  * Why: 팀 ID(코드)만으로 마스코트, 약칭, 풀네임 등을 즉시 조회하기 위함.
  */
-export const TEAM_DATA: Record<string, TeamDto> = {
+export const TEAM_DATA = {
   KIA: { name: "KIA 타이거즈", shortName: "KIA", subName: "타이거즈", mascotEmoji: "🐯", color: theme.colors.team.kia, backendCode: "HT" },
   LG: { name: "LG 트윈스", shortName: "LG", subName: "트윈스", mascotEmoji: "👯", color: theme.colors.team.lg, backendCode: "LG" },
   KT: { name: "KT 위즈", shortName: "KT", subName: "위즈", mascotEmoji: "🧙", color: theme.colors.team.kt, backendCode: "KT" },
@@ -26,7 +26,14 @@ export const TEAM_DATA: Record<string, TeamDto> = {
   SAMSUNG: { name: "삼성 라이온즈", shortName: "삼성", subName: "라이온즈", mascotEmoji: "🦁", color: theme.colors.team.samsung, backendCode: "SS" },
   HANWHA: { name: "한화 이글스", shortName: "한화", subName: "이글스", mascotEmoji: "🦅", color: theme.colors.team.hanwha, backendCode: "HH" },
   KIWOOM: { name: "키움 히어로즈", shortName: "키움", subName: "히어로즈", mascotEmoji: "🦸", color: theme.colors.team.kiwoom, backendCode: "WO" },
-} as const;
+} as const satisfies Record<string, TeamDto>;
+
+/**
+ * 팀 코드가 유효한지 검사하는 타입 가드
+ */
+export const isValidTeamCode = (code: string | null | undefined): code is TeamCode => {
+  return !!code && code in TEAM_DATA;
+};
 
 /**
  * 프론트엔드에서 사용하는 KBO 팀 코드 타입 (KIA, LG, DOOSAN 등)
@@ -111,7 +118,7 @@ export const getTeamColorPath = (teamName: string): ThemeColorPath => {
   const team = getTeamByBackendCode(teamName);
   if (team) {
     // backendCode(HT) -> frontendCode(KIA)로 변환 후 재귀 호출 또는 직접 반환
-    const frontendCode = Object.keys(TEAM_DATA).find(key => TEAM_DATA[key].backendCode === team.backendCode);
+    const frontendCode = (Object.keys(TEAM_DATA) as TeamCode[]).find(key => TEAM_DATA[key].backendCode === team.backendCode);
     if (frontendCode && directMapping[frontendCode]) {
       return directMapping[frontendCode];
     }

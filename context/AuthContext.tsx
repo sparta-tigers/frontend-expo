@@ -12,7 +12,7 @@ import {
   favoriteTeamGetAPI,
   favoriteTeamUpdateAPI,
 } from "@/src/features/user/favorite-team-api";
-import { TEAM_DATA } from "@/src/utils/team";
+import { TEAM_DATA, isValidTeamCode } from "@/src/utils/team";
 import { Logger, maskSensitive } from "@/src/utils/logger";
 import {
   clearTokens,
@@ -209,7 +209,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
               if (savedTeam) {
                 setMyTeam(savedTeam);
                 // 🚨 [Data Sync] 백엔드에 자동 등록 시도
-                const backendCode = TEAM_DATA[savedTeam]?.backendCode;
+                const backendCode = isValidTeamCode(savedTeam) ? TEAM_DATA[savedTeam]?.backendCode : null;
                 if (backendCode) {
                   const addRes = await favoriteTeamAddAPI({ teamCode: backendCode });
                   if (addRes.resultType !== "SUCCESS") {
@@ -412,7 +412,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     try {
       // 1. 로그인 상태라면 백엔드와 동기화 시도
       if (isLoggedIn && user?.userId) {
-        const backendCode = TEAM_DATA[teamName]?.backendCode;
+        const backendCode = isValidTeamCode(teamName) ? TEAM_DATA[teamName]?.backendCode : null;
         if (!backendCode) {
           Logger.warn(`[AuthContext] backendCode 누락 - 동기화 스킵: ${teamName}`);
         } else {

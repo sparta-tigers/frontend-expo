@@ -38,6 +38,14 @@ export interface ApiError {
 }
 
 /**
+ * 유틸리티 타입: 주어진 키 중 적어도 하나는 필수인 객체 타입
+ */
+export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
+  {
+    [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>;
+  }[Keys];
+
+/**
  * 비동기 상태 타입
  * 제네릭을 활용하여 모든 비동기 작업의 일관된 상태 관리
  */

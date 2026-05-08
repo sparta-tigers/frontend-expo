@@ -21,7 +21,7 @@ export const useUpdateItemStatus = (itemId: number) => {
       await queryClient.cancelQueries({ queryKey: ["item", itemId] });
 
       // 이전 데이터 저장 (롤백용)
-      const previousItem = queryClient.getQueryData(["item", itemId]);
+      const previousItem = queryClient.getQueryData<Item>(["item", itemId]);
 
       // 낙관적 업데이트: UI 즉시 반영
       queryClient.setQueryData(["item", itemId], (old: Item | undefined) => {

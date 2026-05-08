@@ -11,5 +11,5 @@ import { HomeDashboardSummaryDto } from "./types";
  * GET /api/dashboard/summary
  */
 export async function fetchDashboardSummary(): Promise<ApiResponse<HomeDashboardSummaryDto>> {
-  return apiClient.get("/api/dashboard/summary");
+  return apiClient.get<ApiResponse<HomeDashboardSummaryDto>>("/api/dashboard/summary");
 }
