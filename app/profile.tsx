@@ -465,7 +465,7 @@ export default function ProfileScreen() {
                     <Typography>{favoriteTeam.teamName}</Typography>
                     <TouchableOpacity
                       onPress={() => handleDeleteFavoriteTeam(favoriteTeam)}
-                      style={{ paddingVertical: theme.spacing.xxs, paddingHorizontal: theme.spacing.xs }}
+                      style={styles.deleteButton}
                     >
                       <Typography variant="caption" color="error" weight="bold">
                         삭제
@@ -575,5 +575,9 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border.medium,
+  },
+  deleteButton: {
+    paddingVertical: theme.spacing.xxs,
+    paddingHorizontal: theme.spacing.xs,
   },
 });

@@ -34,7 +34,7 @@ interface RankingSummarySectionProps {
  * 순위 요약 섹션
  *
  * Why: 홈 화면 상단에서 KBO 리그의 전반적인 순위 흐름과 내 응원팀의 현재 위치를 한눈에 파악하기 위함.
- * 가중치 그리드(4.5:1:1:1:1:2)를 적용하여 모든 기기에서 승률 가독성과 열 정렬을 보장함.
+ * 가중치 그리드(5.5:1:1:1:1:1.5)를 적용하여 모든 기기에서 승률 가독성과 열 정렬을 보장함.
  */
 export const RankingSummarySection = React.memo(function RankingSummarySection({
   ranking,
@@ -122,7 +122,7 @@ interface RankingRowProps {
 /**
  * 순위 행 (내부용)
  *
- * Weighted Grid: Team(4.5) : Stats(1)*4 : WinRate(2) = Total 10.5
+ * Weighted Grid: Team(5.5) : Stats(1)*4 : WinRate(1.5) = Total 11
  */
 const RankingRow = React.memo(function RankingRow({
   row,

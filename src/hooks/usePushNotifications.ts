@@ -112,7 +112,7 @@ export function usePushNotifications() {
       // 🚨 앙드레 카파시: 알림 응답 리스너 (딥링킹)
       responseListener = Notifications.addNotificationResponseReceivedListener(
         (response) => {
-          Logger.debug("알림 응답:", response);
+          Logger.debug("알림 응답 수신");
 
           // 🚨 앙드레 카파시: 딥링킹 처리
           const data = response.notification.request.content.data as { roomId?: string };

@@ -6,10 +6,13 @@ import { Alert } from "react-native";
 /**
  * 아이템 상태 변경 훅
  *
- * 작업 지시서 Target 14 구현
- * - 낙관적 업데이트: onMutate로 캐시 즉시 수정
- * - 롤백 로직: onError로 실패 시 원상 복구
- * - 캐시 무효화: 성공/실패 후 관련 QueryKey 무효화
+ * Why: 중고 거래/교환 프로세스에서 아이템의 상태(판매중, 예약중, 완료)를 변경할 때,
+ * 사용자에게 즉각적인 피드백을 제공하기 위해 '낙관적 업데이트' 전략을 사용한다.
+ * 
+ * [Zero Magic & Deterministic State]
+ * 1. onMutate: 서버 응답 전 캐시를 즉시 수정하여 UI 반응 속도 극대화.
+ * 2. onError: 실패 시 이전 데이터로 롤백하여 데이터 정합성 유지.
+ * 3. onSettled: 최종적으로 서버와 동기화하여 잠재적인 캐시 불일치 방지.
  */
 export const useUpdateItemStatus = (itemId: number) => {
   const queryClient = useQueryClient();
