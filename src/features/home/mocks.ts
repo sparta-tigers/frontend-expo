@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { TEAM_DATA } from "@/src/utils/team";
+import { TEAM_DATA, TeamCode, isValidTeamCode } from "@/src/utils/team";
 import {
   TeamDto,
   MiniStatDto,
@@ -18,8 +18,8 @@ import {
 export function useFakeHomeData(myTeamId: string | null) {
   return useMemo(() => {
     // 1. 응원팀 정보 (없으면 KIA 기본)
-    const activeTeamId = myTeamId || "KIA";
-    const myTeam: TeamDto = TEAM_DATA[activeTeamId] || TEAM_DATA["KIA"];
+    const activeTeamId: TeamCode = isValidTeamCode(myTeamId) ? myTeamId : "KIA";
+    const myTeam: TeamDto = TEAM_DATA[activeTeamId];
 
     const myTeamStats: MiniStatDto[] = [
       {

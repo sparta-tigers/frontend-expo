@@ -5,7 +5,7 @@
  * 모든 디자인 토큰을 단일 theme 객체로 통합
  */
 
-import { Platform, Dimensions } from "react-native";
+import { Dimensions, Platform } from "react-native";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -193,6 +193,7 @@ export const theme = {
     warning: "#F59E0B",
     error: "#EF4444",
     info: "#3B82F6",
+    transparent: "transparent",
   },
   spacing: {
     xxs: 2,
@@ -203,6 +204,7 @@ export const theme = {
     xl: 20,
     xxl: 24,
     xxxl: 30,
+    xxxxl: 50,
     // 기존 호환성을 위한 별칭
     TINY: 4,
     SMALL: 8,
@@ -241,6 +243,7 @@ export const theme = {
     },
   },
   radius: {
+    xxs: 2,
     sm: 4,
     md: 8,
     lg: 12,
@@ -290,11 +293,6 @@ export const theme = {
       bottomPadding: 100,
     },
     /** 전역 헤더 레이아웃 토큰 */
-    header: {
-      backIconSize: 36,
-      titleFontSize: 22,
-      profileIconSize: 28,
-    },
     auth: {
       headerHeight: 80,
       headerIconBox: 24,
@@ -312,7 +310,7 @@ export const theme = {
     },
     dashboard: {
       screenPaddingHorizontal: DASHBOARD_PADDING_HORIZONTAL,
-      sectionGap: 20,
+      sectionGap: 60,
       sectionTitleHeight: 24,
       myTeamCardHeight: 118,
       myTeamMiniCardSize: 66,
@@ -329,6 +327,13 @@ export const theme = {
       calendarCellHeight: 61,
       calendarRadius: 13, // 12.687 반올림; 정수화하여 렌더링 일관성 확보
       matchListBottomPadding: 40,
+      activeOpacity: 0.7,
+    },
+    header: {
+      backIconSize: 36,
+      titleFontSize: 22,
+      profileIconSize: 28,
+      standardHeight: 60,
     },
     tabBar: {
       badgeSize: 8,

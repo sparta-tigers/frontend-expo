@@ -32,7 +32,7 @@ export const Section = ({
           flexDir="row" 
           align="center" 
           justify="space-between" 
-          mb={hasTitleMargin ? "md" : undefined as any}
+          mb={hasTitleMargin ? "md" : undefined}
         >
           <Typography variant="h2">{title}</Typography>
           {rightElement}

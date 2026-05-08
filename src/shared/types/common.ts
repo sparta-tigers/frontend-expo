@@ -34,8 +34,19 @@ export interface PaginatedResponse<T> {
 export interface ApiError {
   code: string;
   message: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
+
+/**
+ * 유틸리티 타입: 주어진 키 중 적어도 하나는 필수인 객체 타입
+ * 
+ * Why: 서버 요청 DTO 등에서 여러 필드 중 최소 하나 이상의 값이 반드시 존재해야 함을 보장하여,
+ * 런타임에서의 데이터 누락으로 인한 예기치 못한 API 오류를 컴파일 타임에 예방하기 위함.
+ */
+export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
+  {
+    [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>;
+  }[Keys];
 
 /**
  * 비동기 상태 타입

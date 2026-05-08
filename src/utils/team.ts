@@ -8,24 +8,44 @@
 import { StyleSheet } from "react-native";
 import { theme } from "@/src/styles/theme";
 import { TeamDto } from "@/src/features/home/types";
+import { ThemeColorPath } from "@/src/shared/types/theme";
 
 /**
  * KBO 10개 구단 상세 데이터 맵
  * 
  * Why: 팀 ID(코드)만으로 마스코트, 약칭, 풀네임 등을 즉시 조회하기 위함.
  */
-export const TEAM_DATA: Record<string, TeamDto> = {
-  KIA: { name: "KIA 타이거즈", shortName: "KIA", subName: "타이거즈", mascotEmoji: "🐯", color: theme.colors.team.kia },
-  LG: { name: "LG 트윈스", shortName: "LG", subName: "트윈스", mascotEmoji: "👯", color: theme.colors.team.lg },
-  KT: { name: "KT 위즈", shortName: "KT", subName: "위즈", mascotEmoji: "🧙", color: theme.colors.team.kt },
-  SSG: { name: "SSG 랜더스", shortName: "SSG", subName: "랜더스", mascotEmoji: "🛸", color: theme.colors.team.ssg },
-  NC: { name: "NC 다이노스", shortName: "NC", subName: "다이노스", mascotEmoji: "🦖", color: theme.colors.team.nc },
-  DOOSAN: { name: "두산 베어스", shortName: "두산", subName: "베어스", mascotEmoji: "🐻", color: theme.colors.team.doosan },
-  LOTTE: { name: "롯데 자이언츠", shortName: "롯데", subName: "자이언츠", mascotEmoji: "⚓", color: theme.colors.team.lotte },
-  SAMSUNG: { name: "삼성 라이온즈", shortName: "삼성", subName: "라이온즈", mascotEmoji: "🦁", color: theme.colors.team.samsung },
-  HANWHA: { name: "한화 이글스", shortName: "한화", subName: "이글스", mascotEmoji: "🦅", color: theme.colors.team.hanwha },
-  KIWOOM: { name: "키움 히어로즈", shortName: "키움", subName: "히어로즈", mascotEmoji: "🦸", color: theme.colors.team.kiwoom },
-} as const;
+export const TEAM_DATA = {
+  KIA: { name: "KIA 타이거즈", shortName: "KIA", subName: "타이거즈", mascotEmoji: "🐯", color: theme.colors.team.kia, backendCode: "HT" },
+  LG: { name: "LG 트윈스", shortName: "LG", subName: "트윈스", mascotEmoji: "👯", color: theme.colors.team.lg, backendCode: "LG" },
+  KT: { name: "KT 위즈", shortName: "KT", subName: "위즈", mascotEmoji: "🧙", color: theme.colors.team.kt, backendCode: "KT" },
+  SSG: { name: "SSG 랜더스", shortName: "SSG", subName: "랜더스", mascotEmoji: "🛸", color: theme.colors.team.ssg, backendCode: "SK" },
+  NC: { name: "NC 다이노스", shortName: "NC", subName: "다이노스", mascotEmoji: "🦖", color: theme.colors.team.nc, backendCode: "NC" },
+  DOOSAN: { name: "두산 베어스", shortName: "두산", subName: "베어스", mascotEmoji: "🐻", color: theme.colors.team.doosan, backendCode: "OB" },
+  LOTTE: { name: "롯데 자이언츠", shortName: "롯데", subName: "자이언츠", mascotEmoji: "⚓", color: theme.colors.team.lotte, backendCode: "LT" },
+  SAMSUNG: { name: "삼성 라이온즈", shortName: "삼성", subName: "라이온즈", mascotEmoji: "🦁", color: theme.colors.team.samsung, backendCode: "SS" },
+  HANWHA: { name: "한화 이글스", shortName: "한화", subName: "이글스", mascotEmoji: "🦅", color: theme.colors.team.hanwha, backendCode: "HH" },
+  KIWOOM: { name: "키움 히어로즈", shortName: "키움", subName: "히어로즈", mascotEmoji: "🦸", color: theme.colors.team.kiwoom, backendCode: "WO" },
+} as const satisfies Record<string, TeamDto>;
+
+/**
+ * 팀 코드가 유효한지 검사하는 타입 가드
+ */
+export const isValidTeamCode = (code: string | null | undefined): code is TeamCode => {
+  return !!code && code in TEAM_DATA;
+};
+
+/**
+ * 프론트엔드에서 사용하는 KBO 팀 코드 타입 (KIA, LG, DOOSAN 등)
+ */
+export type TeamCode = keyof typeof TEAM_DATA;
+
+/**
+ * 백엔드 코드(HT, OB 등)로부터 팀 데이터를 조회하는 유틸리티
+ */
+export const getTeamByBackendCode = (backendCode: string): TeamDto | undefined => {
+  return Object.values(TEAM_DATA).find(team => team.backendCode === backendCode);
+};
 
 /**
  * KBO 팀 약칭 → theme 컬러 매핑 테이블
@@ -75,10 +95,11 @@ const TEAM_NAME_TO_COLOR: Record<string, string> = {
 /**
  * 팀명으로부터 테마 컬러 경로(dot notation)를 반환하는 유틸리티
  * 
- * Why: Typography의 color prop에 "team.kia"와 같은 토큰을 직접 전달하기 위함.
+ * Why: Typography나 Box의 color/bg prop에 "team.kia"와 같은 토큰을 직접 전달하기 위함.
  */
-export const getTeamColorPath = (teamName: string) => {
-  const mapping: Record<string, string> = {
+export const getTeamColorPath = (teamName: string): ThemeColorPath => {
+  // 1. 직접 매핑 시도 (KIA, LG 등)
+  const directMapping: Record<string, ThemeColorPath> = {
     "KIA": "team.kia", "KIA 타이거즈": "team.kia", "KIA_TIGERS": "team.kia",
     "LG": "team.lg", "LG 트윈스": "team.lg", "LG_TWINS": "team.lg",
     "한화": "team.hanwha", "한화 이글스": "team.hanwha", "HANWHA_EAGLES": "team.hanwha",
@@ -90,7 +111,20 @@ export const getTeamColorPath = (teamName: string) => {
     "두산": "team.doosan", "두산 베어스": "team.doosan", "DOOSAN_BEARS": "team.doosan",
     "키움": "team.kiwoom", "키움 히어로즈": "team.kiwoom", "KIWOOM_HEROES": "team.kiwoom",
   };
-  return (mapping[teamName] ?? "text.primary") as any;
+
+  if (directMapping[teamName]) return directMapping[teamName];
+
+  // 2. 백엔드 코드(HT, OB 등)로 매핑 시도
+  const team = getTeamByBackendCode(teamName);
+  if (team) {
+    // backendCode(HT) -> frontendCode(KIA)로 변환 후 재귀 호출 또는 직접 반환
+    const frontendCode = (Object.keys(TEAM_DATA) as TeamCode[]).find(key => TEAM_DATA[key].backendCode === team.backendCode);
+    if (frontendCode && directMapping[frontendCode]) {
+      return directMapping[frontendCode];
+    }
+  }
+  
+  return "team.neutralDark";
 };
 
 /**

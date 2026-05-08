@@ -4,6 +4,7 @@ import {
   ChatMessageListResponse,
   CreateDirectRoomRequest,
   DirectRoomListResponse,
+  DirectRoomCreateResponse,
 } from "./types";
 
 /**
@@ -35,7 +36,7 @@ export async function chatroomsGetListAPI(
  */
 export async function chatroomsCreateDirectRoomAPI(
   request: CreateDirectRoomRequest,
-): Promise<ApiResponse<any>> {
+): Promise<ApiResponse<DirectRoomCreateResponse>> {
   return apiClient.post("/api/direct-rooms", request);
 }
 

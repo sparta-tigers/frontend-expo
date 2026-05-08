@@ -1,9 +1,0 @@
-- [ ] `[ ]` Task 1: Refactor `useAsyncAction.ts` (Destructure options, fix dependencies)
-- [ ] `[ ]` Task 2: Strengthen `button.tsx` styles (Remove `any[]`)
-- [ ] `[ ]` Task 3: Strict Prop Types for `box.tsx` and `typography.tsx` (Theme tokens only, no raw fallbacks)
-- [ ] `[ ]` Task 4: `list.tsx` Mandatory `keyExtractor` and Caller Updates
-    - [ ] `[ ]` Modify `list.tsx` to require `keyExtractor`
-    - [ ] `[ ]` Update `app/(tabs)/notification.tsx`
-    - [ ] `[ ]` Update `app/exchange/index.tsx` (if applicable)
-    - [ ] `[ ]` Search for other `<List` occurrences and update
-- [ ] `[ ]` Task 5: Verification (`npm run check:all`)

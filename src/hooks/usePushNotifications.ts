@@ -1,3 +1,5 @@
+import * as Notifications from "expo-notifications";
+import { Subscription } from "expo-notifications";
 import Constants from "expo-constants";
 import * as Device from "expo-device";
 import { useRouter } from "expo-router";
@@ -8,30 +10,7 @@ import { apiClient } from "@/src/core/client";
 import { useAuth } from "@/src/hooks/useAuth";
 import { Logger, maskSensitive } from "@/src/utils/logger";
 
-// 타입 정의
-interface NotificationType {
-  request: {
-    content: {
-      title: string;
-      body: string;
-      data?: any;
-    };
-  };
-}
 
-interface NotificationResponse {
-  notification: NotificationType;
-  actionIdentifier?: string;
-}
-
-// 안드로이드 Expo Go 환경에서 푸시 알림 임포트 방어
-let Notifications: any = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  Notifications = require("expo-notifications");
-} catch (error) {
-  Logger.warn("expo-notifications를 임포트할 수 없습니다:", error);
-}
 
 /**
  * 푸시 알림 훅
@@ -39,27 +18,27 @@ try {
  */
 export function usePushNotifications() {
   const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
-  const [notification, setNotification] = useState<NotificationType | null>(
+  const [notification, setNotification] = useState<Notifications.Notification | null>(
     null,
   );
   const router = useRouter();
   const { isLoggedIn } = useAuth();
 
   useEffect(() => {
-    // 안드로이드 Expo Go 환경에서는 푸시 알림 기능 스킵
-    if (Platform.OS === "android" && __DEV__ && !Notifications) {
-      Logger.debug("안드로이드 Expo Go 환경: 푸시 알림 기능이 제한됩니다.");
-      return;
+    // 안드로이드 Expo Go 환경 예외 처리 (필요 시)
+    if (Platform.OS === "android" && __DEV__) {
+      Logger.debug("안드로이드 개발 환경: 푸시 알림 설정을 시작합니다.");
     }
 
-    let notificationListener: any = undefined;
-    let responseListener: any = undefined;
+    let notificationListener: Subscription | undefined = undefined;
+    let responseListener: Subscription | undefined = undefined;
 
     // 권한 요청 및 토큰 발급 비동기 함수
     const registerForPushNotificationsAsync = async () => {
       try {
-        if (!Notifications) {
-          Logger.debug("푸시 알림 모듈을 사용할 수 없습니다.");
+        // 0. 가드 (Notifications는 정적 임포트되므로 항상 존재하지만, 환경에 따른 예외 처리 가능)
+        if (Platform.OS === "web") {
+          Logger.debug("웹 환경: 푸시 알림이 지원되지 않습니다.");
           return null;
         }
 
@@ -106,7 +85,7 @@ export function usePushNotifications() {
 
     // 채널 설정 (Android)
     const setupNotificationChannel = async () => {
-      if (Device.osName === "Android" && Notifications) {
+      if (Device.osName === "Android") {
         try {
           await Notifications.setNotificationChannelAsync("default", {
             name: "default",
@@ -123,9 +102,8 @@ export function usePushNotifications() {
     setupNotificationChannel();
 
     // 리스너 등록
-    if (Notifications) {
-      notificationListener = Notifications.addNotificationReceivedListener(
-        (receivedNotification: NotificationType) => {
+    notificationListener = Notifications.addNotificationReceivedListener(
+        (receivedNotification) => {
           Logger.debug("알림 수신:", receivedNotification);
           setNotification(receivedNotification);
         },
@@ -133,21 +111,21 @@ export function usePushNotifications() {
 
       // 🚨 앙드레 카파시: 알림 응답 리스너 (딥링킹)
       responseListener = Notifications.addNotificationResponseReceivedListener(
-        (response: NotificationResponse) => {
-          Logger.debug("알림 응답:", response);
+        (response) => {
+          Logger.debug("알림 응답 수신");
 
           // 🚨 앙드레 카파시: 딥링킹 처리
-          const { roomId } = response.notification.request.content.data || {};
+          const data = response.notification.request.content.data as { roomId?: string };
+          const { roomId } = data || {};
           if (roomId) {
             Logger.debug("🔗 [Deep Link] 채팅방으로 이동:", roomId);
-            router.push(`/exchange/chat/${roomId}`);
+            router.push(`/exchange/chat/${encodeURIComponent(roomId)}`);
           } else {
             Logger.debug("🔗 [Deep Link] roomId가 없어 기본 화면으로 이동");
             router.push("/(tabs)");
           }
         },
       );
-    }
 
     // Cleanup 함수
     return () => {

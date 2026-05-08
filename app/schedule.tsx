@@ -1,644 +1,453 @@
-import { SafeLayout } from "@/components/ui/safe-layout";
 import { Box, Typography } from "@/components/ui";
-import { theme } from "@/src/styles/theme";
-import { Stack, useLocalSearchParams } from "expo-router";
-import React, { useMemo, useState } from "react";
-import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
-import { RankingRowDto, CalendarGameDto } from "@/src/features/home/types";
-import { getTeamColor } from "@/src/utils/team";
-import { useFakeHomeData } from "@/src/features/home/mocks";
-import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
 import { useAuth } from "@/context/AuthContext";
+import { ScheduleSkeleton } from "@/src/features/home/components/ScheduleSkeleton";
+import { useMatchSchedule } from "@/src/features/match/hooks/useMatchSchedule";
+import { LeagueType } from "@/src/features/match/types";
+import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
+import { theme } from "@/src/styles/theme";
+import {
+  getCurrentMonth,
+  getCurrentYear,
+  getCurrentDay,
+  getRelativeMonth,
+} from "@/src/utils/date";
+import { TEAM_DATA, TeamCode, getTeamColorPath } from "@/src/utils/team";
+import { MaterialIcons } from "@expo/vector-icons";
+import { Stack, router, useLocalSearchParams } from "expo-router";
+import React, { useState, useMemo } from "react";
+import { Pressable, StyleSheet, TouchableOpacity } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // ========================================================
-// 화면 전용 레이아웃 상수 (theme 비대화 방지)
+// 레이아웃 상수 (LOCAL_LAYOUT)
 // ========================================================
 const LOCAL_LAYOUT = {
-  teamLogoSubFontSize: theme.typography.size.TITLE,
-  teamLogoMarginTop: -4,
-  togglePadding: 2,
-  rankNumberWidth: 30,
-  statColWidth: 35,
-  calendarHeaderHeight: 36,
+  headerHeight: 60,
   calendarCellHeight: 80,
-  opponentBadgeSize: theme.spacing.xxl,
-  letterSpacing: 2,
-  dateMinWidth: 100,
-  myTeamBorderWidth: 1.5,
-  calendarBorderWidth: 1,
-  opponentBadgeMarginBottom: 2,
-  calendarLocationFontSize: theme.typography.size.xs,
-  calendarOpponentFontSize: 9,   // 전용 미세 수치
-  calendarTimeFontSize: theme.typography.size.xs,
-  headerLabelFontSize: 11,       // 전용 미세 수치
-  dropdownLabelFontSize: theme.typography.size.xs,
+  mascotFontSize: 40,
+  dropdownWidth: 150,
+  dropdownTop: 45,
 } as const;
 
-/**
- * 대시보드 화면 연동 컴포넌트 (main_1 / main_2)
- *
- * - 연도별 토글(main_1): KBO 상세 랭킹 화면
- * - 일자별 토글(main_2): 월간 캘린더 화면 (특정 팀 경기 일정)
- * - 좌측 꺽쇠(화살표)로 연도/월 이동 기능 활성화
- */
-export default function ScheduleScreen() {
-  const params = useLocalSearchParams<{ 
-    view?: string; 
-    day?: string;
-    year?: string;
-    month?: string;
-  }>();
-  
-  const { myTeam: myTeamId } = useAuth();
-  const { myTeam } = useFakeHomeData(myTeamId);
-  
-  const initialView = params.view === "day" ? "day" : "year";
-  
-  // [RC-7] URL 파라미터를 소스로 사용하여 결정론적 상태 초기화
-  const initialDate = useMemo(() => {
-    const y = params.year ? parseInt(params.year) : 2026;
-    const m = params.month ? parseInt(params.month) : 2; // March
-    const d = params.day ? parseInt(params.day) : 1;
-    return new Date(y, m, d);
-  }, [params.year, params.month, params.day]);
-
-  const [view, setView] = useState<"year" | "day">(initialView);
-  const [currentDate, setCurrentDate] = useState(initialDate);
-
-  // 🚨 앙드레 카파시: 라우트 파라미터 변경 시 상태 동기화 (외부 진입 대응)
-  // Why: 이미 마운트된 상태에서 다른 파라미터로 재진입 시 상태가 갱신되지 않는 문제 해결
-  React.useEffect(() => {
-    if (params.view === "day" || params.view === "year") {
-      setView(params.view as "year" | "day");
-    }
-    
-    if (params.year || params.month || params.day) {
-      const y = params.year ? parseInt(params.year) : 2026;
-      const m = params.month ? parseInt(params.month) : 2;
-      const d = params.day ? parseInt(params.day) : 1;
-      setCurrentDate(new Date(y, m, d));
-    }
-  }, [params.view, params.year, params.month, params.day]);
-
-  const handlePrev = () => {
-    setCurrentDate((prev) => {
-      const newDate = new Date(prev);
-      if (view === "year") {
-        newDate.setFullYear(prev.getFullYear() - 1);
-      } else {
-        // 🚨 앙드레 카파시: 날짜 불변성 유지 및 Overflow 방지
-        // Why: 31일에서 30일/28일 월로 이동 시 March로 튀는 현상 방지 위해 1일로 세팅 후 이동
-        newDate.setDate(1);
-        newDate.setMonth(prev.getMonth() - 1);
-      }
-      return newDate;
-    });
-  };
-
-  const handleNext = () => {
-    setCurrentDate((prev) => {
-      const newDate = new Date(prev);
-      if (view === "year") {
-        newDate.setFullYear(prev.getFullYear() + 1);
-      } else {
-        // 🚨 앙드레 카파시: 날짜 불변성 유지 및 Overflow 방지 위해 1일로 세팅 후 이동
-        newDate.setDate(1);
-        newDate.setMonth(prev.getMonth() + 1);
-      }
-      return newDate;
-    });
-  };
-
-  const dateText =
-    view === "year"
-      ? `${currentDate.getFullYear()}년`
-      : `${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월`;
+// ========================================================
+// [SHARED] 브랜딩 헤더 컴포넌트
+// ========================================================
+const BrandingHeader: React.FC<{ teamCode: TeamCode }> = ({ teamCode }) => {
+  const insets = useSafeAreaInsets();
+  const team = TEAM_DATA[teamCode] || TEAM_DATA["KIA"];
 
   return (
-    <SafeLayout style={styles.safeLayout} edges={["top", "left", "right"]}>
+    <Box
+      style={[styles.brandingHeader, { paddingTop: insets.top }]}
+      bg="background"
+      px="SCREEN"
+      borderBottomWidth={StyleSheet.hairlineWidth}
+      borderColor="team.neutralLight"
+    >
+      <Box
+        height={LOCAL_LAYOUT.headerHeight}
+        flexDir="row"
+        align="center"
+        justify="space-between"
+      >
+        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
+          <MaterialIcons
+            name="arrow-back-ios"
+            size={24}
+            color={theme.colors.brand.subtitle}
+          />
+        </TouchableOpacity>
+
+        <Box flexDir="row" align="center">
+          <Typography variant="h2" weight="bold" color="text.primary" mr="xs">
+            {team.shortName.toUpperCase()}
+          </Typography>
+          <Typography
+            variant="h2"
+            weight="bold"
+            color={getTeamColorPath(teamCode)}
+          >
+            {team.subName.toUpperCase()}
+          </Typography>
+        </Box>
+
+        <Box width={24} />
+      </Box>
+
+      <Box align="center" pb="md">
+        <Typography variant="h1" style={styles.mascotEmoji}>
+          {team.mascotEmoji}
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
+
+/**
+ * 경기 일정 화면 (`main_1`)
+ *
+ * Why: 월간 경기 일정을 캘린더 형태로 제공.
+ * placeholderData와 isFetching 상태를 결합하여 부드러운 업데이트 경험 제공.
+ */
+export default function ScheduleScreen() {
+  const { myTeam: myTeamId } = useAuth();
+  const activeTeamCode = (myTeamId as TeamCode) || "KIA";
+
+  // 1. [SSOT] URL 파라미터 기반 상태 관리
+  const params = useLocalSearchParams<{
+    year?: string;
+    month?: string;
+    leagueType?: string;
+  }>();
+  const year = params.year ? parseInt(params.year) : getCurrentYear();
+  const month = params.month ? parseInt(params.month) : getCurrentMonth();
+  const leagueType = (params.leagueType as LeagueType) || "REGULAR";
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const today = useMemo(() => ({
+    year: getCurrentYear(),
+    month: getCurrentMonth(),
+    day: getCurrentDay(),
+  }), []);
+
+  const {
+    data: schedule,
+    isLoading,
+    isFetching,
+  } = useMatchSchedule(year, month, activeTeamCode, leagueType);
+  const days = useCalendarGrid(year, month, schedule || [], today);
+
+  // 3. 핸들러
+  const handleMoveMonth = (offset: number) => {
+    const { year: nextYear, month: nextMonth } = getRelativeMonth(
+      year,
+      month,
+      offset,
+    );
+    router.setParams({
+      year: nextYear.toString(),
+      month: nextMonth.toString(),
+    });
+  };
+
+  const handleSelectLeague = (type: LeagueType) => {
+    router.setParams({ leagueType: type });
+    setIsDropdownOpen(false);
+  };
+
+  const leagueLabelMap: Record<LeagueType, string> = {
+    PRESEASON: "시범경기",
+    REGULAR: "정규리그",
+    POST_SEASON: "포스트시즌",
+  };
+
+  if (isLoading)
+    return (
+      <Box flex={1} bg="background">
+        <Stack.Screen options={{ headerShown: false }} />
+        <BrandingHeader teamCode={activeTeamCode} />
+        <ScheduleSkeleton />
+      </Box>
+    );
+
+  return (
+    <Box flex={1} bg="background">
       <Stack.Screen options={{ headerShown: false }} />
-      {/* 1. 상단 로고 및 헤더 영역 */}
-      <Box style={styles.topHeader}>
-        {/* KIA TIGERS 로고 (가짜 뷰로 대체) */}
-        <Box style={styles.teamLogoContainer}>
-          <Typography variant="h3" style={styles.teamLogoText}>{myTeam.shortName}</Typography>
-          <Typography style={styles.teamLogoSubText}>{myTeam.subName}</Typography>
-        </Box>
-      </Box>
 
-      {/* 2. 공통 필터 영역 (Toggle, Date, League) */}
-      <Box style={styles.filterSection}>
-        <Box style={styles.filterRow}>
-          {/* 일자별 / 연도별 토글 */}
-          <Box style={styles.toggleGroup}>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => setView("day")}
-              style={[styles.togglePill, view === "day" && styles.togglePillActive]}
-            >
-              <Typography style={[styles.togglePillText, view === "day" && styles.togglePillTextActive]}>
-                일자별
-              </Typography>
-            </TouchableOpacity>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => setView("year")}
-              style={[styles.togglePill, view === "year" && styles.togglePillActive]}
-            >
-              <Typography style={[styles.togglePillText, view === "year" && styles.togglePillTextActive]}>
-                연도별
-              </Typography>
-            </TouchableOpacity>
-          </Box>
+      {/* Branded Header */}
+      <BrandingHeader teamCode={activeTeamCode} />
 
-          {/* 중앙: 날짜 선택기 */}
-          <Box style={styles.dateSelector}>
-            <TouchableOpacity activeOpacity={0.7} onPress={handlePrev} style={styles.iconButton} accessibilityRole="button" accessibilityLabel="이전">
-              <MaterialIcons name="chevron-left" size={28} color={theme.colors.team.neutralDark} />
-            </TouchableOpacity>
-            <Typography variant="h1" style={styles.dateText}>{dateText}</Typography>
-            <TouchableOpacity activeOpacity={0.7} onPress={handleNext} style={styles.iconButton} accessibilityRole="button" accessibilityLabel="다음">
-              <MaterialIcons name="chevron-right" size={28} color={theme.colors.team.neutralDark} />
-            </TouchableOpacity>
-          </Box>
-
-          {/* 우측: 정규리그 드롭다운 */}
-          <TouchableOpacity activeOpacity={0.8} style={styles.leagueDropdown}>
-            <Typography style={styles.leagueDropdownText}>정규리그</Typography>
-            <MaterialIcons name="keyboard-arrow-down" size={theme.typography.size.md} color={theme.colors.team.kiaRed} />
-          </TouchableOpacity>
-        </Box>
-      </Box>
-
-      {/* 3. 본문 렌더링 (main_1 or main_2) */}
-      {view === "year" ? (
-        <Main1RankingView />
-      ) : (
-        <Main2CalendarView 
-          year={currentDate.getFullYear()} 
-          month={currentDate.getMonth()} 
-          selectedDay={currentDate.getDate()}
+      {/* Click-outside Overlay (드롭다운이 열렸을 때만 활성화) 
+          Z-index를 활용하여 헤더와 컨텐츠 아래, 하지만 배경 위에 배치 */}
+      {isDropdownOpen && (
+        <Pressable
+          style={styles.overlay}
+          onPress={() => setIsDropdownOpen(false)}
         />
       )}
 
-
-    </SafeLayout>
-  );
-}
-
-/**
- * ========================================================
- * [main_1] 연도별 토글 시: 상세 랭킹 UI
- * ========================================================
- */
-function Main1RankingView() {
-  const rankingData = useFakeRankingData();
-
-  return (
-    <ScrollView style={styles.contentScroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContentPad}>
-      {/* 컬럼 헤더 */}
-      <Box style={styles.tableHeaderRow}>
-        <Typography style={[styles.tableHeaderText, styles.colRank]}>순위</Typography>
-        <Typography style={[styles.tableHeaderText, styles.colTeam]}>팀명</Typography>
-        <Typography style={[styles.tableHeaderText, styles.colStat]}>경기수</Typography>
-        <Typography style={[styles.tableHeaderText, styles.colStat]}>승</Typography>
-        <Typography style={[styles.tableHeaderText, styles.colStat]}>패</Typography>
-        <Typography style={[styles.tableHeaderText, styles.colStat]}>무</Typography>
-        <Typography style={[styles.tableHeaderText, styles.colStat]}>승률</Typography>
-      </Box>
-
-      {/* 랭킹 리스트 */}
-      <Box style={styles.rankingList}>
-        {rankingData.map((row) => {
-          const isMyTeam = !!row.isMyTeam;
-          return (
-            <Box key={row.team.name} style={styles.rankingRow}>
-              <Typography variant="h1" style={[styles.rankNumberText, isMyTeam && styles.myTeamRankNumber]}>{row.rank}</Typography>
-              
-              <Box style={[styles.rankingCard, isMyTeam && styles.myTeamRankingCard]}>
-                <Box style={styles.teamInfoArea}>
-                  {/* 로고 더미 */}
-                  <Box style={[styles.teamBadge, { backgroundColor: getTeamColor(row.team.name) }]} />
-                  <Typography style={[styles.teamNameText, isMyTeam && styles.myTeamText]} numberOfLines={1}>
-                    {row.team.name}
-                  </Typography>
-                </Box>
-                
-                <Box style={styles.statsArea}>
-                  <Typography style={[styles.statValueText, isMyTeam && styles.myTeamStatText]}>{row.games}</Typography>
-                  <Typography style={[styles.statValueText, isMyTeam && styles.myTeamStatText]}>{row.win}</Typography>
-                  <Typography style={[styles.statValueText, isMyTeam && styles.myTeamStatText]}>{row.lose}</Typography>
-                  <Typography style={[styles.statValueText, isMyTeam && styles.myTeamStatText]}>{row.draw}</Typography>
-                  <Typography style={[styles.statValueText, isMyTeam && styles.myTeamStatText]}>{row.winRate.toFixed(3)}</Typography>
-                </Box>
-              </Box>
-            </Box>
-          );
-        })}
-      </Box>
-    </ScrollView>
-  );
-}
-
-function Main2CalendarView({ 
-  year, 
-  month,
-  selectedDay 
-}: { 
-  year: number; 
-  month: number;
-  selectedDay?: number;
-}) {
-  const { schedule } = useFakeCalendarSchedule(year, month);
-  const days = useCalendarGrid(year, month, schedule, selectedDay);
-  const weekDays = ["일", "월", "화", "수", "목", "금", "토"];
-
-  return (
-    <ScrollView style={styles.contentScroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContentPad}>
-      <Box style={styles.calendarWrap}>
-        {/* 요일 헤더 */}
-        <Box style={styles.calendarHeader}>
-          {weekDays.map((d, idx) => (
-            <Box key={d} style={styles.calendarHeaderCell}>
-              <Typography
-                style={[
-                  styles.calendarHeaderText,
-                  idx === 0 && styles.calendarTextRed,
-                  idx === 6 && styles.calendarTextBlue,
-                ]}
-              >
-                {d}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-
-        {/* 달력 그리드 */}
-        <Box style={styles.calendarGrid}>
-          {days.map((cell, idx) => (
-            <Box 
-              key={`${cell.day || "empty"}-${idx}`} 
-              style={[
-                styles.calendarCell, 
-                !cell.day && styles.calendarCellEmpty,
-                (cell.day === selectedDay && cell.day !== 0) && styles.calendarCellSelected
-              ]}
+      {/* Filter & Calendar Content */}
+      <Box style={styles.contentContainer}>
+        {/* League Selector & Dropdown Container */}
+        <Box style={styles.dropdownContainer}>
+          <TouchableOpacity
+            onPress={() => setIsDropdownOpen(!isDropdownOpen)}
+            activeOpacity={0.7}
+            style={[
+              styles.leagueSelector,
+              {
+                borderColor: theme.colors.team[activeTeamCode.toLowerCase() as keyof typeof theme.colors.team] || theme.colors.brand.mint,
+              },
+            ]}
+          >
+            <Typography
+              variant="caption"
+              color={getTeamColorPath(activeTeamCode)}
+              weight="bold"
             >
-              {cell.day !== 0 ? (
-                <>
-                  <Box style={styles.calendarCellTopRow}>
-                    <Typography style={styles.calendarDayText}>{cell.day}</Typography>
-                    {cell.hasGame && cell.location ? (
-                      <Typography style={[styles.calendarLocationText, cell.location === "A" && styles.calendarLocationAway]}>
-                        {cell.location}
-                      </Typography>
-                    ) : null}
-                  </Box>
+              {leagueLabelMap[leagueType]} ∨
+            </Typography>
+          </TouchableOpacity>
 
-                  {cell.hasGame && cell.opponentShort ? (
-                    <Box style={styles.calendarOpponentWrap}>
-                      <Box style={[styles.opponentBadgeDummy, { backgroundColor: cell.opponentColor ?? theme.colors.team.fallback }]} />
-                      <Typography style={styles.calendarOpponentText}>{cell.opponentShort}</Typography>
-                    </Box>
-                  ) : (
-                    <Box style={styles.calendarEmptySpacer} />
-                  )}
-
-                  {cell.hasGame && cell.timeText ? (
-                    <Typography style={styles.calendarTimeText}>{cell.timeText}</Typography>
-                  ) : null}
-                </>
-              ) : null}
+          {/* Dropdown Menu (Absolute) */}
+          {isDropdownOpen && (
+            <Box
+              style={styles.dropdownMenu}
+              bg="card"
+              rounded="md"
+              borderWidth={1}
+              borderColor="team.neutralLight"
+            >
+              {(Object.keys(leagueLabelMap) as LeagueType[]).map((type) => (
+                <TouchableOpacity
+                  key={type}
+                  onPress={() => handleSelectLeague(type)}
+                  style={styles.dropdownItem}
+                >
+                  <Typography
+                    variant="body2"
+                    color={leagueType === type ? "brand.mint" : "text.primary"}
+                    weight={leagueType === type ? "bold" : "medium"}
+                  >
+                    {leagueLabelMap[type]}
+                  </Typography>
+                </TouchableOpacity>
+              ))}
             </Box>
-          ))}
+          )}
         </Box>
+
+        {/* Month Selector */}
+        <Box flexDir="row" align="center" mb="xl">
+          <TouchableOpacity
+            onPress={() => handleMoveMonth(-1)}
+            style={styles.arrowBtn}
+          >
+            <MaterialIcons
+              name="chevron-left"
+              size={32}
+              color={theme.colors.text.secondary}
+            />
+          </TouchableOpacity>
+
+          <Typography variant="h3" weight="bold" mx="lg">
+            {year}년 {month}월
+          </Typography>
+
+          <TouchableOpacity
+            onPress={() => handleMoveMonth(1)}
+            style={styles.arrowBtn}
+          >
+            <MaterialIcons
+              name="chevron-right"
+              size={32}
+              color={theme.colors.text.secondary}
+            />
+          </TouchableOpacity>
+        </Box>
+
+        {/* Calendar Grid Container (Fetching 중일 때만 불투명도 조절) */}
+        <Box style={styles.gridContainer} opacity={isFetching ? 0.5 : 1}>
+          {/* Calendar Grid Header */}
+          <Box
+            flexDir="row"
+            bg="team.neutralLight"
+            roundedTop="lg"
+            overflow="hidden"
+          >
+            {["일", "월", "화", "수", "목", "금", "토"].map((d, i) => (
+              <Box key={d} flex={1} py="sm" align="center">
+                <Typography
+                  variant="caption"
+                  weight="bold"
+                  color={i === 0 || i === 6 ? "brand.mint" : "brand.subtitle"}
+                >
+                  {d}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+
+          {/* Calendar Grid Body */}
+          <Box
+            flexDir="row"
+            flexWrap="wrap"
+            borderWidth={StyleSheet.hairlineWidth}
+            borderColor="team.neutralLight"
+          >
+            {days.map((cell, idx) => {
+              const isEmpty = cell.day === 0;
+              return (
+                <Box
+                  key={`${cell.day}-${idx}`}
+                  style={styles.calendarCell}
+                  bg={cell.isToday ? "brand.mintAlpha10" : "transparent"}
+                >
+                  {!isEmpty && (
+                    <>
+                      <Box flexDir="row" justify="space-between" width="100%">
+                        <Typography
+                          variant="caption"
+                          color={cell.isToday ? "brand.mint" : "text.secondary"}
+                        >
+                          {cell.day}
+                        </Typography>
+                        {cell.location && (
+                          <Typography
+                            variant="caption"
+                            weight="bold"
+                            color="brand.mint"
+                          >
+                            {cell.location}
+                          </Typography>
+                        )}
+                      </Box>
+                      {cell.hasGame && (
+                        <Box flex={1} justify="center" align="center">
+                          <Box
+                            bg={
+                              cell.opponentCode
+                                ? getTeamColorPath(cell.opponentCode)
+                                : "team.neutralLight"
+                            }
+                            rounded="full"
+                            p="xs"
+                            mb="xxs"
+                          >
+                            <Typography style={styles.matchBadgeText}>
+                              🏟️
+                            </Typography>
+                          </Box>
+                          <Typography
+                            variant="caption"
+                            style={styles.matchTimeText}
+                            weight="bold"
+                          >
+                            {cell.timeText}
+                          </Typography>
+                        </Box>
+                      )}
+                    </>
+                  )}
+                </Box>
+              );
+            })}
+          </Box>
+        </Box>
+
+        {/* Back to Today Button (현재 보고 있는 월이 오늘이 아닐 때만 노출) */}
+        {(year !== today.year || month !== today.month) && (
+          <TouchableOpacity
+            style={[
+              styles.todayBtn,
+              { borderColor: theme.colors.team[activeTeamCode.toLowerCase() as keyof typeof theme.colors.team] || theme.colors.brand.mint },
+            ]}
+            onPress={() =>
+              router.setParams({
+                year: today.year.toString(),
+                month: today.month.toString(),
+              })
+            }
+            activeOpacity={0.7}
+          >
+            <MaterialIcons
+              name="today"
+              size={18}
+              color={theme.colors.team[activeTeamCode.toLowerCase() as keyof typeof theme.colors.team] || theme.colors.brand.mint}
+            />
+            <Typography
+              variant="caption"
+              weight="bold"
+              color={getTeamColorPath(activeTeamCode)}
+              ml="xs"
+            >
+              오늘로 돌아가기
+            </Typography>
+          </TouchableOpacity>
+        )}
       </Box>
-    </ScrollView>
+    </Box>
   );
 }
 
-/**
- * ========================================================
- * Mock Data Hooks
- * ========================================================
- */
-function useFakeRankingData(): RankingRowDto[] {
-  return useMemo(() => {
-    return [
-      { rank: 1, team: { name: "LG 트윈스", shortName: "LG", subName: "트윈스", mascotEmoji: "👯", color: theme.colors.team.lg }, games: 144, win: 85, lose: 56, draw: 3, winRate: 0.603 },
-      { rank: 2, team: { name: "한화 이글스", shortName: "한화", subName: "이글스", mascotEmoji: "🦅", color: theme.colors.team.hanwha }, games: 144, win: 83, lose: 57, draw: 4, winRate: 0.593 },
-      { rank: 3, team: { name: "SSG 랜더스", shortName: "SSG", subName: "랜더스", mascotEmoji: "🛸", color: theme.colors.team.ssg }, games: 144, win: 75, lose: 65, draw: 4, winRate: 0.536 },
-      { rank: 4, team: { name: "삼성 라이온즈", shortName: "삼성", subName: "라이온즈", mascotEmoji: "🦁", color: theme.colors.team.samsung }, games: 144, win: 74, lose: 68, draw: 2, winRate: 0.521 },
-      { rank: 5, team: { name: "NC 다이노스", shortName: "NC", subName: "다이노스", mascotEmoji: "🦖", color: theme.colors.team.nc }, games: 144, win: 71, lose: 67, draw: 6, winRate: 0.514 },
-      { rank: 6, team: { name: "KT 위즈", shortName: "KT", subName: "위즈", mascotEmoji: "🧙", color: theme.colors.team.kt }, games: 144, win: 71, lose: 68, draw: 5, winRate: 0.511 },
-      { rank: 7, team: { name: "롯데 자이언츠", shortName: "롯데", subName: "자이언츠", mascotEmoji: "⚓", color: theme.colors.team.lotte }, games: 144, win: 66, lose: 72, draw: 6, winRate: 0.478 },
-      { rank: 8, team: { name: "KIA 타이거즈", shortName: "KIA", subName: "타이거즈", mascotEmoji: "🐯", color: theme.colors.team.kia }, games: 144, win: 65, lose: 75, draw: 4, winRate: 0.464, isMyTeam: true },
-      { rank: 9, team: { name: "두산 베어스", shortName: "두산", subName: "베어스", mascotEmoji: "🐻", color: theme.colors.team.doosan }, games: 144, win: 61, lose: 77, draw: 6, winRate: 0.442 },
-      { rank: 10, team: { name: "키움 히어로즈", shortName: "키움", subName: "히어로즈", mascotEmoji: "🦸", color: theme.colors.team.kiwoom }, games: 144, win: 47, lose: 93, draw: 4, winRate: 0.336 },
-    ];
-  }, []);
-}
-
-function useFakeCalendarSchedule(year: number, month: number): { schedule: CalendarGameDto[] } {
-  return useMemo(() => {
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const schedule: CalendarGameDto[] = [];
-    
-    for (let d = 1; d <= daysInMonth; d++) {
-      if (d % 3 !== 0) {
-        const opponents = [
-          { name: "SSG", color: theme.colors.team.ssg },
-          { name: "LOTTE", color: theme.colors.team.lotte },
-          { name: "LG", color: theme.colors.team.lg },
-          { name: "NC", color: theme.colors.team.nc },
-          { name: "DOOSAN", color: theme.colors.team.doosan },
-        ];
-        const opp = opponents[d % 5];
-
-        schedule.push({
-          day: d,
-          location: d % 2 === 0 ? "H" : "A",
-          opponentShort: opp.name,
-          opponentColor: opp.color,
-          timeText: "18:30",
-        });
-      }
-    }
-
-    return { schedule };
-  }, [year, month]);
-}
-
-/**
- * ========================================================
- * Styles — 모든 수치는 theme 토큰 또는 SCHEDULE_LAYOUT 참조
- * ========================================================
- */
 const styles = StyleSheet.create({
-  safeLayout: {
-    flex: 1,
-    backgroundColor: theme.colors.brand.background,
+  brandingHeader: {
+    backgroundColor: theme.colors.background,
   },
-  topHeader: {
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 5,
+  },
+  contentContainer: {
+    paddingHorizontal: theme.spacing.SCREEN,
+    paddingVertical: theme.spacing.md,
     alignItems: "center",
-    paddingTop: theme.spacing.lg,
-    paddingBottom: theme.spacing.md,
-  },
-
-  teamLogoContainer: {
-    marginTop: theme.spacing.xl,
-    marginBottom: theme.spacing.md,
-    alignItems: "center",
-  },
-  teamLogoText: {
-    fontWeight: theme.typography.weight.black,
-    color: theme.colors.text.primary,
-    fontStyle: "italic",
-  },
-  teamLogoSubText: {
-    fontSize: LOCAL_LAYOUT.teamLogoSubFontSize,
-    fontWeight: theme.typography.weight.black,
-    color: theme.colors.team.kiaRed,
-    fontStyle: "italic",
-    letterSpacing: LOCAL_LAYOUT.letterSpacing,
-    marginTop: LOCAL_LAYOUT.teamLogoMarginTop,
-  },
-  filterSection: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.md,
-  },
-  filterRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  toggleGroup: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: theme.radius.full,
-    padding: LOCAL_LAYOUT.togglePadding,
-    borderWidth: 1,
-    borderColor: theme.colors.team.neutralLight,
-    backgroundColor: theme.colors.surface,
-  },
-  togglePill: {
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.radius.full,
-  },
-  togglePillActive: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.brand.mint,
-    borderWidth: 1,
-  },
-  togglePillText: {
-    fontSize: theme.typography.size.sm,
-    fontWeight: theme.typography.weight.medium,
-    color: theme.colors.brand.subtitle,
-  },
-  togglePillTextActive: {
-    color: theme.colors.brand.mint,
-    fontWeight: theme.typography.weight.bold,
-  },
-  dateSelector: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: theme.spacing.sm,
-  },
-  iconButton: {
-    padding: theme.spacing.xs,
-  },
-  dateText: {
-    color: theme.colors.text.primary,
-    minWidth: LOCAL_LAYOUT.dateMinWidth,
-    textAlign: "center",
-  },
-  leagueDropdown: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.radius.full,
-    borderWidth: 1,
-    borderColor: theme.colors.team.kiaRed,
-  },
-  leagueDropdownText: {
-    fontSize: LOCAL_LAYOUT.dropdownLabelFontSize,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.team.kiaRed,
-  },
-  contentScroll: {
-    flex: 1,
-  },
-  scrollContentPad: {
-    paddingBottom: theme.layout.common.bottomPadding,
-  },
-  tableHeaderRow: {
-    flexDirection: "row",
-    paddingHorizontal: theme.spacing.xl,
-    paddingVertical: theme.spacing.sm,
-    marginBottom: theme.spacing.xs,
-  },
-  tableHeaderText: {
-    fontSize: LOCAL_LAYOUT.headerLabelFontSize,
-    color: theme.colors.brand.subtitle,
-    fontWeight: theme.typography.weight.bold,
-    textAlign: "center",
-  },
-  colRank: { width: LOCAL_LAYOUT.rankNumberWidth },
-  colTeam: { flex: 1, textAlign: "left", paddingLeft: theme.spacing.xl },
-  colStat: { width: LOCAL_LAYOUT.statColWidth },
-  rankingList: {
-    paddingHorizontal: theme.spacing.xl,
-    gap: theme.spacing.sm,
-  },
-  rankingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: theme.spacing.md,
-  },
-  rankNumberText: {
-    width: LOCAL_LAYOUT.rankNumberWidth,
-    textAlign: "center",
-    color: theme.colors.brand.subtitle,
-  },
-  myTeamRankNumber: {
-    color: theme.colors.brand.mint,
-  },
-  rankingCard: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.radius.full,
-    height: theme.layout.common.standardItemHeight,
-    paddingHorizontal: theme.spacing.md,
-    ...theme.shadow.card,
-  },
-  myTeamRankingCard: {
-    borderWidth: LOCAL_LAYOUT.myTeamBorderWidth,
-    borderColor: theme.colors.brand.mint,
-  },
-  teamInfoArea: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: theme.spacing.sm,
-  },
-  teamBadge: {
-    width: LOCAL_LAYOUT.opponentBadgeSize,
-    height: LOCAL_LAYOUT.opponentBadgeSize,
-    borderRadius: theme.radius.full,
-  },
-  teamNameText: {
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.text.primary,
-  },
-  myTeamText: {
-    color: theme.colors.brand.mint,
-  },
-  statsArea: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  statValueText: {
-    width: LOCAL_LAYOUT.statColWidth,
-    textAlign: "center",
-    color: theme.colors.brand.subtitle,
-  },
-  myTeamStatText: {
-    color: theme.colors.brand.mint,
-  },
-  calendarWrap: {
-    paddingHorizontal: theme.spacing.lg,
-  },
-  calendarHeader: {
-    flexDirection: "row",
-    backgroundColor: theme.colors.team.neutralLight,
-    borderTopLeftRadius: theme.radius.dashboardCard,
-    borderTopRightRadius: theme.radius.dashboardCard,
-    height: LOCAL_LAYOUT.calendarHeaderHeight,
-  },
-  calendarHeaderCell: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  calendarHeaderText: {
-    fontSize: theme.typography.size.sm,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.brand.subtitle,
-  },
-  calendarTextRed: { color: theme.colors.team.kiaRed },
-  calendarTextBlue: { color: theme.colors.brand.mint },
-  calendarGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    backgroundColor: theme.colors.card,
-    borderBottomLeftRadius: theme.radius.dashboardCard,
-    borderBottomRightRadius: theme.radius.dashboardCard,
-    borderWidth: LOCAL_LAYOUT.calendarBorderWidth,
-    borderColor: theme.colors.team.neutralLight,
+    zIndex: 10,
   },
   calendarCell: {
-    width: `${100 / 7}%`,
+    width: "14.285%",
     height: LOCAL_LAYOUT.calendarCellHeight,
     borderRightWidth: StyleSheet.hairlineWidth,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: theme.colors.team.neutralLight,
-    padding: theme.spacing.xs,
-    alignItems: "center",
-    justifyContent: "space-between",
+    padding: 4,
   },
-  calendarCellEmpty: {
-    backgroundColor: theme.colors.surface,
+   mascotEmoji: {
+    fontSize: LOCAL_LAYOUT.mascotFontSize,
   },
-  calendarCellTopRow: {
+  leagueSelector: {
+    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.md,
+    borderWidth: theme.layout.dashboard.activeOpacity === 0.7 ? 1.5 : 1.5, // 가독성을 위해 테마 참조 가능성 열어둠
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.background,
+  },
+  dropdownContainer: {
     width: "100%",
+    alignItems: "center",
+    marginBottom: theme.spacing.xl,
+    zIndex: 10,
+  },
+  dropdownMenu: {
+    position: "absolute",
+    top: LOCAL_LAYOUT.dropdownTop,
+    width: LOCAL_LAYOUT.dropdownWidth,
+    padding: theme.spacing.md,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.team.neutralLight,
+    ...theme.shadow.card,
+  },
+  dropdownItem: {
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: theme.colors.border.light,
+  },
+  gridContainer: {
+    width: "100%",
+  },
+  arrowBtn: {
+    padding: theme.spacing.md,
+  },
+  matchBadgeText: {
+    fontSize: theme.typography.size.CAPTION,
+  },
+  matchTimeText: {
+    fontSize: 9, // 미세 조정용 하드코딩 허용 여부 검토 필요하나 일단 유지 또는 theme.typography.size.xxs 등 고려
+  },
+  todayBtn: {
+    marginTop: theme.spacing.xxl,
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  calendarDayText: {
-    fontSize: theme.typography.size.xs,
-    color: theme.colors.text.primary,
-    fontWeight: theme.typography.weight.medium,
-  },
-  calendarLocationText: {
-    fontSize: LOCAL_LAYOUT.calendarLocationFontSize,
-    color: theme.colors.brand.mint,
-    fontWeight: theme.typography.weight.bold,
-  },
-  calendarLocationAway: {
-    color: theme.colors.brand.subtitle,
-  },
-  calendarOpponentWrap: {
     alignItems: "center",
     justifyContent: "center",
-  },
-  opponentBadgeDummy: {
-    width: LOCAL_LAYOUT.opponentBadgeSize,
-    height: LOCAL_LAYOUT.opponentBadgeSize,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xxl,
     borderRadius: theme.radius.full,
-    marginBottom: LOCAL_LAYOUT.opponentBadgeMarginBottom,
-  },
-  calendarOpponentText: {
-    fontSize: LOCAL_LAYOUT.calendarOpponentFontSize,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.text.primary,
-  },
-  calendarEmptySpacer: {
-    flex: 1,
-  },
-  calendarTimeText: {
-    fontSize: LOCAL_LAYOUT.calendarTimeFontSize,
-    color: theme.colors.brand.subtitle,
-  },
-  calendarCellSelected: {
-    backgroundColor: theme.colors.brand.mintAlpha10,
-    borderColor: theme.colors.brand.mint,
     borderWidth: 1,
+    backgroundColor: theme.colors.card,
+    ...theme.shadow.card,
   },
 });

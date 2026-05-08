@@ -121,12 +121,14 @@ export type WebSocketMessageType =
 /**
  * WebSocket 메시지 인터페이스
  * 실시간 통신을 위한 표준 메시지 형식
+ * 
+ * @template T - 메시지 타입에 따른 데이터 구조
  */
-export interface WebSocketMessage {
+export interface WebSocketMessage<T = unknown> {
   /** 메시지 타입 */
   type: WebSocketMessageType;
   /** 메시지 데이터 */
-  data: any;
+  data: T;
 }
 
 /**

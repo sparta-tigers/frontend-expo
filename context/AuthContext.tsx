@@ -7,6 +7,12 @@ import {
   AuthSigninRequest,
   AuthSignupRequest,
 } from "@/src/features/auth/types";
+import {
+  favoriteTeamAddAPI,
+  favoriteTeamGetAPI,
+  favoriteTeamUpdateAPI,
+} from "@/src/features/user/favorite-team-api";
+import { TEAM_DATA, isValidTeamCode } from "@/src/utils/team";
 import { Logger, maskSensitive } from "@/src/utils/logger";
 import {
   clearTokens,
@@ -125,6 +131,15 @@ export const useAuth = () => {
 };
 
 /**
+ * 백엔드 팀 코드(HT)를 프론트엔드 팀 코드(KIA)로 변환하기 위한 역매핑 맵
+ * 
+ * Why: 매번 Object.entries를 순회하며 찾는 비용을 절감하기 위해 모듈 스코프에 한 번만 생성하여 O(1) 조회를 보장한다.
+ */
+const BACKEND_TO_FRONTEND_TEAM_CODE: Record<string, string> = Object.fromEntries(
+  Object.entries(TEAM_DATA).map(([fe, data]) => [data.backendCode, fe])
+);
+
+/**
  * AuthProvider 컴포넌트
  * 앱 전체에 인증 상태를 제공하는 Provider
  *
@@ -175,12 +190,41 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           };
 
           setUser(tokenPayload);
-
-          // 🚨 [Sequence] 2. 토큰 복원 후 해당 사용자의 응원팀 정보 로드
-          const userId = tokenPayload.userId;
-          const savedTeam = await AsyncStorage.getItem(getMyTeamKey(userId));
-          if (savedTeam) {
-            setMyTeam(savedTeam);
+          
+          // 🚨 [Data Sync] 1. 백엔드에서 응원팀 정보 우선 조회
+          try {
+            const teamRes = await favoriteTeamGetAPI();
+            if (teamRes.resultType === "SUCCESS" && teamRes.data) {
+              const backendTeamCode = teamRes.data.teamCode;
+              // 백엔드 코드(HT) -> 프론트엔드 코드(KIA) 역매핑 찾기
+              const frontendTeamCode = BACKEND_TO_FRONTEND_TEAM_CODE[backendTeamCode];
+              
+              if (frontendTeamCode) {
+                setMyTeam(frontendTeamCode);
+                await AsyncStorage.setItem(getMyTeamKey(tokenPayload.userId), frontendTeamCode);
+              }
+            } else {
+              // 백엔드에 없으면 로컬 스토리지 확인
+              const savedTeam = await AsyncStorage.getItem(getMyTeamKey(tokenPayload.userId));
+              if (savedTeam) {
+                setMyTeam(savedTeam);
+                // 🚨 [Data Sync] 백엔드에 자동 등록 시도
+                const backendCode = isValidTeamCode(savedTeam) ? TEAM_DATA[savedTeam]?.backendCode : null;
+                if (backendCode) {
+                  const addRes = await favoriteTeamAddAPI({ teamCode: backendCode });
+                  if (addRes.resultType !== "SUCCESS") {
+                    Logger.warn("[AuthContext] 백엔드 자동 등록 실패:", addRes.error?.message);
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            Logger.warn("[AuthContext] 응원팀 동기화 중 오류 발생 (로컬 폴백 진행):", error);
+            // API 실패 시 로컬 스토리지로 폴백
+            const savedTeam = await AsyncStorage.getItem(getMyTeamKey(tokenPayload.userId));
+            if (savedTeam) {
+              setMyTeam(savedTeam);
+            }
           }
 
           if (__DEV__) {
@@ -356,29 +400,56 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   /**
-   * 응원팀 업데이트 함수 (Optimistic Update)
+   * 응원팀 업데이트 함수
+   * 
+   * Why: 백엔드 동기화 성공 후 UI 상태를 갱신하는 서버 우선(Pessimistic) 방식을 채택한다.
+   * 실패 시 이전 팀 상태를 유지하여 데이터 정합성을 보장한다.
    * 
    * @param teamName - 변경할 팀 명칭
    */
   const updateMyTeam = async (teamName: string): Promise<void> => {
-    const previousTeam = myTeam; // 🚨 [Data Integrity] 1. 롤백을 위한 이전 상태 캡처
+    const previousTeam = myTeam;
     try {
-      // 2. 상태 즉시 업데이트 (UI 반응성 확보)
-      setMyTeam(teamName);
+      // 1. 로그인 상태라면 백엔드와 동기화 시도
+      if (isLoggedIn && user?.userId) {
+        const backendCode = isValidTeamCode(teamName) ? TEAM_DATA[teamName]?.backendCode : null;
+        if (!backendCode) {
+          Logger.warn(`[AuthContext] backendCode 누락 - 동기화 스킵: ${teamName}`);
+        } else {
+          let teamExists = false;
+          try {
+            const checkRes = await favoriteTeamGetAPI();
+            teamExists = checkRes.resultType === "SUCCESS" && !!checkRes.data;
+          } catch {
+            teamExists = false;
+          }
+          
+          if (teamExists) {
+            await favoriteTeamUpdateAPI({ teamCode: backendCode });
+          } else {
+            await favoriteTeamAddAPI({ teamCode: backendCode });
+          }
+        }
+      }
 
-      // 3. 로컬 스토리지 저장 (사용자별 고유 키 사용)
+      // 🚨 [State Sync] 백엔드 호출 성공 후 상태 업데이트 및 쿼리 무효화
+      // Why: 상태 업데이트가 먼저 일어나야 HomeScreen에서 구독 중인 myTeamId가 변경되고, 
+      // 그에 따라 리액트 쿼리가 새로운 teamId를 포함한 키로 패칭을 시작하는 자연스러운 흐름이 완성됨.
+      
+      // 2. UI 및 로컬 스토리지 업데이트
+      setMyTeam(teamName);
       await AsyncStorage.setItem(getMyTeamKey(user?.userId), teamName);
+      
+      // 3. 쿼리 무효화 (안전장치)
+      await queryClient.invalidateQueries({ queryKey: ["matches", "schedule"] });
+      await queryClient.invalidateQueries({ queryKey: ["home", "dashboard"] });
 
       if (__DEV__) {
-        Logger.debug(`✅ [AuthContext] 응원팀 변경 완료 (${user?.userId || "Guest"}): ${teamName}`);
+        Logger.debug(`✅ [AuthContext] 응원팀 변경 및 데이터 동기화 완료: ${teamName}`);
       }
     } catch (error) {
       Logger.error("[AuthContext] 응원팀 변경 실패:", error);
-      
-      // 4. 롤백 처리: 이전 상태로 명시적 복구
       setMyTeam(previousTeam);
-      
-      // 5. 사용자에게 에러 전파
       Alert.alert("알림", "팀 정보를 저장하는 중 오류가 발생했습니다. 다시 시도해주세요.");
     }
   };

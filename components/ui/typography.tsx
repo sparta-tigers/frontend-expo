@@ -1,42 +1,19 @@
 import { theme } from "@/src/styles/theme";
 import React from "react";
 import { Text, TextProps, TextStyle } from "react-native";
+import { ThemeColorPath, getThemeColorByPath } from "@/src/shared/types/theme";
 
 export type TypographyVariant = 
   | "h1" 
   | "h2" 
   | "h3" 
+  | "h4"
+  | "h5"
   | "body1" 
   | "body2" 
   | "caption" 
   | "label";
 
-type ThemeColorPath = 
-  | keyof typeof theme.colors 
-  | `text.${keyof typeof theme.colors.text}`
-  | `brand.${keyof typeof theme.colors.brand}`
-  | `team.${keyof typeof theme.colors.team}`
-  | `border.${keyof typeof theme.colors.border}`
-  | `dashboard.${keyof typeof theme.colors.dashboard}`
-  | "transparent";
-
-/**
- * 테마 컬러를 재귀적으로 찾아주는 유틸리티
- */
-const resolveThemeColor = (path: string): string | undefined => {
-  const parts = path.split(".");
-  let current: any = theme.colors;
-  
-  for (const part of parts) {
-    if (current && typeof current === "object" && part in current) {
-      current = current[part];
-    } else {
-      return undefined;
-    }
-  }
-  
-  return typeof current === "string" ? current : undefined;
-};
 
 /**
  * Typography 컴포넌트의 커스텀 Props
@@ -100,7 +77,7 @@ export const Typography = ({
   };
   
   const resolvedColor = color 
-    ? (resolveThemeColor(color) || (theme.colors as any)[color])
+    ? (getThemeColorByPath(color) || theme.colors.text.primary)
     : theme.colors.text.primary;
 
   const customStyle: TextStyle = {
@@ -135,6 +112,14 @@ const VARIANT_STYLES = {
   },
   h3: {
     fontSize: theme.typography.size.CARD_TITLE,
+    fontWeight: theme.typography.weight.semibold,
+  },
+  h4: {
+    fontSize: theme.typography.size.md,
+    fontWeight: theme.typography.weight.bold,
+  },
+  h5: {
+    fontSize: theme.typography.size.sm,
     fontWeight: theme.typography.weight.semibold,
   },
   body1: {

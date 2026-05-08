@@ -68,3 +68,6 @@ repomix.config.json
 
 **/**cursor**/
 **/**agents**/
+
+# GSD Planning
+.planning/
