@@ -64,7 +64,12 @@ const StatSummaryItem = memo(
       <Typography variant="h4" color="text.primary" numberOfLines={1}>
         {value}
       </Typography>
-      <Typography variant="caption" color="text.secondary" mt="xxs" numberOfLines={1}>
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        mt="xxs"
+        numberOfLines={1}
+      >
         {label}
       </Typography>
     </Box>
@@ -119,7 +124,7 @@ export const MyTeamSection = memo(
         key: "alarm",
         icon: "notifications-none",
         value: "2개",
-        label: "현재 등록된 알람",
+        label: "예매 알람",
         toneColor: "dashboard.statToneYellow",
         iconColor: theme.colors.dashboard.statIconYellow,
       },
@@ -150,7 +155,11 @@ export const MyTeamSection = memo(
               onPress={onPressChangeTeam}
               style={styles.changeTeamButton}
             >
-              <Typography variant="caption" color="text.secondary" weight="semibold">
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                weight="semibold"
+              >
                 응원팀 변경
               </Typography>
             </TouchableOpacity>
@@ -166,7 +175,12 @@ export const MyTeamSection = memo(
           style={styles.myTeamCard}
         >
           {/* 인사말 영역 */}
-          <Box flexDir="row" align="center" mb="lg" style={styles.greetingContainer}>
+          <Box
+            flexDir="row"
+            align="center"
+            mb="lg"
+            style={styles.greetingContainer}
+          >
             <Typography variant="h3" weight="bold">
               {userNickname}
             </Typography>
@@ -176,7 +190,12 @@ export const MyTeamSection = memo(
             <Typography variant="caption" color="text.secondary" ml="xxs">
               님, 입학한지
             </Typography>
-            <Typography variant="h2" weight="black" mx="xs" color="text.primary">
+            <Typography
+              variant="h2"
+              weight="black"
+              mx="xs"
+              color="text.primary"
+            >
               {enrollmentDays}
             </Typography>
             <Typography variant="caption" color="text.secondary">
