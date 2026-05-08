@@ -1,148 +1,214 @@
-import { TEAM_DATA, getTeamColorPath } from "@/src/utils/team";
-import { theme } from "@/src/styles/theme";
-import { Box } from "@/components/ui/box";
+import { Box, ThemeColorPath } from "@/components/ui/box";
 import { Typography } from "@/components/ui/typography";
-import React, { memo } from "react";
+import { theme } from "@/src/styles/theme";
+import { TEAM_DATA, TeamCode, getTeamColorPath } from "@/src/utils/team";
+import { MaterialIcons } from "@expo/vector-icons";
+import React, { memo, useMemo } from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 
 // ========================================================
-// 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
+// 레이아웃 및 디자인 토큰 (LOCAL_LAYOUT)
 // ========================================================
 const LOCAL_LAYOUT = {
   headerLetterSpacing: 1,
-  changeTeamPaddingVertical: theme.spacing.xs,
-  changeTeamPaddingHorizontal: theme.spacing.sm,
-  cardBorderLeftWidth: theme.spacing.xs,
-  cardShadowOpacity: 0.05,
-  mascotLetterSpacing: -0.5,
+  cardBorderLeftWidth: 4,
+  mascotSize: 84,
+  statIconSize: 18,
+  statItemBorderRadius: 16,
+  cardShadow: {
+    ...theme.shadow.card,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+  },
 } as const;
 
 /**
- * 미니 통계 카드 컴포넌트
- * 
- * Why: 순위, 승률 등 주요 지표를 간결하게 표현하기 위함.
+ * 입학일(가입일)로부터 경과 일수를 계산하는 순수 함수
+ * Why: 추후 실제 user.createdAt 연동 시 비즈니스 로직의 일관성 확보.
  */
-interface MiniStatCardProps {
-  item: {
-    label: string;
-    value: string;
-  };
+const calculateEnrollmentDays = (joinDate: string): number => {
+  const start = new Date(joinDate);
+  const today = new Date();
+  const diffTime = Math.abs(today.getTime() - start.getTime());
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+};
+
+// ========================================================
+// 내부 컴포넌트: StatSummaryItem
+// ========================================================
+interface StatSummaryItemProps {
+  icon: keyof typeof MaterialIcons.glyphMap;
+  value: string;
+  label: string;
+  toneColor: ThemeColorPath;
+  iconColor: string;
 }
 
-const MiniStatCard = memo(({ item }: MiniStatCardProps) => (
-  <Box align="center" mr="lg">
-    <Typography variant="caption" color="text.secondary" mb="xs">
-      {item.label}
-    </Typography>
-    <Typography weight="semibold">
-      {item.value}
-    </Typography>
-  </Box>
-));
-MiniStatCard.displayName = "MiniStatCard";
+const StatSummaryItem = memo(
+  ({ icon, value, label, toneColor, iconColor }: StatSummaryItemProps) => (
+    <Box flex={1} rounded="lg" p="md" bg={toneColor} style={styles.statItem}>
+      <Box
+        bg="card"
+        width={28}
+        height={28}
+        rounded="full"
+        align="center"
+        justify="center"
+        mb="sm"
+        style={theme.shadow.card}
+      >
+        <MaterialIcons name={icon} size={16} color={iconColor} />
+      </Box>
+      <Typography variant="h3" weight="bold" color="text.primary">
+        {value}
+      </Typography>
+      <Typography variant="caption" color="text.secondary" mt="xxs">
+        {label}
+      </Typography>
+    </Box>
+  ),
+);
+StatSummaryItem.displayName = "StatSummaryItem";
 
+// ========================================================
+// 메인 컴포넌트: MyTeamSection
+// ========================================================
 interface MyTeamSectionProps {
   userNickname: string;
-  daysInSchool: number;
   myTeamId?: string | null;
   onPressChangeTeam?: () => void;
 }
 
 /**
- * 홈 화면 상단 '나의 팀' 섹션
- * 
- * Why: 사용자의 소속감 고취 및 핵심 데이터(순위, 승률 등) 가시성 확보.
- * Zero-Magic UI 원칙을 준수하여 Box와 Typography 프리미티브로 구현됨.
+ * 홈 화면 상단 '나의 팀' 섹션 (활동 현황 대시보드)
+ *
+ * Why: 사용자의 소속감 고취 및 핵심 활동 데이터(직관, 알람 등) 가시성 확보.
+ * Figma 기획안(image_484459)의 입체적인 레이아웃과 100% 일치하도록 구현.
  */
-export const MyTeamSection = memo(({
-  userNickname,
-  daysInSchool,
-  myTeamId,
-  onPressChangeTeam,
-}: MyTeamSectionProps) => {
-  // Why: 선택된 팀의 ID를 기반으로 메타데이터 및 테마 컬러 추출.
-  const myTeam = (myTeamId && TEAM_DATA[myTeamId]) || TEAM_DATA["KIA"];
+export const MyTeamSection = memo(
+  ({ userNickname, myTeamId, onPressChangeTeam }: MyTeamSectionProps) => {
+    const activeTeamCode = (myTeamId as TeamCode) || "KIA";
+    const myTeam = TEAM_DATA[activeTeamCode];
+    const teamColorPath = getTeamColorPath(activeTeamCode);
 
-  const stats = [
-    { key: "rank", label: "순위", value: "3위" },
-    { key: "winRate", label: "승률", value: "0.542" },
-    { key: "recent", label: "최근", value: "3승 2패" },
-  ];
+    // 1. [Logic] 입학일 계산 (현재는 목 데이터 기반)
+    const enrollmentDays = useMemo(
+      () => calculateEnrollmentDays("2023-01-01"),
+      [],
+    );
 
-  const teamColorPath = getTeamColorPath(myTeamId || "KIA");
+    const activityStats: {
+      key: string;
+      icon: keyof typeof MaterialIcons.glyphMap;
+      value: string;
+      label: string;
+      toneColor: ThemeColorPath;
+      iconColor: string;
+    }[] = [
+      {
+        key: "visit",
+        icon: "bar-chart",
+        value: "13회",
+        label: "올해 직관횟수",
+        toneColor: "dashboard.statTonePink",
+        iconColor: theme.colors.dashboard.statIconPink,
+      },
+      {
+        key: "alarm",
+        icon: "notifications-none",
+        value: "2개",
+        label: "현재 등록된 알람",
+        toneColor: "dashboard.statToneYellow",
+        iconColor: theme.colors.dashboard.statIconYellow,
+      },
+      {
+        key: "match",
+        icon: "star-outline",
+        value: "31경기",
+        label: "남은 경기수",
+        toneColor: "dashboard.statToneGreen",
+        iconColor: theme.colors.dashboard.statIconGreen,
+      },
+    ];
 
-  return (
-    <Box mt="xxl" px="SCREEN_DASHBOARD">
-      {/* 섹션 헤더 */}
-      <Box flexDir="row" justify="space-between" align="center" mb="md">
-        <Typography variant="label" color="text.secondary" style={styles.headerLabel}>
-          MY TEAM
-        </Typography>
-        {onPressChangeTeam && (
-          <TouchableOpacity
-            activeOpacity={0.75}
-            onPress={onPressChangeTeam}
-            style={styles.changeTeamButton}
-            accessibilityRole="button"
-            accessibilityLabel="응원팀 변경"
+    return (
+      <Box mt="xxl" px="SCREEN_DASHBOARD">
+        {/* 섹션 헤더 */}
+        <Box flexDir="row" justify="space-between" align="center" mb="md">
+          <Typography
+            variant="label"
+            color="text.secondary"
+            style={styles.headerLabel}
           >
-            <Typography variant="caption" color="primary" weight="semibold">
-              응원팀 변경
-            </Typography>
-          </TouchableOpacity>
-        )}
-      </Box>
-
-      {/* 팀 카드 */}
-      <Box 
-        bg="surface" 
-        rounded="lg" 
-        p="lg" 
-        borderColor={teamColorPath}
-        style={styles.myTeamCard}
-      >
-        <Box flexDir="row" align="baseline" mb="lg">
-          <Typography variant="h3" weight="bold">
-            {userNickname}
+            MY TEAM
           </Typography>
-          <Typography ml="xxs">님,</Typography>
-          <Typography ml="xxs">입학한지 </Typography>
-          <Typography 
-            variant="h2" 
-            weight="black" 
-            mx="xxs" 
-            color={teamColorPath}
-          >
-            {daysInSchool}
-          </Typography>
-          <Typography>일째 !</Typography>
+          {onPressChangeTeam && (
+            <TouchableOpacity
+              activeOpacity={0.75}
+              onPress={onPressChangeTeam}
+              style={styles.changeTeamButton}
+            >
+              <Typography variant="caption" color="text.secondary" weight="semibold">
+                응원팀 변경
+              </Typography>
+            </TouchableOpacity>
+          )}
         </Box>
 
-        <Box flexDir="row" justify="space-between" align="flex-end">
-          <Box flexDir="row">
-            {stats.map((item) => (
-              <MiniStatCard key={item.key} item={item} />
-            ))}
-          </Box>
-
-          <Box align="center">
-            <Typography variant="h3" mb="xxs">
+        {/* 메인 활동 카드 */}
+        <Box
+          bg="card"
+          rounded="xl"
+          p="lg"
+          borderColor={teamColorPath}
+          style={styles.myTeamCard}
+        >
+          {/* 인사말 영역 */}
+          <Box flexDir="row" align="center" mb="lg">
+            <Typography variant="h2" weight="bold">
+              {userNickname}
+            </Typography>
+            <Typography variant="h2" weight="bold" ml="xxs">
               {myTeam.mascotEmoji}
             </Typography>
-            <Typography 
-              variant="caption" 
-              weight="bold" 
-              color={teamColorPath}
-              style={styles.mascotTeamText}
-            >
-              {myTeam.shortName}
+            <Typography variant="h3" color="text.secondary" ml="xxs">
+              님, 입학한지
             </Typography>
+            <Typography variant="h2" weight="black" mx="xs" color="text.primary">
+              {enrollmentDays}
+            </Typography>
+            <Typography variant="h3" color="text.secondary">
+              일째 !
+            </Typography>
+          </Box>
+
+          {/* 스탯 카드 영역 & 마스코트 */}
+          <Box flexDir="row" align="center" justify="space-between">
+            <Box flex={1} flexDir="row" gap="sm">
+              {activityStats.map((stat) => (
+                <StatSummaryItem
+                  key={stat.key}
+                  icon={stat.icon}
+                  value={stat.value}
+                  label={stat.label}
+                  toneColor={stat.toneColor}
+                  iconColor={stat.iconColor}
+                />
+              ))}
+            </Box>
+
+            {/* 입체적인 마스코트 영역 (Absolute Positioning) */}
+            <Box style={styles.mascotContainer}>
+              <Typography style={styles.mascotEmoji}>
+                {myTeam.mascotEmoji}
+              </Typography>
+            </Box>
           </Box>
         </Box>
       </Box>
-    </Box>
-  );
-});
+    );
+  },
+);
 MyTeamSection.displayName = "MyTeamSection";
 
 const styles = StyleSheet.create({
@@ -150,15 +216,34 @@ const styles = StyleSheet.create({
     letterSpacing: LOCAL_LAYOUT.headerLetterSpacing,
   },
   changeTeamButton: {
-    paddingVertical: LOCAL_LAYOUT.changeTeamPaddingVertical,
-    paddingHorizontal: LOCAL_LAYOUT.changeTeamPaddingHorizontal,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: theme.colors.border.medium,
   },
   myTeamCard: {
     borderLeftWidth: LOCAL_LAYOUT.cardBorderLeftWidth,
-    ...theme.shadow.card,
-    shadowOpacity: LOCAL_LAYOUT.cardShadowOpacity,
+    overflow: "visible", // 마스코트가 튀어나오게 설정
+    ...LOCAL_LAYOUT.cardShadow,
   },
-  mascotTeamText: {
-    letterSpacing: LOCAL_LAYOUT.mascotLetterSpacing,
+  statItem: {
+    minHeight: 90,
+  },
+  mascotContainer: {
+    position: "absolute",
+    right: -15,
+    bottom: -10,
+    width: LOCAL_LAYOUT.mascotSize,
+    height: LOCAL_LAYOUT.mascotSize,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  mascotEmoji: {
+    fontSize: 64,
+    // 그림자 효과로 입체감 부여
+    textShadowColor: theme.colors.overlay,
+    textShadowOffset: { width: 4, height: 4 },
+    textShadowRadius: 4,
   },
 });

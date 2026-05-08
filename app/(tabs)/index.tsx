@@ -79,7 +79,6 @@ export default function HomeScreen() {
       >
         <MyTeamSection
           userNickname={mockData.userNickname}
-          daysInSchool={mockData.daysInSchool}
           myTeamId={myTeamId}
           onPressChangeTeam={handlePressChangeTeam}
         />
