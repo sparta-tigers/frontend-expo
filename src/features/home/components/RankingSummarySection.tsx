@@ -1,9 +1,11 @@
 import React from "react";
-import { Box, Typography } from "@/components/ui";
-import { RankingRowDto } from "../types";
-import { theme } from "@/src/styles/theme";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
+
+import { Box, Typography } from "@/components/ui";
+import { theme } from "@/src/styles/theme";
+import { TEAM_DATA, TeamCode } from "@/src/utils/team";
+import { RankingRowDto } from "@/src/features/match/types";
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -20,6 +22,8 @@ const LOCAL_LAYOUT = {
 interface RankingSummarySectionProps {
   /** 표시할 KBO 리그 순위 데이터 배열 */
   ranking: RankingRowDto[];
+  /** 현재 응원팀 코드 */
+  myTeamCode: TeamCode | null;
 }
 
 /**
@@ -28,8 +32,11 @@ interface RankingSummarySectionProps {
  * Why: 홈 화면 상단에서 KBO 리그의 전반적인 순위 흐름과 내 응원팀의 현재 위치를 한눈에 파악하기 위함.
  * Zero-Magic UI 원칙에 따라 Box와 Typography 프리미티브를 사용함.
  */
-export const RankingSummarySection = React.memo(function RankingSummarySection({ ranking }: RankingSummarySectionProps) {
-  const myTeamRank = ranking.find((r) => r.isMyTeam)?.rank ?? 0;
+export const RankingSummarySection = React.memo(function RankingSummarySection({ 
+  ranking, 
+  myTeamCode 
+}: RankingSummarySectionProps) {
+  const myTeamRank = ranking.find((r) => r.teamCode === myTeamCode)?.rank;
 
   return (
     <TouchableOpacity 
@@ -38,12 +45,18 @@ export const RankingSummarySection = React.memo(function RankingSummarySection({
     >
       <Box mt="xl" px="xxxl">
         <Typography variant="h3" weight="bold" center mb="md">
-          오늘의 우리 팀 순위는 {myTeamRank}위예요
+          {myTeamRank 
+            ? `오늘의 우리 팀 순위는 ${myTeamRank}위예요`
+            : "KBO 리그 순위를 확인해보세요"}
         </Typography>
 
         <Box gap="sm">
           {ranking.map((row) => (
-            <RankingRow key={row.team.name} row={row} />
+            <RankingRow 
+              key={row.teamCode} 
+              row={row} 
+              isMyTeam={row.teamCode === myTeamCode} 
+            />
           ))}
         </Box>
       </Box>
@@ -53,20 +66,21 @@ export const RankingSummarySection = React.memo(function RankingSummarySection({
 
 interface RankingRowProps {
   row: RankingRowDto;
+  isMyTeam: boolean;
 }
 
 /**
  * 순위 행 (내부용)
  */
-const RankingRow = React.memo(function RankingRow({ row }: RankingRowProps) {
-  const isMyTeam = !!row.isMyTeam;
+const RankingRow = React.memo(function RankingRow({ row, isMyTeam }: RankingRowProps) {
+  const teamInfo = TEAM_DATA[row.teamCode as TeamCode];
 
   return (
     <Box 
       flexDir="row" 
       align="center" 
       gap="sm" 
-      accessibilityLabel={`${row.rank}위 ${row.team.name}`}
+      accessibilityLabel={`${row.rank}위 ${row.teamName}`}
     >
       <Box width={LOCAL_LAYOUT.rankWidth} align="center">
         <Typography 
@@ -101,8 +115,8 @@ const RankingRow = React.memo(function RankingRow({ row }: RankingRowProps) {
             align="center" 
             justify="center"
           >
-            <Typography variant="caption" weight="bold" color="text.secondary">
-              {row.team.shortName}
+            <Typography style={styles.teamEmoji}>
+              {teamInfo?.mascotEmoji || "⚾"}
             </Typography>
           </Box>
           <Typography 
@@ -110,12 +124,17 @@ const RankingRow = React.memo(function RankingRow({ row }: RankingRowProps) {
             weight="bold" 
             color={isMyTeam ? "brand.mint" : "primary"}
           >
-            {row.team.name}
+            {teamInfo?.name || row.teamName}
           </Typography>
+          {isMyTeam && (
+            <Box bg="brand.mint" px="xxs" rounded="sm">
+              <Typography variant="caption" weight="bold" color="card">MY</Typography>
+            </Box>
+          )}
         </Box>
 
         <Box flexDir="row" align="center" gap="sm">
-          {[row.games, row.win, row.lose, row.draw, row.winRate.toFixed(3)].map((stat, i) => (
+          {[row.matchCount, row.winCount, row.loseCount, row.drawCount, row.winRate.toFixed(3)].map((stat, i) => (
             <Box key={i} width={LOCAL_LAYOUT.statTextWidth} align="center">
               <Typography variant="caption" color="text.secondary">
                 {stat}
@@ -136,4 +155,8 @@ const styles = StyleSheet.create({
     borderWidth: theme.layout.dashboard.rankingMyTeamBorderWidth,
     borderColor: theme.colors.brand.mint,
   },
+  teamEmoji: {
+    fontSize: 14,
+  }
 });
+

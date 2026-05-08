@@ -11,7 +11,10 @@ import { useAuth } from "@/context/AuthContext";
 import { TEAM_DATA, TeamCode } from "@/src/utils/team";
 import { router } from "expo-router";
 import { useMatchSchedule } from "@/src/features/match/hooks/useMatchSchedule";
+import { useMatchRanking } from "@/src/features/match/hooks/useMatchRanking";
 import { ScheduleSkeleton } from "@/src/features/home/components/ScheduleSkeleton";
+import { RankingSkeleton } from "@/src/features/home/components/RankingSkeleton";
+import { getTodayString, getCurrentYear, getCurrentMonth, getCurrentDay } from "@/src/utils/date";
 
 /**
  * 홈 화면 (`main_0`)
@@ -24,19 +27,40 @@ export default function HomeScreen() {
   const mockData = useFakeHomeData(myTeamId);
 
   // 🚨 앙드레 카파시: 결정론적 기준 시점 설정
-  // Why: UI 렌더링의 기준이 되는 '오늘'을 컴포넌트 최상단에서 정의하여 하위 컴포넌트들이 동일한 시간을 바라보게 함.
-  const now = useMemo(() => new Date(), []);
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth(); // 0-indexed (0=Jan, 1=Feb, ...)
-  const todayDay = now.getDate();
+  const todayString = useMemo(() => getTodayString(), []);
+  const currentYear = useMemo(() => getCurrentYear(), []);
+  const currentMonth = useMemo(() => getCurrentMonth(), []);
+  const todayDay = useMemo(() => getCurrentDay(), []);
 
-  // 경기 일정 실제 데이터 패칭 (월은 API 사양에 따라 1-indexed로 변환)
-  // 🚨 [Strict Typing] myTeamId를 TeamCode로 캐스팅하여 타입 안정성 확보
-  const { data: schedule, isLoading, isError } = useMatchSchedule(
+  // 경기 일정 실제 데이터 패칭
+  const { data: schedule, isLoading: isScheduleLoading, isError: isScheduleError } = useMatchSchedule(
     currentYear, 
-    currentMonth + 1, 
+    currentMonth, 
     myTeamId as TeamCode | null
   );
+
+  // 🚨 [Phase 7] 순위 데이터 실제 연동
+  const { data: rankingRes, isLoading: isRankingLoading } = useMatchRanking({
+    viewMode: "day",
+    date: todayString,
+    leagueType: "REGULAR",
+  });
+
+  // 🚨 앙드레 카파시: 데이터 슬라이싱 최적화 (Top 5 + My Team)
+  const displayRankings = useMemo(() => {
+    if (!rankingRes?.data) return [];
+    
+    const allRankings = rankingRes.data;
+    const top5 = allRankings.slice(0, 5);
+    const myTeamRank = allRankings.find(r => r.teamCode === myTeamId);
+    
+    // 내 팀이 상위 5위 안에 없으면 추가
+    if (myTeamRank && !top5.find(r => r.teamCode === myTeamId)) {
+      return [...top5, myTeamRank];
+    }
+    
+    return top5;
+  }, [rankingRes?.data, myTeamId]);
 
   // 🚨 앙드레 카파시: 낙관적 업데이트를 고려한 데이터 병합
   // Why: AsyncStorage에서 로드된 실제 응원팀 정보가 있다면 우선 사용, 없으면 목 데이터 사용.
@@ -60,13 +84,20 @@ export default function HomeScreen() {
           onPressChangeTeam={handlePressChangeTeam}
         />
 
-        <RankingSummarySection ranking={mockData.rankingSummary} />
+        {isRankingLoading ? (
+          <RankingSkeleton />
+        ) : (
+          <RankingSummarySection 
+            ranking={displayRankings} 
+            myTeamCode={myTeamId as TeamCode | null} 
+          />
+        )}
 
         <LineupSection lineup={mockData.todayLineup} teamName={myTeam.name} />
 
-        {isLoading ? (
+        {isScheduleLoading ? (
           <ScheduleSkeleton />
-        ) : isError ? (
+        ) : isScheduleError ? (
           <ScheduleSection schedule={[]} year={currentYear} month={currentMonth} />
         ) : (
           <ScheduleSection 
