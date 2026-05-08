@@ -73,7 +73,7 @@ interface MyTeamSectionProps {
   userNickname: string;
   enrollmentDays: number;
   remainingMatches: number;
-  favoriteTeamCode?: string | null;
+  favoriteTeamCode?: string | null | undefined;
   onPressChangeTeam?: () => void;
 }
 

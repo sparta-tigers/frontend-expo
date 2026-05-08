@@ -424,8 +424,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setMyTeam(teamName);
       await AsyncStorage.setItem(getMyTeamKey(user?.userId), teamName);
       
-      // 3. 경기 일정 쿼리 무효화 (안전장치)
+      // 3. 쿼리 무효화 (안전장치)
       await queryClient.invalidateQueries({ queryKey: ["matches", "schedule"] });
+      await queryClient.invalidateQueries({ queryKey: ["home", "dashboard"] });
 
       if (__DEV__) {
         Logger.debug(`✅ [AuthContext] 응원팀 변경 및 데이터 동기화 완료: ${teamName}`);

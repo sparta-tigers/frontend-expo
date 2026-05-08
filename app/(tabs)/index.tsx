@@ -86,7 +86,7 @@ export default function HomeScreen() {
           userNickname={dashboardData?.nickname || mockData.userNickname}
           enrollmentDays={dashboardData?.enrollmentDays || 0}
           remainingMatches={dashboardData?.remainingMatches || 0}
-          favoriteTeamCode={dashboardData?.favoriteTeamCode || myTeamId}
+          favoriteTeamCode={myTeamId || dashboardData?.favoriteTeamCode}
           onPressChangeTeam={handlePressChangeTeam}
         />
 
