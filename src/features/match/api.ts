@@ -5,8 +5,8 @@ import { MatchScheduleResponse, TeamRankingResponse, LeagueType } from "./types"
  * 특정 날짜 기준 누적 순위 조회
  * @param date yyyyMMdd 형식의 문자열
  */
-export const fetchDailyRanking = async (date: string): Promise<TeamRankingResponse> => {
-  return await apiClient.get<TeamRankingResponse>(`/api/rankings/daily`, { anyday: date });
+export const fetchDailyRanking = async (date: string, leagueType: LeagueType): Promise<TeamRankingResponse> => {
+  return await apiClient.get<TeamRankingResponse>(`/api/rankings/daily`, { anyday: date, leagueType });
 };
 
 /**

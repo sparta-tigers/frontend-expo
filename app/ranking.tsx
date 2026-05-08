@@ -61,9 +61,28 @@ export default function RankingScreen() {
   // 테마 색상 추출 (Brutal Style)
   const brandColor = theme.colors.team[activeTeamCode.toLowerCase() as keyof typeof theme.colors.team] || theme.colors.brand.mint;
 
-  // 네비게이션 헬퍼
+  // 네비게이션 헬퍼 (SSOT 가이드 준수)
   const switchMode = (mode: "year" | "day") => {
     router.setParams({ view: mode });
+  };
+
+  const updateYear = (year: number) => {
+    router.setParams({ year: year.toString() });
+  };
+
+  const updateLeague = (type: LeagueType) => {
+    router.setParams({ type });
+  };
+
+  const shiftDate = (days: number) => {
+    const current = new Date(
+      parseInt(selectedDate.slice(0, 4)),
+      parseInt(selectedDate.slice(4, 6)) - 1,
+      parseInt(selectedDate.slice(6, 8))
+    );
+    current.setDate(current.getDate() + days);
+    const newDate = current.toISOString().split('T')[0].replace(/-/g, '');
+    router.setParams({ date: newDate });
   };
 
   return (
@@ -128,9 +147,67 @@ export default function RankingScreen() {
            <Typography variant="h1" style={styles.mascotEmoji}>
              {team?.mascotEmoji || "⚾"}
            </Typography>
-           <Typography variant="h2" weight="bold" color="text.primary" mt="xs">
-             {viewMode === "year" ? `${selectedYear} 시즌 순위` : `${selectedDate.slice(4,6)}월 ${selectedDate.slice(6,8)}일 순위`}
-           </Typography>
+           
+           {/* Dynamic Title based on View Mode */}
+           <Box flexDir="row" align="center" mt="xs">
+             {viewMode === "day" && (
+               <TouchableOpacity onPress={() => shiftDate(-1)} style={styles.navArrow}>
+                 <MaterialIcons name="chevron-left" size={24} color={theme.colors.brand.subtitle} />
+               </TouchableOpacity>
+             )}
+             
+             <Typography variant="h2" weight="bold" color="text.primary" mx="sm">
+               {viewMode === "year" ? `${selectedYear} 시즌 순위` : `${selectedDate.slice(4,6)}월 ${selectedDate.slice(6,8)}일 순위`}
+             </Typography>
+
+             {viewMode === "day" && (
+               <TouchableOpacity onPress={() => shiftDate(1)} style={styles.navArrow}>
+                 <MaterialIcons name="chevron-right" size={24} color={theme.colors.brand.subtitle} />
+               </TouchableOpacity>
+             )}
+           </Box>
+        </Box>
+      </Box>
+
+      {/* Filter Row (Year Selector & League Toggle) */}
+      <Box px="SCREEN" py="sm" flexDir="row" justify="space-between" align="center">
+        {viewMode === "year" ? (
+          <Box flexDir="row" gap="xs">
+            {[2024, 2025, 2026].map(y => (
+              <TouchableOpacity 
+                key={y} 
+                onPress={() => updateYear(y)}
+                style={[styles.yearChip, selectedYear === y && { borderColor: brandColor, backgroundColor: theme.colors.team.neutralLight }]}
+              >
+                <Typography variant="caption" weight="bold" color={selectedYear === y ? "text.primary" : "brand.subtitle"}>
+                  {y}
+                </Typography>
+              </TouchableOpacity>
+            ))}
+          </Box>
+        ) : (
+          <Box /> // Spacing for alignment
+        )}
+
+        <Box flexDir="row" bg="team.neutralLight" rounded="full" p="xxs">
+          {(["REGULAR", "PRESEASON"] as LeagueType[]).map((type) => (
+            <TouchableOpacity 
+              key={type}
+              onPress={() => updateLeague(type)}
+              style={[
+                styles.leagueBtn,
+                leagueType === type && { backgroundColor: theme.colors.card }
+              ]}
+            >
+              <Typography 
+                variant="caption" 
+                weight="bold" 
+                color={leagueType === type ? "text.primary" : "brand.subtitle"}
+              >
+                {type === "REGULAR" ? "정규리그" : "시범경기"}
+              </Typography>
+            </TouchableOpacity>
+          ))}
         </Box>
       </Box>
 
@@ -247,5 +324,20 @@ const styles = StyleSheet.create({
   },
   teamIconText: {
     fontSize: 16,
+  },
+  navArrow: {
+    padding: 4,
+  },
+  yearChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: theme.colors.team.neutralLight,
+  },
+  leagueBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 999,
   },
 });

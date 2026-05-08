@@ -25,8 +25,8 @@ export const useMatchRanking = (params: {
         if (!year || !leagueType) throw new Error("Year and LeagueType are required for yearly ranking");
         return fetchYearlyRanking(year, leagueType);
       } else {
-        if (!date) throw new Error("Date is required for daily ranking");
-        return fetchDailyRanking(date);
+        if (!date || !leagueType) throw new Error("Date and LeagueType are required for daily ranking");
+        return fetchDailyRanking(date, leagueType);
       }
     },
     enabled: viewMode === "year" ? (!!year && !!leagueType) : !!date,
