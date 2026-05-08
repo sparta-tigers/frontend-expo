@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import React from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import { TextStyle, TouchableOpacity, ViewStyle } from "react-native";
 
 import { Box, Typography } from "@/components/ui";
 import { RankingRowDto } from "@/src/features/match/types";
@@ -154,12 +154,16 @@ const RankingRow = React.memo(function RankingRow({
         height={
           isMyTeam ? LOCAL_LAYOUT.pillHeightActive : LOCAL_LAYOUT.pillHeight
         }
-        bg="card"
+        bg={isMyTeam ? "card" : "surface"}
         rounded="full"
         px="lg"
         flexDir="row"
         align="center"
-        style={[styles.pillShadow, isMyTeam && styles.pillActiveBorder]}
+        style={[
+          styles.pillCommon,
+          isMyTeam ? styles.pillShadow : styles.pillInactiveBorder,
+          isMyTeam && styles.pillActiveBorder
+        ]}
       >
         {/* Team Area (Flex 4.5) */}
         <Box
@@ -232,31 +236,38 @@ const RankingRow = React.memo(function RankingRow({
   );
 });
 
-const styles = StyleSheet.create({
+const styles = {
+  pillCommon: {
+    borderWidth: 1,
+    borderColor: "transparent",
+  } as ViewStyle,
   pillShadow: {
     ...theme.shadow.card,
-  },
+  } as ViewStyle,
   pillActiveBorder: {
     borderWidth: theme.layout.dashboard.rankingMyTeamBorderWidth,
     borderColor: theme.colors.brand.mint,
-  },
+  } as ViewStyle,
+  pillInactiveBorder: {
+    borderColor: theme.colors.border.medium,
+  } as ViewStyle,
   teamEmoji: {
     fontSize: 14,
-  },
+  } as TextStyle,
   teamArea: {
     overflow: "hidden",
-  },
+  } as ViewStyle,
   teamName: {
     flexShrink: 1,
-  },
+  } as TextStyle,
   myBadge: {
     flexShrink: 0,
-  },
+  } as ViewStyle,
   statText: {
     textAlign: "center",
-  },
+  } as TextStyle,
   headerText: {
     fontSize: 10,
     textAlign: "center",
-  },
-});
+  } as TextStyle,
+};
