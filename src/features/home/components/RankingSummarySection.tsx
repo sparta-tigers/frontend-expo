@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border.medium,
   },
   teamEmoji: {
-    fontSize: 14,
+    fontSize: theme.typography.size.sm,
   },
   teamArea: {
     overflow: "hidden",
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   headerText: {
-    fontSize: 10,
+    fontSize: theme.typography.size.xxs,
     textAlign: "center",
   },
 });

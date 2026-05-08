@@ -20,7 +20,7 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { Logger } from "@/src/utils/logger";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
     Alert,
     ScrollView,
@@ -33,6 +33,16 @@ import {
     BottomSheetScrollView,
     BottomSheetBackdropProps
 } from "@gorhom/bottom-sheet";
+
+// ========================================================
+// 레이아웃 상수 (LOCAL_LAYOUT)
+// ========================================================
+const LOCAL_LAYOUT = {
+  profileAvatarSize: 80,
+  userAvatarSize: 60,
+  bottomSheetSnapPoint: "60%",
+  scrollBottomPadding: 40,
+} as const;
 
 /**
  * 프로필 화면 컴포넌트
@@ -52,7 +62,7 @@ export default function ProfileScreen() {
 
   // 바텀 시트 관련 설정
   const bottomSheetModalRef = React.useRef<BottomSheetModal>(null);
-  const snapPoints = React.useMemo(() => ["60%"], []);
+  const snapPoints = useMemo(() => [LOCAL_LAYOUT.bottomSheetSnapPoint], []);
 
   // 즐겨찾기 팀 정보 로드
   const loadFavoriteTeam = React.useCallback(async () => {
@@ -313,8 +323,8 @@ export default function ProfileScreen() {
                 align="center" 
                 justify="center" 
                 mb="md"
-                width={80}
-                height={80}
+                width={LOCAL_LAYOUT.profileAvatarSize}
+                height={LOCAL_LAYOUT.profileAvatarSize}
               >
                 <Typography variant="h1" color="background">G</Typography>
               </Box>
@@ -370,8 +380,8 @@ export default function ProfileScreen() {
                 align="center" 
                 justify="center" 
                 mr="md"
-                width={60}
-                height={60}
+                width={LOCAL_LAYOUT.userAvatarSize}
+                height={LOCAL_LAYOUT.userAvatarSize}
               >
                 <Typography variant="h3" color="background">U</Typography>
               </Box>
@@ -551,7 +561,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: theme.spacing.xl,
-    paddingBottom: 40,
+    paddingBottom: LOCAL_LAYOUT.scrollBottomPadding,
   },
   menuItem: {
     flexDirection: "row",

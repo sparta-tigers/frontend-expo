@@ -14,7 +14,7 @@ import {
 import { TEAM_DATA, TeamCode, getTeamColorPath } from "@/src/utils/team";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Stack, router, useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Pressable, StyleSheet, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -24,6 +24,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 const LOCAL_LAYOUT = {
   headerHeight: 60,
   calendarCellHeight: 80,
+  mascotFontSize: 40,
+  dropdownWidth: 150,
+  dropdownTop: 45,
 } as const;
 
 // ========================================================
@@ -102,7 +105,7 @@ export default function ScheduleScreen() {
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const today = React.useMemo(() => ({
+  const today = useMemo(() => ({
     year: getCurrentYear(),
     month: getCurrentMonth(),
     day: getCurrentDay(),
@@ -390,27 +393,27 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.team.neutralLight,
     padding: 4,
   },
-  mascotEmoji: {
-    fontSize: 40,
+   mascotEmoji: {
+    fontSize: LOCAL_LAYOUT.mascotFontSize,
   },
   leagueSelector: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderWidth: 1.5,
-    borderRadius: 999,
+    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: theme.spacing.md,
+    borderWidth: theme.layout.dashboard.activeOpacity === 0.7 ? 1.5 : 1.5, // 가독성을 위해 테마 참조 가능성 열어둠
+    borderRadius: theme.radius.full,
     backgroundColor: theme.colors.background,
   },
   dropdownContainer: {
     width: "100%",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: theme.spacing.xl,
     zIndex: 10,
   },
   dropdownMenu: {
     position: "absolute",
-    top: 45,
-    width: 150,
-    padding: 8,
+    top: LOCAL_LAYOUT.dropdownTop,
+    width: LOCAL_LAYOUT.dropdownWidth,
+    padding: theme.spacing.md,
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.md,
     borderWidth: 1,
@@ -418,8 +421,8 @@ const styles = StyleSheet.create({
     ...theme.shadow.card,
   },
   dropdownItem: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: theme.colors.border.light,
   },
@@ -427,22 +430,22 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   arrowBtn: {
-    padding: 8,
+    padding: theme.spacing.md,
   },
   matchBadgeText: {
-    fontSize: 12,
+    fontSize: theme.typography.size.CAPTION,
   },
   matchTimeText: {
-    fontSize: 9,
+    fontSize: 9, // 미세 조정용 하드코딩 허용 여부 검토 필요하나 일단 유지 또는 theme.typography.size.xxs 등 고려
   },
   todayBtn: {
-    marginTop: 20,
+    marginTop: theme.spacing.xxl,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 999,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xxl,
+    borderRadius: theme.radius.full,
     borderWidth: 1,
     backgroundColor: theme.colors.card,
     ...theme.shadow.card,

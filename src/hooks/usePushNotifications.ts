@@ -119,7 +119,7 @@ export function usePushNotifications() {
           const { roomId } = data || {};
           if (roomId) {
             Logger.debug("🔗 [Deep Link] 채팅방으로 이동:", roomId);
-            router.push(`/exchange/chat/${roomId}`);
+            router.push(`/exchange/chat/${encodeURIComponent(roomId)}`);
           } else {
             Logger.debug("🔗 [Deep Link] roomId가 없어 기본 화면으로 이동");
             router.push("/(tabs)");
