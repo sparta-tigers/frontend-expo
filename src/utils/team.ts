@@ -29,6 +29,11 @@ export const TEAM_DATA: Record<string, TeamDto> = {
 } as const;
 
 /**
+ * 프론트엔드에서 사용하는 KBO 팀 코드 타입 (KIA, LG, DOOSAN 등)
+ */
+export type TeamCode = keyof typeof TEAM_DATA;
+
+/**
  * 백엔드 코드(HT, OB 등)로부터 팀 데이터를 조회하는 유틸리티
  */
 export const getTeamByBackendCode = (backendCode: string): TeamDto | undefined => {

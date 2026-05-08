@@ -8,11 +8,12 @@ import {
     usersUpdateProfileAPI,
 } from "@/src/features/auth/api";
 import { UserProfileUpdateRequest } from "@/src/features/auth/types";
-import { FavoriteTeam, KBO_TEAMS } from "@/src/features/user/favorite-team";
+import { FavoriteTeam } from "@/src/features/user/favorite-team";
+import { TEAM_DATA } from "@/src/utils/team";
 import {
     favoriteTeamAddAPI,
     favoriteTeamDeleteAPI,
-    favoriteTeamGetListAPI,
+    favoriteTeamGetAPI,
 } from "@/src/features/user/favorite-team-api";
 import { useAuth } from "@/src/hooks/useAuth";
 import { Logger } from "@/src/utils/logger";
@@ -38,32 +39,39 @@ import {
  * Why: 사용자의 개인 정보 관리, 즐겨찾기 팀 설정, 계정 관리 기능을 제공하기 위함.
  * Zero-Magic UI 원칙에 따라 모든 레이아웃은 Box와 Typography 프리미티브를 사용함.
  */
+const KBO_TEAMS = Object.entries(TEAM_DATA).map(([_, team]) => ({
+  name: team.name,
+  code: team.backendCode,
+}));
+
 export default function ProfileScreen() {
   const { user, signout, updateUser } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [favoriteTeams, setFavoriteTeams] = useState<FavoriteTeam[]>([]);
+  const [favoriteTeam, setFavoriteTeam] = useState<FavoriteTeam | null>(null);
 
   // 바텀 시트 관련 설정
   const bottomSheetModalRef = React.useRef<BottomSheetModal>(null);
   const snapPoints = React.useMemo(() => ["60%"], []);
 
-  // 즐겨찾기 팀 목록 로드
-  const loadFavoriteTeams = React.useCallback(async () => {
+  // 즐겨찾기 팀 정보 로드
+  const loadFavoriteTeam = React.useCallback(async () => {
     if (!user?.accessToken) return;
 
     try {
-      const response = await favoriteTeamGetListAPI();
+      const response = await favoriteTeamGetAPI();
       if (response.resultType === "SUCCESS" && response.data) {
-        setFavoriteTeams(response.data);
+        setFavoriteTeam(response.data);
+      } else {
+        setFavoriteTeam(null);
       }
     } catch (error) {
-      Logger.error("즐겨찾기 팀 목록 로딩 실패:", error);
+      Logger.error("즐겨찾기 팀 정보 로딩 실패:", error);
     }
   }, [user?.accessToken]);
 
   React.useEffect(() => {
-    loadFavoriteTeams();
-  }, [loadFavoriteTeams]);
+    loadFavoriteTeam();
+  }, [loadFavoriteTeam]);
 
   // 프로필 수정 핸들러
   const handleEditProfile = () => {
@@ -211,13 +219,12 @@ export default function ProfileScreen() {
     bottomSheetModalRef.current?.dismiss();
     try {
       const response = await favoriteTeamAddAPI({
-        teamName: team.name,
         teamCode: team.code,
       });
 
       if (response.resultType === "SUCCESS") {
         Alert.alert("성공", `${team.name}을 즐겨찾기에 추가했습니다.`);
-        loadFavoriteTeams();
+        loadFavoriteTeam();
       } else {
         Alert.alert("오류", "즐겨찾기 추가에 실패했습니다.");
       }
@@ -254,14 +261,14 @@ export default function ProfileScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              const response = await favoriteTeamDeleteAPI(team.id);
+              const response = await favoriteTeamDeleteAPI();
 
               if (response.resultType === "SUCCESS") {
                 Alert.alert(
                   "성공",
                   `${team.teamName}을 즐겨찾기에서 삭제했습니다.`,
                 );
-                loadFavoriteTeams();
+                loadFavoriteTeam();
               } else {
                 Alert.alert("오류", "즐겨찾기 삭제에 실패했습니다.");
               }
@@ -446,27 +453,20 @@ export default function ProfileScreen() {
                 <Typography color="text.secondary" weight="bold">›</Typography>
               </TouchableOpacity>
 
-              {favoriteTeams.length > 0 && (
+              {favoriteTeam && (
                 <>
                   <Box mx="lg" height={1} bg="border.medium" />
-                  {favoriteTeams.map((team, index) => (
-                    <React.Fragment key={team.id}>
-                      <Box flexDir="row" align="center" justify="space-between" px="lg" py="md">
-                        <Typography>{team.teamName}</Typography>
-                        <TouchableOpacity
-                          onPress={() => handleDeleteFavoriteTeam(team)}
-                          style={{ paddingVertical: theme.spacing.xxs, paddingHorizontal: theme.spacing.xs }}
-                        >
-                          <Typography variant="caption" color="error" weight="bold">
-                            삭제
-                          </Typography>
-                        </TouchableOpacity>
-                      </Box>
-                      {index < favoriteTeams.length - 1 && (
-                        <Box mx="lg" height={1} bg="border.medium" />
-                      )}
-                    </React.Fragment>
-                  ))}
+                  <Box flexDir="row" align="center" justify="space-between" px="lg" py="md">
+                    <Typography>{favoriteTeam.teamName}</Typography>
+                    <TouchableOpacity
+                      onPress={() => handleDeleteFavoriteTeam(favoriteTeam)}
+                      style={{ paddingVertical: theme.spacing.xxs, paddingHorizontal: theme.spacing.xs }}
+                    >
+                      <Typography variant="caption" color="error" weight="bold">
+                        삭제
+                      </Typography>
+                    </TouchableOpacity>
+                  </Box>
                 </>
               )}
             </Box>

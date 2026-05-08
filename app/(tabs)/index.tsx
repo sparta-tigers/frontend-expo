@@ -6,12 +6,12 @@ import { ScheduleSection } from "@/src/features/home/components/ScheduleSection"
 import { useFakeHomeData } from "@/src/features/home/mocks";
 import { styles } from "@/src/features/home/styles";
 import React, { useMemo } from "react";
-import { ScrollView, ActivityIndicator } from "react-native";
+import { ScrollView } from "react-native";
 import { useAuth } from "@/context/AuthContext";
-import { TEAM_DATA } from "@/src/utils/team";
+import { TEAM_DATA, TeamCode } from "@/src/utils/team";
 import { router } from "expo-router";
 import { useMatchSchedule } from "@/src/features/match/hooks/useMatchSchedule";
-import { Box } from "@/components/ui";
+import { ScheduleSkeleton } from "@/src/features/home/components/ScheduleSkeleton";
 
 /**
  * 홈 화면 (`main_0`)
@@ -31,7 +31,12 @@ export default function HomeScreen() {
   const todayDay = now.getDate();
 
   // 경기 일정 실제 데이터 패칭 (월은 API 사양에 따라 1-indexed로 변환)
-  const { data: schedule, isLoading, isError } = useMatchSchedule(currentYear, currentMonth + 1);
+  // 🚨 [Strict Typing] myTeamId를 TeamCode로 캐스팅하여 타입 안정성 확보
+  const { data: schedule, isLoading, isError } = useMatchSchedule(
+    currentYear, 
+    currentMonth + 1, 
+    myTeamId as TeamCode | null
+  );
 
   // 🚨 앙드레 카파시: 낙관적 업데이트를 고려한 데이터 병합
   // Why: AsyncStorage에서 로드된 실제 응원팀 정보가 있다면 우선 사용, 없으면 목 데이터 사용.
@@ -60,9 +65,7 @@ export default function HomeScreen() {
         <LineupSection lineup={mockData.todayLineup} teamName={myTeam.name} />
 
         {isLoading ? (
-          <Box py="xxl" align="center">
-            <ActivityIndicator color={myTeam.color} />
-          </Box>
+          <ScheduleSkeleton />
         ) : isError ? (
           <ScheduleSection schedule={[]} year={currentYear} month={currentMonth} />
         ) : (

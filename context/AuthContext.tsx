@@ -396,21 +396,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const updateMyTeam = async (teamName: string): Promise<void> => {
     const previousTeam = myTeam;
     try {
-      // 1. UI 즉시 업데이트 (Optimistic)
-      setMyTeam(teamName);
-      
-      // 2. 로컬 스토리지 저장
-      await AsyncStorage.setItem(getMyTeamKey(user?.userId), teamName);
-      
-      // 3. 로그인 상태라면 백엔드와 동기화
+      // 1. 로그인 상태라면 백엔드와 동기화 시도
       if (isLoggedIn && user?.userId) {
         const backendCode = TEAM_DATA[teamName]?.backendCode;
         if (backendCode) {
-          // 기존에 팀이 설정되어 있었는지 확인 (GET API 활용 또는 로컬 상태 활용)
-          // 여기서는 단순화를 위해 GET을 먼저 하거나, 
-          // 백엔드 서비스에서 등록된 게 있으면 update, 없으면 add 하도록 처리되어 있으므로 
-          // 클라이언트에서도 존재 여부에 따라 분기
-          
           let teamExists = false;
           try {
             const checkRes = await favoriteTeamGetAPI();
@@ -427,8 +416,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         }
       }
 
+      // 🚨 [State Sync] 백엔드 호출 성공 후 상태 업데이트 및 쿼리 무효화
+      // Why: 상태 업데이트가 먼저 일어나야 HomeScreen에서 구독 중인 myTeamId가 변경되고, 
+      // 그에 따라 리액트 쿼리가 새로운 teamId를 포함한 키로 패칭을 시작하는 자연스러운 흐름이 완성됨.
+      
+      // 2. UI 및 로컬 스토리지 업데이트
+      setMyTeam(teamName);
+      await AsyncStorage.setItem(getMyTeamKey(user?.userId), teamName);
+      
+      // 3. 경기 일정 쿼리 무효화 (안전장치)
+      await queryClient.invalidateQueries({ queryKey: ["matches", "schedule"] });
+
       if (__DEV__) {
-        Logger.debug(`✅ [AuthContext] 응원팀 변경 및 서버 동기화 완료: ${teamName}`);
+        Logger.debug(`✅ [AuthContext] 응원팀 변경 및 데이터 동기화 완료: ${teamName}`);
       }
     } catch (error) {
       Logger.error("[AuthContext] 응원팀 변경 실패:", error);
