@@ -13,7 +13,7 @@ export const RankingSkeleton = () => {
   const animatedValue = React.useRef(new Animated.Value(0.3)).current;
 
   React.useEffect(() => {
-    Animated.loop(
+    const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(animatedValue, {
           toValue: 0.7,
@@ -26,7 +26,11 @@ export const RankingSkeleton = () => {
           useNativeDriver: true,
         }),
       ])
-    ).start();
+    );
+    
+    animation.start();
+    
+    return () => animation.stop();
   }, [animatedValue]);
 
   return (

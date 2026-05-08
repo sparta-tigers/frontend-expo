@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import { Logger } from "@/src/utils/logger";
 
 interface AsyncActionOptions<T> {
@@ -23,33 +23,51 @@ export const useAsyncAction = <T, Args extends unknown[]>(
 ) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const isMounted = useRef(true);
+
+  // 컴포넌트 마운트 상태 추적
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   // 🚨 앙드레 카파시: PR 리뷰 제안에 따라 options에서 콜백을 추출하여 useCallback 의존성에 추가함.
   // 이를 통해 불필요한 렌더링 사이클에서 함수가 무분별하게 재생성되는 것을 방지함.
   const { onSuccess, onError } = options;
 
   const execute = useCallback(async (...args: Args): Promise<T | undefined> => {
-    setIsLoading(true);
-    setError(null);
+    if (isMounted.current) {
+      setIsLoading(true);
+      setError(null);
+    }
 
     try {
       const result = await action(...args);
-      onSuccess?.(result);
+      if (isMounted.current) {
+        onSuccess?.(result);
+      }
       return result;
     } catch (err) {
       const errorInstance = err instanceof Error ? err : new Error(String(err));
-      setError(errorInstance);
       
-      // 🚨 앙드레 카파시: 전역 로거 연동
-      Logger.error("🚨 [AsyncAction Error]:", errorInstance);
-      
-      onError?.(errorInstance);
+      if (isMounted.current) {
+        setError(errorInstance);
+        
+        // 🚨 앙드레 카파시: 전역 로거 연동
+        Logger.error("🚨 [AsyncAction Error]:", errorInstance);
+        
+        onError?.(errorInstance);
+      }
       
       // 필요한 경우 여기서 토스트 알림 등 공통 UI 처리 가능
       
       throw errorInstance; // 상위에서 에러를 다시 잡을 수 있도록 재투척
     } finally {
-      setIsLoading(false);
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
     }
   }, [action, onSuccess, onError]);
 
@@ -58,6 +76,8 @@ export const useAsyncAction = <T, Args extends unknown[]>(
     isLoading,
     error,
     /** 에러 상태 초기화 함수 */
-    resetError: () => setError(null),
+    resetError: () => {
+      if (isMounted.current) setError(null);
+    },
   };
 };

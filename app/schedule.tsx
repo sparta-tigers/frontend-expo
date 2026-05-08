@@ -102,11 +102,11 @@ export default function ScheduleScreen() {
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const today = {
+  const today = React.useMemo(() => ({
     year: getCurrentYear(),
     month: getCurrentMonth(),
     day: getCurrentDay(),
-  };
+  }), []);
 
   const {
     data: schedule,

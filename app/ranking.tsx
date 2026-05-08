@@ -36,8 +36,8 @@ export default function RankingScreen() {
   }>();
 
   // 기본값 설정 로직
-  const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
-  const currentYear = new Date().getFullYear();
+  const today = React.useMemo(() => new Date().toISOString().split('T')[0].replace(/-/g, ''), []);
+  const currentYear = React.useMemo(() => new Date().getFullYear(), []);
   
   const viewMode = params.view || "year"; // 기본값 'year'
   const selectedDate = params.date || today;
@@ -52,29 +52,31 @@ export default function RankingScreen() {
     date: selectedDate
   });
 
-  const rankings = rankingRes?.data || [];
+  const rankings = React.useMemo(() => rankingRes?.data || [], [rankingRes?.data]);
 
   // 내 팀 정보 (Branding용)
   const activeTeamCode = (myTeam as TeamCode) || "KIA";
   const team = TEAM_DATA[activeTeamCode] || TEAM_DATA["KIA"];
   
   // 테마 색상 추출 (Brutal Style)
-  const brandColor = theme.colors.team[activeTeamCode.toLowerCase() as keyof typeof theme.colors.team] || theme.colors.brand.mint;
+  const brandColor = React.useMemo(() => 
+    theme.colors.team[activeTeamCode.toLowerCase() as keyof typeof theme.colors.team] || theme.colors.brand.mint
+  , [activeTeamCode]);
 
   // 네비게이션 헬퍼 (SSOT 가이드 준수)
-  const switchMode = (mode: "year" | "day") => {
+  const switchMode = React.useCallback((mode: "year" | "day") => {
     router.setParams({ view: mode });
-  };
+  }, [router]);
 
-  const updateYear = (year: number) => {
+  const updateYear = React.useCallback((year: number) => {
     router.setParams({ year: year.toString() });
-  };
+  }, [router]);
 
-  const updateLeague = (type: LeagueType) => {
+  const updateLeague = React.useCallback((type: LeagueType) => {
     router.setParams({ type });
-  };
+  }, [router]);
 
-  const shiftDate = (days: number) => {
+  const shiftDate = React.useCallback((days: number) => {
     const current = new Date(
       parseInt(selectedDate.slice(0, 4)),
       parseInt(selectedDate.slice(4, 6)) - 1,
@@ -83,7 +85,7 @@ export default function RankingScreen() {
     current.setDate(current.getDate() + days);
     const newDate = current.toISOString().split('T')[0].replace(/-/g, '');
     router.setParams({ date: newDate });
-  };
+  }, [router, selectedDate]);
 
   return (
     <Box flex={1} bg="background">
@@ -256,7 +258,7 @@ export default function RankingScreen() {
   );
 }
 
-const RankingRow = ({ row, isMyTeam }: { row: RankingRowDto, isMyTeam: boolean }) => (
+const RankingRow = React.memo(({ row, isMyTeam }: { row: RankingRowDto, isMyTeam: boolean }) => (
   <Box 
     flexDir="row" 
     height={52} 
@@ -295,7 +297,8 @@ const RankingRow = ({ row, isMyTeam }: { row: RankingRowDto, isMyTeam: boolean }
       </Typography>
     </Box>
   </Box>
-);
+));
+RankingRow.displayName = "RankingRow";
 
 const styles = StyleSheet.create({
   toggleBtn: {
