@@ -73,7 +73,7 @@ export default function HomeScreen() {
 
   // 🚨 앙드레 카파시: 낙관적 업데이트를 고려한 데이터 병합
   // Why: AsyncStorage에서 로드된 실제 응원팀 정보가 있다면 우선 사용, 없으면 목 데이터 사용.
-  const myTeam = (myTeamId && TEAM_DATA[myTeamId]) || mockData.myTeam;
+  const myTeam = (myTeamId ? TEAM_DATA[myTeamId] : null) ?? mockData.myTeam;
 
   const handlePressChangeTeam = () => {
     router.push("/change-team");
@@ -87,10 +87,10 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         <MyTeamSection
-          userNickname={dashboardData?.nickname || mockData.userNickname}
-          enrollmentDays={dashboardData?.enrollmentDays || 0}
-          remainingMatches={dashboardData?.remainingMatches || 0}
-          favoriteTeamCode={myTeamId || dashboardData?.favoriteTeamCode}
+          userNickname={dashboardData?.nickname ?? mockData.userNickname}
+          enrollmentDays={dashboardData?.enrollmentDays ?? 0}
+          remainingMatches={dashboardData?.remainingMatches ?? 0}
+          favoriteTeamCode={myTeamId ?? dashboardData?.favoriteTeamCode}
           onPressChangeTeam={handlePressChangeTeam}
         />
 
@@ -111,7 +111,7 @@ export default function HomeScreen() {
           <ScheduleSection schedule={[]} year={currentYear} month={currentMonth} />
         ) : (
           <ScheduleSection 
-            schedule={schedule || []} 
+            schedule={schedule ?? []} 
             year={currentYear} 
             month={currentMonth}
             today={today}
