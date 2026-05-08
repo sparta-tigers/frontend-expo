@@ -12,7 +12,7 @@ import { StyleSheet, TouchableOpacity } from "react-native";
 const LOCAL_LAYOUT = {
   headerLetterSpacing: 1,
   cardBorderLeftWidth: 4,
-  mascotSize: 84,
+  mascotSize: 74,
   statIconSize: 18,
   statItemBorderRadius: 16,
   cardShadow: {
@@ -61,22 +61,10 @@ const StatSummaryItem = memo(
       >
         <MaterialIcons name={icon} size={14} color={iconColor} />
       </Box>
-      <Typography
-        variant="h3"
-        weight="bold"
-        color="text.primary"
-        numberOfLines={1}
-        adjustsFontSizeToFit
-      >
+      <Typography variant="h4" color="text.primary" numberOfLines={1}>
         {value}
       </Typography>
-      <Typography
-        variant="caption"
-        color="text.secondary"
-        mt="xxs"
-        numberOfLines={1}
-        adjustsFontSizeToFit
-      >
+      <Typography variant="caption" color="text.secondary" mt="xxs" numberOfLines={1}>
         {label}
       </Typography>
     </Box>
@@ -178,17 +166,17 @@ export const MyTeamSection = memo(
           style={styles.myTeamCard}
         >
           {/* 인사말 영역 */}
-          <Box flexDir="row" align="baseline" mb="lg" style={styles.greetingContainer}>
-            <Typography variant="h2" weight="bold">
+          <Box flexDir="row" align="center" mb="lg" style={styles.greetingContainer}>
+            <Typography variant="h3" weight="bold">
               {userNickname}
             </Typography>
-            <Typography variant="h2" weight="bold" ml="xxs">
+            <Typography variant="h3" weight="bold" ml="xxs">
               {myTeam.mascotEmoji}
             </Typography>
             <Typography variant="caption" color="text.secondary" ml="xxs">
               님, 입학한지
             </Typography>
-            <Typography variant="h1" weight="black" mx="xs" color="text.primary">
+            <Typography variant="h2" weight="black" mx="xs" color="text.primary">
               {enrollmentDays}
             </Typography>
             <Typography variant="caption" color="text.secondary">

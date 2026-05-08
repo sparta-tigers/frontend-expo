@@ -6,6 +6,8 @@ export type TypographyVariant =
   | "h1" 
   | "h2" 
   | "h3" 
+  | "h4"
+  | "h5"
   | "body1" 
   | "body2" 
   | "caption" 
@@ -135,6 +137,14 @@ const VARIANT_STYLES = {
   },
   h3: {
     fontSize: theme.typography.size.CARD_TITLE,
+    fontWeight: theme.typography.weight.semibold,
+  },
+  h4: {
+    fontSize: theme.typography.size.md,
+    fontWeight: theme.typography.weight.bold,
+  },
+  h5: {
+    fontSize: theme.typography.size.sm,
     fontWeight: theme.typography.weight.semibold,
   },
   body1: {
