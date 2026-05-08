@@ -35,7 +35,7 @@ const BrandingHeader: React.FC<{ teamCode: TeamCode }> = ({ teamCode }) => {
 
   return (
     <Box
-      style={{ paddingTop: insets.top }}
+      style={[styles.brandingHeader, { paddingTop: insets.top }]}
       bg="background"
       px="SCREEN"
       borderBottomWidth={StyleSheet.hairlineWidth}
@@ -174,10 +174,7 @@ export default function ScheduleScreen() {
             style={[
               styles.leagueSelector,
               {
-                borderColor:
-                  theme.colors.team[
-                    activeTeamCode.toLowerCase() as keyof typeof theme.colors.team
-                  ] || theme.colors.brand.mint,
+                borderColor: theme.colors.team[activeTeamCode.toLowerCase() as keyof typeof theme.colors.team] || theme.colors.brand.mint,
               },
             ]}
           >
@@ -341,7 +338,7 @@ export default function ScheduleScreen() {
           <TouchableOpacity
             style={[
               styles.todayBtn,
-              { borderColor: getTeamColorPath(activeTeamCode) },
+              { borderColor: theme.colors.team[activeTeamCode.toLowerCase() as keyof typeof theme.colors.team] || theme.colors.brand.mint },
             ]}
             onPress={() =>
               router.setParams({
@@ -354,7 +351,7 @@ export default function ScheduleScreen() {
             <MaterialIcons
               name="today"
               size={18}
-              color={getTeamColorPath(activeTeamCode)}
+              color={theme.colors.team[activeTeamCode.toLowerCase() as keyof typeof theme.colors.team] || theme.colors.brand.mint}
             />
             <Typography
               variant="caption"
@@ -372,6 +369,9 @@ export default function ScheduleScreen() {
 }
 
 const styles = StyleSheet.create({
+  brandingHeader: {
+    backgroundColor: theme.colors.background,
+  },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 5,
@@ -411,6 +411,10 @@ const styles = StyleSheet.create({
     top: 45,
     width: 150,
     padding: 8,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.team.neutralLight,
     ...theme.shadow.card,
   },
   dropdownItem: {

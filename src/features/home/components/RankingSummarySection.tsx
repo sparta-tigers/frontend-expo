@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import React from "react";
-import { TextStyle, TouchableOpacity, ViewStyle } from "react-native";
+import { StyleSheet, TouchableOpacity } from "react-native";
 
 import { Box, Typography } from "@/components/ui";
 import { RankingRowDto } from "@/src/features/match/types";
@@ -236,38 +236,38 @@ const RankingRow = React.memo(function RankingRow({
   );
 });
 
-const styles = {
+const styles = StyleSheet.create({
   pillCommon: {
     borderWidth: 1,
-    borderColor: "transparent",
-  } as ViewStyle,
+    borderColor: theme.colors.transparent,
+  },
   pillShadow: {
     ...theme.shadow.card,
-  } as ViewStyle,
+  },
   pillActiveBorder: {
     borderWidth: theme.layout.dashboard.rankingMyTeamBorderWidth,
     borderColor: theme.colors.brand.mint,
-  } as ViewStyle,
+  },
   pillInactiveBorder: {
     borderColor: theme.colors.border.medium,
-  } as ViewStyle,
+  },
   teamEmoji: {
     fontSize: 14,
-  } as TextStyle,
+  },
   teamArea: {
     overflow: "hidden",
-  } as ViewStyle,
+  },
   teamName: {
     flexShrink: 1,
-  } as TextStyle,
+  },
   myBadge: {
     flexShrink: 0,
-  } as ViewStyle,
+  },
   statText: {
     textAlign: "center",
-  } as TextStyle,
+  },
   headerText: {
     fontSize: 10,
     textAlign: "center",
-  } as TextStyle,
-};
+  },
+});
