@@ -20,6 +20,8 @@ const LOCAL_LAYOUT = {
     shadowOpacity: 0.08,
     shadowRadius: 8,
   },
+  statSafetyPadding: 60,
+  mascotRightOffset: 0,
 } as const;
 
 /**
@@ -46,23 +48,35 @@ interface StatSummaryItemProps {
 
 const StatSummaryItem = memo(
   ({ icon, value, label, toneColor, iconColor }: StatSummaryItemProps) => (
-    <Box flex={1} rounded="lg" p="md" bg={toneColor} style={styles.statItem}>
+    <Box flex={1} rounded="lg" p="xs" bg={toneColor} style={styles.statItem}>
       <Box
         bg="card"
-        width={28}
-        height={28}
+        width={24}
+        height={24}
         rounded="full"
         align="center"
         justify="center"
-        mb="sm"
+        mb="xs"
         style={theme.shadow.card}
       >
-        <MaterialIcons name={icon} size={16} color={iconColor} />
+        <MaterialIcons name={icon} size={14} color={iconColor} />
       </Box>
-      <Typography variant="h3" weight="bold" color="text.primary">
+      <Typography
+        variant="h3"
+        weight="bold"
+        color="text.primary"
+        numberOfLines={1}
+        adjustsFontSizeToFit
+      >
         {value}
       </Typography>
-      <Typography variant="caption" color="text.secondary" mt="xxs">
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        mt="xxs"
+        numberOfLines={1}
+        adjustsFontSizeToFit
+      >
         {label}
       </Typography>
     </Box>
@@ -164,27 +178,27 @@ export const MyTeamSection = memo(
           style={styles.myTeamCard}
         >
           {/* 인사말 영역 */}
-          <Box flexDir="row" align="center" mb="lg">
+          <Box flexDir="row" align="baseline" mb="lg" style={styles.greetingContainer}>
             <Typography variant="h2" weight="bold">
               {userNickname}
             </Typography>
             <Typography variant="h2" weight="bold" ml="xxs">
               {myTeam.mascotEmoji}
             </Typography>
-            <Typography variant="h3" color="text.secondary" ml="xxs">
+            <Typography variant="caption" color="text.secondary" ml="xxs">
               님, 입학한지
             </Typography>
-            <Typography variant="h2" weight="black" mx="xs" color="text.primary">
+            <Typography variant="h1" weight="black" mx="xs" color="text.primary">
               {enrollmentDays}
             </Typography>
-            <Typography variant="h3" color="text.secondary">
+            <Typography variant="caption" color="text.secondary">
               일째 !
             </Typography>
           </Box>
 
           {/* 스탯 카드 영역 & 마스코트 */}
           <Box flexDir="row" align="center" justify="space-between">
-            <Box flex={1} flexDir="row" gap="sm">
+            <Box flex={1} flexDir="row" gap="xs" style={styles.statGrid}>
               {activityStats.map((stat) => (
                 <StatSummaryItem
                   key={stat.key}
@@ -228,11 +242,18 @@ const styles = StyleSheet.create({
     ...LOCAL_LAYOUT.cardShadow,
   },
   statItem: {
-    minHeight: 90,
+    // minHeight 제거 및 비율에 따른 유연한 높이 확보
+    paddingVertical: 10,
+  },
+  greetingContainer: {
+    flexWrap: "wrap",
+  },
+  statGrid: {
+    paddingRight: LOCAL_LAYOUT.statSafetyPadding,
   },
   mascotContainer: {
     position: "absolute",
-    right: -15,
+    right: LOCAL_LAYOUT.mascotRightOffset,
     bottom: -10,
     width: LOCAL_LAYOUT.mascotSize,
     height: LOCAL_LAYOUT.mascotSize,
