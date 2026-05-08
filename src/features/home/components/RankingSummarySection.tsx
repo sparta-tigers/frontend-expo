@@ -15,9 +15,9 @@ const LOCAL_LAYOUT = {
   pillHeight: theme.layout.dashboard.rankingRowHeight,
   pillHeightActive: theme.layout.dashboard.rankingRowHeightActive,
   badgeSize: theme.spacing.xxl,
-  /** 가중치 그리드 시스템: 총합 9.5 */
+  /** 가중치 그리드 시스템: 총합 10.5 */
   flexWeights: {
-    team: 5,
+    team: 5.5,
     stat: 1,
     winRate: 1.5,
   },
@@ -77,35 +77,38 @@ export const RankingSummarySection = React.memo(function RankingSummarySection({
  */
 const RankingHeader = React.memo(function RankingHeader() {
   return (
-    <Box flexDir="row" align="center" gap="sm" mb="xs" pr="lg">
+    <Box flexDir="row" align="center" gap="sm" mb="xs">
       {/* Rank Spacer */}
       <Box width={LOCAL_LAYOUT.rankWidth} />
 
-      {/* Team Area Placeholder (Flex 4.5) */}
-      <Box flex={LOCAL_LAYOUT.flexWeights.team} />
+      <Box flex={1} px="lg" flexDir="row" align="center">
+        {/* Team Area Placeholder (Flex 5) */}
+        <Box flex={LOCAL_LAYOUT.flexWeights.team} />
 
-      {/* Stat Labels (Flex 1, 1, 1, 1, 2) */}
-      {["경기", "승", "패", "무"].map((label) => (
-        <Box key={label} flex={LOCAL_LAYOUT.flexWeights.stat} align="center">
+        {/* Stat Labels (Flex 1, 1, 1, 1, 1.5) */}
+        {["경기", "승", "패", "무"].map((label) => (
+          <Box key={label} flex={LOCAL_LAYOUT.flexWeights.stat} align="center">
+            <Typography
+              variant="caption"
+              weight="bold"
+              color="text.tertiary"
+              style={styles.headerText}
+            >
+              {label}
+            </Typography>
+          </Box>
+        ))}
+        {/* WinRate Labels */}
+        <Box flex={LOCAL_LAYOUT.flexWeights.winRate} align="center">
           <Typography
             variant="caption"
             weight="bold"
             color="text.tertiary"
             style={styles.headerText}
           >
-            {label}
+            승률
           </Typography>
         </Box>
-      ))}
-      <Box flex={LOCAL_LAYOUT.flexWeights.winRate} align="center">
-        <Typography
-          variant="caption"
-          weight="bold"
-          color="text.tertiary"
-          style={styles.headerText}
-        >
-          승률
-        </Typography>
       </Box>
     </Box>
   );
