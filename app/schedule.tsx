@@ -8,6 +8,7 @@ import { theme } from "@/src/styles/theme";
 import {
   getCurrentMonth,
   getCurrentYear,
+  getCurrentDay,
   getRelativeMonth,
 } from "@/src/utils/date";
 import { TEAM_DATA, TeamCode, getTeamColorPath } from "@/src/utils/team";
@@ -101,18 +102,18 @@ export default function ScheduleScreen() {
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // 2. 데이터 패칭 (placeholderData 사용으로 isLoading은 첫 로딩 시에만 true)
+  const today = {
+    year: getCurrentYear(),
+    month: getCurrentMonth(),
+    day: getCurrentDay(),
+  };
+
   const {
     data: schedule,
     isLoading,
     isFetching,
   } = useMatchSchedule(year, month, activeTeamCode, leagueType);
-  const days = useCalendarGrid(
-    year,
-    month,
-    schedule || [],
-    new Date().getDate(),
-  );
+  const days = useCalendarGrid(year, month, schedule || [], today);
 
   // 3. 핸들러
   const handleMoveMonth = (offset: number) => {
@@ -334,6 +335,37 @@ export default function ScheduleScreen() {
             })}
           </Box>
         </Box>
+
+        {/* Back to Today Button (현재 보고 있는 월이 오늘이 아닐 때만 노출) */}
+        {(year !== today.year || month !== today.month) && (
+          <TouchableOpacity
+            style={[
+              styles.todayBtn,
+              { borderColor: getTeamColorPath(activeTeamCode) },
+            ]}
+            onPress={() =>
+              router.setParams({
+                year: today.year.toString(),
+                month: today.month.toString(),
+              })
+            }
+            activeOpacity={0.7}
+          >
+            <MaterialIcons
+              name="today"
+              size={18}
+              color={getTeamColorPath(activeTeamCode)}
+            />
+            <Typography
+              variant="caption"
+              weight="bold"
+              color={getTeamColorPath(activeTeamCode)}
+              ml="xs"
+            >
+              오늘로 돌아가기
+            </Typography>
+          </TouchableOpacity>
+        )}
       </Box>
     </Box>
   );
@@ -398,5 +430,17 @@ const styles = StyleSheet.create({
   },
   matchTimeText: {
     fontSize: 9,
+  },
+  todayBtn: {
+    marginTop: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 999,
+    borderWidth: 1,
+    backgroundColor: theme.colors.card,
+    ...theme.shadow.card,
   },
 });

@@ -23,7 +23,7 @@ interface ScheduleSectionProps {
   schedule: MatchScheduleDto[];
   year: number;
   month: number;
-  todayDay?: number; // 🚨 앙드레 카파시: 결정론적 렌더링을 위해 외부에서 주입받음
+  today?: { year: number; month: number; day: number }; // 🚨 앙드레 카파시: 결정론적 렌더링을 위해 외부에서 주입받음
 }
 
 /**
@@ -36,9 +36,9 @@ export const ScheduleSection = React.memo(function ScheduleSection({
   schedule,
   year,
   month,
-  todayDay,
+  today,
 }: ScheduleSectionProps) {
-  const days = useCalendarGrid(year, month, schedule, todayDay);
+  const days = useCalendarGrid(year, month, schedule, today);
 
   return (
     <Box mt="xxxxl" pb="xxl" px="SCREEN_DASHBOARD">

@@ -31,7 +31,11 @@ export default function HomeScreen() {
   const todayString = useMemo(() => getTodayString(), []);
   const currentYear = useMemo(() => getCurrentYear(), []);
   const currentMonth = useMemo(() => getCurrentMonth(), []);
-  const todayDay = useMemo(() => getCurrentDay(), []);
+  const today = useMemo(() => ({
+    year: getCurrentYear(),
+    month: getCurrentMonth(),
+    day: getCurrentDay()
+  }), []);
 
   // 경기 일정 실제 데이터 패칭
   const { data: schedule, isLoading: isScheduleLoading, isError: isScheduleError } = useMatchSchedule(
@@ -110,7 +114,7 @@ export default function HomeScreen() {
             schedule={schedule || []} 
             year={currentYear} 
             month={currentMonth}
-            todayDay={todayDay}
+            today={today}
           />
         )}
       </ScrollView>
