@@ -52,12 +52,11 @@ export const useAsyncAction = <T, Args extends unknown[]>(
     } catch (err) {
       const errorInstance = err instanceof Error ? err : new Error(String(err));
       
+      // 🚨 앙드레 카파시: 컴포넌트 언마운트 시에도 에러가 관측되도록(Fail-fast) 가드 밖에서 로깅
+      Logger.error("🚨 [AsyncAction Error]:", errorInstance);
+
       if (isMounted.current) {
         setError(errorInstance);
-        
-        // 🚨 앙드레 카파시: 전역 로거 연동
-        Logger.error("🚨 [AsyncAction Error]:", errorInstance);
-        
         onError?.(errorInstance);
       }
       
@@ -75,9 +74,9 @@ export const useAsyncAction = <T, Args extends unknown[]>(
     execute,
     isLoading,
     error,
-    /** 에러 상태 초기화 함수 */
-    resetError: () => {
+    /** 에러 상태 초기화 함수 (참조 고정) */
+    resetError: useCallback(() => {
       if (isMounted.current) setError(null);
-    },
+    }, []),
   };
 };
