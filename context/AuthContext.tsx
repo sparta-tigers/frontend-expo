@@ -131,6 +131,15 @@ export const useAuth = () => {
 };
 
 /**
+ * 백엔드 팀 코드(HT)를 프론트엔드 팀 코드(KIA)로 변환하기 위한 역매핑 맵
+ * 
+ * Why: 매번 Object.entries를 순회하며 찾는 비용을 절감하기 위해 모듈 스코프에 한 번만 생성하여 O(1) 조회를 보장한다.
+ */
+const BACKEND_TO_FRONTEND_TEAM_CODE: Record<string, string> = Object.fromEntries(
+  Object.entries(TEAM_DATA).map(([fe, data]) => [data.backendCode, fe])
+);
+
+/**
  * AuthProvider 컴포넌트
  * 앱 전체에 인증 상태를 제공하는 Provider
  *
@@ -188,9 +197,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
             if (teamRes.resultType === "SUCCESS" && teamRes.data) {
               const backendTeamCode = teamRes.data.teamCode;
               // 백엔드 코드(HT) -> 프론트엔드 코드(KIA) 역매핑 찾기
-              const frontendTeamCode = Object.entries(TEAM_DATA).find(
-                ([_, data]) => data.backendCode === backendTeamCode
-              )?.[0];
+              const frontendTeamCode = BACKEND_TO_FRONTEND_TEAM_CODE[backendTeamCode];
               
               if (frontendTeamCode) {
                 setMyTeam(frontendTeamCode);
@@ -204,11 +211,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
                 // 🚨 [Data Sync] 백엔드에 자동 등록 시도
                 const backendCode = TEAM_DATA[savedTeam]?.backendCode;
                 if (backendCode) {
-                  await favoriteTeamAddAPI({ teamCode: backendCode });
+                  const addRes = await favoriteTeamAddAPI({ teamCode: backendCode });
+                  if (addRes.resultType !== "SUCCESS") {
+                    Logger.warn("[AuthContext] 백엔드 자동 등록 실패:", addRes.error?.message);
+                  }
                 }
               }
             }
-          } catch {
+          } catch (error) {
+            Logger.warn("[AuthContext] 응원팀 동기화 중 오류 발생 (로컬 폴백 진행):", error);
             // API 실패 시 로컬 스토리지로 폴백
             const savedTeam = await AsyncStorage.getItem(getMyTeamKey(tokenPayload.userId));
             if (savedTeam) {
@@ -389,7 +400,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   /**
-   * 응원팀 업데이트 함수 (Optimistic Update)
+   * 응원팀 업데이트 함수
+   * 
+   * Why: 백엔드 동기화 성공 후 UI 상태를 갱신하는 서버 우선(Pessimistic) 방식을 채택한다.
+   * 실패 시 이전 팀 상태를 유지하여 데이터 정합성을 보장한다.
    * 
    * @param teamName - 변경할 팀 명칭
    */
@@ -399,7 +413,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       // 1. 로그인 상태라면 백엔드와 동기화 시도
       if (isLoggedIn && user?.userId) {
         const backendCode = TEAM_DATA[teamName]?.backendCode;
-        if (backendCode) {
+        if (!backendCode) {
+          Logger.warn(`[AuthContext] backendCode 누락 - 동기화 스킵: ${teamName}`);
+        } else {
           let teamExists = false;
           try {
             const checkRes = await favoriteTeamGetAPI();

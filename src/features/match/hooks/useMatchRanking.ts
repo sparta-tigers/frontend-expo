@@ -19,7 +19,7 @@ export const useMatchRanking = (params: {
   return useQuery({
     queryKey: viewMode === "year" 
       ? ["ranking", "yearly", { year, leagueType }] 
-      : ["ranking", "daily", { date }],
+      : ["ranking", "daily", { date, leagueType }],
     queryFn: async () => {
       if (viewMode === "year") {
         if (!year || !leagueType) throw new Error("Year and LeagueType are required for yearly ranking");
@@ -29,7 +29,9 @@ export const useMatchRanking = (params: {
         return fetchDailyRanking(date, leagueType);
       }
     },
-    enabled: viewMode === "year" ? (!!year && !!leagueType) : !!date,
+    enabled: viewMode === "year" 
+      ? (!!year && !!leagueType) 
+      : (!!date && !!leagueType),
     staleTime: 1000 * 60 * 5, // 5분 캐싱
   });
 };

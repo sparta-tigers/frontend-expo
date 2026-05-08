@@ -14,6 +14,7 @@ import {
     favoriteTeamAddAPI,
     favoriteTeamDeleteAPI,
     favoriteTeamGetAPI,
+    favoriteTeamUpdateAPI,
 } from "@/src/features/user/favorite-team-api";
 import { useAuth } from "@/src/hooks/useAuth";
 import { Logger } from "@/src/utils/logger";
@@ -218,18 +219,22 @@ export default function ProfileScreen() {
   const handleSelectTeam = async (team: (typeof KBO_TEAMS)[number]) => {
     bottomSheetModalRef.current?.dismiss();
     try {
-      const response = await favoriteTeamAddAPI({
-        teamCode: team.code,
-      });
+      // 🚨 [State Sync] 기존 데이터 존재 여부에 따라 Add 또는 Update 호출
+      const checkRes = await favoriteTeamGetAPI();
+      const teamExists = checkRes.resultType === "SUCCESS" && !!checkRes.data;
+
+      const response = teamExists
+        ? await favoriteTeamUpdateAPI({ teamCode: team.code })
+        : await favoriteTeamAddAPI({ teamCode: team.code });
 
       if (response.resultType === "SUCCESS") {
-        Alert.alert("성공", `${team.name}을 즐겨찾기에 추가했습니다.`);
+        Alert.alert("성공", `${team.name}을 즐겨찾기에 ${teamExists ? "변경" : "추가"}했습니다.`);
         loadFavoriteTeam();
       } else {
-        Alert.alert("오류", "즐겨찾기 추가에 실패했습니다.");
+        Alert.alert("오류", `즐겨찾기 ${teamExists ? "변경" : "추가"}에 실패했습니다.`);
       }
     } catch (error) {
-      Logger.error("즐겨찾기 팀 추가 실패:", error);
+      Logger.error("즐겨찾기 팀 처리 실패:", error);
       Alert.alert("오류", "네트워크 에러가 발생했습니다.");
     }
   };

@@ -24,10 +24,13 @@ export const useUpdateItemStatus = (itemId: number) => {
       const previousItem = queryClient.getQueryData(["item", itemId]);
 
       // 낙관적 업데이트: UI 즉시 반영
-      queryClient.setQueryData(["item", itemId], (old: Item | undefined) => ({
-        ...old,
-        status: newStatus,
-      }));
+      queryClient.setQueryData(["item", itemId], (old: Item | undefined) => {
+        if (!old) return old;
+        return {
+          ...old,
+          status: newStatus,
+        };
+      });
 
       return { previousItem };
     },
