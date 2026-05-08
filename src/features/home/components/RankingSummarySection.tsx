@@ -2,7 +2,8 @@ import React from "react";
 import { Box, Typography } from "@/components/ui";
 import { RankingRowDto } from "../types";
 import { theme } from "@/src/styles/theme";
-import { StyleSheet } from "react-native";
+import { StyleSheet, TouchableOpacity } from "react-native";
+import { router } from "expo-router";
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -32,9 +33,14 @@ export const RankingSummarySection = React.memo(function RankingSummarySection({
 
   return (
     <Box mt="xl" px="xxxl">
-      <Typography variant="h3" weight="bold" center mb="md">
-        오늘의 우리 팀 순위는 {myTeamRank}위예요
-      </Typography>
+      <TouchableOpacity 
+        activeOpacity={0.7} 
+        onPress={() => router.push({ pathname: "/schedule", params: { view: "year" } })}
+      >
+        <Typography variant="h3" weight="bold" center mb="md">
+          오늘의 우리 팀 순위는 {myTeamRank}위예요
+        </Typography>
+      </TouchableOpacity>
 
       <Box gap="sm">
         {ranking.map((row) => (

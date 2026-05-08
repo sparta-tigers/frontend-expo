@@ -1,18 +1,21 @@
 import { Box, Typography } from "@/components/ui";
 import { theme } from "@/src/styles/theme";
-import { Stack, useLocalSearchParams } from "expo-router";
-import React, { useMemo, useState } from "react";
+import { Stack, useLocalSearchParams, router } from "expo-router";
+import React, { useMemo } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { TEAM_DATA, TeamCode } from "@/src/utils/team";
 import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
 import { useAuth } from "@/context/AuthContext";
 import { useMatchSchedule } from "@/src/features/match/hooks/useMatchSchedule";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScheduleSkeleton } from "@/src/features/home/components/ScheduleSkeleton";
 
 // ========================================================
-// 화면 전용 레이아웃 상수 (theme 비대화 방지)
+// 타입 및 상수 정의 (Strict Rule: 매직 스트링 방지)
 // ========================================================
+export type ScheduleViewMode = "year" | "day";
+
 const LOCAL_LAYOUT = {
   teamLogoSubFontSize: theme.typography.size.TITLE,
   teamLogoMarginTop: -4,
@@ -42,152 +45,205 @@ const LOCAL_LAYOUT = {
  * - 좌측 꺽쇠(화살표)로 연도/월 이동 기능 활성화
  */
 export default function ScheduleScreen() {
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ 
-    view?: string; 
+    view?: ScheduleViewMode; 
     day?: string;
     year?: string;
     month?: string;
   }>();
   
   const { myTeam: myTeamId } = useAuth();
-  
-  // [Architecture] Zero-Magic: TEAM_DATA를 직접 참조하여 런타임 오버헤드 최소화
   const teamInfo = myTeamId ? TEAM_DATA[myTeamId] : null;
+  const teamColor = teamInfo?.color || theme.colors.team.fallback;
+
+  // [Strict Rule] URL 파라미터를 단일 진실 원천(SSOT)으로 사용
+  const view: ScheduleViewMode = params.view === "day" ? "day" : "year";
   
-  const initialView = params.view === "day" ? "day" : "year";
-  
-  // [RC-7] URL 파라미터를 소스로 사용하여 결정론적 상태 초기화
-  const initialDate = useMemo(() => {
+  const currentDate = useMemo(() => {
     const y = params.year ? parseInt(params.year) : 2026;
-    const m = params.month ? parseInt(params.month) : 2; // March
+    const m = params.month ? parseInt(params.month) : 2; // March (0-indexed)
     const d = params.day ? parseInt(params.day) : 1;
     return new Date(y, m, d);
   }, [params.year, params.month, params.day]);
 
-  const [view, setView] = useState<"year" | "day">(initialView);
-  const [currentDate, setCurrentDate] = useState(initialDate);
+  const dateText = view === "year"
+    ? `${currentDate.getFullYear()}년`
+    : `${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월`;
 
-  // 🚨 앙드레 카파시: 라우트 파라미터 변경 시 상태 동기화 (외부 진입 대응)
-  // Why: 이미 마운트된 상태에서 다른 파라미터로 재진입 시 상태가 갱신되지 않는 문제 해결
-  React.useEffect(() => {
-    if (params.view === "day" || params.view === "year") {
-      setView(params.view as "year" | "day");
-    }
-    
-    if (params.year || params.month || params.day) {
-      const y = params.year ? parseInt(params.year) : 2026;
-      const m = params.month ? parseInt(params.month) : 2;
-      const d = params.day ? parseInt(params.day) : 1;
-      setCurrentDate(new Date(y, m, d));
-    }
-  }, [params.view, params.year, params.month, params.day]);
+  const handleDateChange = (newDate: Date) => {
+    router.setParams({
+      year: newDate.getFullYear().toString(),
+      month: newDate.getMonth().toString(),
+      day: newDate.getDate().toString(),
+    });
+  };
 
   const handlePrev = () => {
-    setCurrentDate((prev) => {
-      const newDate = new Date(prev);
-      if (view === "year") {
-        newDate.setFullYear(prev.getFullYear() - 1);
-      } else {
-        // 🚨 앙드레 카파시: 날짜 불변성 유지 및 Overflow 방지
-        // Why: 31일에서 30일/28일 월로 이동 시 March로 튀는 현상 방지 위해 1일로 세팅 후 이동
-        newDate.setDate(1);
-        newDate.setMonth(prev.getMonth() - 1);
-      }
-      return newDate;
-    });
+    const newDate = new Date(currentDate);
+    if (view === "year") {
+      newDate.setFullYear(currentDate.getFullYear() - 1);
+    } else {
+      newDate.setDate(1);
+      newDate.setMonth(currentDate.getMonth() - 1);
+    }
+    handleDateChange(newDate);
   };
 
   const handleNext = () => {
-    setCurrentDate((prev) => {
-      const newDate = new Date(prev);
-      if (view === "year") {
-        newDate.setFullYear(prev.getFullYear() + 1);
-      } else {
-        // 🚨 앙드레 카파시: 날짜 불변성 유지 및 Overflow 방지 위해 1일로 세팅 후 이동
-        newDate.setDate(1);
-        newDate.setMonth(prev.getMonth() + 1);
-      }
-      return newDate;
-    });
+    const newDate = new Date(currentDate);
+    if (view === "year") {
+      newDate.setFullYear(currentDate.getFullYear() + 1);
+    } else {
+      newDate.setDate(1);
+      newDate.setMonth(currentDate.getMonth() + 1);
+    }
+    handleDateChange(newDate);
   };
-
-  const dateText =
-    view === "year"
-      ? `${currentDate.getFullYear()}년`
-      : `${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월`;
-
-  const teamColor = teamInfo?.color || theme.colors.team.fallback;
 
   return (
     <Box style={styles.safeLayout}>
-      <Stack.Screen 
-        options={{ 
-          headerShown: true,
-          headerTitle: teamInfo ? `${teamInfo.name} 일정` : "경기 일정",
-          headerStyle: { backgroundColor: theme.colors.brand.background },
-          headerShadowVisible: false,
-        }} 
-      />
+      <Stack.Screen options={{ headerShown: false }} />
 
-      {/* 2. 공통 필터 영역 (Toggle, Date, League) */}
+      {/* 1. 커스텀 팀 브랜딩 헤더 (UX 방어: 뒤로가기 버튼 포함) */}
+      <Box style={[styles.brandingHeader, { paddingTop: insets.top + theme.spacing.lg }]}>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => router.back()}
+          activeOpacity={0.7}
+        >
+          <MaterialIcons name="arrow-back-ios" size={24} color={theme.colors.text.primary} />
+        </TouchableOpacity>
+
+        <Box align="center">
+          <Typography variant="h1" weight="black" style={styles.brandingMascot}>
+            {teamInfo?.mascotEmoji || "⚾"}
+          </Typography>
+          <Typography 
+            variant="h2" 
+            weight="black" 
+            style={[styles.brandingName, { color: teamColor }]}
+          >
+            {teamInfo?.name.toUpperCase() || "YAGUNIV"}
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* 2. 분리된 레이아웃 렌더링 (Strict Rule: 캡슐화) */}
+      {view === "year" ? (
+        <RankingViewLayout 
+          myTeamId={myTeamId}
+          dateText={dateText}
+          teamColor={teamColor}
+          onPrev={handlePrev}
+          onNext={handleNext}
+          onSwitchToDay={() => router.setParams({ view: "day" })}
+        />
+      ) : (
+        <CalendarViewLayout 
+          myTeamId={myTeamId}
+          currentDate={currentDate}
+          dateText={dateText}
+          teamColor={teamColor}
+          onPrev={handlePrev}
+          onNext={handleNext}
+        />
+      )}
+    </Box>
+  );
+}
+
+/**
+ * [RankingViewLayout] 
+ * 이미지 1에 최적화된 수평 필터 레이아웃 캡슐화
+ */
+function RankingViewLayout({ 
+  myTeamId, 
+  dateText, 
+  teamColor, 
+  onPrev, 
+  onNext,
+  onSwitchToDay
+}: { 
+  myTeamId: TeamCode | null;
+  dateText: string;
+  teamColor: string;
+  onPrev: () => void;
+  onNext: () => void;
+  onSwitchToDay: () => void;
+}) {
+  return (
+    <>
       <Box style={styles.filterSection}>
         <Box style={styles.filterRow}>
-          {/* 일자별 / 연도별 토글 */}
           <Box style={styles.toggleGroup}>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => setView("day")}
-              style={[styles.togglePill, view === "day" && styles.togglePillActive]}
-            >
-              <Typography style={[styles.togglePillText, view === "day" && styles.togglePillTextActive]}>
-                일자별
-              </Typography>
+            <TouchableOpacity activeOpacity={0.8} onPress={onSwitchToDay} style={styles.togglePill}>
+              <Typography style={styles.togglePillText}>일자별</Typography>
             </TouchableOpacity>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => setView("year")}
-              style={[styles.togglePill, view === "year" && styles.togglePillActive]}
-            >
-              <Typography style={[styles.togglePillText, view === "year" && styles.togglePillTextActive]}>
-                연도별
-              </Typography>
+            <TouchableOpacity activeOpacity={0.8} style={[styles.togglePill, styles.togglePillActive]}>
+              <Typography style={[styles.togglePillText, styles.togglePillTextActive]}>연도별</Typography>
             </TouchableOpacity>
           </Box>
 
-          {/* 중앙: 날짜 선택기 */}
           <Box style={styles.dateSelector}>
-            <TouchableOpacity activeOpacity={0.7} onPress={handlePrev} style={styles.iconButton} accessibilityRole="button" accessibilityLabel="이전">
-              <MaterialIcons name="chevron-left" size={28} color={theme.colors.team.neutralDark} />
-            </TouchableOpacity>
-            <Typography variant="h1" style={styles.dateText}>{dateText}</Typography>
-            <TouchableOpacity activeOpacity={0.7} onPress={handleNext} style={styles.iconButton} accessibilityRole="button" accessibilityLabel="다음">
-              <MaterialIcons name="chevron-right" size={28} color={theme.colors.team.neutralDark} />
-            </TouchableOpacity>
+            <TouchableOpacity onPress={onPrev} style={styles.iconButton}><MaterialIcons name="chevron-left" size={32} color={theme.colors.team.neutralDark} /></TouchableOpacity>
+            <Typography variant="h1" weight="bold" style={styles.dateText}>{dateText}</Typography>
+            <TouchableOpacity onPress={onNext} style={styles.iconButton}><MaterialIcons name="chevron-right" size={32} color={theme.colors.team.neutralDark} /></TouchableOpacity>
           </Box>
 
-          {/* 우측: 정규리그 드롭다운 */}
-          <TouchableOpacity 
-            activeOpacity={0.8} 
-            style={[styles.leagueDropdown, { borderColor: teamColor }]}
-          >
+          <TouchableOpacity style={[styles.leagueDropdown, { borderColor: teamColor }]}>
             <Typography style={[styles.leagueDropdownText, { color: teamColor }]}>정규리그</Typography>
             <MaterialIcons name="keyboard-arrow-down" size={theme.typography.size.md} color={teamColor} />
           </TouchableOpacity>
         </Box>
       </Box>
+      <Main1RankingView myTeamId={myTeamId} />
+    </>
+  );
+}
 
-      {/* 3. 본문 렌더링 (main_1 or main_2) */}
-      {view === "year" ? (
-        <Main1RankingView />
-      ) : (
-        <Main2CalendarView 
-          year={currentDate.getFullYear()} 
-          month={currentDate.getMonth()} 
-          selectedDay={currentDate.getDate()}
-          teamId={myTeamId}
-        />
-      )}
-    </Box>
+/**
+ * [CalendarViewLayout]
+ * 이미지 2에 최적화된 중앙 정렬 수직 필터 레이아웃 캡슐화 (토글 없음)
+ */
+function CalendarViewLayout({ 
+  myTeamId, 
+  currentDate, 
+  dateText, 
+  teamColor, 
+  onPrev, 
+  onNext 
+}: { 
+  myTeamId: TeamCode | null;
+  currentDate: Date;
+  dateText: string;
+  teamColor: string;
+  onPrev: () => void;
+  onNext: () => void;
+}) {
+  return (
+    <>
+      <Box style={styles.filterSection}>
+        <Box style={styles.filterRowColumn}>
+          <TouchableOpacity style={[styles.leagueDropdown, styles.leagueDropdownCenter, { borderColor: teamColor }]}>
+            <Typography style={[styles.leagueDropdownText, { color: teamColor }]}>정규리그</Typography>
+            <MaterialIcons name="keyboard-arrow-down" size={theme.typography.size.md} color={teamColor} />
+          </TouchableOpacity>
+
+          <Box style={styles.dateSelector}>
+            <TouchableOpacity onPress={onPrev} style={styles.iconButton}><MaterialIcons name="chevron-left" size={32} color={theme.colors.team.neutralDark} /></TouchableOpacity>
+            <Typography variant="h1" weight="bold" style={styles.dateText}>{dateText}</Typography>
+            <TouchableOpacity onPress={onNext} style={styles.iconButton}><MaterialIcons name="chevron-right" size={32} color={theme.colors.team.neutralDark} /></TouchableOpacity>
+          </Box>
+        </Box>
+      </Box>
+      <Main2CalendarView 
+        year={currentDate.getFullYear()} 
+        month={currentDate.getMonth()} 
+        selectedDay={currentDate.getDate()}
+        teamId={myTeamId}
+      />
+    </>
   );
 }
 
@@ -196,7 +252,7 @@ export default function ScheduleScreen() {
  * [main_1] 연도별 토글 시: 상세 랭킹 UI
  * ========================================================
  */
-function Main1RankingView() {
+function Main1RankingView({ myTeamId }: { myTeamId: TeamCode | null }) {
   const rankingData = useFakeRankingData();
 
   return (
@@ -215,7 +271,8 @@ function Main1RankingView() {
       {/* 랭킹 리스트 */}
       <Box style={styles.rankingList}>
         {rankingData.map((row) => {
-          const isMyTeam = !!row.isMyTeam;
+          // [Strict Rule] myTeamId와 backendCode 직접 비교하여 하이라이트 결정
+          const isMyTeam = myTeamId && TEAM_DATA[myTeamId]?.backendCode === row.team.backendCode;
           return (
             <Box key={row.team.name} style={styles.rankingRow}>
               <Typography variant="h1" style={[styles.rankNumberText, isMyTeam && styles.myTeamRankNumber]}>{row.rank}</Typography>
@@ -275,7 +332,7 @@ function Main2CalendarView({
   return (
     <ScrollView style={styles.contentScroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContentPad}>
       <Box style={styles.calendarWrap}>
-        {/* 요일 헤더 */}
+        {/* 요일 헤더 (Strict Rule: surface 계열 배경색 적용) */}
         <Box style={styles.calendarHeader}>
           {weekDays.map((d, idx) => (
             <Box key={d} style={styles.calendarHeaderCell}>
@@ -346,7 +403,7 @@ function useFakeRankingData() {
       { rank: 5, team: { name: "NC 다이노스", shortName: "NC", subName: "다이노스", mascotEmoji: "🦖", color: theme.colors.team.nc, backendCode: "NC" }, games: 144, win: 71, lose: 67, draw: 6, winRate: 0.514 },
       { rank: 6, team: { name: "KT 위즈", shortName: "KT", subName: "위즈", mascotEmoji: "🧙", color: theme.colors.team.kt, backendCode: "KT" }, games: 144, win: 71, lose: 68, draw: 5, winRate: 0.511 },
       { rank: 7, team: { name: "롯데 자이언츠", shortName: "롯데", subName: "자이언츠", mascotEmoji: "⚓", color: theme.colors.team.lotte, backendCode: "LT" }, games: 144, win: 66, lose: 72, draw: 6, winRate: 0.478 },
-      { rank: 8, team: { name: "KIA 타이거즈", shortName: "KIA", subName: "타이거즈", mascotEmoji: "🐯", color: theme.colors.team.kia, backendCode: "HT" }, games: 144, win: 65, lose: 75, draw: 4, winRate: 0.464, isMyTeam: true },
+      { rank: 8, team: { name: "KIA 타이거즈", shortName: "KIA", subName: "타이거즈", mascotEmoji: "🐯", color: theme.colors.team.kia, backendCode: "HT" }, games: 144, win: 65, lose: 75, draw: 4, winRate: 0.464 },
       { rank: 9, team: { name: "두산 베어스", shortName: "두산", subName: "베어스", mascotEmoji: "🐻", color: theme.colors.team.doosan, backendCode: "OB" }, games: 144, win: 61, lose: 77, draw: 6, winRate: 0.442 },
       { rank: 10, team: { name: "키움 히어로즈", shortName: "키움", subName: "키움", mascotEmoji: "🦸", color: theme.colors.team.kiwoom, backendCode: "WO" }, games: 144, win: 47, lose: 93, draw: 4, winRate: 0.336 },
     ];
@@ -371,8 +428,33 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    flexWrap: "wrap",
     gap: theme.spacing.md,
+  },
+  filterRowColumn: {
+    flexDirection: "column",
+    justifyContent: "center",
+    gap: theme.spacing.sm,
+  },
+  brandingHeader: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: theme.spacing.xl,
+    position: "relative",
+  },
+  backButton: {
+    position: "absolute",
+    left: theme.spacing.xl,
+    top: "100%", // 브랜딩 로고 높이에 맞춤
+    zIndex: 10,
+    padding: theme.spacing.xs,
+  },
+  brandingMascot: {
+    fontSize: 48,
+    marginBottom: theme.spacing.xs,
+  },
+  brandingName: {
+    letterSpacing: 2,
+    fontSize: theme.typography.size.xxl,
   },
   toggleGroup: {
     flexDirection: "row",
@@ -419,16 +501,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: theme.spacing.xs,
-    paddingHorizontal: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.xs,
     borderRadius: theme.radius.full,
     borderWidth: 1,
-    borderColor: theme.colors.team.kiaRed,
+  },
+  leagueDropdownCenter: {
+    alignSelf: "center",
   },
   leagueDropdownText: {
     fontSize: LOCAL_LAYOUT.dropdownLabelFontSize,
     fontWeight: theme.typography.weight.bold,
-    color: theme.colors.team.kiaRed,
   },
   contentScroll: {
     flex: 1,
@@ -517,10 +600,12 @@ const styles = StyleSheet.create({
   },
   calendarHeader: {
     flexDirection: "row",
-    backgroundColor: theme.colors.team.neutralLight,
+    backgroundColor: theme.colors.surface, // Strict Rule: surface 계열 배경색
     borderTopLeftRadius: theme.radius.dashboardCard,
     borderTopRightRadius: theme.radius.dashboardCard,
     height: LOCAL_LAYOUT.calendarHeaderHeight,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.team.neutralLight,
   },
   calendarHeaderCell: {
     flex: 1,
