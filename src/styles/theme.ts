@@ -243,6 +243,7 @@ export const theme = {
     },
   },
   radius: {
+    xxs: 2,
     sm: 4,
     md: 8,
     lg: 12,
@@ -292,11 +293,6 @@ export const theme = {
       bottomPadding: 100,
     },
     /** 전역 헤더 레이아웃 토큰 */
-    header: {
-      backIconSize: 36,
-      titleFontSize: 22,
-      profileIconSize: 28,
-    },
     auth: {
       headerHeight: 80,
       headerIconBox: 24,
@@ -331,6 +327,13 @@ export const theme = {
       calendarCellHeight: 61,
       calendarRadius: 13, // 12.687 반올림; 정수화하여 렌더링 일관성 확보
       matchListBottomPadding: 40,
+      activeOpacity: 0.7,
+    },
+    header: {
+      backIconSize: 36,
+      titleFontSize: 22,
+      profileIconSize: 28,
+      standardHeight: 60,
     },
     tabBar: {
       badgeSize: 8,

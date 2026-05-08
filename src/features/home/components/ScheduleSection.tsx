@@ -93,7 +93,7 @@ export const ScheduleSection = React.memo(function ScheduleSection({
             return (
               <TouchableOpacity
                 key={`${cell.day}-${idx}`}
-                activeOpacity={0.85}
+                activeOpacity={theme.layout.dashboard.activeOpacity}
                 disabled={isEmpty || !cell.hasGame}
                 onPress={() =>
                   router.push({
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   todayCell: {
-    borderWidth: 1.5,
+    borderWidth: theme.layout.dashboard.rankingMyTeamBorderWidth,
     borderColor: theme.colors.brand.mint,
     zIndex: 10, // 보더가 겹칠 때 위로 올라오도록
   },

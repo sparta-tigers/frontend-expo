@@ -102,16 +102,16 @@ export const ScheduleSkeleton = () => {
 const styles = StyleSheet.create({
   titleSkeleton: {
     width: 180,
-    height: 20,
+    height: theme.layout.dashboard.sectionTitleHeight,
     backgroundColor: theme.colors.team.neutralLight,
     borderRadius: theme.radius.sm,
   },
   headerDaySkeleton: {
-    width: 16,
-    height: 12,
+    width: theme.spacing.lg,
+    height: theme.spacing.md,
     backgroundColor: theme.colors.card, // 헤더 배경 대비 가독성 있는 배경색
     opacity: 0.5,
-    borderRadius: 2,
+    borderRadius: theme.radius.xxs,
   },
   cell: {
     width: LOCAL_LAYOUT.cellWidth,
@@ -124,21 +124,21 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   dayNumSkeleton: {
-    width: 14,
-    height: 10,
+    width: theme.spacing.lg,
+    height: theme.spacing.sm,
     backgroundColor: theme.colors.team.neutralLight,
-    borderRadius: 2,
+    borderRadius: theme.radius.xxs,
   },
   badgeSkeleton: {
-    width: 36,
-    height: 18,
+    width: theme.spacing.xxxl,
+    height: theme.spacing.lg,
     backgroundColor: theme.colors.team.neutralLight,
     borderRadius: theme.radius.round,
   },
   timeSkeleton: {
-    width: 28,
-    height: 8,
+    width: theme.spacing.xxl,
+    height: theme.spacing.sm,
     backgroundColor: theme.colors.team.neutralLight,
-    borderRadius: 2,
+    borderRadius: theme.radius.xxs,
   },
 });

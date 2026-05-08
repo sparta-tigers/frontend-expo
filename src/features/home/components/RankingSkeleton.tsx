@@ -64,26 +64,26 @@ export const RankingSkeleton = () => {
 const styles = StyleSheet.create({
   titleSkeleton: {
     width: "70%",
-    height: 20,
+    height: theme.layout.dashboard.sectionTitleHeight,
     backgroundColor: theme.colors.team.neutralLight,
-    borderRadius: 4,
+    borderRadius: theme.radius.sm,
   },
   rankSkeleton: {
-    width: 20,
-    height: 20,
+    width: theme.spacing.xl,
+    height: theme.spacing.xl,
     backgroundColor: theme.colors.team.neutralLight,
-    borderRadius: 4,
+    borderRadius: theme.radius.sm,
   },
   pillSkeleton: {
     flex: 1,
     height: theme.layout.dashboard.rankingRowHeight,
     backgroundColor: theme.colors.card,
-    borderRadius: 999,
+    borderRadius: theme.radius.full,
     ...theme.shadow.card,
   },
   myTeamHighlight: {
     height: theme.layout.dashboard.rankingRowHeightActive,
     borderColor: theme.colors.team.neutralLight,
-    borderWidth: 1,
-  }
+    borderWidth: StyleSheet.hairlineWidth,
+  },
 });

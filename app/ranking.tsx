@@ -100,13 +100,13 @@ export default function RankingScreen() {
         borderColor="team.neutralLight"
       >
         <Box 
-          height={60} 
+          height={theme.layout.header.standardHeight} 
           flexDir="row" 
           align="center" 
           justify="space-between"
         >
-          <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
-            <MaterialIcons name="arrow-back-ios" size={24} color={theme.colors.brand.subtitle} />
+          <TouchableOpacity onPress={() => router.back()} activeOpacity={theme.layout.dashboard.activeOpacity}>
+            <MaterialIcons name="arrow-back-ios" size={theme.layout.header.profileIconSize} color={theme.colors.brand.subtitle} />
           </TouchableOpacity>
           
           {/* View Mode Toggle (URL-driven) */}
@@ -225,9 +225,9 @@ export default function RankingScreen() {
             {/* Table Header */}
             <Box 
               flexDir="row" 
-              height={40} 
+              height={theme.layout.dashboard.calendarHeaderHeight} 
               align="center" 
-              borderBottomWidth={1} 
+              borderBottomWidth={StyleSheet.hairlineWidth} 
               borderColor="team.neutralLight"
               bg="background"
             >
@@ -316,17 +316,17 @@ const styles = StyleSheet.create({
   },
   myTeamRow: {
     backgroundColor: theme.colors.background,
-    borderWidth: 1.5,
+    borderWidth: theme.layout.dashboard.rankingMyTeamBorderWidth,
     borderColor: theme.colors.brand.mint,
   },
   normalRow: {
     borderWidth: 0,
   },
   mascotEmoji: {
-    fontSize: 40,
+    fontSize: theme.typography.size.TITLE,
   },
   teamIconText: {
-    fontSize: 16,
+    fontSize: theme.typography.size.md,
   },
   navArrow: {
     padding: 4,
