@@ -1,3 +1,5 @@
+import * as Notifications from "expo-notifications";
+import { Subscription } from "expo-notifications";
 import Constants from "expo-constants";
 import * as Device from "expo-device";
 import { useRouter } from "expo-router";
@@ -8,30 +10,7 @@ import { apiClient } from "@/src/core/client";
 import { useAuth } from "@/src/hooks/useAuth";
 import { Logger, maskSensitive } from "@/src/utils/logger";
 
-// 타입 정의
-interface NotificationType {
-  request: {
-    content: {
-      title: string;
-      body: string;
-      data?: any;
-    };
-  };
-}
 
-interface NotificationResponse {
-  notification: NotificationType;
-  actionIdentifier?: string;
-}
-
-// 안드로이드 Expo Go 환경에서 푸시 알림 임포트 방어
-let Notifications: any = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  Notifications = require("expo-notifications");
-} catch (error) {
-  Logger.warn("expo-notifications를 임포트할 수 없습니다:", error);
-}
 
 /**
  * 푸시 알림 훅
@@ -39,7 +18,7 @@ try {
  */
 export function usePushNotifications() {
   const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
-  const [notification, setNotification] = useState<NotificationType | null>(
+  const [notification, setNotification] = useState<Notifications.Notification | null>(
     null,
   );
   const router = useRouter();
@@ -52,8 +31,8 @@ export function usePushNotifications() {
       return;
     }
 
-    let notificationListener: any = undefined;
-    let responseListener: any = undefined;
+    let notificationListener: Subscription | undefined = undefined;
+    let responseListener: Subscription | undefined = undefined;
 
     // 권한 요청 및 토큰 발급 비동기 함수
     const registerForPushNotificationsAsync = async () => {
@@ -125,7 +104,7 @@ export function usePushNotifications() {
     // 리스너 등록
     if (Notifications) {
       notificationListener = Notifications.addNotificationReceivedListener(
-        (receivedNotification: NotificationType) => {
+        (receivedNotification) => {
           Logger.debug("알림 수신:", receivedNotification);
           setNotification(receivedNotification);
         },
@@ -133,11 +112,12 @@ export function usePushNotifications() {
 
       // 🚨 앙드레 카파시: 알림 응답 리스너 (딥링킹)
       responseListener = Notifications.addNotificationResponseReceivedListener(
-        (response: NotificationResponse) => {
+        (response) => {
           Logger.debug("알림 응답:", response);
 
           // 🚨 앙드레 카파시: 딥링킹 처리
-          const { roomId } = response.notification.request.content.data || {};
+          const data = response.notification.request.content.data as { roomId?: string };
+          const { roomId } = data || {};
           if (roomId) {
             Logger.debug("🔗 [Deep Link] 채팅방으로 이동:", roomId);
             router.push(`/exchange/chat/${roomId}`);

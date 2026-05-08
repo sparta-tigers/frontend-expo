@@ -1,3 +1,4 @@
+import { Item } from "@/src/features/exchange/items";
 import { itemsUpdateStatusAPI } from "@/src/features/exchange/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Alert } from "react-native";
@@ -23,7 +24,7 @@ export const useUpdateItemStatus = (itemId: number) => {
       const previousItem = queryClient.getQueryData(["item", itemId]);
 
       // 낙관적 업데이트: UI 즉시 반영
-      queryClient.setQueryData(["item", itemId], (old: any) => ({
+      queryClient.setQueryData(["item", itemId], (old: Item | undefined) => ({
         ...old,
         status: newStatus,
       }));
