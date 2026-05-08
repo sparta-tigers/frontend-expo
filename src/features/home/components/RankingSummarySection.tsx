@@ -16,7 +16,7 @@ const LOCAL_LAYOUT = {
   pillHeightActive: theme.layout.dashboard.rankingRowHeightActive,
   teamAreaWidth: theme.layout.dashboard.myTeamMiniCardSize * 2,
   badgeSize: theme.spacing.xxl,
-  statTextWidth: theme.spacing.xxl,
+  statTextWidth: 42, // 🚨 앙드레 카파시: 승률(0.000)이 잘리지 않도록 고정 폭 확보 (Spacing 토큰 오용 금지)
 } as const;
 
 interface RankingSummarySectionProps {
@@ -106,42 +106,51 @@ const RankingRow = React.memo(function RankingRow({ row, isMyTeam }: RankingRowP
           isMyTeam && styles.pillActiveBorder
         ]}
       >
-        <Box flexDir="row" align="center" gap="sm" width={LOCAL_LAYOUT.teamAreaWidth}>
-          <Box 
-            width={LOCAL_LAYOUT.badgeSize} 
-            height={LOCAL_LAYOUT.badgeSize} 
-            rounded="full" 
-            bg="surface" 
-            align="center" 
-            justify="center"
-          >
-            <Typography style={styles.teamEmoji}>
-              {teamInfo?.mascotEmoji || "⚾"}
+      <Box 
+        flex={1} 
+        flexDir="row" 
+        align="center" 
+        gap="sm" 
+        style={styles.teamContainer}
+      >
+        <Box 
+          width={LOCAL_LAYOUT.badgeSize} 
+          height={LOCAL_LAYOUT.badgeSize} 
+          rounded="full" 
+          bg="surface" 
+          align="center" 
+          justify="center"
+        >
+          <Typography style={styles.teamEmoji}>
+            {teamInfo?.mascotEmoji || "⚾"}
+          </Typography>
+        </Box>
+        <Typography 
+          variant="caption" 
+          weight="bold" 
+          color={isMyTeam ? "brand.mint" : "primary"}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+          style={styles.teamName}
+        >
+          {teamInfo?.name || row.teamName}
+        </Typography>
+        {isMyTeam && (
+          <Box bg="brand.mint" px="xxs" rounded="sm" style={styles.myBadge}>
+            <Typography variant="caption" weight="bold" color="card">MY</Typography>
+          </Box>
+        )}
+      </Box>
+
+      <Box flexDir="row" align="center" gap="sm" style={styles.statsContainer}>
+        {[row.matchCount, row.winCount, row.loseCount, row.drawCount, row.winRate.toFixed(3)].map((stat, i) => (
+          <Box key={i} width={LOCAL_LAYOUT.statTextWidth} align="center">
+            <Typography variant="caption" color="text.secondary" numberOfLines={1}>
+              {stat}
             </Typography>
           </Box>
-          <Typography 
-            variant="caption" 
-            weight="bold" 
-            color={isMyTeam ? "brand.mint" : "primary"}
-          >
-            {teamInfo?.name || row.teamName}
-          </Typography>
-          {isMyTeam && (
-            <Box bg="brand.mint" px="xxs" rounded="sm">
-              <Typography variant="caption" weight="bold" color="card">MY</Typography>
-            </Box>
-          )}
-        </Box>
-
-        <Box flexDir="row" align="center" gap="sm">
-          {[row.matchCount, row.winCount, row.loseCount, row.drawCount, row.winRate.toFixed(3)].map((stat, i) => (
-            <Box key={i} width={LOCAL_LAYOUT.statTextWidth} align="center">
-              <Typography variant="caption" color="text.secondary">
-                {stat}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
+        ))}
+      </Box>
       </Box>
     </Box>
   );
@@ -157,6 +166,18 @@ const styles = StyleSheet.create({
   },
   teamEmoji: {
     fontSize: 14,
+  },
+  teamContainer: {
+    flexShrink: 1,
+  },
+  teamName: {
+    flexShrink: 1,
+  },
+  statsContainer: {
+    flexShrink: 0,
+  },
+  myBadge: {
+    flexShrink: 0,
   }
 });
 
