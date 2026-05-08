@@ -8,7 +8,7 @@
 import { StyleSheet } from "react-native";
 import { theme } from "@/src/styles/theme";
 import { TeamDto } from "@/src/features/home/types";
-import { ThemeColorPath } from "@/components/ui/box";
+import { ThemeColorPath } from "@/src/shared/types/theme";
 
 /**
  * KBO 10개 구단 상세 데이터 맵

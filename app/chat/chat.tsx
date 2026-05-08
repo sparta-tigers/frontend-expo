@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { useTheme } from "@/hooks/useTheme";
 import { chatroomsGetListAPI } from "@/src/features/chat/api";
-import { DirectRoomResponse } from "@/src/features/chat/types";
+import { DirectRoomResponse, DirectRoomListResponse } from "@/src/features/chat/types";
 import { ApiResponse } from "@/src/shared/types/common";
 import {
     BORDER_RADIUS,
@@ -129,9 +129,10 @@ export default function ChatListScreen() {
   const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["chatRooms"],
     queryFn: async (): Promise<DirectRoomResponse[]> => {
-      const response: ApiResponse<any> = await chatroomsGetListAPI(0, 50); // 임시 페이지네이션
+      const response: ApiResponse<DirectRoomListResponse> = await chatroomsGetListAPI(0, 50); // 임시 페이지네이션
       if (response.resultType === "SUCCESS" && response.data) {
-        return response.data.content || [];
+        // DirectRoomListResponse.rooms가 실제 배열임
+        return response.data.rooms || [];
       }
       throw new Error(response.error?.message || "채팅방 목록을 불러오는데 실패했습니다.");
     },

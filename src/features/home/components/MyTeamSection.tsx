@@ -1,5 +1,5 @@
-import { Box, ThemeColorPath } from "@/components/ui/box";
-import { Typography } from "@/components/ui/typography";
+import { Box, Typography } from "@/components/ui";
+import { ThemeColorPath } from "@/src/shared/types/theme";
 import { theme } from "@/src/styles/theme";
 import { TEAM_DATA, TeamCode, getTeamColorPath, isValidTeamCode } from "@/src/utils/team";
 import { MaterialIcons } from "@expo/vector-icons";
