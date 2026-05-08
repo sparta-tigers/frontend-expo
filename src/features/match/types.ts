@@ -17,3 +17,24 @@ export interface MatchScheduleResponse {
   data: MatchScheduleDto[];
   message?: string;
 }
+
+export type LeagueType = "REGULAR" | "PRESEASON" | "POST_SEASON";
+
+export interface RankingRowDto {
+  leagueType: LeagueType;
+  rank: number;
+  teamId: number;
+  teamName: string;
+  teamCode: string; // 백엔드 TeamCode Enum (HT, LG 등)
+  matchCount: number;
+  winCount: number;
+  loseCount: number;
+  drawCount: number;
+  winRate: number;
+}
+
+export interface TeamRankingResponse {
+  resultType: "SUCCESS" | "ERROR";
+  data: RankingRowDto[];
+  message?: string;
+}

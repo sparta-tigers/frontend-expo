@@ -193,6 +193,7 @@ export const theme = {
     warning: "#F59E0B",
     error: "#EF4444",
     info: "#3B82F6",
+    transparent: "transparent",
   },
   spacing: {
     xxs: 2,

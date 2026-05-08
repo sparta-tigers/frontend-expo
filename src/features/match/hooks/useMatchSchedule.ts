@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchMatchScheduleAPI } from "../api";
+import { fetchMatchSchedule } from "../api";
 import { TeamCode } from "@/src/utils/team";
 
 /**
@@ -18,7 +18,8 @@ export const useMatchSchedule = (year: number, month: number, teamId: TeamCode |
     // Why: ['matches', 'schedule'] 프리픽스를 통해 팀 변경 시 특정 팀만 날리거나 전체 무효화 가능.
     queryKey: ["matches", "schedule", { teamId, year, month }],
     queryFn: async () => {
-      const response = await fetchMatchScheduleAPI(year, month);
+      if (!teamId) throw new Error("팀 정보가 없습니다.");
+      const response = await fetchMatchSchedule(teamId, year, month);
       
       if (response.resultType === "SUCCESS") {
         return response.data;
@@ -28,5 +29,6 @@ export const useMatchSchedule = (year: number, month: number, teamId: TeamCode |
     },
     // 일정 데이터는 자주 변경되지 않으므로 5분간 신선도 유지
     staleTime: 1000 * 60 * 5,
+    enabled: !!teamId,
   });
 };

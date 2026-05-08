@@ -102,7 +102,7 @@ export default function ScheduleScreen() {
       <Box px="SCREEN" py="md" align="center">
         {/* League Dropdown & View Toggle Navigation */}
         <Box flexDir="row" justify="center" align="center" width="100%" mb="md" gap="md">
-           <Box px="md" py={6} borderWidth={1} borderColor="team.kia" rounded="full">
+           <Box px="md" py="xs" borderWidth={1} borderColor="team.kia" rounded="full">
              <Typography variant="caption" color="team.kia" weight="bold">정규리그 ∨</Typography>
            </Box>
            
@@ -141,7 +141,7 @@ export default function ScheduleScreen() {
               <Box 
                 key={`${cell.day}-${idx}`} 
                 style={styles.calendarCell}
-                bg={cell.isToday ? "brand.mintTransparent" : "transparent"}
+                bg={cell.isToday ? "brand.mintAlpha10" : "transparent"}
               >
                 {!isEmpty && (
                   <>
