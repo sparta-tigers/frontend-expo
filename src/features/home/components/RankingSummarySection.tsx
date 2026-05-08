@@ -23,6 +23,12 @@ const LOCAL_LAYOUT = {
   },
 } as const;
 
+/**
+ * RankingSummarySectionProps
+ * 
+ * Why: 순위 요약 섹션의 데이터 정합성을 보장하고, 홈 화면의 최상위 컨텍스트(순위 목록, 응원팀)를
+ * 명확히 정의하여 잘못된 데이터 주입으로 인한 UI 깨짐을 방지하기 위함.
+ */
 interface RankingSummarySectionProps {
   /** 표시할 KBO 리그 순위 데이터 배열 */
   ranking: RankingRowDto[];
@@ -114,6 +120,12 @@ const RankingHeader = React.memo(function RankingHeader() {
   );
 });
 
+/**
+ * RankingRowProps
+ * 
+ * Why: 전체 목록 렌더링 책임과 개별 행의 데이터 표현 책임을 분리하고,
+ * 특정 행이 '내 응원팀'인지 여부를 명시적으로 전달받아 결정론적인 UI 상태를 유지하기 위함.
+ */
 interface RankingRowProps {
   row: RankingRowDto;
   isMyTeam: boolean;
