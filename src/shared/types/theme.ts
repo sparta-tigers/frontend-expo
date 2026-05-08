@@ -16,7 +16,7 @@ type Leaves<T> = T extends object
  * 
  * Why: 컴포넌트 Props에서 "any"를 제거하고, 오타를 컴파일 타임에 잡아내기 위함.
  */
-export type ThemeColorPath = Leaves<typeof theme.colors> | keyof typeof theme.colors;
+export type ThemeColorPath = Leaves<typeof theme.colors>;
 
 /**
  * 주어진 경로를 사용하여 테마 객체에서 색상 값을 안전하게 추출하는 함수
