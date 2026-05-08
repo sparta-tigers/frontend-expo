@@ -32,22 +32,22 @@ export const RankingSummarySection = React.memo(function RankingSummarySection({
   const myTeamRank = ranking.find((r) => r.isMyTeam)?.rank ?? 0;
 
   return (
-    <Box mt="xl" px="xxxl">
-      <TouchableOpacity 
-        activeOpacity={0.7} 
-        onPress={() => router.push({ pathname: "/schedule", params: { view: "year" } })}
-      >
+    <TouchableOpacity 
+      activeOpacity={0.9} 
+      onPress={() => router.push("/ranking")}
+    >
+      <Box mt="xl" px="xxxl">
         <Typography variant="h3" weight="bold" center mb="md">
           오늘의 우리 팀 순위는 {myTeamRank}위예요
         </Typography>
-      </TouchableOpacity>
 
-      <Box gap="sm">
-        {ranking.map((row) => (
-          <RankingRow key={row.team.name} row={row} />
-        ))}
+        <Box gap="sm">
+          {ranking.map((row) => (
+            <RankingRow key={row.team.name} row={row} />
+          ))}
+        </Box>
       </Box>
-    </Box>
+    </TouchableOpacity>
   );
 });
 
