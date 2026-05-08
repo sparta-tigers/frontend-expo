@@ -24,11 +24,13 @@ export const fetchYearlyRanking = async (year: number, type: LeagueType): Promis
 export const fetchMatchSchedule = async (
   teamId: string,
   year: number,
-  month: number
+  month: number,
+  leagueType?: LeagueType
 ): Promise<MatchScheduleResponse> => {
   return await apiClient.get<MatchScheduleResponse>(`/api/matches/schedule`, {
     teamId,
     year,
     month,
+    leagueType,
   });
 };

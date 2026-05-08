@@ -1,8 +1,8 @@
 import { Box, Typography } from "@/components/ui";
 import { theme } from "@/src/styles/theme";
-import { Stack, router } from "expo-router";
-import React, { useMemo } from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import { Stack, router, useLocalSearchParams } from "expo-router";
+import React, { useState } from "react";
+import { Modal, StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { TEAM_DATA, TeamCode, getTeamColorPath } from "@/src/utils/team";
 import { useAuth } from "@/context/AuthContext";
@@ -10,6 +10,8 @@ import { useMatchSchedule } from "@/src/features/match/hooks/useMatchSchedule";
 import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScheduleSkeleton } from "@/src/features/home/components/ScheduleSkeleton";
+import { getCurrentMonth, getCurrentYear, getRelativeMonth } from "@/src/utils/date";
+import { LeagueType } from "@/src/features/match/types";
 
 // ========================================================
 // 레이아웃 상수 (LOCAL_LAYOUT)
@@ -48,8 +50,8 @@ const BrandingHeader: React.FC<{ teamCode: TeamCode }> = ({ teamCode }) => {
           <Typography variant="h2" weight="bold" color="text.primary" mr="xs">
             {team.shortName.toUpperCase()}
           </Typography>
-          <Typography variant="h2" weight="bold" color="team.kia">
-            TIGERS
+          <Typography variant="h2" weight="bold" color={getTeamColorPath(teamCode)}>
+            {team.subName.toUpperCase()}
           </Typography>
         </Box>
 
@@ -69,19 +71,40 @@ const BrandingHeader: React.FC<{ teamCode: TeamCode }> = ({ teamCode }) => {
  * 경기 일정 화면 (`main_1`)
  * 
  * Why: 월간 경기 일정을 캘린더 형태로 제공.
- * 리그 순위(Ranking)와는 별개의 도메인 파일로 관리하여 아키텍처의 선명함을 유지함.
+ * 아키텍처 원칙에 따라 URL 파라미터를 유일한 진실의 원천(SSOT)으로 삼음.
  */
 export default function ScheduleScreen() {
   const { myTeam: myTeamId } = useAuth();
   const activeTeamCode = (myTeamId as TeamCode) || "KIA";
 
-  const now = useMemo(() => new Date(), []);
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1; // 1-indexed
+  // 1. [SSOT] URL 파라미터 기반 상태 관리
+  const params = useLocalSearchParams<{ year?: string; month?: string; leagueType?: string }>();
+  const year = params.year ? parseInt(params.year) : getCurrentYear();
+  const month = params.month ? parseInt(params.month) : getCurrentMonth();
+  const leagueType = (params.leagueType as LeagueType) || "REGULAR";
 
-  // 실제 API 데이터 패칭
-  const { data: schedule, isLoading } = useMatchSchedule(year, month, activeTeamCode);
-  const days = useCalendarGrid(year, month - 1, schedule || [], now.getDate());
+  const [isLeagueModalOpen, setIsLeagueModalOpen] = useState(false);
+
+  // 2. 데이터 패칭 (URL 파라미터가 변경되면 자동으로 재실행됨)
+  const { data: schedule, isLoading } = useMatchSchedule(year, month, activeTeamCode, leagueType);
+  const days = useCalendarGrid(year, month, schedule || [], new Date().getDate());
+
+  // 3. 핸들러 (상태를 직접 바꾸지 않고 URL 파라미터를 변경함)
+  const handleMoveMonth = (offset: number) => {
+    const { year: nextYear, month: nextMonth } = getRelativeMonth(year, month, offset);
+    router.setParams({ year: nextYear.toString(), month: nextMonth.toString() });
+  };
+
+  const handleSelectLeague = (type: LeagueType) => {
+    router.setParams({ leagueType: type });
+    setIsLeagueModalOpen(false);
+  };
+
+  const leagueLabelMap: Record<LeagueType, string> = {
+    PRESEASON: "시범경기",
+    REGULAR: "정규리그",
+    POST_SEASON: "포스트시즌",
+  };
 
   if (isLoading) return (
     <Box flex={1} bg="background">
@@ -98,28 +121,36 @@ export default function ScheduleScreen() {
       {/* Branded Header */}
       <BrandingHeader teamCode={activeTeamCode} />
 
-      {/* Filter & Calendar Content (이미지 2 기획 반영) */}
+      {/* Filter & Calendar Content */}
       <Box px="SCREEN" py="md" align="center">
-        {/* League Dropdown & View Toggle Navigation */}
-        <Box flexDir="row" justify="center" align="center" width="100%" mb="md" gap="md">
-           <Box px="md" py="xs" borderWidth={1} borderColor="team.kia" rounded="full">
-             <Typography variant="caption" color="team.kia" weight="bold">정규리그 ∨</Typography>
-           </Box>
-           
-           {/* 순위 화면으로 이동하는 버튼 (선택 사항) */}
+        {/* League Selector */}
+        <Box flexDir="row" justify="center" align="center" width="100%" mb="md">
            <TouchableOpacity 
-             onPress={() => router.replace("/ranking")}
-             style={styles.rankingNavBtn}
+             onPress={() => setIsLeagueModalOpen(true)}
+             activeOpacity={0.7}
+             style={[styles.leagueSelector, { borderColor: theme.colors.team[activeTeamCode.toLowerCase() as keyof typeof theme.colors.team] || theme.colors.brand.mint }]}
            >
-             <Typography variant="caption" color="brand.subtitle">연도별 순위 〉</Typography>
+             <Typography 
+               variant="caption" 
+               color={getTeamColorPath(activeTeamCode)} 
+               weight="bold"
+             >
+               {leagueLabelMap[leagueType]} ∨
+             </Typography>
            </TouchableOpacity>
         </Box>
 
         {/* Month Selector */}
         <Box flexDir="row" align="center" mb="xl">
-          <MaterialIcons name="chevron-left" size={24} color={theme.colors.text.secondary} />
+          <TouchableOpacity onPress={() => handleMoveMonth(-1)} style={styles.arrowBtn}>
+            <MaterialIcons name="chevron-left" size={32} color={theme.colors.text.secondary} />
+          </TouchableOpacity>
+          
           <Typography variant="h3" weight="bold" mx="lg">{year}년 {month}월</Typography>
-          <MaterialIcons name="chevron-right" size={24} color={theme.colors.text.secondary} />
+          
+          <TouchableOpacity onPress={() => handleMoveMonth(1)} style={styles.arrowBtn}>
+            <MaterialIcons name="chevron-right" size={32} color={theme.colors.text.secondary} />
+          </TouchableOpacity>
         </Box>
 
         {/* Calendar Grid Header */}
@@ -175,6 +206,34 @@ export default function ScheduleScreen() {
           })}
         </Box>
       </Box>
+
+      {/* League Selection Modal */}
+      <Modal visible={isLeagueModalOpen} transparent animationType="fade">
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setIsLeagueModalOpen(false)}
+        >
+          <Box bg="card" rounded="lg" p="lg" width="80%">
+            <Typography variant="h3" weight="bold" mb="md">리그 선택</Typography>
+            {(Object.keys(leagueLabelMap) as LeagueType[]).map((type) => (
+              <TouchableOpacity 
+                key={type} 
+                onPress={() => handleSelectLeague(type)}
+                style={styles.modalItem}
+              >
+                <Typography 
+                  variant="body1" 
+                  color={leagueType === type ? "brand.mint" : "text.primary"}
+                  weight={leagueType === type ? "bold" : "medium"}
+                >
+                  {leagueLabelMap[type]}
+                </Typography>
+              </TouchableOpacity>
+            ))}
+          </Box>
+        </TouchableOpacity>
+      </Modal>
     </Box>
   );
 }
@@ -191,16 +250,30 @@ const styles = StyleSheet.create({
   mascotEmoji: {
     fontSize: 40,
   },
-  rankingNavBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: theme.colors.team.neutralLight,
+  leagueSelector: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderWidth: 1.5,
     borderRadius: 999,
+  },
+  arrowBtn: {
+    padding: 8,
   },
   matchBadgeText: {
     fontSize: 12,
   },
   matchTimeText: {
     fontSize: 9,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: theme.colors.overlay,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalItem: {
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: theme.colors.team.neutralLight,
   },
 });

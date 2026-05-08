@@ -49,7 +49,7 @@ export const ScheduleSection = React.memo(function ScheduleSection({
         mb="md"
       >
         <Typography variant="h3" weight="bold" center>
-          {month + 1}월, 우리팀 경기 일정이에요
+          {month}월, 우리팀 경기 일정이에요
         </Typography>
       </Box>
 

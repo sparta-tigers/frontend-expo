@@ -36,3 +36,14 @@ export const getCurrentMonth = (): number => {
 export const getCurrentDay = (): number => {
   return new Date().getDate();
 };
+
+/**
+ * 특정 연월로부터 N개월 전/후의 연월을 반환합니다.
+ */
+export const getRelativeMonth = (year: number, month: number, offset: number) => {
+  const date = new Date(year, month - 1 + offset, 1);
+  return {
+    year: date.getFullYear(),
+    month: date.getMonth() + 1,
+  };
+};
