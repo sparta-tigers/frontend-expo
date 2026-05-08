@@ -15,6 +15,7 @@ import { useMatchRanking } from "@/src/features/match/hooks/useMatchRanking";
 import { ScheduleSkeleton } from "@/src/features/home/components/ScheduleSkeleton";
 import { RankingSkeleton } from "@/src/features/home/components/RankingSkeleton";
 import { getTodayString, getCurrentYear, getCurrentMonth, getCurrentDay } from "@/src/utils/date";
+import { useDashboardSummary } from "@/src/features/home/hooks/useDashboardSummary";
 
 /**
  * 홈 화면 (`main_0`)
@@ -45,6 +46,10 @@ export default function HomeScreen() {
     date: todayString,
     leagueType: "REGULAR",
   });
+
+  // 🚨 [Phase 10] 대시보드 요약 데이터 연동
+  const { data: dashboardRes } = useDashboardSummary();
+  const dashboardData = dashboardRes?.data;
 
   // 🚨 앙드레 카파시: 데이터 슬라이싱 최적화 (Top 5 + My Team)
   const displayRankings = useMemo(() => {
@@ -78,8 +83,10 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         <MyTeamSection
-          userNickname={mockData.userNickname}
-          myTeamId={myTeamId}
+          userNickname={dashboardData?.nickname || mockData.userNickname}
+          enrollmentDays={dashboardData?.enrollmentDays || 0}
+          remainingMatches={dashboardData?.remainingMatches || 0}
+          favoriteTeamCode={dashboardData?.favoriteTeamCode || myTeamId}
           onPressChangeTeam={handlePressChangeTeam}
         />
 

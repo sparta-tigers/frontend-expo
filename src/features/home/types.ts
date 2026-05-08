@@ -92,3 +92,15 @@ export type CalendarCellModel = {
   isSelected: boolean;
   opponentColor?: string | undefined;
 };
+
+/**
+ * 홈 대시보드 요약 데이터 (백엔드 API 응답)
+ *
+ * Why: 홈 화면의 MyTeamSection에서 실제 유저의 닉네임, 가입 일수, 남은 경기 수를 렌더링하기 위함.
+ */
+export interface HomeDashboardSummaryDto {
+  nickname: string;
+  enrollmentDays: number;
+  remainingMatches: number;
+  favoriteTeamCode: string | null;
+}

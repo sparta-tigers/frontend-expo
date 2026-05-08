@@ -3,7 +3,7 @@ import { Typography } from "@/components/ui/typography";
 import { theme } from "@/src/styles/theme";
 import { TEAM_DATA, TeamCode, getTeamColorPath } from "@/src/utils/team";
 import { MaterialIcons } from "@expo/vector-icons";
-import React, { memo, useMemo } from "react";
+import React, { memo } from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 
 // ========================================================
@@ -23,17 +23,6 @@ const LOCAL_LAYOUT = {
   statSafetyPadding: 60,
   mascotRightOffset: 0,
 } as const;
-
-/**
- * 입학일(가입일)로부터 경과 일수를 계산하는 순수 함수
- * Why: 추후 실제 user.createdAt 연동 시 비즈니스 로직의 일관성 확보.
- */
-const calculateEnrollmentDays = (joinDate: string): number => {
-  const start = new Date(joinDate);
-  const today = new Date();
-  const diffTime = Math.abs(today.getTime() - start.getTime());
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-};
 
 // ========================================================
 // 내부 컴포넌트: StatSummaryItem
@@ -82,7 +71,9 @@ StatSummaryItem.displayName = "StatSummaryItem";
 // ========================================================
 interface MyTeamSectionProps {
   userNickname: string;
-  myTeamId?: string | null;
+  enrollmentDays: number;
+  remainingMatches: number;
+  favoriteTeamCode?: string | null;
   onPressChangeTeam?: () => void;
 }
 
@@ -93,16 +84,16 @@ interface MyTeamSectionProps {
  * Figma 기획안(image_484459)의 입체적인 레이아웃과 100% 일치하도록 구현.
  */
 export const MyTeamSection = memo(
-  ({ userNickname, myTeamId, onPressChangeTeam }: MyTeamSectionProps) => {
-    const activeTeamCode = (myTeamId as TeamCode) || "KIA";
+  ({
+    userNickname,
+    enrollmentDays,
+    remainingMatches,
+    favoriteTeamCode,
+    onPressChangeTeam,
+  }: MyTeamSectionProps) => {
+    const activeTeamCode = (favoriteTeamCode as TeamCode) || "KIA";
     const myTeam = TEAM_DATA[activeTeamCode];
     const teamColorPath = getTeamColorPath(activeTeamCode);
-
-    // 1. [Logic] 입학일 계산 (현재는 목 데이터 기반)
-    const enrollmentDays = useMemo(
-      () => calculateEnrollmentDays("2023-01-01"),
-      [],
-    );
 
     const activityStats: {
       key: string;
@@ -131,7 +122,7 @@ export const MyTeamSection = memo(
       {
         key: "match",
         icon: "star-outline",
-        value: "31경기",
+        value: `${remainingMatches}경기`,
         label: "남은 경기수",
         toneColor: "dashboard.statToneGreen",
         iconColor: theme.colors.dashboard.statIconGreen,
