@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { fetchMatchSchedule } from "../api";
 import { TeamCode } from "@/src/utils/team";
 import { LeagueType } from "../types";
@@ -7,7 +7,7 @@ import { LeagueType } from "../types";
  * 경기 일정 조회 커스텀 훅
  * 
  * Why: 도메인 중심 설계에 따라 Match 피처에서 공통 관리함.
- * 연/월, 리그 타입 또는 응원팀이 변경될 때마다 자동으로 데이터를 패칭하고 캐싱함.
+ * placeholderData를 사용하여 월 이동 시 깜빡임을 방지하고 부드러운 UX 제공.
  * 
  * @param year       조회 연도
  * @param month      조회 월
@@ -34,5 +34,6 @@ export const useMatchSchedule = (
     },
     staleTime: 1000 * 60 * 5,
     enabled: !!teamId,
+    placeholderData: keepPreviousData, // v5: 이전 데이터를 유지하여 깜빡임 방지
   });
 };

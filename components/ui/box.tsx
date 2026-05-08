@@ -105,6 +105,8 @@ interface BoxCustomProps {
   borderRightWidth?: ViewStyle["borderRightWidth"];
   /** 오버플로우 */
   overflow?: ViewStyle["overflow"];
+  /** 투명도 */
+  opacity?: ViewStyle["opacity"];
 }
 
 export interface BoxProps extends ViewProps, BoxCustomProps {}
@@ -156,6 +158,7 @@ export const Box = ({
   borderLeftWidth,
   borderRightWidth,
   overflow,
+  opacity,
   style,
   children,
   ...rest
@@ -227,6 +230,7 @@ export const Box = ({
     boxStyle.borderColor = resolveThemeColor(borderColor) || (theme.colors as any)[borderColor];
   }
   if (overflow !== undefined) boxStyle.overflow = overflow;
+  if (opacity !== undefined) boxStyle.opacity = opacity;
 
   return (
     <View style={[boxStyle, style]} {...rest}>
