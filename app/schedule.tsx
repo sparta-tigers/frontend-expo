@@ -1,15 +1,14 @@
-import { SafeLayout } from "@/components/ui/safe-layout";
 import { Box, Typography } from "@/components/ui";
 import { theme } from "@/src/styles/theme";
 import { Stack, useLocalSearchParams } from "expo-router";
 import React, { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { RankingRowDto, CalendarGameDto } from "@/src/features/home/types";
-import { getTeamColor } from "@/src/utils/team";
-import { useFakeHomeData } from "@/src/features/home/mocks";
+import { TEAM_DATA, TeamCode } from "@/src/utils/team";
 import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
 import { useAuth } from "@/context/AuthContext";
+import { useMatchSchedule } from "@/src/features/match/hooks/useMatchSchedule";
+import { ScheduleSkeleton } from "@/src/features/home/components/ScheduleSkeleton";
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (theme 비대화 방지)
@@ -51,7 +50,9 @@ export default function ScheduleScreen() {
   }>();
   
   const { myTeam: myTeamId } = useAuth();
-  const { myTeam } = useFakeHomeData(myTeamId);
+  
+  // [Architecture] Zero-Magic: TEAM_DATA를 직접 참조하여 런타임 오버헤드 최소화
+  const teamInfo = myTeamId ? TEAM_DATA[myTeamId] : null;
   
   const initialView = params.view === "day" ? "day" : "year";
   
@@ -115,17 +116,18 @@ export default function ScheduleScreen() {
       ? `${currentDate.getFullYear()}년`
       : `${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월`;
 
+  const teamColor = teamInfo?.color || theme.colors.team.fallback;
+
   return (
-    <SafeLayout style={styles.safeLayout} edges={["top", "left", "right"]}>
-      <Stack.Screen options={{ headerShown: false }} />
-      {/* 1. 상단 로고 및 헤더 영역 */}
-      <Box style={styles.topHeader}>
-        {/* KIA TIGERS 로고 (가짜 뷰로 대체) */}
-        <Box style={styles.teamLogoContainer}>
-          <Typography variant="h3" style={styles.teamLogoText}>{myTeam.shortName}</Typography>
-          <Typography style={styles.teamLogoSubText}>{myTeam.subName}</Typography>
-        </Box>
-      </Box>
+    <Box style={styles.safeLayout}>
+      <Stack.Screen 
+        options={{ 
+          headerShown: true,
+          headerTitle: teamInfo ? `${teamInfo.name} 일정` : "경기 일정",
+          headerStyle: { backgroundColor: theme.colors.brand.background },
+          headerShadowVisible: false,
+        }} 
+      />
 
       {/* 2. 공통 필터 영역 (Toggle, Date, League) */}
       <Box style={styles.filterSection}>
@@ -164,9 +166,12 @@ export default function ScheduleScreen() {
           </Box>
 
           {/* 우측: 정규리그 드롭다운 */}
-          <TouchableOpacity activeOpacity={0.8} style={styles.leagueDropdown}>
-            <Typography style={styles.leagueDropdownText}>정규리그</Typography>
-            <MaterialIcons name="keyboard-arrow-down" size={theme.typography.size.md} color={theme.colors.team.kiaRed} />
+          <TouchableOpacity 
+            activeOpacity={0.8} 
+            style={[styles.leagueDropdown, { borderColor: teamColor }]}
+          >
+            <Typography style={[styles.leagueDropdownText, { color: teamColor }]}>정규리그</Typography>
+            <MaterialIcons name="keyboard-arrow-down" size={theme.typography.size.md} color={teamColor} />
           </TouchableOpacity>
         </Box>
       </Box>
@@ -179,11 +184,10 @@ export default function ScheduleScreen() {
           year={currentDate.getFullYear()} 
           month={currentDate.getMonth()} 
           selectedDay={currentDate.getDate()}
+          teamId={myTeamId}
         />
       )}
-
-
-    </SafeLayout>
+    </Box>
   );
 }
 
@@ -219,7 +223,7 @@ function Main1RankingView() {
               <Box style={[styles.rankingCard, isMyTeam && styles.myTeamRankingCard]}>
                 <Box style={styles.teamInfoArea}>
                   {/* 로고 더미 */}
-                  <Box style={[styles.teamBadge, { backgroundColor: getTeamColor(row.team.name) }]} />
+                  <Box style={[styles.teamBadge, { backgroundColor: row.team.color }]} />
                   <Typography style={[styles.teamNameText, isMyTeam && styles.myTeamText]} numberOfLines={1}>
                     {row.team.name}
                   </Typography>
@@ -244,15 +248,28 @@ function Main1RankingView() {
 function Main2CalendarView({ 
   year, 
   month,
-  selectedDay 
+  selectedDay,
+  teamId
 }: { 
   year: number; 
   month: number;
   selectedDay?: number;
+  teamId: TeamCode | null;
 }) {
-  const { schedule } = useFakeCalendarSchedule(year, month);
-  // 🚨 [Type Fix] MatchScheduleDto[] 타입으로 단언하여 useCalendarGrid와의 호환성 확보
+  const { data: scheduleData, isLoading } = useMatchSchedule(
+    year, 
+    month + 1, // backend expects 1-based month
+    teamId
+  );
+  
+  const schedule = scheduleData || [];
+  
+  // [Type Fix] MatchScheduleDto[] 타입으로 단언하여 useCalendarGrid와의 호환성 확보
   const days = useCalendarGrid(year, month, schedule as any, undefined, selectedDay);
+
+  if (isLoading) {
+    return <ScheduleSkeleton />;
+  }
   const weekDays = ["일", "월", "화", "수", "목", "금", "토"];
 
   return (
@@ -319,12 +336,7 @@ function Main2CalendarView({
   );
 }
 
-/**
- * ========================================================
- * Mock Data Hooks
- * ========================================================
- */
-function useFakeRankingData(): RankingRowDto[] {
+function useFakeRankingData() {
   return useMemo(() => {
     return [
       { rank: 1, team: { name: "LG 트윈스", shortName: "LG", subName: "트윈스", mascotEmoji: "👯", color: theme.colors.team.lg, backendCode: "LG" }, games: 144, win: 85, lose: 56, draw: 3, winRate: 0.603 },
@@ -341,36 +353,6 @@ function useFakeRankingData(): RankingRowDto[] {
   }, []);
 }
 
-function useFakeCalendarSchedule(year: number, month: number): { schedule: CalendarGameDto[] } {
-  return useMemo(() => {
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const schedule: CalendarGameDto[] = [];
-    
-    for (let d = 1; d <= daysInMonth; d++) {
-      if (d % 3 !== 0) {
-        const opponents = [
-          { name: "SSG", color: theme.colors.team.ssg },
-          { name: "LOTTE", color: theme.colors.team.lotte },
-          { name: "LG", color: theme.colors.team.lg },
-          { name: "NC", color: theme.colors.team.nc },
-          { name: "DOOSAN", color: theme.colors.team.doosan },
-        ];
-        const opp = opponents[d % 5];
-
-        schedule.push({
-          day: d,
-          location: d % 2 === 0 ? "H" : "A",
-          opponentShort: opp.name,
-          opponentColor: opp.color,
-          timeText: "18:30",
-        });
-      }
-    }
-
-    return { schedule };
-  }, [year, month]);
-}
-
 /**
  * ========================================================
  * Styles — 모든 수치는 theme 토큰 또는 SCHEDULE_LAYOUT 참조
@@ -381,30 +363,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.brand.background,
   },
-  topHeader: {
-    alignItems: "center",
-    paddingTop: theme.spacing.lg,
-    paddingBottom: theme.spacing.md,
-  },
-
-  teamLogoContainer: {
-    marginTop: theme.spacing.xl,
-    marginBottom: theme.spacing.md,
-    alignItems: "center",
-  },
-  teamLogoText: {
-    fontWeight: theme.typography.weight.black,
-    color: theme.colors.text.primary,
-    fontStyle: "italic",
-  },
-  teamLogoSubText: {
-    fontSize: LOCAL_LAYOUT.teamLogoSubFontSize,
-    fontWeight: theme.typography.weight.black,
-    color: theme.colors.team.kiaRed,
-    fontStyle: "italic",
-    letterSpacing: LOCAL_LAYOUT.letterSpacing,
-    marginTop: LOCAL_LAYOUT.teamLogoMarginTop,
-  },
   filterSection: {
     paddingHorizontal: theme.spacing.lg,
     paddingBottom: theme.spacing.md,
@@ -413,6 +371,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: theme.spacing.md,
   },
   toggleGroup: {
     flexDirection: "row",
