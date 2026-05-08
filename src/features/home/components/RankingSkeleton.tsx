@@ -30,7 +30,7 @@ export const RankingSkeleton = () => {
   }, [animatedValue]);
 
   return (
-    <Box mt="xl" px="xxxl">
+    <Box mt="xxxxl" px="xxxl">
       {/* Title Skeleton */}
       <Box align="center" mb="md">
         <Animated.View style={[styles.titleSkeleton, { opacity: animatedValue }]} />

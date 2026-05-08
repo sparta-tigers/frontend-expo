@@ -43,7 +43,7 @@ export const ScheduleSkeleton = () => {
   }, [opacity]);
 
   return (
-    <Box mt="xl" pb="xxl" px="SCREEN_DASHBOARD">
+    <Box mt="xxxxl" pb="xxl" px="SCREEN_DASHBOARD">
       {/* Title Skeleton */}
       <Box 
         height={theme.layout.dashboard.sectionTitleHeight} 

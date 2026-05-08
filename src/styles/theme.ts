@@ -5,7 +5,7 @@
  * 모든 디자인 토큰을 단일 theme 객체로 통합
  */
 
-import { Platform, Dimensions } from "react-native";
+import { Dimensions, Platform } from "react-native";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -204,6 +204,7 @@ export const theme = {
     xl: 20,
     xxl: 24,
     xxxl: 30,
+    xxxxl: 50,
     // 기존 호환성을 위한 별칭
     TINY: 4,
     SMALL: 8,
@@ -313,7 +314,7 @@ export const theme = {
     },
     dashboard: {
       screenPaddingHorizontal: DASHBOARD_PADDING_HORIZONTAL,
-      sectionGap: 20,
+      sectionGap: 60,
       sectionTitleHeight: 24,
       myTeamCardHeight: 118,
       myTeamMiniCardSize: 66,

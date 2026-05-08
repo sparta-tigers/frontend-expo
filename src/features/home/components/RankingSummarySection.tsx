@@ -47,7 +47,7 @@ export const RankingSummarySection = React.memo(function RankingSummarySection({
       activeOpacity={0.9}
       onPress={() => router.push("/ranking")}
     >
-      <Box mt="xl" px="xxxl">
+      <Box mt="xxxxl" px="xxxl">
         <Typography variant="h3" weight="bold" center mb="md">
           {myTeamRank
             ? `오늘의 우리 팀 순위는 ${myTeamRank}위예요`

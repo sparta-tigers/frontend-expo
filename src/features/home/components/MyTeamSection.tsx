@@ -130,7 +130,7 @@ export const MyTeamSection = memo(
     ];
 
     return (
-      <Box mt="xxl" px="SCREEN_DASHBOARD">
+      <Box px="SCREEN_DASHBOARD">
         {/* 섹션 헤더 */}
         <Box flexDir="row" justify="space-between" align="center" mb="md">
           <Typography

@@ -41,7 +41,7 @@ export const ScheduleSection = React.memo(function ScheduleSection({
   const days = useCalendarGrid(year, month, schedule, todayDay);
 
   return (
-    <Box mt="xl" pb="xxl" px="SCREEN_DASHBOARD">
+    <Box mt="xxxxl" pb="xxl" px="SCREEN_DASHBOARD">
       <Box
         height={theme.layout.dashboard.sectionTitleHeight}
         align="center"
