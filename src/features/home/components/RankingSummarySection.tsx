@@ -15,7 +15,7 @@ const LOCAL_LAYOUT = {
   pillHeight: theme.layout.dashboard.rankingRowHeight,
   pillHeightActive: theme.layout.dashboard.rankingRowHeightActive,
   badgeSize: theme.spacing.xxl,
-  /** 가중치 그리드 시스템: 총합 10.5 */
+  /** 가중치 그리드 시스템: 총합 11 */
   flexWeights: {
     team: 5.5,
     stat: 1,
@@ -82,7 +82,7 @@ const RankingHeader = React.memo(function RankingHeader() {
       <Box width={LOCAL_LAYOUT.rankWidth} />
 
       <Box flex={1} px="lg" flexDir="row" align="center">
-        {/* Team Area Placeholder (Flex 5) */}
+        {/* Team Area Placeholder (Flex 5.5) */}
         <Box flex={LOCAL_LAYOUT.flexWeights.team} />
 
         {/* Stat Labels (Flex 1, 1, 1, 1, 1.5) */}
@@ -162,7 +162,7 @@ const RankingRow = React.memo(function RankingRow({
         style={[
           styles.pillCommon,
           isMyTeam ? styles.pillShadow : styles.pillInactiveBorder,
-          isMyTeam && styles.pillActiveBorder
+          isMyTeam && styles.pillActiveBorder,
         ]}
       >
         {/* Team Area (Flex 4.5) */}
