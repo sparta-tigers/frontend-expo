@@ -104,7 +104,7 @@ export default function HomeScreen() {
           />
         )}
 
-        <LineupSection lineup={mockData.todayLineup} teamName={myTeam.name} />
+        <LineupSection lineup={dashboardData?.todayLineup ?? []} teamName={myTeam.name} />
 
         {isScheduleLoading ? (
           <ScheduleSkeleton />

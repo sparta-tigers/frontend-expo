@@ -26,6 +26,7 @@ const MAPPING = {
   'arrow.left.arrow.right': 'swap-horiz',
   'bell.fill': 'notifications',
   'list.bullet': 'list',
+  'person.3.fill': 'groups',
 } as IconMapping;
 
 /**

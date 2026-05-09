@@ -78,16 +78,16 @@ export function useFakeHomeData(myTeamId: string | null) {
     }
 
     const todayLineup: LineupRowDto[] = [
-      { order: 1, name: "김도영", position: "3B" },
-      { order: 2, name: "소크라테스", position: "CF" },
-      { order: 3, name: "김선빈", position: "2B" },
-      { order: 4, name: "나성범", position: "RF" },
-      { order: 5, name: "최형우", position: "DH" },
-      { order: 6, name: "황대인", position: "1B" },
-      { order: 7, name: "김석환", position: "LF" },
-      { order: 8, name: "김민식", position: "C" },
-      { order: 9, name: "박찬호", position: "SS" },
-      { order: 10, name: "양현종", position: "P" },
+      { battingOrder: "1", name: "김도영", position: "3B" },
+      { battingOrder: "2", name: "소크라테스", position: "CF" },
+      { battingOrder: "3", name: "김선빈", position: "2B" },
+      { battingOrder: "4", name: "나성범", position: "RF" },
+      { battingOrder: "5", name: "최형우", position: "DH" },
+      { battingOrder: "6", name: "황대인", position: "1B" },
+      { battingOrder: "7", name: "김석환", position: "LF" },
+      { battingOrder: "8", name: "김민식", position: "C" },
+      { battingOrder: "9", name: "박찬호", position: "SS" },
+      { battingOrder: "10", name: "양현종", position: "P" },
     ];
 
     const monthSchedule: CalendarGameDto[] = [
