@@ -3,6 +3,8 @@ import * as Location from "expo-location";
 import { useLocationStore } from "@/src/store/useLocationStore";
 import { Logger } from "@/src/utils/logger";
 
+const mapLogger = Logger.category('MAP');
+
 export const useLocationTracker = () => {
   const { setUserLocation, setPermissionGranted } = useLocationStore();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -29,7 +31,7 @@ export const useLocationTracker = () => {
             latitude: lastKnown.coords.latitude,
             longitude: lastKnown.coords.longitude,
           });
-          Logger.debug("OS 캐시 위치 로드 완료:", {
+          mapLogger.debug("OS 캐시 위치 로드 완료", {
             latitude: lastKnown.coords.latitude,
             longitude: lastKnown.coords.longitude,
           });
@@ -48,10 +50,9 @@ export const useLocationTracker = () => {
               latitude: location.coords.latitude,
               longitude: location.coords.longitude,
             });
-            Logger.debug("실시간 위치 갱신:", {
+            mapLogger.debug("실시간 위치 갱신", {
               latitude: location.coords.latitude,
               longitude: location.coords.longitude,
-              timestamp: new Date().toISOString(),
             });
           }
         );
@@ -63,7 +64,7 @@ export const useLocationTracker = () => {
           subscriber = null;
         }
       } catch (error) {
-        Logger.error("위치 추적 초기화 실패:", error);
+        mapLogger.error("위치 추적 초기화 실패", error);
         setErrorMsg("위치 추적을 시작할 수 없습니다.");
         setPermissionGranted(false);
       }
@@ -75,7 +76,7 @@ export const useLocationTracker = () => {
       isCancelled = true;
       if (subscriber) {
         subscriber.remove(); // 언마운트 시 구독 해제
-        Logger.debug("위치 추적 구독 해제 완료");
+        mapLogger.debug("위치 추적 구독 해제 완료");
       }
     };
   }, [setUserLocation, setPermissionGranted]);

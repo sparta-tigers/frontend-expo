@@ -11,6 +11,8 @@ import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import { Logger } from "@/src/utils/logger";
 import { useCallback, useMemo, useState } from "react";
 
+const mapLogger = Logger.category('MAP');
+
 /** 카테고리 필터 타입 */
 type CategoryFilter = "ALL" | "TICKET" | "GOODS";
 
@@ -94,7 +96,7 @@ export function useExchangeItems(): UseExchangeItemsReturn {
         const radius = deltaToRadius(latDelta);
         await fetchItems(loadItems(lat, lng, radius));
       } catch (error) {
-        Logger.error("새로고침 실패:", error);
+        mapLogger.error("새로고침 실패", error);
       } finally {
         setRefreshing(false);
       }
@@ -109,14 +111,13 @@ export function useExchangeItems(): UseExchangeItemsReturn {
       try {
         const radius = deltaToRadius(latDelta);
         await fetchItems(loadItems(lat, lng, radius));
-        Logger.debug("현 지도에서 재검색 완료", {
+        mapLogger.debug("현 지도에서 재검색 완료", {
           lat,
           lng,
           radius,
-          timestamp: new Date().toISOString(),
         });
       } catch (error) {
-        Logger.error("현 지도에서 재검색 실패:", error);
+        mapLogger.error("현 지도에서 재검색 실패", error);
         throw error; // 호출자에서 isMapMoved 복구 처리
       } finally {
         setRefreshing(false);
@@ -131,9 +132,9 @@ export function useExchangeItems(): UseExchangeItemsReturn {
       try {
         const radius = deltaToRadius(latDelta);
         await fetchItems(loadItems(lat, lng, radius));
-        Logger.debug("[Map-First] 초기 GPS 기반 아이템 로딩 완료", { lat, lng });
+        mapLogger.debug("초기 GPS 기반 아이템 로딩 완료", { lat, lng });
       } catch (error) {
-        Logger.error("[Map-First] 초기 아이템 로딩 실패:", error);
+        mapLogger.error("초기 아이템 로딩 실패", error);
         // fetchItems 내부에 에러가 전파되어 itemsState.error에 저장됨
       } finally {
         // 실패하더라도 무한 로딩 스피너 방지를 위해 '가져옴' 상태로 완결

@@ -12,6 +12,8 @@ import React, { useCallback, useRef, useState } from "react";
 import { Alert } from "react-native";
 import MapView from "react-native-maps";
 
+const mapLogger = Logger.category('MAP');
+
 /** 지도 영역 정보 */
 interface MapRegion {
   latitude: number;
@@ -105,7 +107,7 @@ export function useExchangeMap(isInitialFetched: boolean): UseExchangeMapReturn 
         },
         MAP_ANIMATE_DURATION,
       );
-      Logger.debug("[즉각 위치 이동 완료]", userLocation);
+      mapLogger.debug("현재 위치로 지도 이동 완료", userLocation);
     } else {
       Alert.alert(
         "알림",
@@ -126,7 +128,7 @@ export function useExchangeMap(isInitialFetched: boolean): UseExchangeMapReturn 
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        Logger.debug("위치 권한이 거부됨");
+        mapLogger.debug("위치 권한이 거부됨");
         return;
       }
 
@@ -150,12 +152,9 @@ export function useExchangeMap(isInitialFetched: boolean): UseExchangeMapReturn 
         );
       }
 
-      Logger.debug("[초기 위치 설정]", coords);
+      mapLogger.debug("초기 위치 설정 완료", coords);
     } catch (error) {
-      Logger.error(
-        "초기 위치 가져오기 실패:",
-        error instanceof Error ? error.message : String(error),
-      );
+      mapLogger.error("초기 위치 가져오기 실패", error);
     }
   }, []);
 
