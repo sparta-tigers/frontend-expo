@@ -31,10 +31,6 @@ export const useLocationTracker = () => {
             latitude: lastKnown.coords.latitude,
             longitude: lastKnown.coords.longitude,
           });
-          mapLogger.debug("OS 캐시 위치 로드 완료", {
-            latitude: lastKnown.coords.latitude,
-            longitude: lastKnown.coords.longitude,
-          });
         }
 
         // 2. 백그라운드 실시간 구독 (Cache Updating)
@@ -50,10 +46,7 @@ export const useLocationTracker = () => {
               latitude: location.coords.latitude,
               longitude: location.coords.longitude,
             });
-            mapLogger.debug("실시간 위치 갱신", {
-              latitude: location.coords.latitude,
-              longitude: location.coords.longitude,
-            });
+            // 고빈도 로그이므로 릴리즈/일반 상황에서는 소거
           }
         );
         }

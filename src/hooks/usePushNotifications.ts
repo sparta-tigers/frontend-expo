@@ -29,7 +29,7 @@ export function usePushNotifications() {
   useEffect(() => {
     // 안드로이드 Expo Go 환경 예외 처리 (필요 시)
     if (Platform.OS === "android" && __DEV__) {
-      pushLogger.debug("안드로이드 개발 환경: 푸시 알림 설정을 시작합니다.");
+      // pushLogger.debug("안드로이드 개발 환경: 푸시 알림 설정을 시작합니다.");
     }
 
     let notificationListener: Subscription | undefined = undefined;
@@ -40,7 +40,6 @@ export function usePushNotifications() {
       try {
         // 0. 가드 (Notifications는 정적 임포트되므로 항상 존재하지만, 환경에 따른 예외 처리 가능)
         if (Platform.OS === "web") {
-          pushLogger.debug("웹 환경: 푸시 알림이 지원되지 않습니다.");
           return null;
         }
 
@@ -68,7 +67,6 @@ export function usePushNotifications() {
 
           return token.data;
         } else {
-          pushLogger.debug("실제 기기가 아닙니다.");
           return null;
         }
       } catch (error) {
