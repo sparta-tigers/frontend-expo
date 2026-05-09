@@ -1,3 +1,8 @@
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { Alert } from "react-native";
+import { useQueryClient } from "@tanstack/react-query";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import {
   authSigninAPI,
   authSignoutAPI,
@@ -12,24 +17,16 @@ import {
   favoriteTeamGetAPI,
   favoriteTeamUpdateAPI,
 } from "@/src/features/user/favorite-team-api";
-import { TEAM_DATA, isValidTeamCode } from "@/src/utils/team";
 import { Logger, maskSensitive } from "@/src/utils/logger";
+import { TEAM_DATA, isValidTeamCode } from "@/src/utils/team";
 import {
   clearTokens,
   getAccessToken,
   getRefreshToken,
   setTokens,
 } from "@/src/utils/tokenStore";
-import {
-  ReactNode,
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { Alert } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const authLogger = Logger.category('AUTH');
 
 const getMyTeamKey = (userId?: number) =>
   userId ? `yaguniv_my_team_${userId}` : "yaguniv_my_team_guest";
@@ -170,8 +167,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       const accessToken = await getAccessToken();
 
       if (__DEV__) {
-        Logger.debug("[AuthContext] 토큰 로드 시도");
-        Logger.debug("- Access Token 존재 여부:", !!accessToken);
+        authLogger.debug("[AuthContext] 토큰 로딩 중...");
       }
 
       if (accessToken) {
@@ -228,7 +224,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           }
 
           if (__DEV__) {
-            Logger.debug("✅ [AuthContext] 토큰 및 사용자 환경 설정 로드 성공");
+            authLogger.info("✅ [AuthContext] 인증 정보 복원 성공");
           }
         } else {
           await clearTokens();
@@ -297,12 +293,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         }
 
         // 디버깅 로그: 토큰 저장 상태 확인
-        Logger.debug(
+        authLogger.debug(
           "✅ [AuthContext] 토큰 저장 성공",
           maskSensitive(tokenData.accessToken),
         );
-        Logger.debug("- Access Token 길이:", tokenData.accessToken.length);
-        Logger.debug("- Refresh Token 길이:", tokenData.refreshToken.length);
 
         // 상태 업데이트
         const claim = getTokenClaimFromAccessToken(tokenData.accessToken);
@@ -313,7 +307,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         });
 
         if (__DEV__) {
-          Logger.debug(
+          authLogger.debug(
             "✅ [AuthContext] 사용자 상태 업데이트 완료 - 로그인 성공",
           );
         }
@@ -445,7 +439,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       await queryClient.invalidateQueries({ queryKey: ["home", "dashboard"] });
 
       if (__DEV__) {
-        Logger.debug(`✅ [AuthContext] 응원팀 변경 및 데이터 동기화 완료: ${teamName}`);
+        authLogger.debug(`✅ [AuthContext] 응원팀 변경 및 데이터 동기화 완료: ${teamName}`);
       }
     } catch (error) {
       Logger.error("[AuthContext] 응원팀 변경 실패:", error);
@@ -470,7 +464,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     });
     
     if (__DEV__) {
-      Logger.debug("✅ [AuthContext] 사용자 정보 부분 업데이트 완료", partialUser);
+      authLogger.debug("✅ [AuthContext] 사용자 정보 부분 업데이트 완료", partialUser);
     }
   };
 
