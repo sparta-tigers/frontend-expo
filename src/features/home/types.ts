@@ -54,12 +54,19 @@ export interface RankingRowDto {
 /**
  * 라인업 선수 정보 데이터 객체
  *
- * Why: 라인업 목록에서 선수의 타순, 이름, 포지션을 구조화하여 렌더링하기 위함.
+ * Why: 라인업 목록에서 선수의 타순, 이름, 포지션 및 주요 성적을 구조화하여 렌더링하기 위함.
  */
 export interface LineupRowDto {
-  order: number;
+  /** 타순 (예: "1", "2") */
+  battingOrder: string;
+  /** 선수 이름 */
   name: string;
+  /** 수비 포지션 (예: "DH", "CF") */
   position: string;
+  /** 안타 수 (실시간) */
+  hits?: number;
+  /** 타점 (실시간) */
+  rbis?: number;
 }
 
 /**
@@ -103,4 +110,6 @@ export interface HomeDashboardSummaryDto {
   enrollmentDays: number;
   remainingMatches: number;
   favoriteTeamCode: string | null;
+  /** 오늘의 선발 라인업 (응원 팀 기준) */
+  todayLineup: LineupRowDto[];
 }

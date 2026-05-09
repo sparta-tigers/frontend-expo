@@ -27,10 +27,39 @@ interface LineupSectionProps {
  * 오늘의 라인업 섹션
  *
  * Why: 홈 화면에서 당일 선발 라인업을 시각적으로 구현. 
- * Zero-Magic UI 원칙에 따라 프리미티브 컴포넌트를 사용하고 절대 수치를 상수로 관리함.
+ * 데이터가 없을 경우 '미발표' 안내를 표시하며, Zero-Magic UI 원칙에 따라 프리미티브 컴포넌트를 사용함.
  */
 export const LineupSection = React.memo(function LineupSection({ lineup, teamName }: LineupSectionProps) {
   const teamColorPath = getTeamColorPath(teamName ?? "");
+
+  // 🚨 Empty State: 라인업 데이터가 없는 경우 (경기 전)
+  if (!lineup || lineup.length === 0) {
+    return (
+      <Box mt="xxxxl" px="SCREEN_DASHBOARD">
+        <Box height={theme.layout.dashboard.sectionTitleHeight} align="center" justify="center" mb="md">
+          <Typography variant="h3" weight="bold" center>
+            오늘의 라인업을 기다리고 있어요
+          </Typography>
+        </Box>
+        <Box 
+          width={LOCAL_LAYOUT.rowWidth} 
+          height={LOCAL_LAYOUT.rowHeight * 3} 
+          rounded="xl" 
+          bg="card" 
+          justify="center" 
+          align="center"
+          style={styles.rowShadow}
+        >
+          <Typography variant="h3" color="text.secondary" center>
+            아직 라인업이 발표되지 않았습니다.
+          </Typography>
+          <Typography variant="body2" color="text.secondary" center mt="xs">
+            경기가 시작되면 실시간으로 업데이트돼요!
+          </Typography>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box mt="xxxxl" px="SCREEN_DASHBOARD">
@@ -43,14 +72,14 @@ export const LineupSection = React.memo(function LineupSection({ lineup, teamNam
       <Box align="center" gap="xs">
         {lineup.map((row) => (
           <Box 
-            key={row.order} 
+            key={`${row.battingOrder}-${row.name}`} 
             width={LOCAL_LAYOUT.rowWidth} 
             height={LOCAL_LAYOUT.rowHeight} 
             rounded="full" 
             bg="card" 
             justify="center"
             style={styles.rowShadow}
-            accessibilityLabel={`${row.order}번 타자 ${row.name} ${row.position}`}
+            accessibilityLabel={`${row.battingOrder}번 타자 ${row.name} ${row.position}`}
           >
             <Box 
               position="absolute" 
@@ -67,7 +96,7 @@ export const LineupSection = React.memo(function LineupSection({ lineup, teamNam
                   weight="bold" 
                   color={teamColorPath}
                 >
-                  {row.order}
+                  {row.battingOrder}
                 </Typography>
               </Box>
               <Box 
