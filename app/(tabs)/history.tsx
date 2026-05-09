@@ -35,11 +35,9 @@ export default function HistoryScreen() {
         setExchangeRequests(response.data.content);
       }
     } catch (error) {
-      Logger.error(
-        "교환 요청 목록 로딩 실패:",
-        error instanceof Error ? error.message : String(error),
-      );
+      Logger.error("교환 요청 목록 로딩 중 에러 발생", error);
       Alert.alert("오류", "교환 요청 목록을 불러올 수 없습니다.");
+      throw error; // 🚨 [Senior Architect] Critical 에러 전파
     } finally {
       setLoading(false);
     }
@@ -71,13 +69,8 @@ export default function HistoryScreen() {
           Alert.alert("오류", "상태 업데이트에 실패했습니다.");
         }
       } catch (error) {
-        if (error instanceof Error) {
-          Logger.error("상태 업데이트 실패:", error.message);
-          Alert.alert("오류", "네트워크 에러가 발생했습니다.");
-        } else {
-          Logger.error("상태 업데이트 실패:", String(error));
-          Alert.alert("오류", "알 수 없는 에러가 발생했습니다.");
-        }
+        Logger.error("교환 상태 업데이트 중 에러 발생", error);
+        Alert.alert("오류", "네트워크 에러가 발생했습니다.");
       } finally {
         setActionLoading(null);
       }
