@@ -10,6 +10,8 @@ import { apiClient } from "@/src/core/client";
 import { useAuth } from "@/src/hooks/useAuth";
 import { Logger, maskSensitive } from "@/src/utils/logger";
 
+const pushLogger = Logger.category('PUSH');
+
 
 
 /**
@@ -27,7 +29,7 @@ export function usePushNotifications() {
   useEffect(() => {
     // 안드로이드 Expo Go 환경 예외 처리 (필요 시)
     if (Platform.OS === "android" && __DEV__) {
-      Logger.debug("안드로이드 개발 환경: 푸시 알림 설정을 시작합니다.");
+      pushLogger.debug("안드로이드 개발 환경: 푸시 알림 설정을 시작합니다.");
     }
 
     let notificationListener: Subscription | undefined = undefined;
@@ -38,14 +40,14 @@ export function usePushNotifications() {
       try {
         // 0. 가드 (Notifications는 정적 임포트되므로 항상 존재하지만, 환경에 따른 예외 처리 가능)
         if (Platform.OS === "web") {
-          Logger.debug("웹 환경: 푸시 알림이 지원되지 않습니다.");
+          pushLogger.debug("웹 환경: 푸시 알림이 지원되지 않습니다.");
           return null;
         }
 
         // 1. 권한 요청
         const { status } = await Notifications.requestPermissionsAsync();
         if (status !== "granted") {
-          Logger.debug("알림 권한이 거부되었습니다.");
+          pushLogger.debug("알림 권한이 거부되었습니다.");
           return null;
         }
 
@@ -54,7 +56,7 @@ export function usePushNotifications() {
           const projectId = Constants.expoConfig?.extra?.eas?.projectId;
 
           if (!projectId) {
-            Logger.warn(
+            pushLogger.warn(
               "EAS Project ID를 찾을 수 없습니다. app.json을 확인하세요.",
             );
             return null;
@@ -66,11 +68,11 @@ export function usePushNotifications() {
 
           return token.data;
         } else {
-          Logger.debug("실제 기기가 아닙니다.");
+          pushLogger.debug("실제 기기가 아닙니다.");
           return null;
         }
       } catch (error) {
-        Logger.error("푸시 알림 설정 에러:", error);
+        pushLogger.error("푸시 알림 설정 에러", error);
         return null;
       }
     };
@@ -80,7 +82,7 @@ export function usePushNotifications() {
       if (!token) return;
 
       setExpoPushToken(token);
-      Logger.debug("Expo Push Token:", maskSensitive(token));
+      pushLogger.debug("Expo Push Token 발급 완료", maskSensitive(token));
     });
 
     // 채널 설정 (Android)
@@ -94,7 +96,7 @@ export function usePushNotifications() {
             sound: "default",
           });
         } catch (error) {
-          Logger.error("알림 채널 설정 에러:", error);
+          pushLogger.error("알림 채널 설정 에러", error);
         }
       }
     };
@@ -104,7 +106,7 @@ export function usePushNotifications() {
     // 리스너 등록
     notificationListener = Notifications.addNotificationReceivedListener(
         (receivedNotification) => {
-          Logger.debug("알림 수신:", receivedNotification);
+          pushLogger.debug("알림 수신", receivedNotification);
           setNotification(receivedNotification);
         },
       );
@@ -112,16 +114,16 @@ export function usePushNotifications() {
       // 🚨 앙드레 카파시: 알림 응답 리스너 (딥링킹)
       responseListener = Notifications.addNotificationResponseReceivedListener(
         (response) => {
-          Logger.debug("알림 응답 수신");
+          pushLogger.debug("알림 응답 수신");
 
           // 🚨 앙드레 카파시: 딥링킹 처리
           const data = response.notification.request.content.data as { roomId?: string };
           const { roomId } = data || {};
           if (roomId) {
-            Logger.debug("🔗 [Deep Link] 채팅방으로 이동:", roomId);
+            pushLogger.debug("채팅방으로 딥링크 이동", { roomId });
             router.push(`/exchange/chat/${encodeURIComponent(roomId)}`);
           } else {
-            Logger.debug("🔗 [Deep Link] roomId가 없어 기본 화면으로 이동");
+            pushLogger.debug("roomId가 없어 기본 화면으로 딥링크 이동");
             router.push("/(tabs)");
           }
         },
@@ -148,9 +150,9 @@ export function usePushNotifications() {
           token: expoPushToken,
           deviceType: Device.osName ?? "UNKNOWN",
         });
-        Logger.debug("디바이스 토큰 등록 결과:", response);
+        pushLogger.debug("디바이스 토큰 등록 결과", response);
       } catch (error) {
-        Logger.error("디바이스 토큰 등록 실패:", error);
+        pushLogger.error("디바이스 토큰 등록 실패", error);
       }
     };
 
