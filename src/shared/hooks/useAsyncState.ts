@@ -53,7 +53,7 @@ export function useAsyncState<T>(
 
       const errorMessage =
         error instanceof Error ? error.message : "알 수 없는 오류";
-      setState({ status: "error", data: null, error: errorMessage });
+      setState({ status: "error", data: null, error: errorMessage, rawError: error });
     }
   // [EB-2] deps: [] — 함수 참조를 고정하여 연쇄 리렌더 방지
   }, []);

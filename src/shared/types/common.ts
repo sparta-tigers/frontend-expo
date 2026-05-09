@@ -56,6 +56,7 @@ export interface AsyncState<T> {
   status: "idle" | "loading" | "success" | "error";
   data: T | null;
   error: string | null;
+  rawError?: unknown; // 🚨 [Senior Architect] 원본 에러 객체 보관 (Zero-Magic 추적용)
 }
 
 /**
