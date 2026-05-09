@@ -1,6 +1,8 @@
 import { useCallback, useState, useEffect, useRef } from "react";
 import { Logger } from "@/src/utils/logger";
 
+const systemLogger = Logger.category('SYSTEM');
+
 interface AsyncActionOptions<T> {
   /** 성공 시 콜백 */
   onSuccess?: (data: T) => void;
@@ -53,7 +55,7 @@ export const useAsyncAction = <T, Args extends unknown[]>(
       const errorInstance = err instanceof Error ? err : new Error(String(err));
       
       // 🚨 앙드레 카파시: 컴포넌트 언마운트 시에도 에러가 관측되도록(Fail-fast) 가드 밖에서 로깅
-      Logger.error("🚨 [AsyncAction Error]:", errorInstance);
+      systemLogger.error("비동기 액션 실행 중 에러 발생", errorInstance);
 
       if (isMounted.current) {
         setError(errorInstance);

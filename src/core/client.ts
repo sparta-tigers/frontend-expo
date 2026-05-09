@@ -9,6 +9,8 @@ import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import { Platform } from "react-native";
 import { z } from "zod";
 
+const apiLogger = Logger.category('API');
+
 /**
  * Mutex 상태 변수 (Race Condition 방지)
  */
@@ -156,9 +158,9 @@ axiosInstance.interceptors.request.use(
         const isTokenValid = validateTokenFormatCached(accessToken);
 
         if (!isTokenValid) {
-          Logger.error(
-            "🚨 [Invalid Token Format] 비정상 형식의 토큰:",
-            maskSensitive(accessToken),
+          apiLogger.error(
+            "비정상 형식의 토큰 (Invalid Token Format)",
+            maskSensitive(accessToken)
           );
           // 토큰 형식이 비정상이면 요청 중단 및 토큰 클리어
           await clearTokens();
@@ -166,34 +168,14 @@ axiosInstance.interceptors.request.use(
         }
 
         config.headers.Authorization = `Bearer ${accessToken}`;
-
-        // 🚨 앙드레 카파시: 조건부 디버깅 로그
-        if (__DEV__ && shouldLogTokenValidation(config.url)) {
-          Logger.debug(
-            "[Authorization Header]",
-            config.headers.Authorization.replace(
-              /Bearer\s+(.+)/,
-              "Bearer [MASKED]",
-            ),
-          );
-          Logger.debug("[Token Length]", accessToken.length);
-          Logger.debug(
-            "[Token Format]",
-            accessToken.startsWith("eyJ") ? "JWT 형식" : "비정상 형식",
-          );
-          Logger.debug(
-            "[Token Validation]",
-            isTokenValid ? "✅ 유효" : "❌ 무효",
-          );
-        }
       } else {
         // 🚨 토큰 없음 경고 (중요 API 호출 시만)
         if (__DEV__ && shouldLogTokenValidation(config.url)) {
-          Logger.warn("⚠️ [Token Missing] 액세스 토큰이 없습니다.");
+          apiLogger.warn("액세스 토큰이 없습니다 (Token Missing)");
         }
       }
     } catch (error) {
-      Logger.error("토큰 조회 실패:", error);
+      apiLogger.error("토큰 조회 실패", error);
       return Promise.reject(error);
     }
     return config;
@@ -279,12 +261,7 @@ axiosInstance.interceptors.response.use(
           throw new Error("Refresh token response invalid");
         }
       } catch (refreshError) {
-        Logger.error(
-          "토큰 갱신 실패:",
-          refreshError instanceof Error
-            ? refreshError.message
-            : String(refreshError),
-        );
+        apiLogger.error("토큰 갱신 실패", refreshError);
 
         // 토큰 삭제
         await clearTokens();
@@ -321,9 +298,9 @@ export const apiClient = {
       if (schema) {
         const result = schema.safeParse(data);
         if (!result.success) {
-          Logger.error(
-            `🚨 [Zod Validation Failed] GET ${url}:`,
-            result.error.format(),
+          apiLogger.error(
+            `데이터 검증 실패 (Zod Validation Failed) GET ${url}`,
+            result.error
           );
           throw new Error(`Data validation failed for GET ${url}`);
         }
@@ -334,10 +311,7 @@ export const apiClient = {
     } catch (error) {
       // 🚨 네트워크 에러 강제 로깅
       Logger.networkError(`GET ${url} 요청 실패`, error);
-      Logger.error(
-        `GET ${url} 요청 실패:`,
-        error instanceof Error ? error.message : String(error),
-      );
+      apiLogger.error(`GET ${url} 요청 실패`, error);
       // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
       throw error;
     }
@@ -358,9 +332,9 @@ export const apiClient = {
       if (config?.schema) {
         const result = config.schema.safeParse(responseData);
         if (!result.success) {
-          Logger.error(
-            `🚨 [Zod Validation Failed] POST ${url}:`,
-            result.error.format(),
+          apiLogger.error(
+            `데이터 검증 실패 (Zod Validation Failed) POST ${url}`,
+            result.error
           );
           throw new Error(`Data validation failed for POST ${url}`);
         }
@@ -371,10 +345,7 @@ export const apiClient = {
     } catch (error) {
       // 🚨 네트워크 에러 강제 로깅
       Logger.networkError(`POST ${url} 요청 실패`, error);
-      Logger.error(
-        `POST ${url} 요청 실패:`,
-        error instanceof Error ? error.message : String(error),
-      );
+      apiLogger.error(`POST ${url} 요청 실패`, error);
       // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
       throw error;
     }
@@ -395,9 +366,9 @@ export const apiClient = {
       if (schema) {
         const result = schema.safeParse(responseData);
         if (!result.success) {
-          Logger.error(
-            `🚨 [Zod Validation Failed] PUT ${url}:`,
-            result.error.format(),
+          apiLogger.error(
+            `데이터 검증 실패 (Zod Validation Failed) PUT ${url}`,
+            result.error
           );
           throw new Error(`Data validation failed for PUT ${url}`);
         }
@@ -408,10 +379,7 @@ export const apiClient = {
     } catch (error) {
       // 🚨 네트워크 에러 강제 로깅
       Logger.networkError(`PUT ${url} 요청 실패`, error);
-      Logger.error(
-        `PUT ${url} 요청 실패:`,
-        error instanceof Error ? error.message : String(error),
-      );
+      apiLogger.error(`PUT ${url} 요청 실패`, error);
       // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
       throw error;
     }
@@ -428,9 +396,9 @@ export const apiClient = {
       if (schema) {
         const result = schema.safeParse(responseData);
         if (!result.success) {
-          Logger.error(
-            `🚨 [Zod Validation Failed] DELETE ${url}:`,
-            result.error.format(),
+          apiLogger.error(
+            `데이터 검증 실패 (Zod Validation Failed) DELETE ${url}`,
+            result.error
           );
           throw new Error(`Data validation failed for DELETE ${url}`);
         }
@@ -441,10 +409,7 @@ export const apiClient = {
     } catch (error) {
       // 🚨 네트워크 에러 강제 로깅
       Logger.networkError(`DELETE ${url} 요청 실패`, error);
-      Logger.error(
-        `DELETE ${url} 요청 실패:`,
-        error instanceof Error ? error.message : String(error),
-      );
+      apiLogger.error(`DELETE ${url} 요청 실패`, error);
       // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
       throw error;
     }
@@ -465,9 +430,9 @@ export const apiClient = {
       if (schema) {
         const result = schema.safeParse(responseData);
         if (!result.success) {
-          Logger.error(
-            `🚨 [Zod Validation Failed] PATCH ${url}:`,
-            result.error.format(),
+          apiLogger.error(
+            `데이터 검증 실패 (Zod Validation Failed) PATCH ${url}`,
+            result.error
           );
           throw new Error(`Data validation failed for PATCH ${url}`);
         }
@@ -478,10 +443,7 @@ export const apiClient = {
     } catch (error) {
       // 🚨 네트워크 에러 강제 로깅
       Logger.networkError(`PATCH ${url} 요청 실패`, error);
-      Logger.error(
-        `PATCH ${url} 요청 실패:`,
-        error instanceof Error ? error.message : String(error),
-      );
+      apiLogger.error(`PATCH ${url} 요청 실패`, error);
       // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
       throw error;
     }

@@ -5,6 +5,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
 import SockJS from "sockjs-client";
 
+const chatLogger = Logger.category('CHAT');
+
 /**
  * WebSocket 연결 상태 (State-Driven)
  */
@@ -40,7 +42,7 @@ type ChatDomain = "liveboard" | "directroom" | "location";
  */
 const checkPolyfills = (): boolean => {
   if (!global.TextEncoder) {
-    Logger.warn(
+    chatLogger.warn(
       "TextEncoder polyfill missing. WebSocket connection may fail. " +
         "Ensure 'fast-text-encoding' is imported in app/_layout.tsx",
     );
@@ -86,18 +88,12 @@ export function useWebSocket(
    * WebSocket 연결 함수
    */
   const connect = useCallback(async () => {
-    // [DEBUG] connect() 함수 진입 로그
-    Logger.debug("[useWebSocket] connect() 함수 진입. 현재 roomId:", roomId);
-
     // [SAFETY] directroom 도메인인데 roomId가 없으면 연결 시도 금지
     if (
       chatDomain === "directroom" &&
       (!roomId || roomId === "undefined" || roomId === "null")
     ) {
-      Logger.warn(
-        "[useWebSocket] roomId가 유효하지 않아 연결을 중단합니다:",
-        roomId,
-      );
+      chatLogger.warn("roomId가 유효하지 않아 연결을 중단합니다", { roomId });
       setStatus("ERROR");
       return;
     }
@@ -110,7 +106,6 @@ export function useWebSocket(
 
     // 중복 연결 방어
     if (connectingRef.current || clientRef.current?.connected) {
-      Logger.debug("[useWebSocket] 이미 연결 중이거나 연결됨 — skip");
       return;
     }
 
@@ -123,14 +118,6 @@ export function useWebSocket(
 
       const useSockJS =
         resolvedUrl.startsWith("http://") || resolvedUrl.startsWith("https://");
-
-      // [DEBUG] SockJS 인스턴스 생성 직전
-      Logger.debug(
-        "[useWebSocket] STOMP Client 인스턴스 생성 직전. URL:",
-        resolvedUrl,
-        "UseSockJS:",
-        useSockJS,
-      );
 
       const stompClient = new Client({
         ...(useSockJS
@@ -147,34 +134,26 @@ export function useWebSocket(
         heartbeatOutgoing: 4000,
       });
 
-      // [DEBUG] SockJS 인스턴스 생성 직후
-      Logger.debug("[useWebSocket] STOMP Client 인스턴스 생성 완료");
-
       stompClient.onConnect = () => {
-        Logger.debug(
-          `[useWebSocket] STOMP CONNECTED (Domain: ${chatDomain}, Room: ${roomId})`,
-        );
+        chatLogger.debug(`STOMP CONNECTED`, { chatDomain, roomId });
         connectingRef.current = false;
         setStatus("CONNECTED");
       };
 
       stompClient.onStompError = (frame) => {
-        Logger.error(
-          "[useWebSocket] STOMP Error:",
-          frame.headers?.message ?? frame,
-        );
+        chatLogger.error("STOMP Error", frame.headers?.message ?? frame);
         connectingRef.current = false;
         setStatus("ERROR");
       };
 
       stompClient.onWebSocketError = (event) => {
-        Logger.error("[useWebSocket] WebSocket transport error:", event);
+        chatLogger.error("WebSocket transport error", event);
         connectingRef.current = false;
         setStatus("ERROR");
       };
 
       stompClient.onDisconnect = () => {
-        Logger.debug("[useWebSocket] STOMP DISCONNECTED");
+        chatLogger.debug("STOMP DISCONNECTED");
         connectingRef.current = false;
         setStatus("DISCONNECTED");
       };
@@ -182,11 +161,9 @@ export function useWebSocket(
       clientRef.current = stompClient;
       setClient(stompClient);
 
-      // [DEBUG] activate() 호출 시점
-      Logger.debug("[useWebSocket] STOMP Client activate() 호출");
       stompClient.activate();
     } catch (error) {
-      Logger.error("[useWebSocket] connection error:", error);
+      chatLogger.error("connection error", error);
       connectingRef.current = false;
       setStatus("ERROR");
     }
@@ -195,7 +172,6 @@ export function useWebSocket(
   const disconnect = useCallback(() => {
     if (clientRef.current?.connected) {
       clientRef.current.deactivate();
-      Logger.debug("[useWebSocket] disconnected");
     }
     connectingRef.current = false;
     setStatus("DISCONNECTED");
@@ -209,7 +185,7 @@ export function useWebSocket(
         body: typeof body === "string" ? body : JSON.stringify(body),
       });
     } else {
-      Logger.warn("[useWebSocket] not connected. Cannot send message.");
+      chatLogger.warn("not connected. Cannot send message.");
     }
   }, []);
 
@@ -219,7 +195,6 @@ export function useWebSocket(
     return () => {
       if (clientRef.current?.connected) {
         clientRef.current.deactivate();
-        Logger.debug("[useWebSocket] cleanup: deactivated");
       }
       clientRef.current = null;
       connectingRef.current = false;
