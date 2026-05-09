@@ -15,6 +15,10 @@ const LOCAL_LAYOUT = {
   numberAreaLeft: theme.spacing.lg,
   dividerWidth: StyleSheet.hairlineWidth,
   dividerHeight: "80%",
+  /** Empty State 아이콘 박스 크기 (64px) */
+  emptyIconBoxSize: theme.spacing.lg * 4,
+  /** Empty State 아이콘 크기 (32px) */
+  emptyIconSize: theme.spacing.lg * 2,
 } as const;
 
 interface LineupSectionProps {
@@ -60,8 +64,8 @@ export const LineupSection = React.memo(function LineupSection({
           style={[styles.rowShadow, styles.emptyContainer]}
         >
           <Box
-            width={64}
-            height={64}
+            width={LOCAL_LAYOUT.emptyIconBoxSize}
+            height={LOCAL_LAYOUT.emptyIconBoxSize}
             rounded="full"
             bg="surface"
             align="center"
@@ -70,7 +74,7 @@ export const LineupSection = React.memo(function LineupSection({
           >
             <IconSymbol
               name="person.3.fill"
-              size={32}
+              size={LOCAL_LAYOUT.emptyIconSize}
               color={theme.colors.brand.mint}
             />
           </Box>
