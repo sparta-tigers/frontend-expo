@@ -309,9 +309,6 @@ export const apiClient = {
 
       return data;
     } catch (error) {
-      // 🚨 네트워크 에러 강제 로깅
-      Logger.networkError(`GET ${url} 요청 실패`, error);
-      apiLogger.error(`GET ${url} 요청 실패`, error);
       // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
       throw error;
     }
@@ -343,9 +340,6 @@ export const apiClient = {
 
       return responseData;
     } catch (error) {
-      // 🚨 네트워크 에러 강제 로깅
-      Logger.networkError(`POST ${url} 요청 실패`, error);
-      apiLogger.error(`POST ${url} 요청 실패`, error);
       // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
       throw error;
     }
@@ -377,9 +371,6 @@ export const apiClient = {
 
       return responseData;
     } catch (error) {
-      // 🚨 네트워크 에러 강제 로깅
-      Logger.networkError(`PUT ${url} 요청 실패`, error);
-      apiLogger.error(`PUT ${url} 요청 실패`, error);
       // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
       throw error;
     }
@@ -407,9 +398,6 @@ export const apiClient = {
 
       return responseData;
     } catch (error) {
-      // 🚨 네트워크 에러 강제 로깅
-      Logger.networkError(`DELETE ${url} 요청 실패`, error);
-      apiLogger.error(`DELETE ${url} 요청 실패`, error);
       // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
       throw error;
     }
@@ -441,9 +429,6 @@ export const apiClient = {
 
       return responseData;
     } catch (error) {
-      // 🚨 네트워크 에러 강제 로깅
-      Logger.networkError(`PATCH ${url} 요청 실패`, error);
-      apiLogger.error(`PATCH ${url} 요청 실패`, error);
       // 🚨 에러를 다시 던져서 AuthContext에서 처리할 수 있도록 함
       throw error;
     }
