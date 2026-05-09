@@ -49,16 +49,6 @@ const shouldLog = (level: LogLevel, domain: LogDomain = 'APP'): boolean => {
 };
 
 /**
- * 에러 스택 트레이스 및 컨텍스트 포맷팅
- */
-const formatError = (error: unknown): string => {
-  if (error instanceof Error) {
-    return `\n[Stack Trace]\n${error.stack}\n`;
-  }
-  return typeof error === 'string' ? `\n[Error Message] ${error}` : `\n[Error Object] ${JSON.stringify(error)}`;
-};
-
-/**
  * 민감 정보 마스킹 유틸리티
  */
 export const maskSensitive = (sensitive?: string | null): string => {
@@ -113,26 +103,71 @@ export const Logger = {
     console.warn(`⚠️ [${domain}] ${message}`, ...extraArgs);
   },
 
+  /**
+   * 에러 로깅 (Stack Trace 포함)
+   */
   error: (message: string, error?: unknown, options: LogOptions = { domain: 'APP' }) => {
     if (!shouldLog('error', options.domain)) return;
     
-    const errorDetail = error ? formatError(error) : '';
-    const contextDetail = options.context ? `\n[Context] ${JSON.stringify(options.context)}` : '';
+    const prefix = `🚨 [${options.domain || 'APP'}] ${message}`;
     
-    console.error(`🚨 [${options.domain || 'APP'}] ${message}${errorDetail}${contextDetail}`);
+    // 🚨 [Senior Architect Constraint] AxiosError 전용 포맷팅 및 안전한 출력
+    let displayError: any = error;
+    if (error && typeof error === 'object' && 'isAxiosError' in error && (error as any).isAxiosError) {
+      const axiosError = error as any;
+      displayError = {
+        name: 'AxiosError',
+        message: axiosError.message,
+        url: axiosError.config?.url,
+        method: axiosError.config?.method?.toUpperCase(),
+        status: axiosError.response?.status,
+        data: axiosError.response?.data,
+        code: axiosError.code,
+        // stack은 Metro에서 이미 잘 보여주므로 요약 정보 우선
+      };
+    }
+
+    // 🚨 [Senior Architect Constraint] Metro Console 객체 출력 한계 대비 (안전한 직렬화)
+    if (__DEV__) {
+      try {
+        // 순환 참조 방지 및 가독성을 위한 제한적 직렬화 (거대 객체 생략)
+        const summary = typeof displayError === 'object' && displayError !== null
+          ? JSON.stringify(displayError, (key, value) => {
+              if (['request', 'response', 'config'].includes(key)) return '[Fat Object Snipped]';
+              return value;
+            }, 2)
+          : String(displayError);
+
+        console.error(`${prefix}\n${summary}`);
+        
+        // 원본 객체도 함께 넘겨서 디버거에서 상세 확인 가능하게 함
+        if (options.context) {
+          console.error('[Full Context]', options.context, '\n[Raw Error]', error);
+        }
+      } catch {
+        // 직렬화 실패 시 기본 출력으로 대체
+        console.error(prefix, error, options.context);
+      }
+    } else {
+      console.error(prefix, error, options.context);
+    }
   },
 
   /**
-   * 네트워크 에러 특화 출력 (하위 호환성 유지)
+   * 네트워크 전용 에러 로깅
    */
   networkError: (message: string, error?: any) => {
     if (!shouldLog('error', 'API')) return;
     
     const context: Record<string, any> = {};
-    if (error && typeof error === 'object') {
-      if (error.code) context.code = error.code;
-      if (error.response?.status) context.status = error.response.status;
-      if (error.config?.url) context.url = error.config.url;
+    try {
+      if (error && typeof error === 'object') {
+        if ('code' in error) context.code = error.code;
+        if (error.response?.status) context.status = error.response.status;
+        if (error.config?.url) context.url = error.config.url;
+      }
+    } catch {
+      // Probing 실패 시 무시
     }
 
     Logger.error(`🌐 [NETWORK] ${message}`, error, { domain: 'API', context });

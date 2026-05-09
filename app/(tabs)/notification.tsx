@@ -39,10 +39,8 @@ export default function NotificationScreen() {
         Logger.error("티켓 알림 목록 조회 실패:", response.error);
       }
     } catch (error) {
-      Logger.error(
-        "네트워크 에러:",
-        error instanceof Error ? error.message : String(error),
-      );
+      Logger.error("티켓 알림 목록 조회 중 네트워크 에러 발생", error);
+      throw error; // 🚨 [Senior Architect] Critical 에러는 상위로 전파하여 Fail-fast 실현
     } finally {
       setLoading(false);
     }
@@ -102,10 +100,7 @@ export default function NotificationScreen() {
                 Alert.alert("오류", "티켓 알림 추가에 실패했습니다.");
               }
             } catch (error) {
-              Logger.error(
-                "티켓 알림 추가 실패:",
-                error instanceof Error ? error.message : String(error),
-              );
+              Logger.error("티켓 알림 추가 중 네트워크 에러 발생", error);
               Alert.alert("오류", "네트워크 에러가 발생했습니다.");
             } finally {
               setLoading(false);
@@ -140,10 +135,7 @@ export default function NotificationScreen() {
                 Alert.alert("오류", "티켓 알림 삭제에 실패했습니다.");
               }
             } catch (error) {
-              Logger.error(
-                "티켓 알림 삭제 실패:",
-                error instanceof Error ? error.message : String(error),
-              );
+              Logger.error("티켓 알림 삭제 중 네트워크 에러 발생", error);
               Alert.alert("오류", "네트워크 에러가 발생했습니다.");
             } finally {
               setLoading(false);
