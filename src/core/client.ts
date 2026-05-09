@@ -168,14 +168,6 @@ axiosInstance.interceptors.request.use(
         }
 
         config.headers.Authorization = `Bearer ${accessToken}`;
-
-        // 🚨 앙드레 카파시: 조건부 디버깅 로그
-        if (__DEV__ && shouldLogTokenValidation(config.url)) {
-          apiLogger.debug("Authorization Header", config.headers.Authorization.replace(/Bearer\s+(.+)/, "Bearer [MASKED]"));
-          apiLogger.debug("Token Length", accessToken.length);
-          apiLogger.debug("Token Format", accessToken.startsWith("eyJ") ? "JWT 형식" : "비정상 형식");
-          apiLogger.debug("Token Validation", isTokenValid ? "✅ 유효" : "❌ 무효");
-        }
       } else {
         // 🚨 토큰 없음 경고 (중요 API 호출 시만)
         if (__DEV__ && shouldLogTokenValidation(config.url)) {
