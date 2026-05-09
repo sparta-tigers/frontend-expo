@@ -112,16 +112,11 @@ export function usePushNotifications() {
       // 🚨 앙드레 카파시: 알림 응답 리스너 (딥링킹)
       responseListener = Notifications.addNotificationResponseReceivedListener(
         (response) => {
-          pushLogger.debug("알림 응답 수신");
-
-          // 🚨 앙드레 카파시: 딥링킹 처리
           const data = response.notification.request.content.data as { roomId?: string };
           const { roomId } = data || {};
           if (roomId) {
-            pushLogger.debug("채팅방으로 딥링크 이동", { roomId });
             router.push(`/exchange/chat/${encodeURIComponent(roomId)}`);
           } else {
-            pushLogger.debug("roomId가 없어 기본 화면으로 딥링크 이동");
             router.push("/(tabs)");
           }
         },

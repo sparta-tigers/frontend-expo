@@ -3,9 +3,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/hooks/useTheme";
 import { ErrorBoundaryFallback } from "@/src/components/shared/ErrorBoundaryFallback";
 import { OfflineBanner } from "@/src/components/shared/OfflineBanner";
-import { usePushNotifications } from "@/src/hooks/usePushNotifications";
 
-import { Logger } from "@/src/utils/logger";
 import { useNetInfo } from "@react-native-community/netinfo";
 import * as Notifications from "expo-notifications";
 import { Href, router, Stack, useSegments } from "expo-router";
@@ -49,7 +47,6 @@ export default function RootLayout() {
  */
 function RootLayoutInner() {
   const { user, isLoading } = useAuth();
-  const { expoPushToken } = usePushNotifications();
   const { colors } = useTheme();
   const segments = useSegments();
   const netInfo = useNetInfo();
@@ -59,14 +56,10 @@ function RootLayoutInner() {
 
   const inAuthGroup = segments[0] === "(auth)";
 
-  if (__DEV__ && expoPushToken) {
-    Logger.debug("[Push] Expo Push Token 발급 완료");
-  }
 
   useEffect(() => {
     const timer = setTimeout(() => {
       navigationReady.current = true;
-      Logger.debug("[Navigation] 네비게이터 준비 완료");
     }, 100);
 
     return () => {
