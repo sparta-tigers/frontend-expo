@@ -88,9 +88,6 @@ export function useWebSocket(
    * WebSocket 연결 함수
    */
   const connect = useCallback(async () => {
-    // [DEBUG] connect() 함수 진입 로그
-    chatLogger.debug("connect() 진입", { roomId });
-
     // [SAFETY] directroom 도메인인데 roomId가 없으면 연결 시도 금지
     if (
       chatDomain === "directroom" &&
@@ -109,7 +106,6 @@ export function useWebSocket(
 
     // 중복 연결 방어
     if (connectingRef.current || clientRef.current?.connected) {
-      chatLogger.debug("이미 연결 중이거나 연결됨 - skip");
       return;
     }
 
@@ -122,9 +118,6 @@ export function useWebSocket(
 
       const useSockJS =
         resolvedUrl.startsWith("http://") || resolvedUrl.startsWith("https://");
-
-      // [DEBUG] SockJS 인스턴스 생성 직전
-      chatLogger.debug("STOMP Client 인스턴스 생성 직전", { resolvedUrl, useSockJS });
 
       const stompClient = new Client({
         ...(useSockJS
@@ -140,9 +133,6 @@ export function useWebSocket(
         heartbeatIncoming: 4000,
         heartbeatOutgoing: 4000,
       });
-
-      // [DEBUG] SockJS 인스턴스 생성 직후
-      chatLogger.debug("STOMP Client 인스턴스 생성 완료");
 
       stompClient.onConnect = () => {
         chatLogger.debug(`STOMP CONNECTED`, { chatDomain, roomId });
@@ -171,8 +161,6 @@ export function useWebSocket(
       clientRef.current = stompClient;
       setClient(stompClient);
 
-      // [DEBUG] activate() 호출 시점
-      chatLogger.debug("STOMP Client activate() 호출");
       stompClient.activate();
     } catch (error) {
       chatLogger.error("connection error", error);
@@ -184,7 +172,6 @@ export function useWebSocket(
   const disconnect = useCallback(() => {
     if (clientRef.current?.connected) {
       clientRef.current.deactivate();
-      chatLogger.debug("disconnected 호출");
     }
     connectingRef.current = false;
     setStatus("DISCONNECTED");
@@ -208,7 +195,6 @@ export function useWebSocket(
     return () => {
       if (clientRef.current?.connected) {
         clientRef.current.deactivate();
-        chatLogger.debug("cleanup: deactivated");
       }
       clientRef.current = null;
       connectingRef.current = false;

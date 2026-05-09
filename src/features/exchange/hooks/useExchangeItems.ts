@@ -111,11 +111,6 @@ export function useExchangeItems(): UseExchangeItemsReturn {
       try {
         const radius = deltaToRadius(latDelta);
         await fetchItems(loadItems(lat, lng, radius));
-        mapLogger.debug("현 지도에서 재검색 완료", {
-          lat,
-          lng,
-          radius,
-        });
       } catch (error) {
         mapLogger.error("현 지도에서 재검색 실패", error);
         throw error; // 호출자에서 isMapMoved 복구 처리
@@ -132,7 +127,6 @@ export function useExchangeItems(): UseExchangeItemsReturn {
       try {
         const radius = deltaToRadius(latDelta);
         await fetchItems(loadItems(lat, lng, radius));
-        mapLogger.debug("초기 GPS 기반 아이템 로딩 완료", { lat, lng });
       } catch (error) {
         mapLogger.error("초기 아이템 로딩 실패", error);
         // fetchItems 내부에 에러가 전파되어 itemsState.error에 저장됨

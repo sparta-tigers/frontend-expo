@@ -107,7 +107,6 @@ export function useExchangeMap(isInitialFetched: boolean): UseExchangeMapReturn 
         },
         MAP_ANIMATE_DURATION,
       );
-      mapLogger.debug("현재 위치로 지도 이동 완료", userLocation);
     } else {
       Alert.alert(
         "알림",
@@ -128,7 +127,6 @@ export function useExchangeMap(isInitialFetched: boolean): UseExchangeMapReturn 
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        mapLogger.debug("위치 권한이 거부됨");
         return;
       }
 
@@ -151,8 +149,6 @@ export function useExchangeMap(isInitialFetched: boolean): UseExchangeMapReturn 
           MAP_INITIAL_ANIMATE_DURATION,
         );
       }
-
-      mapLogger.debug("초기 위치 설정 완료", coords);
     } catch (error) {
       mapLogger.error("초기 위치 가져오기 실패", error);
     }

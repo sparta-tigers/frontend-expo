@@ -1,4 +1,4 @@
-import { Logger, maskSensitive } from "@/src/utils/logger";
+import { Logger } from "@/src/utils/logger";
 import * as SecureStore from "expo-secure-store";
 
 const authLogger = Logger.category('AUTH');
@@ -142,13 +142,6 @@ export async function initializeTokenCache(): Promise<void> {
     if (accessToken && refreshToken) {
       _accessToken = accessToken;
       _refreshToken = refreshToken;
-
-      authLogger.debug("SecureStore에서 토큰 로드 완료", {
-        accessToken: maskSensitive(accessToken),
-        refreshToken: maskSensitive(refreshToken)
-      });
-    } else {
-      authLogger.debug("SecureStore에 토큰이 없습니다");
     }
   } catch (error) {
     authLogger.error("토큰 캐시 초기화 실패", error);
@@ -164,13 +157,6 @@ export function getDebugTokenState(): {
   accessToken: string | null;
   refreshToken: string | null;
 } {
-    authLogger.debug("현재 토큰 상태 캐시", {
-      accessToken: maskSensitive(_accessToken),
-      refreshToken: maskSensitive(_refreshToken),
-      isAccessTokenValid: _accessToken?.startsWith("eyJ"),
-      isRefreshTokenValid: _refreshToken?.startsWith("eyJ"),
-    });
-
   return {
     accessToken: _accessToken,
     refreshToken: _refreshToken,
