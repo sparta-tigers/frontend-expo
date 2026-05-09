@@ -141,7 +141,7 @@ export function useWebSocket(
       };
 
       stompClient.onStompError = (frame) => {
-        chatLogger.error("STOMP Error", frame.headers?.message ?? frame);
+        chatLogger.error("STOMP Error 발생", frame);
         connectingRef.current = false;
         setStatus("ERROR");
       };

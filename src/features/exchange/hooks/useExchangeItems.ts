@@ -129,7 +129,8 @@ export function useExchangeItems(): UseExchangeItemsReturn {
         await fetchItems(loadItems(lat, lng, radius));
       } catch (error) {
         mapLogger.error("초기 아이템 로딩 실패", error);
-        // fetchItems 내부에 에러가 전파되어 itemsState.error에 저장됨
+        // 🚨 [Senior Architect] 초기 로딩 실패는 Critical 에러로 간주하여 전파
+        throw error;
       } finally {
         // 실패하더라도 무한 로딩 스피너 방지를 위해 '가져옴' 상태로 완결
         setIsInitialFetched(true);

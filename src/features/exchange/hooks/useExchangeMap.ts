@@ -151,6 +151,8 @@ export function useExchangeMap(isInitialFetched: boolean): UseExchangeMapReturn 
       }
     } catch (error) {
       mapLogger.error("초기 위치 가져오기 실패", error);
+      // 🚨 [Senior Architect] 초기 위치 설정 실패는 Critical 에러로 간주하여 전파
+      throw error;
     }
   }, []);
 
