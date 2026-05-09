@@ -1,9 +1,9 @@
-import React from "react";
-import { StyleSheet } from "react-native";
 import { Box, Typography } from "@/components/ui";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { theme } from "@/src/styles/theme";
 import { getTeamColorPath } from "@/src/utils/team";
+import React from "react";
+import { StyleSheet } from "react-native";
 import { LineupRowDto } from "../types";
 
 // ========================================================
@@ -27,56 +27,64 @@ interface LineupSectionProps {
 /**
  * 오늘의 라인업 섹션
  *
- * Why: 홈 화면에서 당일 선발 라인업을 시각적으로 구현. 
+ * Why: 홈 화면에서 당일 선발 라인업을 시각적으로 구현.
  * 데이터가 없을 경우 프리미엄 Empty State를 표시하여 UX를 개선함.
  */
-export const LineupSection = React.memo(function LineupSection({ lineup, teamName }: LineupSectionProps) {
+export const LineupSection = React.memo(function LineupSection({
+  lineup,
+  teamName,
+}: LineupSectionProps) {
   const teamColorPath = getTeamColorPath(teamName ?? "");
 
   // 🚨 Empty State: 라인업 데이터가 없는 경우 (경기 전)
   if (!lineup || lineup.length === 0) {
     return (
       <Box mt="xxxxl" px="SCREEN_DASHBOARD">
-        <Box height={theme.layout.dashboard.sectionTitleHeight} align="center" justify="center" mb="md">
+        <Box
+          height={theme.layout.dashboard.sectionTitleHeight}
+          align="center"
+          justify="center"
+          mb="md"
+        >
           <Typography variant="h3" weight="bold" center>
             오늘의 라인업을 기다리고 있어요
           </Typography>
         </Box>
-        
-        <Box 
-          width={LOCAL_LAYOUT.rowWidth} 
-          rounded="xl" 
-          bg="card" 
+
+        <Box
+          width={LOCAL_LAYOUT.rowWidth}
+          rounded="xl"
+          bg="card"
           py="xxxl"
           align="center"
           style={[styles.rowShadow, styles.emptyContainer]}
         >
-          <Box 
-            width={64} 
-            height={64} 
-            rounded="full" 
-            bg="surface" 
-            align="center" 
-            justify="center" 
+          <Box
+            width={64}
+            height={64}
+            rounded="full"
+            bg="surface"
+            align="center"
+            justify="center"
             mb="lg"
           >
-            <IconSymbol 
-              name="person.3.fill" 
-              size={32} 
-              color={theme.colors.brand.mint} 
+            <IconSymbol
+              name="person.3.fill"
+              size={32}
+              color={theme.colors.brand.mint}
             />
           </Box>
 
           <Typography variant="h3" weight="bold" color="primary" center>
             라인업을 준비 중이에요
           </Typography>
-          
-          <Typography 
-            variant="body2" 
-            color="text.secondary" 
-            center 
-            mt="xs" 
-            px="xl"
+
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            center
+            mt="xs"
+            mx="xl"
           >
             선발 명단이 발표되는 대로{"\n"}가장 먼저 알려드릴게요!
           </Typography>
@@ -84,7 +92,7 @@ export const LineupSection = React.memo(function LineupSection({ lineup, teamNam
           {/* 하단에 비어있는 슬롯 실루엣 추가하여 "라인업" 섹션임을 암시 */}
           <Box mt="xxl" width="100%" px="xxl" gap="sm">
             {[1, 2].map((i) => (
-              <Box 
+              <Box
                 key={i}
                 height={LOCAL_LAYOUT.rowHeight * 0.8}
                 rounded="full"
@@ -100,7 +108,12 @@ export const LineupSection = React.memo(function LineupSection({ lineup, teamNam
 
   return (
     <Box mt="xxxxl" px="SCREEN_DASHBOARD">
-      <Box height={theme.layout.dashboard.sectionTitleHeight} align="center" justify="center" mb="md">
+      <Box
+        height={theme.layout.dashboard.sectionTitleHeight}
+        align="center"
+        justify="center"
+        mb="md"
+      >
         <Typography variant="h3" weight="bold" center>
           오늘, 승리를 이끌 라인업이에요
         </Typography>
@@ -108,38 +121,34 @@ export const LineupSection = React.memo(function LineupSection({ lineup, teamNam
 
       <Box align="center" gap="xs">
         {lineup.map((row) => (
-          <Box 
-            key={`${row.battingOrder}-${row.name}`} 
-            width={LOCAL_LAYOUT.rowWidth} 
-            height={LOCAL_LAYOUT.rowHeight} 
-            rounded="full" 
-            bg="card" 
+          <Box
+            key={`${row.battingOrder}-${row.name}`}
+            width={LOCAL_LAYOUT.rowWidth}
+            height={LOCAL_LAYOUT.rowHeight}
+            rounded="full"
+            bg="card"
             justify="center"
             style={styles.rowShadow}
             accessibilityLabel={`${row.battingOrder}번 타자 ${row.name} ${row.position}`}
           >
-            <Box 
-              position="absolute" 
-              left={LOCAL_LAYOUT.numberAreaLeft} 
-              top={0} 
-              bottom={0} 
-              flexDir="row" 
-              align="center" 
+            <Box
+              position="absolute"
+              left={LOCAL_LAYOUT.numberAreaLeft}
+              top={0}
+              bottom={0}
+              flexDir="row"
+              align="center"
               gap="lg"
             >
               <Box width={theme.spacing.lg} align="center">
-                <Typography 
-                  variant="h2" 
-                  weight="bold" 
-                  color={teamColorPath}
-                >
+                <Typography variant="h2" weight="bold" color={teamColorPath}>
                   {row.battingOrder}
                 </Typography>
               </Box>
-              <Box 
-                width={LOCAL_LAYOUT.dividerWidth} 
-                height={LOCAL_LAYOUT.dividerHeight} 
-                bg="team.neutralLight" 
+              <Box
+                width={LOCAL_LAYOUT.dividerWidth}
+                height={LOCAL_LAYOUT.dividerHeight}
+                bg="team.neutralLight"
               />
             </Box>
 
@@ -148,11 +157,7 @@ export const LineupSection = React.memo(function LineupSection({ lineup, teamNam
             </Typography>
 
             <Box position="absolute" right={theme.spacing.lg}>
-              <Typography 
-                variant="h3" 
-                weight="bold" 
-                color={teamColorPath}
-              >
+              <Typography variant="h3" weight="bold" color={teamColorPath}>
                 {row.position}
               </Typography>
             </Box>
@@ -168,9 +173,9 @@ const styles = StyleSheet.create({
     ...theme.shadow.card,
   },
   emptyContainer: {
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   emptySlot: {
     opacity: 0.5,
-  }
+  },
 });
