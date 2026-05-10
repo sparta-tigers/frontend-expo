@@ -28,6 +28,8 @@ export interface NowCastDto {
   skyStatus: SkyStatus | null;
   rainType: RainType | null;
   rainAmount: number | null;
+  /** 강수확률(POP, 0~100). 단기예보 미제공/실패 시 null. */
+  rainProbability: number | null;
   windSpeed: number | null;
   windDirection: string | null;
 }
@@ -73,4 +75,16 @@ export interface MatchLineupDto {
   awayTeamCode: string | null;
   homeBatters: LineupRowDto[];
   awayBatters: LineupRowDto[];
+}
+
+/**
+ * 구장 날씨 조회 API 응답 DTO
+ *
+ * Why: GET /api/liveboard/{matchId}/weather 응답과 1:1 매핑.
+ * NowCast + ForeCast를 단일 호출에 받아 칩/탭 전환 시 추가 호출 없이 로컬 상태에서 렌더링.
+ */
+export interface MatchWeatherDto {
+  stadiumName: string | null;
+  nowCast: NowCastDto | null;
+  foreCast: ForeCastDto[];
 }
