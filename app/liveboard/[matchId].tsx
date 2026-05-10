@@ -1,0 +1,829 @@
+import { Box } from "@/components/ui/box";
+import { SafeLayout } from "@/components/ui/safe-layout";
+import { Typography } from "@/components/ui/typography";
+import { theme } from "@/src/styles/theme";
+
+import { MaterialIcons } from "@expo/vector-icons";
+import { useLocalSearchParams } from "expo-router";
+import React, { useState } from "react";
+import {
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+} from "react-native";
+
+// ========================================================
+// 목데이터 (상단 라이브 섹션용)
+// ========================================================
+const MOCK_LIVE_DATA = {
+  inning: 9,
+  inningHalf: "말" as "초" | "말",
+  awayScore: 6,
+  homeScore: 13,
+  ballCount: 2, // 0~4
+  strikeCount: 1, // 0~3
+  outCount: 1, // 0~3
+  bases: { first: true, second: false, third: false },
+  pitcherName: "이강준",
+  pitchCount: 13,
+  lastEvent: " [7회 말] 오선우 : 우익수 플라이 아웃",
+  // 수비 9명 (디자인 기준 절대좌표, 좌상단 기준 px)
+  defenders: [
+    { name: "이주형", x: 106, y: 17 }, // 투수
+    { name: "이강준", x: 103, y: 102 }, // 포수
+    { name: "박주홍", x: 15, y: 31 }, // 좌익수
+    { name: "김건희", x: 101, y: 194 }, // 중견수
+    { name: "전태현", x: 156, y: 62 }, // 우익수
+    { name: "송성문", x: 21, y: 92 }, // 3루수
+    { name: "김태진", x: 44, y: 62 }, // 유격수
+    { name: "최주환", x: 185, y: 94 }, // 2루수
+    { name: "카디네스", x: 185, y: 31 }, // 1루수
+  ],
+  // 타자/주자
+  batter: { name: "오선우", x: 139, y: 178 },
+  runner: { name: "김선빈", x: 186, y: 108 },
+};
+
+const MOCK_CHAT = [
+  {
+    id: "1",
+    author: "김현우",
+    text: "안타쳐라 우리팀 화이팅!",
+    time: "18:20",
+    mine: false,
+  },
+  {
+    id: "2",
+    author: "리니최고",
+    text: "끝날때까지 끝난게 아니다",
+    time: "18:20",
+    mine: true,
+  },
+  {
+    id: "3",
+    author: "김현우",
+    text: "좋은 것 같아요!",
+    time: "18:20",
+    mine: false,
+  },
+  {
+    id: "4",
+    author: "리니최고",
+    text: "야구는 9회말 투아웃부터",
+    time: "18:21",
+    mine: true,
+  },
+  { id: "5", author: "김현우", text: "역전하자!", time: "18:21", mine: false },
+];
+
+// ========================================================
+// 탭 정의
+// ========================================================
+type TabKey = "chat" | "text" | "lineup" | "weather";
+const TABS: { key: TabKey; label: string }[] = [
+  { key: "chat", label: "라이브채팅" },
+  { key: "text", label: "텍스트 중계" },
+  { key: "lineup", label: "선수 라인업" },
+  { key: "weather", label: "구장날씨" },
+];
+
+// ========================================================
+// 메인 화면
+// ========================================================
+
+/**
+ * 라이브보드 상세 화면
+ *
+ * Why: 매치 카드 클릭 시 이동하는 실시간 경기 중계 화면.
+ * - 상단: 경기장 + 선수 배치 + 점수/BSO/베이스/투수 정보 (현재는 목데이터)
+ * - 중간: 4탭 네비게이션 (라이브채팅/텍스트중계/선수라인업/구장날씨)
+ * - 하단: 선택된 탭의 컨텐츠 (라이브채팅만 구현, 나머지는 placeholder)
+ */
+export default function LiveboardDetailScreen() {
+  const params = useLocalSearchParams<{
+    matchId: string;
+    awayTeamName?: string;
+    homeTeamName?: string;
+    stadium?: string;
+    matchTime?: string;
+  }>();
+
+  const [activeTab, setActiveTab] = useState<TabKey>("chat");
+
+  return (
+    <SafeLayout style={styles.container} edges={["left", "right"]}>
+      {/* ─ 상단: 라이브 중계 시각화 ─────────────────────────── */}
+      <LiveSection
+        awayTeamName={params.awayTeamName ?? "어웨이"}
+        homeTeamName={params.homeTeamName ?? "홈"}
+      />
+
+      {/* ─ 중간: 탭 네비게이션 ─────────────────────────────── */}
+      <Box style={styles.tabBar} flexDir="row" justify="space-between">
+        {TABS.map((tab) => {
+          const isActive = tab.key === activeTab;
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              style={styles.tabItem}
+              onPress={() => setActiveTab(tab.key)}
+              accessibilityRole="button"
+              accessibilityLabel={tab.label}
+            >
+              <Typography
+                style={[styles.tabText, isActive && styles.tabTextActive]}
+                weight="bold"
+              >
+                {tab.label}
+              </Typography>
+            </TouchableOpacity>
+          );
+        })}
+      </Box>
+
+      {/* ─ 하단: 탭 컨텐츠 ─────────────────────────────────── */}
+      <Box flex={1}>
+        {activeTab === "chat" && <ChatPanel />}
+        {activeTab === "text" && <PlaceholderPanel label="텍스트 중계" />}
+        {activeTab === "lineup" && <PlaceholderPanel label="선수 라인업" />}
+        {activeTab === "weather" && <PlaceholderPanel label="구장 날씨" />}
+      </Box>
+    </SafeLayout>
+  );
+}
+
+// ========================================================
+// 상단: 라이브 섹션 (목데이터 기반 시각화)
+// ========================================================
+
+/**
+ * LiveSection
+ *
+ * Why: 경기장 배경 위에 선수 배치, 좌측 정보 바, 텍스트 중계 배너를 절대좌표로 배치.
+ * 디자인 기준 너비(290px 선수 영역, 74px 좌측 바)를 그대로 유지하되,
+ * 화면 너비가 더 클 경우 좌우 중앙 정렬은 섹션 내부에서 해결.
+ */
+function LiveSection({
+  awayTeamName,
+  homeTeamName,
+}: {
+  awayTeamName: string;
+  homeTeamName: string;
+}) {
+  return (
+    <Box style={styles.liveSection}>
+      {/* 경기장 배경 (목업: 그린톤 단색) */}
+      <Box style={styles.stadiumBg} />
+
+      {/* 텍스트 중계 배너 */}
+      <Box style={styles.eventBanner}>
+        <Typography style={styles.eventBannerText} weight="bold">
+          {MOCK_LIVE_DATA.lastEvent}
+        </Typography>
+      </Box>
+
+      {/* 좌측 정보 바 */}
+      <Box style={styles.leftBar}>
+        {/* 점수 — 어웨이 */}
+        <Box style={[styles.scoreRow, styles.scoreAway]}>
+          <Typography style={styles.scoreTeamLabel} weight="bold">
+            {awayTeamName}
+          </Typography>
+          <Typography style={styles.scoreValue} weight="semibold">
+            {MOCK_LIVE_DATA.awayScore}
+          </Typography>
+        </Box>
+        {/* 점수 — 홈 */}
+        <Box style={[styles.scoreRow, styles.scoreHome]}>
+          <Typography style={styles.scoreTeamLabel} weight="bold">
+            {homeTeamName}
+          </Typography>
+          <Typography style={styles.scoreValue} weight="semibold">
+            {MOCK_LIVE_DATA.homeScore}
+          </Typography>
+        </Box>
+
+        {/* 볼카운트/이닝 통합 박스 */}
+        <Box style={styles.countBox}>
+          {/* 이닝 + 베이스 */}
+          <Box style={styles.inningRow} flexDir="row" align="center">
+            <Box align="center">
+              <MaterialIcons
+                name="arrow-drop-up"
+                size={14}
+                color={
+                  MOCK_LIVE_DATA.inningHalf === "초"
+                    ? theme.colors.background
+                    : theme.colors.transparent
+                }
+              />
+              <Typography style={styles.inningText} weight="semibold">
+                {MOCK_LIVE_DATA.inning}
+              </Typography>
+              <MaterialIcons
+                name="arrow-drop-down"
+                size={14}
+                color={
+                  MOCK_LIVE_DATA.inningHalf === "말"
+                    ? theme.colors.background
+                    : theme.colors.transparent
+                }
+              />
+            </Box>
+            <Box style={styles.baseDiamond}>
+              <Box
+                style={[
+                  styles.base,
+                  styles.baseSecond,
+                  MOCK_LIVE_DATA.bases.second && styles.baseActive,
+                ]}
+              />
+              <Box
+                style={[
+                  styles.base,
+                  styles.baseThird,
+                  MOCK_LIVE_DATA.bases.third && styles.baseActive,
+                ]}
+              />
+              <Box
+                style={[
+                  styles.base,
+                  styles.baseFirst,
+                  MOCK_LIVE_DATA.bases.first && styles.baseActive,
+                ]}
+              />
+            </Box>
+          </Box>
+
+          {/* BSO */}
+          <Box style={styles.bsoRow}>
+            <BsoLine label="B" count={MOCK_LIVE_DATA.ballCount} max={4} />
+            <BsoLine label="S" count={MOCK_LIVE_DATA.strikeCount} max={3} />
+            <BsoLine label="O" count={MOCK_LIVE_DATA.outCount} max={3} />
+          </Box>
+
+          {/* 투수 정보 */}
+          <Box style={styles.pitcherBox} align="center">
+            <Typography style={styles.pitcherName} weight="medium">
+              {MOCK_LIVE_DATA.pitcherName}
+            </Typography>
+            <Typography style={styles.pitcherPitchLabel}>
+              투구수{" "}
+              <Typography style={styles.pitcherPitchCount} weight="semibold">
+                {MOCK_LIVE_DATA.pitchCount}
+              </Typography>
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+
+      {/* 선수 배치 영역 */}
+      <Box style={styles.playerArea}>
+        {MOCK_LIVE_DATA.defenders.map((p) => (
+          <PlayerTag
+            key={p.name}
+            name={p.name}
+            x={p.x}
+            y={p.y}
+            kind="defender"
+          />
+        ))}
+        <PlayerTag
+          name={MOCK_LIVE_DATA.batter.name}
+          x={MOCK_LIVE_DATA.batter.x}
+          y={MOCK_LIVE_DATA.batter.y}
+          kind="batter"
+        />
+        <PlayerTag
+          name={MOCK_LIVE_DATA.runner.name}
+          x={MOCK_LIVE_DATA.runner.x}
+          y={MOCK_LIVE_DATA.runner.y}
+          kind="runner"
+        />
+      </Box>
+    </Box>
+  );
+}
+
+/**
+ * PlayerTag — 선수 이름 태그 (수비/타자/주자 색상 구분)
+ */
+function PlayerTag({
+  name,
+  x,
+  y,
+  kind,
+}: {
+  name: string;
+  x: number;
+  y: number;
+  kind: "defender" | "batter" | "runner";
+}) {
+  const tagStyle =
+    kind === "defender"
+      ? styles.playerTagDefender
+      : kind === "batter"
+        ? styles.playerTagBatter
+        : styles.playerTagRunner;
+  const textStyle =
+    kind === "runner" ? styles.playerNameRunner : styles.playerName;
+  return (
+    <Box style={[styles.playerTag, tagStyle, { left: x, top: y }]}>
+      <Typography style={textStyle} weight="medium">
+        {name}
+      </Typography>
+    </Box>
+  );
+}
+
+/**
+ * BsoLine — B/S/O 각 라인 (label + 점 표시)
+ */
+function BsoLine({
+  label,
+  count,
+  max,
+}: {
+  label: string;
+  count: number;
+  max: number;
+}) {
+  return (
+    <Box flexDir="row" align="center" style={styles.bsoLine}>
+      <Typography style={styles.bsoLabel} weight="regular">
+        {label}
+      </Typography>
+      <Box flexDir="row" style={styles.bsoDots}>
+        {Array.from({ length: max }).map((_, i) => (
+          <Box
+            key={i}
+            style={[styles.bsoDot, i < count && getBsoDotActiveStyle(label)]}
+          />
+        ))}
+      </Box>
+    </Box>
+  );
+}
+
+function getBsoDotActiveStyle(label: string) {
+  if (label === "B") return styles.bsoDotBall;
+  if (label === "S") return styles.bsoDotStrike;
+  return styles.bsoDotOut;
+}
+
+// ========================================================
+// 하단: 채팅 패널 (목데이터)
+// ========================================================
+function ChatPanel() {
+  return (
+    <Box flex={1}>
+      <ScrollView
+        style={styles.chatScroll}
+        contentContainerStyle={styles.chatContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {MOCK_CHAT.map((msg) => (
+          <ChatBubble key={msg.id} {...msg} />
+        ))}
+      </ScrollView>
+
+      {/* 입력창 */}
+      <Box style={styles.chatInputWrap}>
+        <Box style={styles.chatInput} flexDir="row" align="center">
+          <TextInput
+            placeholder="메세지 보내기..."
+            placeholderTextColor={theme.colors.brand.inactive}
+            style={styles.chatInputText}
+          />
+        </Box>
+        <TouchableOpacity
+          style={styles.chatSendBtn}
+          accessibilityRole="button"
+          accessibilityLabel="전송"
+        >
+          <MaterialIcons
+            name="arrow-upward"
+            size={16}
+            color={theme.colors.background}
+          />
+        </TouchableOpacity>
+      </Box>
+    </Box>
+  );
+}
+
+function ChatBubble({
+  author,
+  text,
+  time,
+  mine,
+}: {
+  author: string;
+  text: string;
+  time: string;
+  mine: boolean;
+}) {
+  return (
+    <Box
+      flexDir="row"
+      align="flex-end"
+      justify={mine ? "flex-end" : "flex-start"}
+      style={styles.bubbleRow}
+    >
+      {mine && (
+        <Typography style={styles.bubbleTime} weight="regular">
+          {time}
+        </Typography>
+      )}
+      <Box style={styles.bubbleColumn} align={mine ? "flex-end" : "flex-start"}>
+        <Typography style={styles.bubbleAuthor} weight="regular">
+          {author}
+        </Typography>
+        <Box
+          style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleOther]}
+        >
+          <Typography
+            style={mine ? styles.bubbleTextMine : styles.bubbleTextOther}
+            weight="semibold"
+          >
+            {text}
+          </Typography>
+        </Box>
+      </Box>
+      {!mine && (
+        <Typography style={styles.bubbleTime} weight="regular">
+          {time}
+        </Typography>
+      )}
+    </Box>
+  );
+}
+
+// ========================================================
+// 하단: 플레이스홀더 패널 (텍스트중계/선수라인업/구장날씨)
+// ========================================================
+function PlaceholderPanel({ label }: { label: string }) {
+  return (
+    <Box flex={1} align="center" justify="center" gap="sm">
+      <MaterialIcons
+        name="construction"
+        size={40}
+        color={theme.colors.text.tertiary}
+      />
+      <Typography variant="body1" color="text.secondary" weight="medium">
+        {label} 준비 중입니다
+      </Typography>
+    </Box>
+  );
+}
+
+// ========================================================
+// Styles
+// ========================================================
+
+// 디자인 기준 섹션 수치 (Figma)
+const LIVE_SECTION_HEIGHT = 274;
+const LEFT_BAR_WIDTH = 74;
+const LEFT_BAR_LEFT = 13;
+const PLAYER_AREA_LEFT = 102;
+const PLAYER_AREA_TOP = 53;
+const PLAYER_AREA_WIDTH = 290;
+const PLAYER_AREA_HEIGHT = 223;
+
+// 이 화면 전용 색상 (theme로 승격할만큼 범용성 없음)
+// Why: ESLint no-color-literals 회피 + 상단 라이브 섹션은 시각화 전용이라
+// theme 토큰으로 묶기 애매한 색상(반투명/BSO 신호등 등)이 많음.
+const LIVE_COLORS = {
+  stadiumBg: "#2F5D3F",
+  scoreAway: "rgba(87,5,20,0.7)",
+  scoreHome: "rgba(234,0,41,0.7)",
+  countBoxBg: "rgba(255,255,255,0.38)",
+  baseIdle: "rgba(78,78,78,0.85)",
+  baseActive: "rgba(247,247,247,0.85)",
+  bsoDotIdle: "rgba(255,255,255,0.3)",
+  bsoBall: "#4CAF50",
+  bsoStrike: "#FFC107",
+  bsoOut: "#F44336",
+  defender: "#277F7F",
+  batter: "#333333",
+  runner: "rgba(255,255,255,0.92)",
+  runnerText: "#333333",
+} as const;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.brand.background,
+  },
+
+  // ── 라이브 섹션 (상단) ───────────────────────────────
+  liveSection: {
+    height: LIVE_SECTION_HEIGHT,
+    overflow: "hidden",
+    position: "relative",
+  },
+  stadiumBg: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    // 목업 배경: 경기장 느낌의 짙은 그린
+    backgroundColor: LIVE_COLORS.stadiumBg,
+  },
+  eventBanner: {
+    position: "absolute",
+    top: 27,
+    left: 120,
+    paddingHorizontal: 32,
+    paddingVertical: 5,
+    borderRadius: 9,
+    backgroundColor: theme.colors.brand.mint,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  eventBannerText: {
+    fontSize: 11,
+    color: theme.colors.background,
+    textAlign: "center",
+    letterSpacing: -0.55,
+  },
+
+  // ── 좌측 바 ──────────────────────────────────────────
+  leftBar: {
+    position: "absolute",
+    top: 0,
+    left: LEFT_BAR_LEFT,
+    width: LEFT_BAR_WIDTH,
+    height: LIVE_SECTION_HEIGHT,
+  },
+  scoreRow: {
+    position: "absolute",
+    left: 0,
+    width: LEFT_BAR_WIDTH,
+    height: 30,
+    borderRadius: 3,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 8,
+  },
+  scoreAway: {
+    top: 27,
+    backgroundColor: LIVE_COLORS.scoreAway,
+  },
+  scoreHome: {
+    top: 57,
+    backgroundColor: LIVE_COLORS.scoreHome,
+  },
+  scoreTeamLabel: {
+    fontSize: 10,
+    color: theme.colors.background,
+  },
+  scoreValue: {
+    fontSize: 20,
+    color: theme.colors.background,
+    letterSpacing: -1,
+  },
+  countBox: {
+    position: "absolute",
+    top: 97,
+    left: 4,
+    width: LEFT_BAR_WIDTH - 4,
+    height: 165,
+    borderRadius: 3,
+    backgroundColor: LIVE_COLORS.countBoxBg,
+    padding: 6,
+    gap: 4,
+  },
+  inningRow: {
+    gap: 4,
+  },
+  inningText: {
+    fontSize: 16,
+    color: theme.colors.background,
+    textAlign: "center",
+  },
+  baseDiamond: {
+    position: "relative",
+    width: 36,
+    height: 36,
+    marginLeft: 6,
+  },
+  base: {
+    position: "absolute",
+    width: 10,
+    height: 10,
+    backgroundColor: LIVE_COLORS.baseIdle,
+    transform: [{ rotate: "45deg" }],
+  },
+  baseSecond: { top: 0, left: 13 },
+  baseFirst: { top: 13, left: 22 },
+  baseThird: { top: 13, left: 4 },
+  baseActive: {
+    backgroundColor: LIVE_COLORS.baseActive,
+  },
+  bsoRow: {
+    gap: 2,
+    marginTop: 2,
+  },
+  bsoLine: {
+    gap: 4,
+  },
+  bsoLabel: {
+    fontSize: 11,
+    color: theme.colors.background,
+    width: 10,
+  },
+  bsoDots: {
+    gap: 2,
+  },
+  bsoDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: LIVE_COLORS.bsoDotIdle,
+  },
+  bsoDotBall: { backgroundColor: LIVE_COLORS.bsoBall },
+  bsoDotStrike: { backgroundColor: LIVE_COLORS.bsoStrike },
+  bsoDotOut: { backgroundColor: LIVE_COLORS.bsoOut },
+  pitcherBox: {
+    marginTop: 4,
+    gap: 2,
+  },
+  pitcherName: {
+    fontSize: 11,
+    color: theme.colors.background,
+    textAlign: "center",
+  },
+  pitcherPitchLabel: {
+    fontSize: 11,
+    color: theme.colors.background,
+    textAlign: "center",
+  },
+  pitcherPitchCount: {
+    fontSize: 11,
+    color: theme.colors.brand.mint,
+  },
+
+  // ── 선수 배치 영역 ────────────────────────────────────
+  playerArea: {
+    position: "absolute",
+    top: PLAYER_AREA_TOP,
+    left: PLAYER_AREA_LEFT,
+    width: PLAYER_AREA_WIDTH,
+    height: PLAYER_AREA_HEIGHT,
+  },
+  playerTag: {
+    position: "absolute",
+    width: 47,
+    height: 14,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  playerTagDefender: {
+    backgroundColor: LIVE_COLORS.defender,
+  },
+  playerTagBatter: {
+    backgroundColor: LIVE_COLORS.batter,
+  },
+  playerTagRunner: {
+    backgroundColor: LIVE_COLORS.runner,
+  },
+  playerName: {
+    fontSize: 9,
+    color: theme.colors.background,
+    textAlign: "center",
+    lineHeight: 13,
+  },
+  playerNameRunner: {
+    fontSize: 9,
+    color: LIVE_COLORS.runnerText,
+    textAlign: "center",
+    lineHeight: 13,
+  },
+
+  // ── 탭 바 ─────────────────────────────────────────────
+  tabBar: {
+    height: 30,
+    paddingHorizontal: 33,
+    backgroundColor: theme.colors.brand.background,
+    shadowColor: theme.colors.team.kt,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 2,
+    alignItems: "center",
+  },
+  tabItem: {
+    width: 59,
+    height: 30,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tabText: {
+    fontSize: 12,
+    color: theme.colors.brand.inactive,
+    textAlign: "center",
+  },
+  tabTextActive: {
+    color: theme.colors.brand.mint,
+  },
+
+  // ── 채팅 패널 ────────────────────────────────────────
+  chatScroll: {
+    flex: 1,
+  },
+  chatContent: {
+    paddingHorizontal: 30,
+    paddingTop: 15,
+    paddingBottom: 14,
+    gap: 15,
+  },
+  bubbleRow: {
+    gap: 2,
+    maxWidth: "100%",
+  },
+  bubbleColumn: {
+    gap: 2,
+    maxWidth: 240,
+  },
+  bubbleAuthor: {
+    fontSize: 13,
+    color: theme.colors.team.neutralDark,
+    paddingHorizontal: 4,
+  },
+  bubble: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    shadowColor: theme.colors.team.kt,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5.25,
+    elevation: 1,
+  },
+  bubbleOther: {
+    backgroundColor: theme.colors.background,
+    borderTopLeftRadius: 2,
+    borderTopRightRadius: 18,
+    borderBottomLeftRadius: 18,
+    borderBottomRightRadius: 18,
+  },
+  bubbleMine: {
+    backgroundColor: theme.colors.brand.mint,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 2,
+    borderBottomLeftRadius: 18,
+    borderBottomRightRadius: 18,
+  },
+  bubbleTextOther: {
+    fontSize: 14,
+    color: theme.colors.team.neutralDark,
+  },
+  bubbleTextMine: {
+    fontSize: 14,
+    color: theme.colors.background,
+  },
+  bubbleTime: {
+    fontSize: 10,
+    color: theme.colors.brand.subtitle,
+    paddingBottom: 4,
+  },
+
+  // ── 채팅 입력창 ──────────────────────────────────────
+  chatInputWrap: {
+    height: 66,
+    paddingHorizontal: 12,
+    paddingTop: 0,
+    position: "relative",
+  },
+  chatInput: {
+    height: 39,
+    borderRadius: 15,
+    backgroundColor: theme.colors.background,
+    paddingHorizontal: 17,
+    shadowColor: theme.colors.team.kt,
+    shadowOffset: { width: 0, height: -1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  chatInputText: {
+    flex: 1,
+    fontSize: 12,
+    color: theme.colors.team.neutralDark,
+  },
+  chatSendBtn: {
+    position: "absolute",
+    right: 24,
+    top: 7,
+    width: 25,
+    height: 25,
+    borderRadius: 12.5,
+    backgroundColor: theme.colors.brand.mint,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
