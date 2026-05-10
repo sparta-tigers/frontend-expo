@@ -5,17 +5,27 @@ import { useAuth } from "@/context/AuthContext";
 import { useWebSocket } from "@/src/hooks/useWebSocket";
 import { theme } from "@/src/styles/theme";
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
 } from "react-native";
 
 import { LineupSection } from "@/src/features/home/components/LineupSection";
-import { fetchMatchLineup } from "@/src/features/liveboard/api";
-import { LineupRowDto } from "@/src/features/liveboard/types";
+import {
+  fetchMatchLineup,
+  fetchMatchWeather,
+} from "@/src/features/liveboard/api";
+import { ForeCastTable } from "@/src/features/liveboard/components/ForeCastTable";
+import { NowCastCard } from "@/src/features/liveboard/components/NowCastCard";
+import {
+  ForeCastDto,
+  LineupRowDto,
+  NowCastDto,
+} from "@/src/features/liveboard/types";
+import { filterUpcomingForeCast } from "@/src/features/liveboard/utils/weatherFormat";
 import { getTeamBgStyle } from "@/src/utils/team";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
@@ -155,7 +165,7 @@ export default function LiveboardDetailScreen() {
             awayTeamName={params.awayTeamName ?? "어웨이"}
           />
         )}
-        {activeTab === "weather" && <PlaceholderPanel label="구장 날씨" />}
+        {activeTab === "weather" && <WeatherPanel matchId={params.matchId} />}
       </Box>
     </SafeLayout>
   );
@@ -804,7 +814,128 @@ function LineupPanel({
 }
 
 // ========================================================
-// 하단: 플레이스홀더 패널 (텍스트중계/구장날씨)
+// 하단: 구장날씨 패널 (NowCast + ForeCast 단일 호출)
+// ========================================================
+
+/**
+ * WeatherPanel
+ *
+ * Why: 라이브보드 룸의 "구장날씨" 탭 콘텐츠.
+ * - 마운트 시 GET /api/liveboard/{matchId}/weather 1회 호출
+ * - 응답: { stadiumName, nowCast, foreCast } 구조
+ * - ForeCast는 렌더링 전에 "현재 시각 이후 가장 가까운 5개"로 필터링
+ * - cancelled 플래그로 비동기 경합 방어 (LineupPanel과 동일 패턴)
+ */
+function WeatherPanel({ matchId }: { matchId: string }) {
+  const { user } = useAuth();
+  const isLoggedIn = !!user?.userId;
+
+  const [fetchState, setFetchState] = useState<FetchState>("LOADING");
+  const [stadiumName, setStadiumName] = useState<string | null>(null);
+  const [nowCast, setNowCast] = useState<NowCastDto | null>(null);
+  const [foreCast, setForeCast] = useState<ForeCastDto[]>([]);
+
+  // 데이터 페칭: 마운트 / matchId 변경 / 재시도 시 단일 진입점
+  const loadWeather = useCallback(
+    (cancelled: { current: boolean }) => {
+      if (!isLoggedIn) {
+        setFetchState("ERROR");
+        return;
+      }
+
+      setFetchState("LOADING");
+
+      fetchMatchWeather(matchId)
+        .then((data) => {
+          if (cancelled.current) return;
+          if (!isLoggedIn) return;
+          setStadiumName(data.stadiumName ?? null);
+          setNowCast(data.nowCast ?? null);
+          setForeCast(data.foreCast ?? []);
+          setFetchState("SUCCESS");
+        })
+        .catch(() => {
+          if (cancelled.current) return;
+          setFetchState("ERROR");
+        });
+    },
+    [matchId, isLoggedIn],
+  );
+
+  useEffect(() => {
+    const cancelled = { current: false };
+    loadWeather(cancelled);
+    return () => {
+      cancelled.current = true;
+    };
+  }, [loadWeather]);
+
+  const handleRetry = useCallback(() => {
+    const cancelled = { current: false };
+    loadWeather(cancelled);
+  }, [loadWeather]);
+
+  // 로딩 상태
+  if (fetchState === "LOADING") {
+    return (
+      <Box flex={1} align="center" justify="center" gap="md">
+        <ActivityIndicator size="small" color={theme.colors.brand.mint} />
+        <Typography variant="body1" color="text.secondary" weight="medium">
+          날씨를 불러오는 중이에요
+        </Typography>
+      </Box>
+    );
+  }
+
+  // 에러 상태
+  if (fetchState === "ERROR") {
+    const errorMessage = !isLoggedIn
+      ? "로그인이 필요합니다"
+      : "날씨를 불러오지 못했어요";
+
+    return (
+      <Box flex={1} align="center" justify="center" gap="md">
+        <MaterialIcons
+          name="cloud-off"
+          size={40}
+          color={theme.colors.text.tertiary}
+        />
+        <Typography variant="body1" color="text.secondary" weight="medium">
+          {errorMessage}
+        </Typography>
+        {isLoggedIn && (
+          <TouchableOpacity
+            style={styles.retryBtn}
+            onPress={handleRetry}
+            accessibilityRole="button"
+            accessibilityLabel="다시 시도"
+          >
+            <Typography style={styles.retryBtnText} weight="semibold">
+              다시 시도
+            </Typography>
+          </TouchableOpacity>
+        )}
+      </Box>
+    );
+  }
+
+  // 성공 상태: NowCast 카드 + ForeCast 테이블
+  const upcoming = filterUpcomingForeCast(foreCast, new Date(), 5);
+
+  return (
+    <ScrollView
+      style={styles.weatherScroll}
+      contentContainerStyle={styles.weatherContent}
+      showsVerticalScrollIndicator={false}
+    >
+      <NowCastCard stadiumName={stadiumName} nowCast={nowCast} />
+      <ForeCastTable foreCast={upcoming} />
+    </ScrollView>
+  );
+}
+
+// ========================================================
+// 하단: 플레이스홀더 패널 (텍스트 중계)
 // ========================================================
 function PlaceholderPanel({ label }: { label: string }) {
   return (
@@ -1204,5 +1335,13 @@ const styles = StyleSheet.create({
   retryBtnText: {
     fontSize: 13,
     color: theme.colors.background,
+  },
+
+  // ── 구장날씨 패널 ────────────────────────────────────
+  weatherScroll: {
+    flex: 1,
+  },
+  weatherContent: {
+    paddingBottom: 30,
   },
 });
