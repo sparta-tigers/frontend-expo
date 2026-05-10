@@ -1,17 +1,20 @@
 import { Box } from "@/components/ui/box";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { Typography } from "@/components/ui/typography";
+import { useAuth } from "@/context/AuthContext";
+import { useWebSocket } from "@/src/hooks/useWebSocket";
 import { theme } from "@/src/styles/theme";
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
 
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
-import {
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-} from "react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 // ========================================================
 // 목데이터 (상단 라이브 섹션용)
@@ -45,37 +48,31 @@ const MOCK_LIVE_DATA = {
   runner: { name: "김선빈", x: 186, y: 108 },
 };
 
-const MOCK_CHAT = [
-  {
-    id: "1",
-    author: "김현우",
-    text: "안타쳐라 우리팀 화이팅!",
-    time: "18:20",
-    mine: false,
-  },
-  {
-    id: "2",
-    author: "리니최고",
-    text: "끝날때까지 끝난게 아니다",
-    time: "18:20",
-    mine: true,
-  },
-  {
-    id: "3",
-    author: "김현우",
-    text: "좋은 것 같아요!",
-    time: "18:20",
-    mine: false,
-  },
-  {
-    id: "4",
-    author: "리니최고",
-    text: "야구는 9회말 투아웃부터",
-    time: "18:21",
-    mine: true,
-  },
-  { id: "5", author: "김현우", text: "역전하자!", time: "18:21", mine: false },
-];
+/**
+ * 라이브보드 채팅 버블 메시지 (UI 렌더링용)
+ */
+interface ChatBubbleMessage {
+  /** 중복 방지 키 (optimistic: `local-{timestamp}`, 서버 수신: `senderId-sentAt-content`) */
+  key: string;
+  senderId: number | null;
+  author: string;
+  text: string;
+  time: string; // HH:mm
+  mine: boolean;
+}
+
+/**
+ * 서버 STOMP 수신 메시지 DTO (ChatMessage.java와 매칭)
+ */
+interface StompChatMessage {
+  roomId: string;
+  senderId: number;
+  senderNickname: string;
+  content: string;
+  sentAt: string; // ISO
+  domain: "LIVEBOARD" | "EXCHANGE" | "LOCATION";
+  favTeamSymbolUrl?: string | null;
+}
 
 // ========================================================
 // 탭 정의
@@ -144,7 +141,7 @@ export default function LiveboardDetailScreen() {
 
       {/* ─ 하단: 탭 컨텐츠 ─────────────────────────────────── */}
       <Box flex={1}>
-        {activeTab === "chat" && <ChatPanel />}
+        {activeTab === "chat" && <ChatPanel matchId={params.matchId} />}
         {activeTab === "text" && <PlaceholderPanel label="텍스트 중계" />}
         {activeTab === "lineup" && <PlaceholderPanel label="선수 라인업" />}
         {activeTab === "weather" && <PlaceholderPanel label="구장 날씨" />}
@@ -373,32 +370,172 @@ function getBsoDotActiveStyle(label: string) {
 }
 
 // ========================================================
-// 하단: 채팅 패널 (목데이터)
+// 하단: 라이브 채팅 패널 (STOMP 1:N 실시간 채팅)
 // ========================================================
-function ChatPanel() {
+
+/**
+ * 서버 수신 메시지에서 UI 메시지로 변환
+ * 중복 방지 키: senderId-sentAt-content 조합 (서버가 messageId를 안 주므로)
+ */
+function toBubbleMessage(
+  msg: StompChatMessage,
+  myUserId: number | undefined,
+): ChatBubbleMessage {
+  const time = new Date(msg.sentAt).toTimeString().slice(0, 5); // HH:mm
+  return {
+    key: `${msg.senderId}-${msg.sentAt}-${msg.content}`,
+    senderId: msg.senderId,
+    author: msg.senderNickname,
+    text: msg.content,
+    time,
+    mine: myUserId !== undefined && msg.senderId === myUserId,
+  };
+}
+
+/**
+ * ChatPanel
+ *
+ * Why: 라이브보드 1:N STOMP 채팅.
+ * - 구독: `/server/liveboard/room/LIVEBOARD_{matchId}`
+ * - 전송: `/client/liveboard/send` with { roomId, content }
+ * - 메시지 영속화 없음 → 세션 동안만 로컬 state로 관리
+ * - optimistic update로 전송 즉시 내 메시지 노출, 실패 시 롤백
+ */
+function ChatPanel({ matchId }: { matchId: string }) {
+  const { user } = useAuth();
+  const roomId = `LIVEBOARD_${matchId}`;
+  const { client, status } = useWebSocket(roomId, "liveboard");
+  const isConnected = status === "CONNECTED";
+
+  const [messages, setMessages] = useState<ChatBubbleMessage[]>([]);
+  const [draft, setDraft] = useState("");
+  const scrollRef = useRef<ScrollView | null>(null);
+
+  // 구독: 새 메시지 수신 시 목록에 추가 + optimistic 대체
+  useEffect(() => {
+    if (!client || !isConnected) return;
+
+    const subscription = client.subscribe(
+      `/server/liveboard/room/${roomId}`,
+      (frame) => {
+        try {
+          const parsed = JSON.parse(frame.body) as StompChatMessage;
+          const bubble = toBubbleMessage(parsed, user?.userId);
+
+          setMessages((prev) => {
+            // 내가 보낸 optimistic 메시지 대체 (local- 접두사 키)
+            const withoutOptimistic = bubble.mine
+              ? prev.filter(
+                  (m) =>
+                    !(
+                      m.key.startsWith("local-") &&
+                      m.senderId === bubble.senderId &&
+                      m.text === bubble.text
+                    ),
+                )
+              : prev;
+
+            // 중복 방지
+            if (withoutOptimistic.some((m) => m.key === bubble.key)) {
+              return withoutOptimistic;
+            }
+            return [...withoutOptimistic, bubble];
+          });
+        } catch {
+          // 파싱 실패한 메시지는 무시
+        }
+      },
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [client, isConnected, roomId, user?.userId]);
+
+  // 새 메시지 도착 시 하단 스크롤
+  useEffect(() => {
+    scrollRef.current?.scrollToEnd({ animated: true });
+  }, [messages.length]);
+
+  const handleSend = useCallback(() => {
+    const content = draft.trim();
+    if (!content) return;
+
+    if (!client || !isConnected) {
+      Alert.alert(
+        "연결 오류",
+        "서버와 연결이 불안정합니다. 잠시 후 다시 시도해주세요.",
+      );
+      return;
+    }
+
+    if (!user?.userId) {
+      Alert.alert("로그인 필요", "메시지를 전송하려면 로그인이 필요합니다.");
+      return;
+    }
+
+    // optimistic update
+    const localKey = `local-${Date.now()}`;
+    const optimistic: ChatBubbleMessage = {
+      key: localKey,
+      senderId: user.userId,
+      author: user.nickname ?? "나",
+      text: content,
+      time: new Date().toTimeString().slice(0, 5),
+      mine: true,
+    };
+    setMessages((prev) => [...prev, optimistic]);
+    setDraft("");
+
+    try {
+      client.publish({
+        destination: "/client/liveboard/send",
+        body: JSON.stringify({ roomId, content }),
+      });
+    } catch {
+      // 전송 실패 → optimistic 제거
+      setMessages((prev) => prev.filter((m) => m.key !== localKey));
+      Alert.alert("전송 실패", "메시지 전송에 실패했습니다.");
+    }
+  }, [client, draft, isConnected, roomId, user]);
+
   return (
     <Box flex={1}>
       <ScrollView
+        ref={scrollRef}
         style={styles.chatScroll}
         contentContainerStyle={styles.chatContent}
         showsVerticalScrollIndicator={false}
       >
-        {MOCK_CHAT.map((msg) => (
-          <ChatBubble key={msg.id} {...msg} />
-        ))}
+        {messages.length === 0 ? (
+          <Box flex={1} align="center" justify="center" py="xxxl">
+            <Typography variant="body1" color="text.tertiary" weight="medium">
+              {isConnected ? "첫 메시지를 남겨보세요" : "채팅 연결 중..."}
+            </Typography>
+          </Box>
+        ) : (
+          messages.map((msg) => <ChatBubble key={msg.key} {...msg} />)
+        )}
       </ScrollView>
 
       {/* 입력창 */}
       <Box style={styles.chatInputWrap}>
         <Box style={styles.chatInput} flexDir="row" align="center">
           <TextInput
+            value={draft}
+            onChangeText={setDraft}
             placeholder="메세지 보내기..."
             placeholderTextColor={theme.colors.brand.inactive}
             style={styles.chatInputText}
+            onSubmitEditing={handleSend}
+            returnKeyType="send"
+            editable={isConnected}
           />
         </Box>
         <TouchableOpacity
           style={styles.chatSendBtn}
+          onPress={handleSend}
+          disabled={!isConnected || !draft.trim()}
           accessibilityRole="button"
           accessibilityLabel="전송"
         >
