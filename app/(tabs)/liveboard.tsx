@@ -3,21 +3,22 @@ import { SafeLayout } from "@/components/ui/safe-layout";
 import { Typography } from "@/components/ui/typography";
 import { fetchLiveBoardRooms } from "@/src/features/liveboard/api";
 import {
-  LiveBoardRoomDto,
-  RainType,
-  SkyStatus,
+    LiveBoardRoomDto,
+    RainType,
+    SkyStatus,
 } from "@/src/features/liveboard/types";
 import { theme } from "@/src/styles/theme";
 import { getTeamBgStyle } from "@/src/utils/team";
 
 import { MaterialIcons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
+    ActivityIndicator,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
 } from "react-native";
 
 // ========================================================
@@ -163,6 +164,7 @@ function formatWeekLabel(weekStart: Date): string {
  * - 날짜 선택 시 해당 날짜 경기만 필터링하여 표시
  */
 export default function LiveboardScreen() {
+  const router = useRouter();
   const today = useMemo(() => new Date(), []);
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedAnyday, setSelectedAnyday] = useState<string>(
@@ -381,85 +383,111 @@ export default function LiveboardScreen() {
                   : null;
 
             return (
-              <Box
+              <TouchableOpacity
                 key={room.matchId}
-                bg="card"
-                flexDir="row"
-                align="center"
-                style={styles.matchCard}
+                activeOpacity={0.8}
+                onPress={() =>
+                  router.push({
+                    pathname: "/liveboard/[matchId]",
+                    params: {
+                      matchId: String(room.matchId),
+                      awayTeamName: room.awayTeamName,
+                      homeTeamName: room.homeTeamName,
+                      stadium: room.stadium ?? "",
+                      matchTime: room.matchTime,
+                    },
+                  })
+                }
               >
-                {/* 어웨이 팀 */}
-                <Box align="center" justify="center" style={styles.teamBlock}>
-                  <Box
-                    width={LOCAL_LAYOUT.teamLogoSize}
-                    height={LOCAL_LAYOUT.teamLogoSize}
-                    rounded="full"
-                    align="center"
-                    justify="center"
-                    style={[styles.teamLogo, getTeamBgStyle(room.awayTeamName)]}
-                  >
-                    <Typography
-                      variant="caption"
-                      color="background"
-                      weight="black"
+                <Box
+                  bg="card"
+                  flexDir="row"
+                  align="center"
+                  style={styles.matchCard}
+                >
+                  {/* 어웨이 팀 */}
+                  <Box align="center" justify="center" style={styles.teamBlock}>
+                    <Box
+                      width={LOCAL_LAYOUT.teamLogoSize}
+                      height={LOCAL_LAYOUT.teamLogoSize}
+                      rounded="full"
+                      align="center"
+                      justify="center"
+                      style={[
+                        styles.teamLogo,
+                        getTeamBgStyle(room.awayTeamName),
+                      ]}
                     >
+                      <Typography
+                        variant="caption"
+                        color="background"
+                        weight="black"
+                      >
+                        {room.awayTeamName}
+                      </Typography>
+                    </Box>
+                    <Typography style={styles.teamNameText} weight="bold">
                       {room.awayTeamName}
                     </Typography>
                   </Box>
-                  <Typography style={styles.teamNameText} weight="bold">
-                    {room.awayTeamName}
-                  </Typography>
-                </Box>
 
-                {/* 경기 정보 (중앙) */}
-                <Box align="center" justify="center" style={styles.centerBlock}>
-                  {/* 시간 + 구장 */}
-                  <Box align="center" style={styles.timeStadiumBlock}>
-                    <Typography style={styles.timeText} weight="semibold">
-                      {timeText}
-                    </Typography>
-                    <Typography style={styles.stadiumText} weight="medium">
-                      {room.stadium ?? "-"}
-                    </Typography>
-                  </Box>
-                  {/* 날씨 */}
-                  {weather && (
-                    <Box flexDir="row" align="center">
-                      <MaterialIcons
-                        name={weather.icon}
-                        size={LOCAL_LAYOUT.weatherIconSize}
-                        color={theme.colors.brand.mint}
-                      />
-                      <Typography style={styles.weatherText} weight="bold">
-                        {weather.text}
-                      </Typography>
-                    </Box>
-                  )}
-                </Box>
-
-                {/* 홈 팀 */}
-                <Box align="center" justify="center" style={styles.teamBlock}>
+                  {/* 경기 정보 (중앙) */}
                   <Box
-                    width={LOCAL_LAYOUT.teamLogoSize}
-                    height={LOCAL_LAYOUT.teamLogoSize}
-                    rounded="full"
                     align="center"
                     justify="center"
-                    style={[styles.teamLogo, getTeamBgStyle(room.homeTeamName)]}
+                    style={styles.centerBlock}
                   >
-                    <Typography
-                      variant="caption"
-                      color="background"
-                      weight="black"
+                    {/* 시간 + 구장 */}
+                    <Box align="center" style={styles.timeStadiumBlock}>
+                      <Typography style={styles.timeText} weight="semibold">
+                        {timeText}
+                      </Typography>
+                      <Typography style={styles.stadiumText} weight="medium">
+                        {room.stadium ?? "-"}
+                      </Typography>
+                    </Box>
+                    {/* 날씨 */}
+                    {weather && (
+                      <Box flexDir="row" align="center">
+                        <MaterialIcons
+                          name={weather.icon}
+                          size={LOCAL_LAYOUT.weatherIconSize}
+                          color={theme.colors.brand.mint}
+                        />
+                        <Typography style={styles.weatherText} weight="bold">
+                          {weather.text}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+
+                  {/* 홈 팀 */}
+                  <Box align="center" justify="center" style={styles.teamBlock}>
+                    <Box
+                      width={LOCAL_LAYOUT.teamLogoSize}
+                      height={LOCAL_LAYOUT.teamLogoSize}
+                      rounded="full"
+                      align="center"
+                      justify="center"
+                      style={[
+                        styles.teamLogo,
+                        getTeamBgStyle(room.homeTeamName),
+                      ]}
                     >
+                      <Typography
+                        variant="caption"
+                        color="background"
+                        weight="black"
+                      >
+                        {room.homeTeamName}
+                      </Typography>
+                    </Box>
+                    <Typography style={styles.teamNameText} weight="bold">
                       {room.homeTeamName}
                     </Typography>
                   </Box>
-                  <Typography style={styles.teamNameText} weight="bold">
-                    {room.homeTeamName}
-                  </Typography>
                 </Box>
-              </Box>
+              </TouchableOpacity>
             );
           })}
         </ScrollView>
