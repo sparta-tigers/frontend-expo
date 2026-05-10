@@ -5,13 +5,18 @@ import { useAuth } from "@/context/AuthContext";
 import { useWebSocket } from "@/src/hooks/useWebSocket";
 import { theme } from "@/src/styles/theme";
 import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
+    ActivityIndicator,
+    Alert,
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
 } from "react-native";
 
+import { LineupSection } from "@/src/features/home/components/LineupSection";
+import { fetchMatchLineup } from "@/src/features/liveboard/api";
+import { LineupRowDto } from "@/src/features/liveboard/types";
+import { getTeamBgStyle } from "@/src/utils/team";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -143,7 +148,13 @@ export default function LiveboardDetailScreen() {
       <Box flex={1}>
         {activeTab === "chat" && <ChatPanel matchId={params.matchId} />}
         {activeTab === "text" && <PlaceholderPanel label="텍스트 중계" />}
-        {activeTab === "lineup" && <PlaceholderPanel label="선수 라인업" />}
+        {activeTab === "lineup" && (
+          <LineupPanel
+            matchId={params.matchId}
+            homeTeamName={params.homeTeamName ?? "홈"}
+            awayTeamName={params.awayTeamName ?? "어웨이"}
+          />
+        )}
         {activeTab === "weather" && <PlaceholderPanel label="구장 날씨" />}
       </Box>
     </SafeLayout>
@@ -598,7 +609,202 @@ function ChatBubble({
 }
 
 // ========================================================
-// 하단: 플레이스홀더 패널 (텍스트중계/선수라인업/구장날씨)
+// 하단: 선수 라인업 패널 (홈/어웨이 칩 토글 + LineupSection 재사용)
+// ========================================================
+
+type ActiveTeam = "HOME" | "AWAY";
+type FetchState = "LOADING" | "SUCCESS" | "ERROR";
+
+/**
+ * LineupPanel
+ *
+ * Why: 라이브보드 룸의 "선수 라인업" 탭 콘텐츠.
+ * - 마운트 시 GET /api/liveboard/{matchId}/lineup 1회 호출
+ * - 홈/어웨이 칩 토글로 표시 팀 전환 (추가 네트워크 호출 없음)
+ * - LineupSection 재사용 (props만 교체, 인스턴스 유지)
+ * - cancelled 플래그로 비동기 경합 방어
+ */
+function LineupPanel({
+  matchId,
+  homeTeamName,
+  awayTeamName,
+}: {
+  matchId: string;
+  homeTeamName: string;
+  awayTeamName: string;
+}) {
+  const { user } = useAuth();
+  const isLoggedIn = !!user?.userId;
+
+  const [activeTeam, setActiveTeam] = useState<ActiveTeam>("HOME");
+  const [fetchState, setFetchState] = useState<FetchState>("LOADING");
+  const [homeBatters, setHomeBatters] = useState<LineupRowDto[]>([]);
+  const [awayBatters, setAwayBatters] = useState<LineupRowDto[]>([]);
+
+  // 데이터 페칭: 마운트 / matchId 변경 / 재시도 시 단일 진입점
+  const loadLineup = useCallback(
+    (cancelled: { current: boolean }) => {
+      if (!isLoggedIn) {
+        setFetchState("ERROR");
+        return;
+      }
+
+      setFetchState("LOADING");
+
+      fetchMatchLineup(matchId)
+        .then((data) => {
+          if (cancelled.current) return;
+          if (!isLoggedIn) return;
+          setHomeBatters(data.homeBatters ?? []);
+          setAwayBatters(data.awayBatters ?? []);
+          setFetchState("SUCCESS");
+        })
+        .catch(() => {
+          if (cancelled.current) return;
+          setFetchState("ERROR");
+        });
+    },
+    [matchId, isLoggedIn],
+  );
+
+  useEffect(() => {
+    const cancelled = { current: false };
+    loadLineup(cancelled);
+    return () => {
+      cancelled.current = true;
+    };
+  }, [loadLineup]);
+
+  const handleRetry = useCallback(() => {
+    const cancelled = { current: false };
+    loadLineup(cancelled);
+  }, [loadLineup]);
+
+  // 현재 선택된 팀의 라인업과 팀명
+  const currentLineup = activeTeam === "HOME" ? homeBatters : awayBatters;
+  const currentTeamName = activeTeam === "HOME" ? homeTeamName : awayTeamName;
+
+  // 로딩 상태
+  if (fetchState === "LOADING") {
+    return (
+      <Box flex={1} align="center" justify="center" gap="md">
+        <ActivityIndicator size="small" color={theme.colors.brand.mint} />
+        <Typography variant="body1" color="text.secondary" weight="medium">
+          라인업을 불러오는 중이에요
+        </Typography>
+        {/* 칩 비활성 상태로 표시 */}
+        <Box flexDir="row" gap="sm" mt="md">
+          <Box style={[styles.chip, styles.chipInactive]}>
+            <Typography style={styles.chipTextInactive} weight="semibold">
+              {homeTeamName}
+            </Typography>
+          </Box>
+          <Box style={[styles.chip, styles.chipInactive]}>
+            <Typography style={styles.chipTextInactive} weight="semibold">
+              {awayTeamName}
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+    );
+  }
+
+  // 에러 상태
+  if (fetchState === "ERROR") {
+    const errorMessage = !isLoggedIn
+      ? "로그인이 필요합니다"
+      : "라인업을 불러오지 못했어요";
+
+    return (
+      <Box flex={1} align="center" justify="center" gap="md">
+        <MaterialIcons
+          name="error-outline"
+          size={40}
+          color={theme.colors.text.tertiary}
+        />
+        <Typography variant="body1" color="text.secondary" weight="medium">
+          {errorMessage}
+        </Typography>
+        {isLoggedIn && (
+          <TouchableOpacity
+            style={styles.retryBtn}
+            onPress={handleRetry}
+            accessibilityRole="button"
+            accessibilityLabel="다시 시도"
+          >
+            <Typography style={styles.retryBtnText} weight="semibold">
+              다시 시도
+            </Typography>
+          </TouchableOpacity>
+        )}
+      </Box>
+    );
+  }
+
+  // 성공 상태: 칩 + LineupSection
+  return (
+    <ScrollView
+      style={styles.lineupScroll}
+      contentContainerStyle={styles.lineupContent}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* 팀 칩 토글 */}
+      <Box flexDir="row" justify="center" gap="sm" py="md">
+        <TouchableOpacity
+          style={[
+            styles.chip,
+            activeTeam === "HOME"
+              ? getTeamBgStyle(homeTeamName)
+              : styles.chipInactive,
+          ]}
+          onPress={() => setActiveTeam("HOME")}
+          accessibilityRole="button"
+          accessibilityLabel="홈팀 라인업 보기"
+        >
+          <Typography
+            style={
+              activeTeam === "HOME"
+                ? styles.chipTextActive
+                : styles.chipTextInactive
+            }
+            weight="semibold"
+          >
+            {homeTeamName}
+          </Typography>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.chip,
+            activeTeam === "AWAY"
+              ? getTeamBgStyle(awayTeamName)
+              : styles.chipInactive,
+          ]}
+          onPress={() => setActiveTeam("AWAY")}
+          accessibilityRole="button"
+          accessibilityLabel="어웨이팀 라인업 보기"
+        >
+          <Typography
+            style={
+              activeTeam === "AWAY"
+                ? styles.chipTextActive
+                : styles.chipTextInactive
+            }
+            weight="semibold"
+          >
+            {awayTeamName}
+          </Typography>
+        </TouchableOpacity>
+      </Box>
+
+      {/* LineupSection 재사용 (인스턴스 유지, props만 교체) */}
+      <LineupSection lineup={currentLineup} teamName={currentTeamName} />
+    </ScrollView>
+  );
+}
+
+// ========================================================
+// 하단: 플레이스홀더 패널 (텍스트중계/구장날씨)
 // ========================================================
 function PlaceholderPanel({ label }: { label: string }) {
   return (
@@ -962,5 +1168,41 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.brand.mint,
     alignItems: "center",
     justifyContent: "center",
+  },
+
+  // ── 라인업 패널 ──────────────────────────────────────
+  lineupScroll: {
+    flex: 1,
+  },
+  lineupContent: {
+    paddingBottom: 30,
+  },
+  chip: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 20,
+    minWidth: 80,
+    alignItems: "center",
+  },
+  chipInactive: {
+    backgroundColor: theme.colors.card,
+  },
+  chipTextActive: {
+    fontSize: 13,
+    color: theme.colors.background,
+  },
+  chipTextInactive: {
+    fontSize: 13,
+    color: theme.colors.brand.inactive,
+  },
+  retryBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: theme.colors.brand.mint,
+  },
+  retryBtnText: {
+    fontSize: 13,
+    color: theme.colors.background,
   },
 });
