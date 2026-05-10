@@ -514,7 +514,7 @@ function ChatPanel({ matchId }: { matchId: string }) {
             </Typography>
           </Box>
         ) : (
-          messages.map((msg) => <ChatBubble key={msg.key} {...msg} />)
+          messages.map(({ key, ...rest }) => <ChatBubble key={key} {...rest} />)
         )}
       </ScrollView>
 
