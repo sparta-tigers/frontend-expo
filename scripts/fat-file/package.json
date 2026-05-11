@@ -1,0 +1,7 @@
+{
+  "//": "Feature: fat-file-refactoring. ESM-only sub-package to isolate the Node script runtime from the Expo app.",
+  "name": "@scripts/fat-file",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module"
+}
