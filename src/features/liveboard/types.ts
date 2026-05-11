@@ -21,6 +21,12 @@ export type RainType =
   | "RAINDROP_SNOW_FLYING"
   | "SNOW_FLYING";
 
+export type WeatherApiStatus =
+  | "SUCCESS"
+  | "NO_DATA"
+  | "UPSTREAM_ERROR"
+  | "INTERNAL_ERROR";
+
 export interface NowCastDto {
   referenceTime: string;
   stadium: string;
@@ -82,9 +88,12 @@ export interface MatchLineupDto {
  *
  * Why: GET /api/liveboard/{matchId}/weather 응답과 1:1 매핑.
  * NowCast + ForeCast를 단일 호출에 받아 칩/탭 전환 시 추가 호출 없이 로컬 상태에서 렌더링.
+ * status: 기상청 API 상태 — 점검/장애 시 UI에 원인 메시지를 표시하는 데 사용.
  */
 export interface MatchWeatherDto {
   stadiumName: string | null;
+  /** 기상청 API 응답 상태 */
+  status: WeatherApiStatus;
   nowCast: NowCastDto | null;
   foreCast: ForeCastDto[];
 }

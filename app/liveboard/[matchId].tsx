@@ -5,25 +5,26 @@ import { useAuth } from "@/context/AuthContext";
 import { useWebSocket } from "@/src/hooks/useWebSocket";
 import { theme } from "@/src/styles/theme";
 import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
+    ActivityIndicator,
+    Alert,
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
 } from "react-native";
 
 import { LineupSection } from "@/src/features/home/components/LineupSection";
 import {
-  fetchMatchLineup,
-  fetchMatchWeather,
+    fetchMatchLineup,
+    fetchMatchWeather,
 } from "@/src/features/liveboard/api";
 import { ForeCastTable } from "@/src/features/liveboard/components/ForeCastTable";
 import { NowCastCard } from "@/src/features/liveboard/components/NowCastCard";
 import {
-  ForeCastDto,
-  LineupRowDto,
-  NowCastDto,
+    ForeCastDto,
+    LineupRowDto,
+    NowCastDto,
+    WeatherApiStatus,
 } from "@/src/features/liveboard/types";
 import { filterUpcomingForeCast } from "@/src/features/liveboard/utils/weatherFormat";
 import { getTeamBgStyle } from "@/src/utils/team";
@@ -822,7 +823,8 @@ function LineupPanel({
  *
  * Why: 라이브보드 룸의 "구장날씨" 탭 콘텐츠.
  * - 마운트 시 GET /api/liveboard/{matchId}/weather 1회 호출
- * - 응답: { stadiumName, nowCast, foreCast } 구조
+ * - 응답: { stadiumName, status, nowCast, foreCast } 구조
+ * - status가 SUCCESS가 아니면 원인에 맞는 안내 메시지를 표시
  * - ForeCast는 렌더링 전에 "현재 시각 이후 가장 가까운 5개"로 필터링
  * - cancelled 플래그로 비동기 경합 방어 (LineupPanel과 동일 패턴)
  */
@@ -832,6 +834,8 @@ function WeatherPanel({ matchId }: { matchId: string }) {
 
   const [fetchState, setFetchState] = useState<FetchState>("LOADING");
   const [stadiumName, setStadiumName] = useState<string | null>(null);
+  const [weatherStatus, setWeatherStatus] =
+    useState<WeatherApiStatus>("SUCCESS");
   const [nowCast, setNowCast] = useState<NowCastDto | null>(null);
   const [foreCast, setForeCast] = useState<ForeCastDto[]>([]);
 
@@ -850,6 +854,7 @@ function WeatherPanel({ matchId }: { matchId: string }) {
           if (cancelled.current) return;
           if (!isLoggedIn) return;
           setStadiumName(data.stadiumName ?? null);
+          setWeatherStatus(data.status ?? "SUCCESS");
           setNowCast(data.nowCast ?? null);
           setForeCast(data.foreCast ?? []);
           setFetchState("SUCCESS");
@@ -887,7 +892,7 @@ function WeatherPanel({ matchId }: { matchId: string }) {
     );
   }
 
-  // 에러 상태
+  // 에러 상태 (네트워크/서버 오류)
   if (fetchState === "ERROR") {
     const errorMessage = !isLoggedIn
       ? "로그인이 필요합니다"
@@ -919,7 +924,7 @@ function WeatherPanel({ matchId }: { matchId: string }) {
     );
   }
 
-  // 성공 상태: NowCast 카드 + ForeCast 테이블
+  // 성공 상태: 기상청 API 상태에 따른 배너 + NowCast 카드 + ForeCast 테이블
   const upcoming = filterUpcomingForeCast(foreCast, new Date(), 5);
 
   return (
@@ -928,9 +933,46 @@ function WeatherPanel({ matchId }: { matchId: string }) {
       contentContainerStyle={styles.weatherContent}
       showsVerticalScrollIndicator={false}
     >
+      {/* 기상청 API 상태 배너 — SUCCESS가 아닐 때만 표시 */}
+      {weatherStatus !== "SUCCESS" && (
+        <WeatherStatusBanner status={weatherStatus} />
+      )}
       <NowCastCard stadiumName={stadiumName} nowCast={nowCast} />
       <ForeCastTable foreCast={upcoming} />
     </ScrollView>
+  );
+}
+
+/**
+ * WeatherStatusBanner
+ *
+ * Why: 기상청 API 상태가 SUCCESS가 아닐 때 사용자에게 원인을 안내한다.
+ * 데이터가 없거나 오래된 것처럼 보여도 "앱 버그"가 아님을 명확히 전달.
+ */
+function WeatherStatusBanner({ status }: { status: WeatherApiStatus }) {
+  const message =
+    status === "NO_DATA"
+      ? "기상청 데이터 준비 중이에요 (발표 전 또는 점검 중)"
+      : status === "UPSTREAM_ERROR"
+        ? "기상청 서버 점검 중이에요. 잠시 후 다시 확인해주세요"
+        : "날씨 데이터를 불러오는 중 오류가 발생했어요";
+
+  return (
+    <Box
+      style={styles.weatherStatusBanner}
+      flexDir="row"
+      align="center"
+      gap="sm"
+    >
+      <MaterialIcons
+        name="info-outline"
+        size={16}
+        color={theme.colors.brand.mint}
+      />
+      <Typography style={styles.weatherStatusText} weight="medium">
+        {message}
+      </Typography>
+    </Box>
   );
 }
 
@@ -1343,5 +1385,21 @@ const styles = StyleSheet.create({
   },
   weatherContent: {
     paddingBottom: 30,
+  },
+  weatherStatusBanner: {
+    marginHorizontal: 14,
+    marginTop: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: theme.colors.background,
+    borderLeftWidth: 3,
+    borderLeftColor: theme.colors.brand.mint,
+  },
+  weatherStatusText: {
+    flex: 1,
+    fontSize: 12,
+    color: theme.colors.text.secondary,
+    lineHeight: 18,
   },
 });
