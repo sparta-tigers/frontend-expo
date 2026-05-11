@@ -831,6 +831,7 @@ function LineupPanel({
 function WeatherPanel({ matchId }: { matchId: string }) {
   const { user } = useAuth();
   const isLoggedIn = !!user?.userId;
+  const mountedRef = useRef(true);
 
   const [fetchState, setFetchState] = useState<FetchState>("LOADING");
   const [stadiumName, setStadiumName] = useState<string | null>(null);
@@ -840,44 +841,40 @@ function WeatherPanel({ matchId }: { matchId: string }) {
   const [foreCast, setForeCast] = useState<ForeCastDto[]>([]);
 
   // 데이터 페칭: 마운트 / matchId 변경 / 재시도 시 단일 진입점
-  const loadWeather = useCallback(
-    (cancelled: { current: boolean }) => {
-      if (!isLoggedIn) {
+  const loadWeather = useCallback(() => {
+    if (!isLoggedIn) {
+      setFetchState("ERROR");
+      return;
+    }
+
+    setFetchState("LOADING");
+
+    fetchMatchWeather(matchId)
+      .then((data) => {
+        if (!mountedRef.current) return;
+        if (!isLoggedIn) return;
+        setStadiumName(data.stadiumName ?? null);
+        setWeatherStatus(data.status ?? "SUCCESS");
+        setNowCast(data.nowCast ?? null);
+        setForeCast(data.foreCast ?? []);
+        setFetchState("SUCCESS");
+      })
+      .catch(() => {
+        if (!mountedRef.current) return;
         setFetchState("ERROR");
-        return;
-      }
-
-      setFetchState("LOADING");
-
-      fetchMatchWeather(matchId)
-        .then((data) => {
-          if (cancelled.current) return;
-          if (!isLoggedIn) return;
-          setStadiumName(data.stadiumName ?? null);
-          setWeatherStatus(data.status ?? "SUCCESS");
-          setNowCast(data.nowCast ?? null);
-          setForeCast(data.foreCast ?? []);
-          setFetchState("SUCCESS");
-        })
-        .catch(() => {
-          if (cancelled.current) return;
-          setFetchState("ERROR");
-        });
-    },
-    [matchId, isLoggedIn],
-  );
+      });
+  }, [matchId, isLoggedIn]);
 
   useEffect(() => {
-    const cancelled = { current: false };
-    loadWeather(cancelled);
+    mountedRef.current = true;
+    loadWeather();
     return () => {
-      cancelled.current = true;
+      mountedRef.current = false;
     };
   }, [loadWeather]);
 
   const handleRetry = useCallback(() => {
-    const cancelled = { current: false };
-    loadWeather(cancelled);
+    loadWeather();
   }, [loadWeather]);
 
   // 로딩 상태
@@ -1010,22 +1007,7 @@ const PLAYER_AREA_HEIGHT = 223;
 // 이 화면 전용 색상 (theme로 승격할만큼 범용성 없음)
 // Why: ESLint no-color-literals 회피 + 상단 라이브 섹션은 시각화 전용이라
 // theme 토큰으로 묶기 애매한 색상(반투명/BSO 신호등 등)이 많음.
-const LIVE_COLORS = {
-  stadiumBg: "#2F5D3F",
-  scoreAway: "rgba(87,5,20,0.7)",
-  scoreHome: "rgba(234,0,41,0.7)",
-  countBoxBg: "rgba(255,255,255,0.38)",
-  baseIdle: "rgba(78,78,78,0.85)",
-  baseActive: "rgba(247,247,247,0.85)",
-  bsoDotIdle: "rgba(255,255,255,0.3)",
-  bsoBall: "#4CAF50",
-  bsoStrike: "#FFC107",
-  bsoOut: "#F44336",
-  defender: "#277F7F",
-  batter: "#333333",
-  runner: "rgba(255,255,255,0.92)",
-  runnerText: "#333333",
-} as const;
+// 이 화면 전용 색상 -> theme.colors.liveboard로 승격 완료
 
 const styles = StyleSheet.create({
   container: {
@@ -1046,7 +1028,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     // 목업 배경: 경기장 느낌의 짙은 그린
-    backgroundColor: LIVE_COLORS.stadiumBg,
+    backgroundColor: theme.colors.liveboard.stadiumBg,
   },
   eventBanner: {
     position: "absolute",
@@ -1087,11 +1069,11 @@ const styles = StyleSheet.create({
   },
   scoreAway: {
     top: 27,
-    backgroundColor: LIVE_COLORS.scoreAway,
+    backgroundColor: theme.colors.liveboard.scoreAway,
   },
   scoreHome: {
     top: 57,
-    backgroundColor: LIVE_COLORS.scoreHome,
+    backgroundColor: theme.colors.liveboard.scoreHome,
   },
   scoreTeamLabel: {
     fontSize: 10,
@@ -1109,7 +1091,7 @@ const styles = StyleSheet.create({
     width: LEFT_BAR_WIDTH - 4,
     height: 165,
     borderRadius: 3,
-    backgroundColor: LIVE_COLORS.countBoxBg,
+    backgroundColor: theme.colors.liveboard.countBoxBg,
     padding: 6,
     gap: 4,
   },
@@ -1131,14 +1113,14 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: 10,
     height: 10,
-    backgroundColor: LIVE_COLORS.baseIdle,
+    backgroundColor: theme.colors.liveboard.baseIdle,
     transform: [{ rotate: "45deg" }],
   },
   baseSecond: { top: 0, left: 13 },
   baseFirst: { top: 13, left: 22 },
   baseThird: { top: 13, left: 4 },
   baseActive: {
-    backgroundColor: LIVE_COLORS.baseActive,
+    backgroundColor: theme.colors.liveboard.baseActive,
   },
   bsoRow: {
     gap: 2,
@@ -1159,11 +1141,11 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: LIVE_COLORS.bsoDotIdle,
+    backgroundColor: theme.colors.liveboard.bsoDotIdle,
   },
-  bsoDotBall: { backgroundColor: LIVE_COLORS.bsoBall },
-  bsoDotStrike: { backgroundColor: LIVE_COLORS.bsoStrike },
-  bsoDotOut: { backgroundColor: LIVE_COLORS.bsoOut },
+  bsoDotBall: { backgroundColor: theme.colors.liveboard.bsoBall },
+  bsoDotStrike: { backgroundColor: theme.colors.liveboard.bsoStrike },
+  bsoDotOut: { backgroundColor: theme.colors.liveboard.bsoOut },
   pitcherBox: {
     marginTop: 4,
     gap: 2,
@@ -1200,13 +1182,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   playerTagDefender: {
-    backgroundColor: LIVE_COLORS.defender,
+    backgroundColor: theme.colors.liveboard.defender,
   },
   playerTagBatter: {
-    backgroundColor: LIVE_COLORS.batter,
+    backgroundColor: theme.colors.liveboard.batter,
   },
   playerTagRunner: {
-    backgroundColor: LIVE_COLORS.runner,
+    backgroundColor: theme.colors.liveboard.runner,
   },
   playerName: {
     fontSize: 9,
@@ -1216,7 +1198,7 @@ const styles = StyleSheet.create({
   },
   playerNameRunner: {
     fontSize: 9,
-    color: LIVE_COLORS.runnerText,
+    color: theme.colors.liveboard.runnerText,
     textAlign: "center",
     lineHeight: 13,
   },
