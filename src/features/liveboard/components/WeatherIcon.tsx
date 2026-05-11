@@ -66,10 +66,29 @@ export function resolveWeatherIconKey(
   return "sunny";
 }
 
+/** 날씨 아이콘 크기 타입 */
+export type WeatherIconSize = "sm" | "md" | "lg" | "xl";
+
+/**
+ * 아이콘 크기 수치 정의
+ *
+ * Why: Figma 기획안의 주요 사용처별 크기를 상수로 관리.
+ * - sm: 라이브보드 목록 (15px)
+ * - md: 시간대별 예보 테이블 (32px)
+ * - lg: 구장날씨 상세 카드 등 (예비)
+ */
+const ICON_SIZE_VALS: Record<WeatherIconSize, number> = {
+  sm: 15,
+  md: 32,
+  lg: 48,
+  xl: 110,
+};
+
 interface WeatherIconProps {
   skyStatus: SkyStatus | null;
   rainType: RainType | null;
-  size: number;
+  /** 아이콘 크기 variant (sm | md | lg) */
+  size?: WeatherIconSize;
 }
 
 /**
@@ -84,15 +103,18 @@ interface WeatherIconProps {
 export const WeatherIcon = React.memo(function WeatherIcon({
   skyStatus,
   rainType,
-  size,
+  size = "md",
 }: WeatherIconProps) {
   const key = resolveWeatherIconKey(skyStatus, rainType);
   const source = WEATHER_ICON_SOURCES[key];
 
+  // variant에 해당하는 스타일 선택 (인라인 스타일 제거)
+  const sizeStyle = styles[size];
+
   if (typeof source === "string") {
     return (
       <Text
-        style={[styles.emoji, { fontSize: size, lineHeight: size * 1.1 }]}
+        style={[styles.emoji, sizeStyle]}
         accessibilityRole="image"
         accessibilityLabel={`날씨 아이콘: ${key}`}
       >
@@ -104,7 +126,7 @@ export const WeatherIcon = React.memo(function WeatherIcon({
   return (
     <Image
       source={source}
-      style={{ width: size, height: size }}
+      style={sizeStyle}
       resizeMode="contain"
       accessibilityRole="image"
       accessibilityLabel={`날씨 아이콘: ${key}`}
@@ -115,5 +137,29 @@ export const WeatherIcon = React.memo(function WeatherIcon({
 const styles = StyleSheet.create({
   emoji: {
     textAlign: "center",
+  },
+  sm: {
+    fontSize: ICON_SIZE_VALS.sm,
+    lineHeight: ICON_SIZE_VALS.sm * 1.1,
+    width: ICON_SIZE_VALS.sm,
+    height: ICON_SIZE_VALS.sm,
+  },
+  md: {
+    fontSize: ICON_SIZE_VALS.md,
+    lineHeight: ICON_SIZE_VALS.md * 1.1,
+    width: ICON_SIZE_VALS.md,
+    height: ICON_SIZE_VALS.md,
+  },
+  lg: {
+    fontSize: ICON_SIZE_VALS.lg,
+    lineHeight: ICON_SIZE_VALS.lg * 1.1,
+    width: ICON_SIZE_VALS.lg,
+    height: ICON_SIZE_VALS.lg,
+  },
+  xl: {
+    fontSize: ICON_SIZE_VALS.xl,
+    lineHeight: ICON_SIZE_VALS.xl * 1.1,
+    width: ICON_SIZE_VALS.xl,
+    height: ICON_SIZE_VALS.xl,
   },
 });

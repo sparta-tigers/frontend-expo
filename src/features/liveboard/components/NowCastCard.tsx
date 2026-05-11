@@ -89,7 +89,7 @@ export const NowCastCard = React.memo(function NowCastCard({
           <WeatherIcon
             skyStatus={nowCast.skyStatus}
             rainType={nowCast.rainType}
-            size={ICON_SIZE}
+            size="xl"
           />
         </View>
       </View>
@@ -159,8 +159,6 @@ function MetricRow({
 // Styles
 // ========================================================
 
-const ICON_SIZE = 110;
-
 const styles = StyleSheet.create({
   card: {
     backgroundColor: theme.colors.background,
@@ -194,8 +192,6 @@ const styles = StyleSheet.create({
     letterSpacing: -2,
   },
   iconBox: {
-    width: ICON_SIZE,
-    height: ICON_SIZE,
     alignItems: "center",
     justifyContent: "center",
   },

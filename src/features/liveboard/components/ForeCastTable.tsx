@@ -38,7 +38,7 @@ export const ForeCastTable = React.memo(function ForeCastTable({
           weight="medium"
           center
         >
-          예보를 불러오지 못했어요
+          남은 예보가 없습니다
         </Typography>
       </View>
     );
@@ -49,7 +49,7 @@ export const ForeCastTable = React.memo(function ForeCastTable({
       {/* 좌측 라벨 컬럼 */}
       <View style={styles.labelCol}>
         <LabelCell text="시간" />
-        <LabelCell text="하늘" height={ROW_HEIGHT_ICON} />
+        <LabelCell text="하늘" isIconRow />
         <LabelCell text="기온" />
         <LabelCell text="강수확률" />
         <LabelCell text="강수형태" />
@@ -72,13 +72,13 @@ export const ForeCastTable = React.memo(function ForeCastTable({
 
 function LabelCell({
   text,
-  height = ROW_HEIGHT,
+  isIconRow = false,
 }: {
   text: string;
-  height?: number;
+  isIconRow?: boolean;
 }) {
   return (
-    <View style={[styles.labelCell, { height }]}>
+    <View style={[styles.labelCell, isIconRow ? styles.rowIcon : styles.rowDefault]}>
       <Typography style={styles.labelText} weight="regular">
         {text}
       </Typography>
@@ -90,7 +90,7 @@ function ForeCastColumn({ item }: { item: ForeCastDto }) {
   return (
     <View style={styles.column}>
       {/* 시간 (민트 pill) */}
-      <View style={[styles.cell, { height: ROW_HEIGHT }]}>
+      <View style={[styles.cell, styles.rowDefault]}>
         <View style={styles.hourPill}>
           <Typography style={styles.hourText} weight="semibold">
             {formatHour(item.castTime)}
@@ -99,39 +99,37 @@ function ForeCastColumn({ item }: { item: ForeCastDto }) {
       </View>
 
       {/* 하늘 아이콘 */}
-      <View style={[styles.cell, { height: ROW_HEIGHT_ICON }]}>
+      <View style={[styles.cell, styles.rowIcon]}>
         <WeatherIcon
           skyStatus={item.skyStatus}
           rainType={item.rainType}
-          size={ICON_SIZE}
+          size="md"
         />
       </View>
 
       {/* 기온 (하단 hairline 포함) */}
-      <View
-        style={[styles.cell, styles.cellWithDivider, { height: ROW_HEIGHT }]}
-      >
+      <View style={[styles.cell, styles.cellWithDivider, styles.rowDefault]}>
         <Typography style={styles.valueText} weight="regular">
           {formatTemperatureCelsius(item.temperature)}
         </Typography>
       </View>
 
       {/* 강수확률 */}
-      <View style={[styles.cell, { height: ROW_HEIGHT }]}>
+      <View style={[styles.cell, styles.rowDefault]}>
         <Typography style={styles.valueText} weight="regular">
           {formatPercent(item.rainProbability)}
         </Typography>
       </View>
 
       {/* 강수형태 */}
-      <View style={[styles.cell, { height: ROW_HEIGHT }]}>
+      <View style={[styles.cell, styles.rowDefault]}>
         <Typography style={styles.valueText} weight="regular">
           {formatRainType(item.rainType)}
         </Typography>
       </View>
 
       {/* 강수량 */}
-      <View style={[styles.cell, { height: ROW_HEIGHT }]}>
+      <View style={[styles.cell, styles.rowDefault]}>
         <Typography style={styles.valueText} weight="regular">
           {formatRainAmountCell(item.rainAmount)}
         </Typography>
@@ -146,7 +144,6 @@ function ForeCastColumn({ item }: { item: ForeCastDto }) {
 
 const ROW_HEIGHT = 28;
 const ROW_HEIGHT_ICON = 40;
-const ICON_SIZE = 32;
 const LABEL_WIDTH = 60;
 const COLUMN_MIN_WIDTH = 56;
 
@@ -209,6 +206,12 @@ const styles = StyleSheet.create({
   valueText: {
     fontSize: 12,
     color: theme.colors.text.primary,
+  },
+  rowDefault: {
+    height: ROW_HEIGHT,
+  },
+  rowIcon: {
+    height: ROW_HEIGHT_ICON,
   },
   emptyCard: {
     marginTop: 20,

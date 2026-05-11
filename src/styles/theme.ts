@@ -174,6 +174,28 @@ export const theme = {
       statIconYellow: "#F59E0B",
       statIconGreen: "#10B981",
     },
+    /**
+     * 라이브보드(`match_detail`) 전용 시각화 컬러
+     *
+     * Why: 경기장 배경, 점수판, BSO 신호등 등 도메인 특화 색상을
+     * 화면에서 하드코딩하지 않고 SSOT로 관리하여 일관성을 유지한다.
+     */
+    liveboard: {
+      stadiumBg: "#2F5D3F",
+      scoreAway: "rgba(87,5,20,0.7)",
+      scoreHome: "rgba(234,0,41,0.7)",
+      countBoxBg: "rgba(255,255,255,0.38)",
+      baseIdle: "rgba(78,78,78,0.85)",
+      baseActive: "rgba(247,247,247,0.85)",
+      bsoDotIdle: "rgba(255,255,255,0.3)",
+      bsoBall: "#4CAF50",
+      bsoStrike: "#FFC107",
+      bsoOut: "#F44336",
+      defender: "#277F7F",
+      batter: "#333333",
+      runner: "rgba(255,255,255,0.92)",
+      runnerText: "#333333",
+    },
     text: {
       primary: "#111827", // 기본 텍스트 (gray-900)
       secondary: "#6B7280", // 보조 텍스트 (gray-500)
