@@ -1,241 +1,45 @@
+// app/(tabs)/liveboard.tsx
+// Why: Expo Router 탭 라우트 파일. 로직은 liveboard/ 하위 모듈에 위임.
 import { Box } from "@/components/ui/box";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { Typography } from "@/components/ui/typography";
-import { fetchLiveBoardRooms } from "@/src/features/liveboard/api";
-import {
-    LiveBoardRoomDto,
-    RainType,
-    SkyStatus,
-} from "@/src/features/liveboard/types";
 import { theme } from "@/src/styles/theme";
 import { getTeamBgStyle } from "@/src/utils/team";
-
 import { MaterialIcons } from "@expo/vector-icons";
-import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import React, { useMemo, useState } from "react";
+import React from "react";
 import {
-    ActivityIndicator,
-    ScrollView,
-    StyleSheet,
-    TouchableOpacity,
+  ActivityIndicator,
+  ScrollView,
+  TouchableOpacity,
 } from "react-native";
-
-// ========================================================
-// 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
-// ========================================================
-const LOCAL_LAYOUT = {
-  // 캘린더
-  dateCircleSize: 28, // 디자인: 선택 날짜 원형 크기
-  dotSize: 8, // 디자인: Check_fill 도트 크기
-  calendarPaddingH: 30, // 디자인: 캘린더 좌우 패딩
-  calendarRowGap: 2, // 디자인: 요일/날짜/도트 행 간격
-  // 매치 카드
-  cardHeight: 100, // 디자인: 카드 고정 높이
-  cardRadius: 18, // 디자인: rounded-[18px]
-  cardPaddingH: 19, // 디자인: px-[19px]
-  cardPaddingV: 6, // 디자인: py-[6px]
-  cardGap: 5, // 디자인: gap-[5px]
-  teamBlockWidth: 73, // 디자인: 팀 블록 너비
-  teamLogoSize: 45, // 디자인: 팀 로고 높이 (현재 원형 유지)
-  centerBlockWidth: 112, // 디자인: 중앙 블록 너비
-  weatherIconSize: 15, // 디자인: 날씨 아이콘 크기
-  navArrowPadding: theme.spacing.xs,
-  matchListHorizontalPadding: theme.spacing.xxxl, // 디자인: px-[30px]
-  matchListBottomPadding: theme.layout.dashboard.matchListBottomPadding,
-  matchListGap: theme.spacing.xl, // 디자인: gap-[20px]
-} as const;
-
-// ========================================================
-// 날씨 아이콘/텍스트 매핑
-// ========================================================
-type WeatherIconName = keyof typeof MaterialIcons.glyphMap;
-
-interface WeatherDisplay {
-  text: string;
-  icon: WeatherIconName;
-}
-
-function getWeatherDisplay(
-  skyStatus: SkyStatus | null | undefined,
-  rainType: RainType | null | undefined,
-): WeatherDisplay {
-  // 강수 형태 우선
-  if (rainType && rainType !== "NONE") {
-    switch (rainType) {
-      case "RAIN":
-      case "RAINDROP":
-        return { text: "비", icon: "umbrella" };
-      case "RAIN_SNOW":
-      case "RAINDROP_SNOW_FLYING":
-        return { text: "비/눈", icon: "ac-unit" };
-      case "SNOW":
-      case "SNOW_FLYING":
-        return { text: "눈", icon: "ac-unit" };
-    }
-  }
-  // 하늘 상태
-  switch (skyStatus) {
-    case "SUNNY":
-      return { text: "맑음", icon: "wb-sunny" };
-    case "CLOUDY_PARTLY":
-      return { text: "구름많음", icon: "wb-cloudy" };
-    case "CLOUDY":
-      return { text: "흐림", icon: "cloud" };
-    default:
-      return { text: "맑음", icon: "wb-sunny" };
-  }
-}
-
-// ========================================================
-// 주간 날짜 계산
-// ========================================================
-interface WeekDayDto {
-  dayOfWeek: string;
-  date: number;
-  fullDate: Date;
-  hasGame: boolean;
-  anydayKey: string; // yyyyMMdd
-}
-
-const DAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
-
-function toAnydayKey(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}${m}${d}`;
-}
-
-function getWeekStartDate(baseDate: Date, weekOffset: number): Date {
-  const d = new Date(baseDate);
-  // 이번 주 월요일 기준
-  const dayOfWeek = d.getDay(); // 0=일, 1=월 ...
-  const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-  d.setDate(d.getDate() + diffToMonday + weekOffset * 7);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-function buildWeekDays(
-  weekStart: Date,
-  rooms: LiveBoardRoomDto[],
-): WeekDayDto[] {
-  // 해당 주에 경기가 있는 날짜 키 Set
-  const gameDays = new Set(
-    rooms.map((r) => {
-      const d = new Date(r.matchTime);
-      return toAnydayKey(d);
-    }),
-  );
-
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(weekStart);
-    d.setDate(weekStart.getDate() + i);
-    const key = toAnydayKey(d);
-    return {
-      dayOfWeek: DAY_LABELS[d.getDay()],
-      date: d.getDate(),
-      fullDate: d,
-      hasGame: gameDays.has(key),
-      anydayKey: key,
-    };
-  });
-}
-
-function formatWeekLabel(weekStart: Date): string {
-  const year = weekStart.getFullYear();
-  const month = weekStart.getMonth() + 1;
-  const weekOfMonth = Math.ceil(weekStart.getDate() / 7);
-  const weekLabels = ["첫째", "둘째", "셋째", "넷째", "다섯째"];
-  return `${year}년 ${month}월 ${weekLabels[weekOfMonth - 1] ?? weekOfMonth + "번째"} 주`;
-}
-
-// ========================================================
-// 메인 화면
-// ========================================================
+import {
+  WeekDayDto,
+  getWeatherDisplay,
+  useLiveboard,
+} from "./liveboard/useLiveboard";
+import { LOCAL_LAYOUT, styles } from "./liveboard/liveboard.styles";
 
 /**
  * 라이브보드 화면
  *
  * Why: 경기 일정과 매치업 정보를 실제 API 데이터로 제공.
- * - GET /api/liveboard/room?anyday=yyyyMMdd 로 해당 날짜 경기 목록 조회
- * - 주간 캘린더는 현재 날짜 기준으로 계산, 주 이동 시 재조회
- * - 날짜 선택 시 해당 날짜 경기만 필터링하여 표시
+ * 탭 네비게이션 렌더링만 담당. 데이터/상태 로직은 useLiveboard에 위임.
  */
 export default function LiveboardScreen() {
   const router = useRouter();
-  const today = useMemo(() => new Date(), []);
-  const [weekOffset, setWeekOffset] = useState(0);
-  const [selectedAnyday, setSelectedAnyday] = useState<string>(
-    toAnydayKey(today),
-  );
-
-  const weekStart = useMemo(
-    () => getWeekStartDate(today, weekOffset),
-    [today, weekOffset],
-  );
-
-  // 주간 전체 날짜 키 목록 (월~일)
-  const weekAnydayKeys = useMemo(
-    () =>
-      Array.from({ length: 7 }, (_, i) => {
-        const d = new Date(weekStart);
-        d.setDate(weekStart.getDate() + i);
-        return toAnydayKey(d);
-      }),
-    [weekStart],
-  );
-
-  // 주간 전체 hasGame 도트를 위해 7일치 병렬 조회 (단일 쿼리로 묶어 Hook 규칙 준수)
-  const { data: weekRoomsMap = {} } = useQuery({
-    queryKey: ["liveboard", "week", weekAnydayKeys[0]],
-    queryFn: async () => {
-      const results = await Promise.all(
-        weekAnydayKeys.map((key) =>
-          fetchLiveBoardRooms(key).then((rooms) => ({ key, rooms })),
-        ),
-      );
-      return Object.fromEntries(results.map(({ key, rooms }) => [key, rooms]));
-    },
-    staleTime: 60_000,
-  });
-
-  // 주간 전체 rooms (hasGame 계산용)
-  const allWeekRooms = useMemo(
-    () => Object.values(weekRoomsMap).flat(),
-    [weekRoomsMap],
-  );
-
-  const weekDays = useMemo(
-    () => buildWeekDays(weekStart, allWeekRooms),
-    [weekStart, allWeekRooms],
-  );
-
-  const weekLabel = useMemo(() => formatWeekLabel(weekStart), [weekStart]);
-
-  const selectedDay = weekDays.find((d) => d.anydayKey === selectedAnyday);
-
-  // Phase 1: 주간 이동 시 선택 날짜 자동 보정 (Stale State 해결)
-  // Why: weekOffset 변경으로 주간 키 목록이 바뀌었을 때, 
-  // 기존 선택 날짜가 새 주에 없으면 사용자를 기만하지 않도록 첫 날로 강제 이동한다.
-  React.useEffect(() => {
-    if (!weekAnydayKeys.includes(selectedAnyday)) {
-      setSelectedAnyday(weekAnydayKeys[0]);
-    }
-  }, [weekAnydayKeys, selectedAnyday]);
-
-  // 선택된 날짜의 경기 목록 조회 (에러 상태 포함)
   const {
-    data: selectedDayRooms = [],
+    setWeekOffset,
+    selectedAnyday,
+    setSelectedAnyday,
+    weekDays,
+    weekLabel,
+    selectedDay,
+    selectedDayRooms,
     isLoading,
     isError,
     refetch,
-  } = useQuery({
-    queryKey: ["liveboard", "rooms", selectedAnyday],
-    queryFn: () => fetchLiveBoardRooms(selectedAnyday),
-    staleTime: 60_000,
-  });
+  } = useLiveboard();
 
   return (
     <SafeLayout style={styles.safeLayout} edges={["top", "left", "right"]}>
@@ -272,11 +76,11 @@ export default function LiveboardScreen() {
         </TouchableOpacity>
       </Box>
 
-      {/* 주간 날짜 캘린더: 요일 행 / 날짜 행 / 도트 행 분리 */}
+      {/* 주간 날짜 캘린더 */}
       <Box style={styles.calendarContainer} mb="lg">
         {/* 요일 행 */}
         <Box flexDir="row" justify="space-between" mb="xxs">
-          {weekDays.map((day) => (
+          {weekDays.map((day: WeekDayDto) => (
             <Box key={day.anydayKey} style={styles.calendarCell} align="center">
               <Typography
                 style={styles.dayOfWeekText}
@@ -291,7 +95,7 @@ export default function LiveboardScreen() {
 
         {/* 날짜 행 */}
         <Box flexDir="row" justify="space-between" mb="xxs">
-          {weekDays.map((day) => {
+          {weekDays.map((day: WeekDayDto) => {
             const isSelected = day.anydayKey === selectedAnyday;
             return (
               <TouchableOpacity
@@ -329,7 +133,7 @@ export default function LiveboardScreen() {
 
         {/* 도트 행 */}
         <Box flexDir="row" justify="space-between">
-          {weekDays.map((day) => {
+          {weekDays.map((day: WeekDayDto) => {
             const isSelected = day.anydayKey === selectedAnyday;
             return (
               <Box
@@ -404,13 +208,9 @@ export default function LiveboardScreen() {
             const matchDate = new Date(room.matchTime);
             const timeText = `${String(matchDate.getHours()).padStart(2, "0")}:${String(matchDate.getMinutes()).padStart(2, "0")}`;
 
-            // 날씨: TODAY 경기는 nowCast, 나머지는 foreCast 첫 번째 항목 사용
             const weather =
               room.liveBoardStatus === "TODAY" && room.nowCast
-                ? getWeatherDisplay(
-                    room.nowCast.skyStatus,
-                    room.nowCast.rainType,
-                  )
+                ? getWeatherDisplay(room.nowCast.skyStatus, room.nowCast.rainType)
                 : room.foreCast?.[0]
                   ? getWeatherDisplay(
                       room.foreCast[0].skyStatus,
@@ -449,10 +249,7 @@ export default function LiveboardScreen() {
                       rounded="full"
                       align="center"
                       justify="center"
-                      style={[
-                        styles.teamLogo,
-                        getTeamBgStyle(room.awayTeamName),
-                      ]}
+                      style={[styles.teamLogo, getTeamBgStyle(room.awayTeamName)]}
                     >
                       <Typography
                         variant="caption"
@@ -468,12 +265,7 @@ export default function LiveboardScreen() {
                   </Box>
 
                   {/* 경기 정보 (중앙) */}
-                  <Box
-                    align="center"
-                    justify="center"
-                    style={styles.centerBlock}
-                  >
-                    {/* 시간 + 구장 */}
+                  <Box align="center" justify="center" style={styles.centerBlock}>
                     <Box align="center" style={styles.timeStadiumBlock}>
                       <Typography style={styles.timeText} weight="semibold">
                         {timeText}
@@ -482,7 +274,6 @@ export default function LiveboardScreen() {
                         {room.stadium ?? "-"}
                       </Typography>
                     </Box>
-                    {/* 날씨 */}
                     {weather && (
                       <Box flexDir="row" align="center">
                         <MaterialIcons
@@ -505,10 +296,7 @@ export default function LiveboardScreen() {
                       rounded="full"
                       align="center"
                       justify="center"
-                      style={[
-                        styles.teamLogo,
-                        getTeamBgStyle(room.homeTeamName),
-                      ]}
+                      style={[styles.teamLogo, getTeamBgStyle(room.homeTeamName)]}
                     >
                       <Typography
                         variant="caption"
@@ -531,120 +319,3 @@ export default function LiveboardScreen() {
     </SafeLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  safeLayout: {
-    flex: 1,
-    backgroundColor: theme.colors.brand.background,
-  },
-  navArrowBtn: {
-    padding: LOCAL_LAYOUT.navArrowPadding,
-  },
-  // ── 캘린더 ──────────────────────────────────────────────
-  calendarContainer: {
-    paddingHorizontal: LOCAL_LAYOUT.calendarPaddingH,
-  },
-  calendarCell: {
-    flex: 1,
-    alignItems: "center",
-  },
-  dayOfWeekText: {
-    fontSize: 13,
-    color: theme.colors.text.tertiary,
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  dateText: {
-    fontSize: 15,
-    color: theme.colors.team.neutralDark,
-    textAlign: "center",
-    lineHeight: 24,
-  },
-  dateCircle: {
-    borderRadius: LOCAL_LAYOUT.dateCircleSize / 2,
-  },
-  selectedDateCircle: {
-    backgroundColor: theme.colors.brand.mint,
-    borderRadius: LOCAL_LAYOUT.dateCircleSize / 2,
-  },
-  selectedDateText: {
-    color: theme.colors.background,
-  },
-  dot: {
-    borderRadius: LOCAL_LAYOUT.dotSize / 2,
-  },
-  dotActive: {
-    backgroundColor: theme.colors.brand.mint,
-  },
-  dotInactive: {
-    backgroundColor: theme.colors.team.neutralLight,
-  },
-  dotHidden: {
-    backgroundColor: theme.colors.transparent,
-  },
-  // ── 매치 카드 ────────────────────────────────────────────
-  matchList: {
-    paddingHorizontal: LOCAL_LAYOUT.matchListHorizontalPadding,
-    paddingBottom: LOCAL_LAYOUT.matchListBottomPadding,
-    gap: LOCAL_LAYOUT.matchListGap,
-  },
-  matchCard: {
-    height: LOCAL_LAYOUT.cardHeight,
-    borderRadius: LOCAL_LAYOUT.cardRadius,
-    paddingHorizontal: LOCAL_LAYOUT.cardPaddingH,
-    paddingVertical: LOCAL_LAYOUT.cardPaddingV,
-    gap: LOCAL_LAYOUT.cardGap,
-    justifyContent: "center",
-    // 디자인: drop-shadow(0px 0px 5.25px rgba(0,0,0,0.1))
-    shadowColor: theme.colors.team.kt,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5.25,
-    elevation: 3,
-  },
-  teamBlock: {
-    width: LOCAL_LAYOUT.teamBlockWidth,
-    gap: 4,
-  },
-  teamLogo: {
-    marginBottom: 0,
-  },
-  teamNameText: {
-    fontSize: 12,
-    color: theme.colors.team.neutralDark,
-    textAlign: "center",
-  },
-  centerBlock: {
-    width: LOCAL_LAYOUT.centerBlockWidth,
-    gap: 0,
-  },
-  timeStadiumBlock: {
-    gap: 2,
-    paddingVertical: 6,
-  },
-  timeText: {
-    fontSize: 16,
-    color: theme.colors.team.neutralDark,
-    textAlign: "center",
-  },
-  stadiumText: {
-    fontSize: 11,
-    color: theme.colors.brand.subtitle,
-    textAlign: "center",
-  },
-  weatherText: {
-    fontSize: 11,
-    color: theme.colors.brand.mint,
-    textAlign: "center",
-  },
-  retryBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: theme.colors.brand.mint,
-  },
-  retryBtnText: {
-    fontSize: 13,
-    color: theme.colors.background,
-  },
-});
