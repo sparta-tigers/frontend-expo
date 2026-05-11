@@ -5,26 +5,26 @@ import { useAuth } from "@/context/AuthContext";
 import { useWebSocket } from "@/src/hooks/useWebSocket";
 import { theme } from "@/src/styles/theme";
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
 } from "react-native";
 
 import { LineupSection } from "@/src/features/home/components/LineupSection";
 import {
-    fetchMatchLineup,
-    fetchMatchWeather,
+  fetchMatchLineup,
+  fetchMatchWeather,
 } from "@/src/features/liveboard/api";
 import { ForeCastTable } from "@/src/features/liveboard/components/ForeCastTable";
 import { NowCastCard } from "@/src/features/liveboard/components/NowCastCard";
 import {
-    ForeCastDto,
-    LineupRowDto,
-    NowCastDto,
-    WeatherApiStatus,
+  ForeCastDto,
+  LineupRowDto,
+  NowCastDto,
+  WeatherApiStatus,
 } from "@/src/features/liveboard/types";
 import { filterUpcomingForeCast } from "@/src/features/liveboard/utils/weatherFormat";
 import { getTeamBgStyle } from "@/src/utils/team";
@@ -546,7 +546,7 @@ function ChatPanel({ matchId }: { matchId: string }) {
           <TextInput
             value={draft}
             onChangeText={setDraft}
-            placeholder="메세지 보내기..."
+            placeholder="메시지 보내기..."
             placeholderTextColor={theme.colors.brand.inactive}
             style={styles.chatInputText}
             onSubmitEditing={handleSend}
