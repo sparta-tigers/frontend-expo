@@ -50,6 +50,7 @@ docs/reports/*.md
 docs/issues/*.md
 
 .windsurf/
+.kiro/
 
 *.log
 
