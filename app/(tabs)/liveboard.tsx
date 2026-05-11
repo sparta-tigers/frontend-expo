@@ -187,13 +187,6 @@ export default function LiveboardScreen() {
     [weekStart],
   );
 
-  // 선택된 날짜의 경기 목록 조회
-  const { data: selectedDayRooms = [], isLoading } = useQuery({
-    queryKey: ["liveboard", "rooms", selectedAnyday],
-    queryFn: () => fetchLiveBoardRooms(selectedAnyday),
-    staleTime: 60_000,
-  });
-
   // 주간 전체 hasGame 도트를 위해 7일치 병렬 조회 (단일 쿼리로 묶어 Hook 규칙 준수)
   const { data: weekRoomsMap = {} } = useQuery({
     queryKey: ["liveboard", "week", weekAnydayKeys[0]],
@@ -222,6 +215,27 @@ export default function LiveboardScreen() {
   const weekLabel = useMemo(() => formatWeekLabel(weekStart), [weekStart]);
 
   const selectedDay = weekDays.find((d) => d.anydayKey === selectedAnyday);
+
+  // Phase 1: 주간 이동 시 선택 날짜 자동 보정 (Stale State 해결)
+  // Why: weekOffset 변경으로 주간 키 목록이 바뀌었을 때, 
+  // 기존 선택 날짜가 새 주에 없으면 사용자를 기만하지 않도록 첫 날로 강제 이동한다.
+  React.useEffect(() => {
+    if (!weekAnydayKeys.includes(selectedAnyday)) {
+      setSelectedAnyday(weekAnydayKeys[0]);
+    }
+  }, [weekAnydayKeys, selectedAnyday]);
+
+  // 선택된 날짜의 경기 목록 조회 (에러 상태 포함)
+  const {
+    data: selectedDayRooms = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: ["liveboard", "rooms", selectedAnyday],
+    queryFn: () => fetchLiveBoardRooms(selectedAnyday),
+    staleTime: 60_000,
+  });
 
   return (
     <SafeLayout style={styles.safeLayout} edges={["top", "left", "right"]}>
@@ -342,7 +356,29 @@ export default function LiveboardScreen() {
       </Box>
 
       {/* 매치 리스트 */}
-      {isLoading ? (
+      {isError ? (
+        <Box flex={1} align="center" justify="center" gap="md">
+          <MaterialIcons
+            name="error-outline"
+            size={40}
+            color={theme.colors.error}
+          />
+          <Typography variant="body1" color="text.secondary" weight="medium">
+            경기 정보를 불러오지 못했어요
+          </Typography>
+          <TouchableOpacity
+            style={styles.retryBtn}
+            onPress={() => refetch()}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="다시 시도"
+          >
+            <Typography style={styles.retryBtnText} weight="semibold">
+              다시 시도
+            </Typography>
+          </TouchableOpacity>
+        </Box>
+      ) : isLoading ? (
         <Box flex={1} align="center" justify="center">
           <ActivityIndicator color={theme.colors.brand.mint} />
         </Box>
@@ -600,5 +636,15 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: theme.colors.brand.mint,
     textAlign: "center",
+  },
+  retryBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: theme.colors.brand.mint,
+  },
+  retryBtnText: {
+    fontSize: 13,
+    color: theme.colors.background,
   },
 });
