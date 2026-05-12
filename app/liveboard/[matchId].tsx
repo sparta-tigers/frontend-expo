@@ -7,11 +7,11 @@ import { Typography } from "@/components/ui/typography";
 import { useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import { TouchableOpacity } from "react-native";
-import { ChatPanel } from "./[matchId]/ChatPanel";
-import { LineupPanel } from "./[matchId]/LineupPanel";
-import { LiveSection } from "./[matchId]/LiveSection";
-import { WeatherPanel } from "./[matchId]/WeatherPanel";
-import { styles } from "./[matchId]/matchId.styles";
+import { ChatPanel } from "@/src/features/liveboard/components/ChatPanel";
+import { LineupPanel } from "@/src/features/liveboard/components/LineupPanel";
+import { LiveSection } from "@/src/features/liveboard/components/LiveSection";
+import { WeatherPanel } from "@/src/features/liveboard/components/WeatherPanel";
+import { styles } from "@/src/features/liveboard/styles/matchId.styles";
 
 /**
  * 라이브보드 탭 키 집합
@@ -96,16 +96,42 @@ export default function LiveboardDetailScreen() {
       </Box>
 
       <Box flex={1}>
-        {activeTab === "chat" && <ChatPanel matchId={params.matchId} />}
-        {activeTab === "text" && <PlaceholderPanel label="텍스트 중계" />}
-        {activeTab === "lineup" && (
+        <Box
+          style={[
+            styles.tabPanel,
+            activeTab === "chat" ? styles.visible : styles.hidden,
+          ]}
+        >
+          <ChatPanel matchId={params.matchId} />
+        </Box>
+        <Box
+          style={[
+            styles.tabPanel,
+            activeTab === "text" ? styles.visible : styles.hidden,
+          ]}
+        >
+          <PlaceholderPanel label="텍스트 중계" />
+        </Box>
+        <Box
+          style={[
+            styles.tabPanel,
+            activeTab === "lineup" ? styles.visible : styles.hidden,
+          ]}
+        >
           <LineupPanel
             matchId={params.matchId}
             homeTeamName={params.homeTeamName ?? "홈"}
             awayTeamName={params.awayTeamName ?? "어웨이"}
           />
-        )}
-        {activeTab === "weather" && <WeatherPanel matchId={params.matchId} />}
+        </Box>
+        <Box
+          style={[
+            styles.tabPanel,
+            activeTab === "weather" ? styles.visible : styles.hidden,
+          ]}
+        >
+          <WeatherPanel matchId={params.matchId} />
+        </Box>
       </Box>
     </SafeLayout>
   );

@@ -4,6 +4,8 @@ import { useWebSocket } from "@/src/hooks/useWebSocket";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, ScrollView } from "react-native";
 
+let messageCounter = 0;
+
 /**
  * 라이브보드 채팅 버블 메시지 (UI 렌더링용)
  */
@@ -17,6 +19,7 @@ export interface ChatBubbleMessage {
   mine: boolean;
   /** Why: 동일 텍스트 중복 전송 시 정확한 낙관적 메시지 식별을 위한 생성 시각(ms) */
   localTimestamp?: number;
+  tempId?: string | undefined;
 }
 
 /**
@@ -30,6 +33,7 @@ interface StompChatMessage {
   sentAt: string; // ISO
   domain: "LIVEBOARD" | "EXCHANGE" | "LOCATION";
   favTeamSymbolUrl?: string | null;
+  tempId?: string;
 }
 
 function toBubbleMessage(
@@ -44,6 +48,7 @@ function toBubbleMessage(
     text: msg.content,
     time,
     mine: myUserId !== undefined && msg.senderId === myUserId,
+    tempId: msg.tempId,
   };
 }
 
@@ -65,7 +70,11 @@ interface UseChatPanelReturn {
 export function useChatPanel(matchId: string): UseChatPanelReturn {
   const { user } = useAuth();
   const roomId = `LIVEBOARD_${matchId}`;
-  const { client, status } = useWebSocket(roomId, "liveboard");
+  const { client, status } = useWebSocket(
+    roomId,
+    "liveboard",
+    process.env.EXPO_PUBLIC_WS_BASE_URL,
+  );
   const isConnected = status === "CONNECTED";
 
   const [messages, setMessages] = useState<ChatBubbleMessage[]>([]);
@@ -89,10 +98,13 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
                   (m) =>
                     !(
                       m.key.startsWith("local-") &&
-                      m.senderId === bubble.senderId &&
-                      m.text === bubble.text &&
-                      // Why: 1초 이내 전송된 낙관적 메시지만 대체 (동일 텍스트 중복 전송 방어)
-                      Math.abs(new Date(parsed.sentAt).getTime() - (m.localTimestamp ?? 0)) < 1000
+                      (m.tempId === bubble.tempId ||
+                        (m.senderId === bubble.senderId &&
+                          m.text === bubble.text &&
+                          Math.abs(
+                            new Date(parsed.sentAt).getTime() -
+                              (m.localTimestamp ?? 0),
+                          ) < 10000)) // 30초 -> 10초로 단축
                     ),
                 )
               : prev;
@@ -135,7 +147,8 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
       return;
     }
 
-    const localKey = `local-${Date.now()}`;
+    const tempId = `temp-${Date.now()}-${++messageCounter}-${Math.random().toString(36).slice(2, 9)}`;
+    const localKey = `local-${tempId}`;
     const optimistic: ChatBubbleMessage = {
       key: localKey,
       senderId: user.userId,
@@ -144,6 +157,7 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
       time: new Date().toTimeString().slice(0, 5),
       mine: true,
       localTimestamp: Date.now(),
+      tempId,
     };
     setMessages((prev) => [...prev, optimistic]);
     setDraft("");
@@ -151,7 +165,7 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
     try {
       client.publish({
         destination: "/client/liveboard/send",
-        body: JSON.stringify({ roomId, content }),
+        body: JSON.stringify({ roomId, content, tempId }),
       });
     } catch {
       setMessages((prev) => prev.filter((m) => m.key !== localKey));

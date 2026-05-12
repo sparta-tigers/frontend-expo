@@ -1,10 +1,10 @@
-// app/liveboard/[matchId]/LiveSection.tsx
+// src/features/liveboard/components/LiveSection.tsx
 import { Box } from "@/components/ui/box";
 import { Typography } from "@/components/ui/typography";
 import { theme } from "@/src/styles/theme";
 import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
-import { styles } from "./matchId.styles";
+import { styles } from "@/src/features/liveboard/styles/matchId.styles";
 
 // ========================================================
 // 목데이터 (상단 라이브 섹션용)

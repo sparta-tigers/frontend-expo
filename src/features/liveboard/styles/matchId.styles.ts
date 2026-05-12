@@ -385,4 +385,14 @@ export const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
     lineHeight: 18,
   },
+  // ── 공통 탭 패널 제어 ────────────────────────────────
+  tabPanel: {
+    flex: 1,
+  },
+  visible: {
+    display: "flex",
+  },
+  hidden: {
+    display: "none",
+  },
 });

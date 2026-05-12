@@ -1,9 +1,9 @@
-// app/profile/ProfileMenu.tsx
+// src/features/user/components/ProfileMenu.tsx
 import React from "react";
 import { TouchableOpacity } from "react-native";
 import { Box } from "@/components/ui/box";
 import { Typography } from "@/components/ui/typography";
-import { styles } from "./profile.styles";
+import { styles } from "@/src/features/user/styles/profile.styles";
 
 interface MenuItemProps {
   label: string;
