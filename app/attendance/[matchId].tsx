@@ -131,7 +131,7 @@ export default function AttendanceFormScreen() {
    */
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ["images"],
       allowsMultipleSelection: true,
       selectionLimit: 5 - images.length,
       quality: 1,
@@ -213,8 +213,10 @@ export default function AttendanceFormScreen() {
       Alert.alert("성공", "직관 기록이 저장되었습니다.", [
         { text: "확인", onPress: () => router.replace("/(tabs)/history") },
       ]);
-    } catch {
-      // 🚨 앙드레 카파시: 운영 환경에서는 별도의 로깅 시스템을 사용해야 함.
+    } catch (error) {
+      // 🚨 [Phase 37] 관측성 확보: 운영 환경 디버깅을 위해 에러 로깅 추가 (UX용 Alert는 유지)
+      // eslint-disable-next-line no-console
+      console.error("[AttendanceFormScreen] save failed:", error);
       Alert.alert("오류", "기록 저장 중 문제가 발생했습니다.");
     } finally {
       setIsSubmitting(false);
