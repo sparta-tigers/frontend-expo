@@ -5,8 +5,8 @@ import { theme } from "@/src/styles/theme";
 export const LOCAL_LAYOUT = {
   profileAvatarSize: 80,
   userAvatarSize: 60,
-  bottomSheetSnapPoint: "60%",
-  scrollBottomPadding: 40,
+  bottomSheetSnapPoints: ["60%"],
+  scrollBottomPadding: theme.spacing.xxxxl,
 } as const;
 
 export const styles = StyleSheet.create({

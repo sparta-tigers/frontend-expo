@@ -12,6 +12,11 @@ interface MenuItemProps {
   isError?: boolean;
 }
 
+/**
+ * MenuItem
+ * 
+ * Why: 프로필 화면의 각 설정 항목을 표시하는 공통 리스트 아이템 컴포넌트.
+ */
 export function MenuItem({ label, onPress, disabled, isError }: MenuItemProps) {
   return (
     <TouchableOpacity
@@ -20,8 +25,8 @@ export function MenuItem({ label, onPress, disabled, isError }: MenuItemProps) {
       disabled={disabled}
       activeOpacity={0.7}
     >
-      <Typography color={isError ? "error" : "text.primary"}>{label}</Typography>
-      <Typography color={isError ? "error" : "text.secondary"} weight="bold">
+      <Typography color={isError ? "destructive" : "text.primary"}>{label}</Typography>
+      <Typography color={isError ? "destructive" : "text.secondary"} weight="bold">
         ›
       </Typography>
     </TouchableOpacity>
@@ -33,6 +38,11 @@ interface MenuSectionProps {
   children: React.ReactNode;
 }
 
+/**
+ * MenuSection
+ * 
+ * Why: 프로필 메뉴를 도메인(교환, 계정, 즐겨찾기 등)별로 그룹화하여 시각적 위계 제공.
+ */
 export function MenuSection({ title, children }: MenuSectionProps) {
   return (
     <Box mb="lg">

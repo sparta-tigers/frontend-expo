@@ -32,9 +32,13 @@ export function useProfile() {
   const { user, signout, updateUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [favoriteTeam, setFavoriteTeam] = useState<FavoriteTeam | null>(null);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 
   const loadFavoriteTeam = useCallback(async () => {
-    if (!user?.accessToken) return;
+    if (!user?.accessToken) {
+      setFavoriteTeam(null);
+      return;
+    }
 
     try {
       const response = await favoriteTeamGetAPI();
@@ -53,49 +57,40 @@ export function useProfile() {
   }, [loadFavoriteTeam]);
 
   const handleEditProfile = () => {
-    Alert.prompt(
-      "프로필 수정",
-      "새로운 닉네임을 입력하세요",
-      [
-        { text: "취소", style: "cancel" },
-        {
-          text: "수정",
-          onPress: async (newNickname?: string) => {
-            if (!newNickname || newNickname.trim().length === 0) {
-              Alert.alert("오류", "닉네임을 입력해주세요.");
-              return;
-            }
+    setIsEditModalVisible(true);
+  };
 
-            const currentNickname = user?.nickname ?? "";
-            if (currentNickname.length > 0 && newNickname.trim() === currentNickname) {
-              Alert.alert("알림", "동일한 닉네임입니다.");
-              return;
-            }
+  const handleSaveNickname = async (newNickname: string) => {
+    if (!newNickname || newNickname.trim().length === 0) {
+      Alert.alert("오류", "닉네임을 입력해주세요.");
+      return;
+    }
 
-            setLoading(true);
-            try {
-              const request: UserProfileUpdateRequest = {
-                nickname: newNickname.trim(),
-              };
-              const response = await usersUpdateProfileAPI(request);
-              if (response.resultType === "SUCCESS" && response.data) {
-                updateUser({ nickname: response.data.nickname });
-                Alert.alert("성공", "프로필이 성공적으로 수정되었습니다.");
-              } else {
-                Alert.alert("오류", "프로필 수정에 실패했습니다.");
-              }
-            } catch (error) {
-              Logger.error("프로필 수정 실패:", error);
-              Alert.alert("오류", "네트워크 에러가 발생했습니다.");
-            } finally {
-              setLoading(false);
-            }
-          },
-        },
-      ],
-      "plain-text",
-      user?.nickname ?? "",
-    );
+    const currentNickname = user?.nickname ?? "";
+    if (currentNickname.length > 0 && newNickname.trim() === currentNickname) {
+      Alert.alert("알림", "동일한 닉네임입니다.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const request: UserProfileUpdateRequest = {
+        nickname: newNickname.trim(),
+      };
+      const response = await usersUpdateProfileAPI(request);
+      if (response.resultType === "SUCCESS" && response.data) {
+        updateUser({ nickname: response.data.nickname });
+        Alert.alert("성공", "프로필이 성공적으로 수정되었습니다.");
+        setIsEditModalVisible(false);
+      } else {
+        Alert.alert("오류", "프로필 수정에 실패했습니다.");
+      }
+    } catch (error) {
+      Logger.error("프로필 수정 실패:", error);
+      Alert.alert("오류", "네트워크 에러가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeleteAccount = () => {
@@ -156,8 +151,13 @@ export function useProfile() {
         text: "로그아웃",
         style: "destructive",
         onPress: async () => {
-          await signout();
-          router.replace("/(auth)/signin");
+          try {
+            await signout();
+          } catch (error) {
+            Logger.error("로그아웃 실패:", error);
+          } finally {
+            router.replace("/(auth)/signin");
+          }
         },
       },
     ]);
@@ -216,7 +216,10 @@ export function useProfile() {
     user,
     loading,
     favoriteTeam,
+    isEditModalVisible,
+    setIsEditModalVisible,
     handleEditProfile,
+    handleSaveNickname,
     handleDeleteAccount,
     handleLogout,
     handleSelectTeam,

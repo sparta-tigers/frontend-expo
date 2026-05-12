@@ -1,5 +1,5 @@
 // app/profile/TeamSelectSheet.tsx
-import React, { useMemo } from "react";
+import React from "react";
 import { TouchableOpacity } from "react-native";
 import {
   BottomSheetModal,
@@ -19,8 +19,13 @@ interface TeamSelectSheetProps {
   onSelectTeam: (team: (typeof KBO_TEAMS)[number]) => void;
 }
 
+/**
+ * TeamSelectSheet
+ * 
+ * Why: 사용자가 즐겨찾는 KBO 구단을 선택할 수 있는 바텀 시트 인터페이스 제공.
+ */
 export function TeamSelectSheet({ modalRef, onSelectTeam }: TeamSelectSheetProps) {
-  const snapPoints = useMemo(() => [LOCAL_LAYOUT.bottomSheetSnapPoint], []);
+  const snapPoints = LOCAL_LAYOUT.bottomSheetSnapPoints as unknown as (string | number)[];
 
   const renderBackdrop = React.useCallback(
     (props: BottomSheetBackdropProps) => (

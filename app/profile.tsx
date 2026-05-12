@@ -14,6 +14,7 @@ import {
   MenuSection,
 } from "./profile/ProfileMenu";
 import { TeamSelectSheet } from "./profile/TeamSelectSheet";
+import { NicknameEditModal } from "./profile/NicknameEditModal";
 import { LOCAL_LAYOUT, styles } from "./profile/profile.styles";
 import { useProfile, KBO_TEAMS } from "./profile/useProfile";
 
@@ -22,7 +23,10 @@ export default function ProfileScreen() {
     user,
     loading,
     favoriteTeam,
+    isEditModalVisible,
+    setIsEditModalVisible,
     handleEditProfile,
+    handleSaveNickname,
     handleDeleteAccount,
     handleLogout,
     handleSelectTeam,
@@ -194,6 +198,15 @@ export default function ProfileScreen() {
 
       {/* 즐겨찾기 팀 선택 바텀 시트 */}
       <TeamSelectSheet modalRef={bottomSheetModalRef} onSelectTeam={onSelectTeam} />
+
+      {/* 닉네임 수정 모달 */}
+      <NicknameEditModal
+        visible={isEditModalVisible}
+        initialNickname={user?.nickname ?? ""}
+        loading={loading}
+        onClose={() => setIsEditModalVisible(false)}
+        onSave={handleSaveNickname}
+      />
     </SafeLayout>
   );
 }
