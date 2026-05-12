@@ -3,7 +3,8 @@ import {
   attendanceGetMyAPI, 
   attendanceCreateAPI, 
   attendanceUpdateAPI,
-  attendanceDeleteAPI 
+  attendanceDeleteAPI,
+  attendanceGetDetailAPI
 } from "./api";
 
 /**
@@ -27,6 +28,18 @@ export const useMyAttendances = (page: number = 1, size: number = 100) => {
     queryKey: attendanceKeys.my(),
     queryFn: () => attendanceGetMyAPI(page, size),
     select: (response) => response.data?.content ?? [],
+  });
+};
+
+/**
+ * 직관 기록 단건 조회 쿼리
+ */
+export const useAttendance = (id: number) => {
+  return useQuery({
+    queryKey: attendanceKeys.detail(id),
+    queryFn: () => attendanceGetDetailAPI(id),
+    select: (response) => response.data,
+    enabled: !!id,
   });
 };
 

@@ -178,3 +178,14 @@ export const getTeamBorderStyle = (teamName: string) => {
 export const getTeamBgStyle = (teamName: string) => {
   return TEAM_BG_STYLES[teamName] ?? { backgroundColor: theme.colors.team.fallback };
 };
+
+/**
+ * 팀 로고 에셋 반환 유틸리티
+ */
+export const getTeamLogo = (_teamCode: string) => {
+  // TODO: 실제 로고 에셋 경로 매핑 (현재는 프로젝트 내 에셋 부재로 유추)
+  // 예: return require(`@/assets/images/logos/${_teamCode}.png`);
+  
+  // 임시로 mascotEmoji를 활용하거나 투명 이미지를 반환할 수 있게 구조만 확보
+  return null; 
+};
