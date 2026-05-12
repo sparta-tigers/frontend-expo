@@ -121,7 +121,7 @@ export default function AttendanceFormScreen() {
       }
 
       Alert.alert("성공", "직관 기록이 저장되었습니다.", [
-        { text: "확인", onPress: () => router.back() }
+        { text: "확인", onPress: () => router.replace("/(tabs)/history") }
       ]);
     } catch {
       // 🚨 앙드레 카파시: 운영 환경에서는 별도의 로깅 시스템을 사용해야 함.

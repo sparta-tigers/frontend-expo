@@ -26,12 +26,14 @@ export default function HistoryScreen() {
   }, []);
 
   const getMatchResult = (item: MatchAttendance) => {
-    if (item.homeScore === undefined || item.awayScore === undefined || !favoriteTeam) return null;
+    // 🚨 앙드레 카파시: null/undefined 체크를 유연하게 수행 (JS == null 은 null과 undefined 모두 체크)
+    if (item.homeScore == null || item.awayScore == null || !favoriteTeam) return null;
     
     const isHome = item.homeTeamCode === favoriteTeam.teamCode;
     const isAway = item.awayTeamCode === favoriteTeam.teamCode;
     
-    if (!isHome && !isAway) return null;
+    // 응원 팀이 참여한 경기가 아닌 경우
+    if (!isHome && !isAway) return { text: "MATCH", color: theme.colors.text.secondary, emoji: "🏟️" };
     
     const myScore = isHome ? item.homeScore : item.awayScore;
     const opponentScore = isHome ? item.awayScore : item.homeScore;
@@ -82,8 +84,8 @@ export default function HistoryScreen() {
 
           <Box align="center" justify="center" width={50}>
              <Typography style={styles.resultEmoji}>{result?.emoji ?? "🏟️"}</Typography>
-             <Typography variant="caption" weight="bold" color={result?.color as any ?? "text.primary"}>
-               {result?.text ?? "GAME"}
+             <Typography variant="caption" weight="bold" color={result?.color as any ?? "text.secondary"}>
+               {result?.text ?? "MATCH"}
              </Typography>
           </Box>
         </Box>
