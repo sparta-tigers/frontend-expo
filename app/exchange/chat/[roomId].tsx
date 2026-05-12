@@ -12,8 +12,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useChatRoom } from "./[roomId]/useChatRoom";
-import { styles } from "./[roomId]/roomId.styles";
+import { useChatRoom } from "@/src/features/chat/useChatRoom";
+import { styles } from "@/src/features/chat/chatRoom.styles";
 import { useAuth } from "@/src/hooks/useAuth";
 
 export default function ChatRoomScreen() {
