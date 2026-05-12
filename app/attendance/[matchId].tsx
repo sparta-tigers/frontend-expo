@@ -1,0 +1,298 @@
+import { Box, Typography } from "@/components/ui";
+import { SafeLayout } from "@/components/ui/safe-layout";
+import { theme } from "@/src/styles/theme";
+import { useLocalSearchParams, router } from "expo-router";
+import React, { useState, useEffect } from "react";
+import { 
+  StyleSheet, 
+  TextInput, 
+  TouchableOpacity, 
+  ScrollView, 
+  ActivityIndicator, 
+  Alert,
+  KeyboardAvoidingView,
+  Platform
+} from "react-native";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
+import { Ionicons } from "@expo/vector-icons";
+import { useCreateAttendance, useMyAttendances } from "@/src/features/match-attendance/queries";
+
+/**
+ * 🚨 [Phase 24] 직관 기록 작성/수정 화면
+ * 
+ * Why: 사용자가 특정 경기에 대한 직관 일기(내용, 사진, 좌석)를 기록함.
+ * Zero-Magic: 클라이언트 단에서 이미지 리사이징(1024px) 및 압축을 수행하여 서버 부하를 최소화함.
+ */
+export default function AttendanceFormScreen() {
+  const { matchId } = useLocalSearchParams<{ matchId: string }>();
+  const { data: attendances } = useMyAttendances();
+  const createAttendanceMutation = useCreateAttendance();
+
+  const [contents, setContents] = useState("");
+  const [seat, setSeat] = useState("");
+  const [images, setImages] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 기존 기록이 있는지 확인 (수정 모드 대비)
+  useEffect(() => {
+    if (attendances && matchId) {
+      const existing = attendances.find(a => a.matchId === Number(matchId));
+      if (existing) {
+        setContents(existing.contents);
+        setSeat(existing.seat);
+        setImages(existing.imageUrls);
+      }
+    }
+  }, [attendances, matchId]);
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      selectionLimit: 5 - images.length,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const newImages = result.assets.map(asset => asset.uri);
+      setImages([...images, ...newImages]);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImages(images.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async () => {
+    if (!seat.trim()) {
+      Alert.alert("알림", "좌석 정보를 입력해주세요.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+      
+      // Request DTO (JSON Blob)
+      const requestDto = {
+        matchId: Number(matchId),
+        seat,
+        contents,
+      };
+      
+      formData.append("request", {
+        string: JSON.stringify(requestDto),
+        type: 'application/json',
+      } as any);
+
+      // Image Processing (Resizing)
+      for (const uri of images) {
+        if (uri.startsWith('http')) {
+          // 기존 서버 이미지는 URL 문자열로 추가 (백엔드 구현에 따라 다를 수 있음)
+          // 현재 백엔드 DTO에 imageUrls 리스트가 있으므로 requestDto에 포함하거나 별도 처리 필요
+          continue; 
+        }
+
+        const manipulatedImage = await ImageManipulator.manipulateAsync(
+          uri,
+          [{ resize: { width: 1024 } }],
+          { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+        );
+
+        const filename = manipulatedImage.uri.split('/').pop();
+        const match = /\.(\w+)$/.exec(filename || '');
+        const type = match ? `image/${match[1]}` : `image`;
+
+        formData.append("images", {
+          uri: manipulatedImage.uri,
+          name: filename,
+          type,
+        } as any);
+      }
+
+      await createAttendanceMutation.mutateAsync(formData);
+      Alert.alert("성공", "직관 기록이 저장되었습니다.", [
+        { text: "확인", onPress: () => router.back() }
+      ]);
+    } catch {
+      // 🚨 앙드레 카파시: 운영 환경에서는 별도의 로깅 시스템을 사용해야 함.
+      Alert.alert("오류", "기록 저장 중 문제가 발생했습니다.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <SafeLayout style={styles.safeLayout}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.flex1}
+      >
+        <ScrollView contentContainerStyle={styles.container}>
+          <Box mb="xl">
+            <Typography variant="h2" weight="bold" color="text.primary" mb="xs">
+              직관 일기 작성
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              오늘의 분위기와 소중한 기억을 남겨보세요.
+            </Typography>
+          </Box>
+
+          <Box mb="lg">
+            <Typography variant="label" color="text.primary" mb="xs">
+              좌석 정보
+            </Typography>
+            <TextInput
+              style={styles.input}
+              placeholder="예: 3루 레드석 204블록 12열"
+              value={seat}
+              onChangeText={setSeat}
+              placeholderTextColor={theme.colors.text.secondary}
+            />
+          </Box>
+
+          <Box mb="lg">
+            <Typography variant="label" color="text.primary" mb="xs">
+              내용
+            </Typography>
+            <TextInput
+              style={styles.textArea}
+              placeholder="오늘의 직관은 어땠나요? 팀의 분위기, 직관 후기 등을 남겨보세요."
+              value={contents}
+              onChangeText={setContents}
+              multiline
+              textAlignVertical="top"
+              placeholderTextColor={theme.colors.text.secondary}
+            />
+          </Box>
+
+          <Box mb="xxl">
+            <Typography variant="label" color="text.primary" mb="sm">
+              사진 (최대 5장)
+            </Typography>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <Box flexDir="row">
+                {images.length < 5 && (
+                  <TouchableOpacity 
+                    style={styles.imagePickerButton} 
+                    onPress={pickImage}
+                  >
+                    <Ionicons name="camera-outline" size={32} color={theme.colors.text.secondary} />
+                    <Typography variant="caption" color="text.secondary" mt="xs">
+                      {images.length}/5
+                    </Typography>
+                  </TouchableOpacity>
+                )}
+                
+                {images.map((uri, index) => (
+                  <Box key={`img-${index}`} mr="sm" position="relative">
+                    <Image 
+                      source={{ uri }} 
+                      style={styles.thumbnail} 
+                      contentFit="cover" 
+                    />
+                    <TouchableOpacity 
+                      style={styles.removeButton}
+                      onPress={() => removeImage(index)}
+                    >
+                      <Ionicons name="close" size={14} color="background" />
+                    </TouchableOpacity>
+                  </Box>
+                ))}
+              </Box>
+            </ScrollView>
+          </Box>
+
+          <TouchableOpacity 
+            style={[styles.submitButton, isSubmitting && styles.disabledButton]}
+            onPress={handleSubmit}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator color={theme.colors.background} />
+            ) : (
+              <Typography variant="body1" weight="bold" color="background">
+                직관 기록 저장
+              </Typography>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeLayout>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeLayout: {
+    backgroundColor: theme.colors.background,
+  },
+  flex1: {
+    flex: 1,
+  },
+  container: {
+    padding: theme.spacing.SCREEN,
+  },
+  input: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.md,
+    color: theme.colors.text.primary,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.border.medium,
+  },
+  textArea: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.radius.md,
+    padding: theme.spacing.md,
+    color: theme.colors.text.primary,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.border.medium,
+    minHeight: 150,
+  },
+  imagePickerButton: {
+    width: 100,
+    height: 100,
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.surface,
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: theme.colors.border.medium,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: theme.spacing.sm,
+  },
+  thumbnail: {
+    width: 100,
+    height: 100,
+    borderRadius: theme.radius.md,
+  },
+  removeButton: {
+    position: "absolute",
+    top: -8,
+    right: -8,
+    backgroundColor: theme.colors.error,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: theme.colors.background,
+  },
+  submitButton: {
+    backgroundColor: theme.colors.brand.mint,
+    height: 56,
+    borderRadius: theme.radius.lg,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: theme.spacing.md,
+    marginBottom: theme.spacing.xxl,
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+});
