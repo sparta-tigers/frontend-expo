@@ -22,9 +22,8 @@ import {
  * Why: 사용자가 과거에 기록한 직관 일기들을 타임라인 형태로 확인하고 관리함.
  */
 export default function HistoryScreen() {
-  const { data: attendances, isLoading, refetch } = useMyAttendances(1, 100);
+  const { data: attendances, isLoading, refetch, isRefetching } = useMyAttendances(1, 100);
   const [favoriteTeam, setFavoriteTeam] = useState<FavoriteTeam | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     favoriteTeamGetAPI().then((res) => {
@@ -34,12 +33,7 @@ export default function HistoryScreen() {
 
   // 🚨 [Phase 2-3] Pull-to-refresh 상태 동기화
   const onRefresh = async () => {
-    setIsRefreshing(true);
-    try {
-      await refetch();
-    } finally {
-      setIsRefreshing(false);
-    }
+    await refetch();
   };
 
   const getMatchResult = (item: MatchAttendance) => {
@@ -151,7 +145,7 @@ export default function HistoryScreen() {
             contentContainerStyle={styles.listContainer}
             showsVerticalScrollIndicator={false}
             onRefresh={onRefresh}
-            refreshing={isRefreshing}
+            refreshing={isRefetching}
           />
         ) : (
           <Box flex={1} justify="center" align="center">
