@@ -6,7 +6,8 @@ import {
   NowCastDto,
   WeatherApiStatus,
 } from "@/src/features/liveboard/types";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 
 type FetchState = "LOADING" | "SUCCESS" | "ERROR";
 
@@ -24,55 +25,30 @@ interface UseWeatherPanelReturn {
  * useWeatherPanel
  *
  * Why: WeatherPanel의 기상청 API 페칭 로직을 UI로부터 분리.
- * mountedRef로 비동기 경합 방어 (언마운트 후 setState 금지).
+ * TanStack Query를 도입하여 데이터 캐싱 및 탭 전환 시 중복 로딩 방지.
  */
 export function useWeatherPanel(matchId: string): UseWeatherPanelReturn {
   const { user } = useAuth();
   const isLoggedIn = !!user?.userId;
-  const mountedRef = useRef(true);
 
-  const [fetchState, setFetchState] = useState<FetchState>("LOADING");
-  const [stadiumName, setStadiumName] = useState<string | null>(null);
-  const [weatherStatus, setWeatherStatus] =
-    useState<WeatherApiStatus>("SUCCESS");
-  const [nowCast, setNowCast] = useState<NowCastDto | null>(null);
-  const [foreCast, setForeCast] = useState<ForeCastDto[]>([]);
+  const {
+    data,
+    status,
+    refetch,
+  } = useQuery({
+    queryKey: ["liveboard", "weather", matchId],
+    queryFn: () => fetchMatchWeather(matchId),
+    enabled: isLoggedIn && !!matchId,
+    staleTime: 1000 * 60 * 10, // 10분 캐시 유지
+  });
 
-  const loadWeather = useCallback(() => {
-    if (!isLoggedIn) {
-      setFetchState("ERROR");
-      return;
-    }
+  const fetchState: FetchState =
+    status === "pending" ? "LOADING" : status === "error" ? "ERROR" : "SUCCESS";
 
-    setFetchState("LOADING");
-
-    fetchMatchWeather(matchId)
-      .then((data) => {
-        if (!mountedRef.current) return;
-        if (!isLoggedIn) return;
-        setStadiumName(data.stadiumName ?? null);
-        setWeatherStatus(data.status ?? "SUCCESS");
-        setNowCast(data.nowCast ?? null);
-        setForeCast(data.foreCast ?? []);
-        setFetchState("SUCCESS");
-      })
-      .catch(() => {
-        if (!mountedRef.current) return;
-        setFetchState("ERROR");
-      });
-  }, [matchId, isLoggedIn]);
-
-  useEffect(() => {
-    mountedRef.current = true;
-    loadWeather();
-    return () => {
-      mountedRef.current = false;
-    };
-  }, [loadWeather]);
-
-  const handleRetry = useCallback(() => {
-    loadWeather();
-  }, [loadWeather]);
+  const stadiumName = data?.stadiumName ?? null;
+  const weatherStatus = data?.status ?? "SUCCESS";
+  const nowCast = data?.nowCast ?? null;
+  const foreCast = useMemo(() => data?.foreCast ?? [], [data]);
 
   return {
     fetchState,
@@ -81,6 +57,6 @@ export function useWeatherPanel(matchId: string): UseWeatherPanelReturn {
     nowCast,
     foreCast,
     isLoggedIn,
-    handleRetry,
+    handleRetry: refetch,
   };
 }

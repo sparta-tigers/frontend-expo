@@ -96,16 +96,42 @@ export default function LiveboardDetailScreen() {
       </Box>
 
       <Box flex={1}>
-        {activeTab === "chat" && <ChatPanel matchId={params.matchId} />}
-        {activeTab === "text" && <PlaceholderPanel label="텍스트 중계" />}
-        {activeTab === "lineup" && (
+        <Box
+          style={[
+            styles.tabPanel,
+            activeTab === "chat" ? styles.visible : styles.hidden,
+          ]}
+        >
+          <ChatPanel matchId={params.matchId} />
+        </Box>
+        <Box
+          style={[
+            styles.tabPanel,
+            activeTab === "text" ? styles.visible : styles.hidden,
+          ]}
+        >
+          <PlaceholderPanel label="텍스트 중계" />
+        </Box>
+        <Box
+          style={[
+            styles.tabPanel,
+            activeTab === "lineup" ? styles.visible : styles.hidden,
+          ]}
+        >
           <LineupPanel
             matchId={params.matchId}
             homeTeamName={params.homeTeamName ?? "홈"}
             awayTeamName={params.awayTeamName ?? "어웨이"}
           />
-        )}
-        {activeTab === "weather" && <WeatherPanel matchId={params.matchId} />}
+        </Box>
+        <Box
+          style={[
+            styles.tabPanel,
+            activeTab === "weather" ? styles.visible : styles.hidden,
+          ]}
+        >
+          <WeatherPanel matchId={params.matchId} />
+        </Box>
       </Box>
     </SafeLayout>
   );

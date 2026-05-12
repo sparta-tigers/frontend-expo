@@ -2,7 +2,8 @@
 import { useAuth } from "@/context/AuthContext";
 import { fetchMatchLineup } from "@/src/features/liveboard/api";
 import { LineupRowDto } from "@/src/features/liveboard/types";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 
 type FetchState = "LOADING" | "SUCCESS" | "ERROR";
 type ActiveTeam = "HOME" | "AWAY";
@@ -21,7 +22,7 @@ interface UseLineupPanelReturn {
  * useLineupPanel
  *
  * Why: LineupPanel의 데이터 페칭·팀 토글 상태를 UI로부터 분리.
- * cancelledRef로 컴포넌트 언마운트 후의 비동기 상태 업데이트를 차단(Race Condition 방어).
+ * TanStack Query를 도입하여 데이터 캐싱 및 탭 전환 시 중복 로딩 방지.
  */
 export function useLineupPanel(
   matchId: string,
@@ -32,49 +33,26 @@ export function useLineupPanel(
   const isLoggedIn = !!user?.userId;
 
   const [activeTeam, setActiveTeam] = useState<ActiveTeam>("HOME");
-  const [fetchState, setFetchState] = useState<FetchState>("LOADING");
-  const [homeBatters, setHomeBatters] = useState<LineupRowDto[]>([]);
-  const [awayBatters, setAwayBatters] = useState<LineupRowDto[]>([]);
-  const cancelledRef = useRef(false);
 
-  const loadLineup = useCallback(() => {
-    if (!isLoggedIn) {
-      setFetchState("ERROR");
-      return;
-    }
+  const {
+    data,
+    status,
+    refetch,
+  } = useQuery({
+    queryKey: ["liveboard", "lineup", matchId],
+    queryFn: () => fetchMatchLineup(matchId),
+    enabled: isLoggedIn && !!matchId,
+    staleTime: 1000 * 60 * 5, // 5분 캐시 유지
+  });
 
-    setFetchState("LOADING");
+  const fetchState: FetchState =
+    status === "pending" ? "LOADING" : status === "error" ? "ERROR" : "SUCCESS";
 
-    fetchMatchLineup(matchId)
-      .then((data) => {
-        if (cancelledRef.current) return;
-        if (!isLoggedIn) return;
-        setHomeBatters(data.homeBatters ?? []);
-        setAwayBatters(data.awayBatters ?? []);
-        setFetchState("SUCCESS");
-      })
-      .catch(() => {
-        if (cancelledRef.current) return;
-        setFetchState("ERROR");
-      });
-  }, [matchId, isLoggedIn]);
-
-  useEffect(() => {
-    cancelledRef.current = false;
-    loadLineup();
-    return () => {
-      cancelledRef.current = true;
-    };
-  }, [loadLineup]);
-
-  const handleRetry = useCallback(() => {
-    cancelledRef.current = false;
-    loadLineup();
-  }, [loadLineup]);
+  const homeBatters = useMemo(() => data?.homeBatters ?? [], [data]);
+  const awayBatters = useMemo(() => data?.awayBatters ?? [], [data]);
 
   const currentLineup = activeTeam === "HOME" ? homeBatters : awayBatters;
-  const currentTeamName =
-    activeTeam === "HOME" ? homeTeamName : awayTeamName;
+  const currentTeamName = activeTeam === "HOME" ? homeTeamName : awayTeamName;
 
   return {
     activeTeam,
@@ -83,6 +61,6 @@ export function useLineupPanel(
     currentLineup,
     currentTeamName,
     isLoggedIn,
-    handleRetry,
+    handleRetry: refetch,
   };
 }
