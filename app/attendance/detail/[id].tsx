@@ -1,27 +1,29 @@
 import { Box, Typography } from "@/components/ui";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { useAttendance } from "@/src/features/match-attendance/queries";
+import { useAttendance, useDeleteAttendance } from "@/src/features/match-attendance/queries";
 import { theme } from "@/src/styles/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, Dimensions } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, Dimensions, Alert } from "react-native";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { getTeamLogo } from "@/src/utils/team";
+import { TEAM_DATA, isValidTeamCode } from "@/src/utils/team";
 import { favoriteTeamGetAPI } from "@/src/features/user/favorite-team-api";
 import { FavoriteTeam } from "@/src/features/user/favorite-team";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 /**
- * 🚨 [Phase 24] 직관 기록 상세 조회 화면
+ * 🚨 [Phase 24] 직관 기록 상세 조회 화면 (개선 버전)
  * 
- * Why: 사용자가 기록한 직관 일기를 프리미엄한 레이아웃으로 감상함.
+ * Why: 사용자가 기록한 직관 일기를 감상하고 관리(수정/삭제)함.
+ * Zero-Magic: 전역 헤더와의 중복을 피하고, 팀 마스코트 및 컬러를 활용해 몰입감을 높임.
  */
 export default function AttendanceDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { data: attendance, isLoading } = useAttendance(Number(id));
+  const deleteMutation = useDeleteAttendance();
   const [favoriteTeam, setFavoriteTeam] = useState<FavoriteTeam | null>(null);
 
   useEffect(() => {
@@ -29,6 +31,24 @@ export default function AttendanceDetailScreen() {
       if (res.resultType === "SUCCESS") setFavoriteTeam(res.data);
     });
   }, []);
+
+  const handleDelete = () => {
+    Alert.alert("삭제 확인", "이 직관 기록을 정말 삭제하시겠습니까?", [
+      { text: "취소", style: "cancel" },
+      { 
+        text: "삭제", 
+        style: "destructive", 
+        onPress: async () => {
+          try {
+            await deleteMutation.mutateAsync(Number(id));
+            router.replace("/(tabs)/history");
+          } catch {
+            Alert.alert("오류", "삭제 중 문제가 발생했습니다.");
+          }
+        } 
+      }
+    ]);
+  };
 
   if (isLoading || !attendance) {
     return (
@@ -45,7 +65,7 @@ export default function AttendanceDetailScreen() {
   
   // 승무패 결과 계산
   const getMatchResult = () => {
-    if (attendance.homeScore === undefined || attendance.awayScore === undefined || !favoriteTeam) return null;
+    if (attendance.homeScore == null || attendance.awayScore == null || !favoriteTeam) return null;
     
     const isHome = attendance.homeTeamCode === favoriteTeam.teamCode;
     const isAway = attendance.awayTeamCode === favoriteTeam.teamCode;
@@ -61,17 +81,19 @@ export default function AttendanceDetailScreen() {
   };
 
   const result = getMatchResult();
+  const homeTeam = isValidTeamCode(attendance.homeTeamCode) ? TEAM_DATA[attendance.homeTeamCode] : null;
+  const awayTeam = isValidTeamCode(attendance.awayTeamCode) ? TEAM_DATA[attendance.awayTeamCode] : null;
 
   return (
     <SafeLayout style={styles.safeLayout}>
-      {/* Header */}
-      <Box px="SCREEN" py="md" flexDir="row" align="center" justify="space-between">
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={24} color={theme.colors.text.primary} />
+      {/* 🚨 상단 헤더 중복 제거: expo-router의 전역 헤더를 사용하되, 
+          필요 시 우측 액션(수정/삭제)만 커스텀으로 배치하거나 별도 툴바 활용 */}
+      <Box px="SCREEN" py="sm" flexDir="row" justify="flex-end" gap="md">
+        <TouchableOpacity onPress={() => router.push(`/attendance/${attendance.matchId}`)}>
+          <Ionicons name="create-outline" size={24} color={theme.colors.text.secondary} />
         </TouchableOpacity>
-        <Typography variant="body1" weight="bold">직관 일기</Typography>
-        <TouchableOpacity onPress={() => router.push(`/attendance/${attendance.matchId}?edit=true`)}>
-          <Typography variant="body2" color="brand.mint" weight="semibold">수정</Typography>
+        <TouchableOpacity onPress={handleDelete}>
+          <Ionicons name="trash-outline" size={24} color={theme.colors.error} />
         </TouchableOpacity>
       </Box>
 
@@ -84,12 +106,17 @@ export default function AttendanceDetailScreen() {
 
           <Box flexDir="row" align="center" justify="center" mb="lg">
             <Box align="center" flex={1}>
-              <Box width={60} height={60} bg="surface" rounded="full" align="center" justify="center" mb="xs">
-                {getTeamLogo(attendance.homeTeamCode) ? (
-                  <Image source={getTeamLogo(attendance.homeTeamCode)} style={styles.teamLogo} />
-                ) : (
-                  <Typography variant="h3">🏠</Typography>
-                )}
+              <Box 
+                width={64} 
+                height={64} 
+                bg="surface" 
+                rounded="full" 
+                align="center" 
+                justify="center" 
+                mb="xs"
+                style={[styles.teamMascotContainer, { borderColor: homeTeam?.color }]}
+              >
+                <Typography style={styles.mascotEmoji}>{homeTeam?.mascotEmoji ?? "🏠"}</Typography>
               </Box>
               <Typography variant="body2" weight="bold">{attendance.homeTeamName}</Typography>
             </Box>
@@ -104,12 +131,17 @@ export default function AttendanceDetailScreen() {
             </Box>
 
             <Box align="center" flex={1}>
-              <Box width={60} height={60} bg="surface" rounded="full" align="center" justify="center" mb="xs">
-                {getTeamLogo(attendance.awayTeamCode) ? (
-                  <Image source={getTeamLogo(attendance.awayTeamCode)} style={styles.teamLogo} />
-                ) : (
-                  <Typography variant="h3">🚀</Typography>
-                )}
+              <Box 
+                width={64} 
+                height={64} 
+                bg="surface" 
+                rounded="full" 
+                align="center" 
+                justify="center" 
+                mb="xs"
+                style={[styles.teamMascotContainer, { borderColor: awayTeam?.color }]}
+              >
+                <Typography style={styles.mascotEmoji}>{awayTeam?.mascotEmoji ?? "🚀"}</Typography>
               </Box>
               <Typography variant="body2" weight="bold">{attendance.awayTeamName}</Typography>
             </Box>
@@ -132,7 +164,7 @@ export default function AttendanceDetailScreen() {
           )}
 
           <Box flexDir="row" align="center" justify="center">
-            <Ionicons name="location" size={16} color={theme.colors.brand.mint} />
+            <MaterialCommunityIcons name="seat-passenger" size={18} color={theme.colors.brand.mint} />
             <Typography variant="body2" weight="semibold" ml="xs">{attendance.seat}</Typography>
           </Box>
         </Box>
@@ -154,7 +186,7 @@ export default function AttendanceDetailScreen() {
           <Typography variant="label" color="text.secondary" mb="sm">MEMO</Typography>
           <Box bg="card" p="lg" rounded="lg" style={theme.shadow.card}>
             <Typography variant="body2" color="text.primary" style={styles.memoText}>
-              {attendance.contents}
+              {attendance.contents || "작성된 내용이 없습니다."}
             </Typography>
           </Box>
         </Box>
@@ -170,9 +202,11 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 40,
   },
-  teamLogo: {
-    width: 40,
-    height: 40,
+  mascotEmoji: {
+    fontSize: 32,
+  },
+  teamMascotContainer: {
+    borderWidth: 2,
   },
   resultBanner: {
     borderColor: theme.colors.brand.mintAlpha10,
