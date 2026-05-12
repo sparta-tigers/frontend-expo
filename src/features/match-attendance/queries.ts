@@ -1,4 +1,5 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 import { 
   attendanceGetMyAPI, 
   attendanceCreateAPI, 
@@ -47,9 +48,12 @@ export const useMyAttendanceByMatchId = (matchId: number) => {
       try {
         const response = await attendanceGetMyByMatchIdAPI(matchId);
         return response.data;
-      } catch {
-        // 기록이 없는 경우(404 등) 에러를 터뜨리지 않고 null 반환
-        return null;
+      } catch (error: unknown) {
+        // 🚨 [Phase 35] Fail-fast: 404(기록 없음)만 정상 null로 처리하고 나머지는 throw
+        if (isAxiosError(error) && error.response?.status === 404) {
+          return null;
+        }
+        throw error;
       }
     },
     enabled: !!matchId && !isNaN(matchId),
