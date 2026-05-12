@@ -1,6 +1,6 @@
-import { SPACING, useUnifiedDesign } from "@/src/styles/unified-design";
+import { SPACING } from "@/src/styles/theme";
 import React from "react";
-import { StyleSheet, View, ViewStyle } from "react-native";
+import { Platform, StyleSheet, View, ViewStyle } from "react-native";
 import { SafeAreaView, type Edge } from "react-native-safe-area-context";
 
 /**
@@ -52,23 +52,21 @@ export function SafeLayout({
   responsive = false,
   platform = "both",
 }: SafeLayoutProps) {
-  const { deviceInfo, SPACING: responsiveSpacing } = useUnifiedDesign();
-
   // 플랫폼 필터링
   const shouldRender =
     platform === "both" ||
-    (platform === "ios" && deviceInfo.isIOS) ||
-    (platform === "android" && deviceInfo.isAndroid);
+    (platform === "ios" && Platform.OS === "ios") ||
+    (platform === "android" && Platform.OS === "android");
 
   if (!shouldRender) {
     return <View style={[styles.container, style]}>{children}</View>;
   }
 
-  // 반응형 스타일 계산 (성능 최적화됨)
+  // 반응형 스타일 계산
   const responsiveStyles = responsive
     ? {
         content: {
-          paddingHorizontal: responsiveSpacing.SCREEN,
+          paddingHorizontal: SPACING.SCREEN,
         },
       }
     : {};
