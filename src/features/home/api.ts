@@ -4,7 +4,7 @@
 
 import { apiClient } from "@/src/core/client";
 import type { ApiResponse } from "@/src/shared/types/common";
-import { HomeDashboardSummaryDto } from "./types";
+import { HomeDashboardSummaryDto } from "./types/dashboard";
 
 /**
  * 홈 대시보드 요약 데이터 조회 API

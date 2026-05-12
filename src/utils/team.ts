@@ -7,7 +7,7 @@
  */
 import { StyleSheet } from "react-native";
 import { theme } from "@/src/styles/theme";
-import { TeamDto } from "@/src/features/home/types";
+import { TeamDto } from "@/src/features/home/types/team";
 import { ThemeColorPath } from "@/src/shared/types/theme";
 
 /**
