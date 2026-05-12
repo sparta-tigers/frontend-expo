@@ -1,10 +1,11 @@
 import { Box, Typography } from "@/components/ui";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import {
-    useCreateAttendance,
-    useMyAttendances,
-    useUpdateAttendance,
+  useCreateAttendance,
+  useMyAttendances,
+  useUpdateAttendance,
 } from "@/src/features/match-attendance/queries";
+import { useQueryClient } from "@tanstack/react-query";
 import { theme } from "@/src/styles/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
@@ -13,14 +14,14 @@ import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
 } from "react-native";
 
 /**
@@ -34,6 +35,7 @@ export default function AttendanceFormScreen() {
   const { data: attendances } = useMyAttendances();
   const createAttendanceMutation = useCreateAttendance();
   const updateAttendanceMutation = useUpdateAttendance();
+  const queryClient = useQueryClient();
 
   const [contents, setContents] = useState("");
   const [seat, setSeat] = useState("");
@@ -41,18 +43,61 @@ export default function AttendanceFormScreen() {
   const [existingId, setExistingId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // [Phase 2-1] 라우트 파라미터 유효성 검사 (Fail-fast)
+  const matchIdNumber = Number(matchId);
+
   // 기존 기록이 있는지 확인 (수정 모드 대비)
   useEffect(() => {
+    // [Phase 2-1] 라우트 파라미터 유효성 검사 (useEffect 내부)
+    if (!matchId || isNaN(matchIdNumber)) {
+      return;
+    }
+
     if (attendances && matchId) {
-      const existing = attendances.find((a) => a.matchId === Number(matchId));
+      const existing = attendances.find((a) => a.matchId === matchIdNumber);
       if (existing) {
         setExistingId(existing.id);
         setContents(existing.contents);
         setSeat(existing.seat);
-        setImages(existing.imageUrls);
+        setImages(existing.images.map(img => img.imageUrl));
       }
     }
-  }, [attendances, matchId]);
+  }, [attendances, matchId, matchIdNumber]);
+
+  if (!matchId || isNaN(matchIdNumber)) {
+    // 화이트 스크린 방지: 명시적인 에러 UI 렌더링
+    return (
+      <SafeLayout style={styles.safeLayout}>
+        <Box flex={1} justify="center" align="center" p="SCREEN">
+          <Ionicons
+            name="alert-circle-outline"
+            size={64}
+            color={theme.colors.error}
+          />
+          <Typography
+            variant="h3"
+            color="text.primary"
+            weight="bold"
+            center
+            mt="md"
+          >
+            유효하지 않은 경기 ID
+          </Typography>
+          <Typography variant="body2" color="text.secondary" center mt="sm">
+            경기 정보를 불러올 수 없습니다.
+          </Typography>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.replace("/(tabs)/history")}
+          >
+            <Typography variant="body1" color="background" weight="bold">
+              이전 화면으로
+            </Typography>
+          </TouchableOpacity>
+        </Box>
+      </SafeLayout>
+    );
+  }
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -95,7 +140,7 @@ export default function AttendanceFormScreen() {
       formData.append("request", {
         string: JSON.stringify(requestDto),
         type: "application/json",
-      } as any);
+      });
 
       // New Image Processing
       const newImages = images.filter((img) => !img.startsWith("http"));
@@ -119,7 +164,7 @@ export default function AttendanceFormScreen() {
           uri: manipulatedImage.uri,
           name: filename,
           type,
-        } as any);
+        } as unknown as string & Blob); // 🚨 global.d.ts 확장 후에도 React Native 특수 객체 전달을 위해 안전하게 캐스팅
       }
 
       if (existingId) {
@@ -130,6 +175,10 @@ export default function AttendanceFormScreen() {
       } else {
         await createAttendanceMutation.mutateAsync(formData);
       }
+
+      // 🚨 [Phase 2-4] 쿼리 무효화 최적화
+      // 직관 기록 생성/수정 후 캐시 무효화하여 최신 데이터 반영
+      queryClient.invalidateQueries({ queryKey: ["myAttendances"] });
 
       Alert.alert("성공", "직관 기록이 저장되었습니다.", [
         { text: "확인", onPress: () => router.replace("/(tabs)/history") },
@@ -320,5 +369,12 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.6,
+  },
+  backButton: {
+    backgroundColor: theme.colors.brand.mint,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.radius.md,
+    marginTop: theme.spacing.lg,
   },
 });
