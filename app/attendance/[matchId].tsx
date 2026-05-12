@@ -1,31 +1,31 @@
 import { Box, Typography } from "@/components/ui";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { theme } from "@/src/styles/theme";
-import { useLocalSearchParams, router } from "expo-router";
-import React, { useState, useEffect } from "react";
-import { 
-  StyleSheet, 
-  TextInput, 
-  TouchableOpacity, 
-  ScrollView, 
-  ActivityIndicator, 
-  Alert,
-  KeyboardAvoidingView,
-  Platform
-} from "react-native";
-import { Image } from "expo-image";
-import * as ImagePicker from "expo-image-picker";
-import * as ImageManipulator from "expo-image-manipulator";
-import { Ionicons } from "@expo/vector-icons";
-import { 
-  useCreateAttendance, 
-  useUpdateAttendance,
-  useMyAttendances 
+import {
+    useCreateAttendance,
+    useMyAttendances,
+    useUpdateAttendance,
 } from "@/src/features/match-attendance/queries";
+import { theme } from "@/src/styles/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import * as ImageManipulator from "expo-image-manipulator";
+import * as ImagePicker from "expo-image-picker";
+import { router, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+} from "react-native";
 
 /**
  * 🚨 [Phase 24] 직관 기록 작성/수정 화면
- * 
+ *
  * Why: 사용자가 특정 경기에 대한 직관 일기(내용, 사진, 좌석)를 기록함.
  * Zero-Magic: 클라이언트 단에서 이미지 리사이징(1024px) 및 압축을 수행하여 서버 부하를 최소화함.
  */
@@ -44,7 +44,7 @@ export default function AttendanceFormScreen() {
   // 기존 기록이 있는지 확인 (수정 모드 대비)
   useEffect(() => {
     if (attendances && matchId) {
-      const existing = attendances.find(a => a.matchId === Number(matchId));
+      const existing = attendances.find((a) => a.matchId === Number(matchId));
       if (existing) {
         setExistingId(existing.id);
         setContents(existing.contents);
@@ -63,7 +63,7 @@ export default function AttendanceFormScreen() {
     });
 
     if (!result.canceled) {
-      const newImages = result.assets.map(asset => asset.uri);
+      const newImages = result.assets.map((asset) => asset.uri);
       setImages([...images, ...newImages]);
     }
   };
@@ -81,32 +81,40 @@ export default function AttendanceFormScreen() {
     setIsSubmitting(true);
     try {
       const formData = new FormData();
-      
-      const oldImageUrls = images.filter(img => img.startsWith('http'));
-      
+
+      const oldImageUrls = images.filter((img) => img.startsWith("http"));
+
       // Request DTO (JSON Blob)
-      const requestDto = existingId 
+      const requestDto = existingId
         ? { seat, contents, oldImageUrls }
         : { matchId: Number(matchId), seat, contents };
-      
+
+      // Request DTO (JSON Blob)
+      // ⚠️ React Native 네이티브 환경에서는 { string: ..., type: ... } 형태 지원
+      // TypeScript 타입 시스템 제약으로 인해 as any 사용 (Phase 1-2 예외 사항)
       formData.append("request", {
         string: JSON.stringify(requestDto),
-        type: 'application/json',
+        type: "application/json",
       } as any);
 
       // New Image Processing
-      const newImages = images.filter(img => !img.startsWith('http'));
+      const newImages = images.filter((img) => !img.startsWith("http"));
       for (const uri of newImages) {
         const manipulatedImage = await ImageManipulator.manipulateAsync(
           uri,
           [{ resize: { width: 1024 } }],
-          { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+          { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG },
         );
 
-        const filename = manipulatedImage.uri.split('/').pop();
-        const match = /\.(\w+)$/.exec(filename || '');
+        const filename = manipulatedImage.uri.split("/").pop();
+        const match = /\.(\w+)$/.exec(filename || "");
         const type = match ? `image/${match[1]}` : `image`;
 
+        // 이미지 append 부분
+        // formData에 이미지 데이터를 추가
+        // uri: 이미지 uri
+        // name: 이미지 파일명
+        // type: 이미지 타입 (e.g. image/jpeg)
         formData.append("images", {
           uri: manipulatedImage.uri,
           name: filename,
@@ -115,13 +123,16 @@ export default function AttendanceFormScreen() {
       }
 
       if (existingId) {
-        await updateAttendanceMutation.mutateAsync({ id: existingId, formData });
+        await updateAttendanceMutation.mutateAsync({
+          id: existingId,
+          formData,
+        });
       } else {
         await createAttendanceMutation.mutateAsync(formData);
       }
 
       Alert.alert("성공", "직관 기록이 저장되었습니다.", [
-        { text: "확인", onPress: () => router.replace("/(tabs)/history") }
+        { text: "확인", onPress: () => router.replace("/(tabs)/history") },
       ]);
     } catch {
       // 🚨 앙드레 카파시: 운영 환경에서는 별도의 로깅 시스템을 사용해야 함.
@@ -133,7 +144,7 @@ export default function AttendanceFormScreen() {
 
   return (
     <SafeLayout style={styles.safeLayout}>
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.flex1}
       >
@@ -182,25 +193,33 @@ export default function AttendanceFormScreen() {
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <Box flexDir="row">
                 {images.length < 5 && (
-                  <TouchableOpacity 
-                    style={styles.imagePickerButton} 
+                  <TouchableOpacity
+                    style={styles.imagePickerButton}
                     onPress={pickImage}
                   >
-                    <Ionicons name="camera-outline" size={32} color={theme.colors.text.secondary} />
-                    <Typography variant="caption" color="text.secondary" mt="xs">
+                    <Ionicons
+                      name="camera-outline"
+                      size={32}
+                      color={theme.colors.text.secondary}
+                    />
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      mt="xs"
+                    >
                       {images.length}/5
                     </Typography>
                   </TouchableOpacity>
                 )}
-                
+
                 {images.map((uri, index) => (
                   <Box key={`img-${index}`} mr="sm" position="relative">
-                    <Image 
-                      source={{ uri }} 
-                      style={styles.thumbnail} 
-                      contentFit="cover" 
+                    <Image
+                      source={{ uri }}
+                      style={styles.thumbnail}
+                      contentFit="cover"
                     />
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={styles.removeButton}
                       onPress={() => removeImage(index)}
                     >
@@ -212,7 +231,7 @@ export default function AttendanceFormScreen() {
             </ScrollView>
           </Box>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.submitButton, isSubmitting && styles.disabledButton]}
             onPress={handleSubmit}
             disabled={isSubmitting}

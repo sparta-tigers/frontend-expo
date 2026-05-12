@@ -2,18 +2,23 @@ import { Box, Typography } from "@/components/ui";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { useMyAttendances } from "@/src/features/match-attendance/queries";
 import { MatchAttendance } from "@/src/features/match-attendance/types";
+import { FavoriteTeam } from "@/src/features/user/favorite-team";
+import { favoriteTeamGetAPI } from "@/src/features/user/favorite-team-api";
 import { theme } from "@/src/styles/theme";
+import { calculateMatchResult } from "@/src/utils/match";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { FlatList, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { favoriteTeamGetAPI } from "@/src/features/user/favorite-team-api";
-import { FavoriteTeam } from "@/src/features/user/favorite-team";
-import { calculateMatchResult } from "@/src/utils/match";
+import {
+    ActivityIndicator,
+    FlatList,
+    StyleSheet,
+    TouchableOpacity,
+} from "react-native";
 
 /**
  * 🚨 [Phase 24] 직관 기록 목록 화면 (Match Diary)
- * 
+ *
  * Why: 사용자가 과거에 기록한 직관 일기들을 타임라인 형태로 확인하고 관리함.
  */
 export default function HistoryScreen() {
@@ -21,7 +26,7 @@ export default function HistoryScreen() {
   const [favoriteTeam, setFavoriteTeam] = useState<FavoriteTeam | null>(null);
 
   useEffect(() => {
-    favoriteTeamGetAPI().then(res => {
+    favoriteTeamGetAPI().then((res) => {
       if (res.resultType === "SUCCESS") setFavoriteTeam(res.data);
     });
   }, []);
@@ -32,54 +37,78 @@ export default function HistoryScreen() {
       item.awayScore,
       item.homeTeamCode,
       item.awayTeamCode,
-      favoriteTeam?.teamCode
+      favoriteTeam?.teamCode,
     );
   };
 
   const renderAttendanceItem = ({ item }: { item: MatchAttendance }) => {
     const matchDate = new Date(item.matchTime);
-    const dateString = `${matchDate.getFullYear()}.${String(matchDate.getMonth() + 1).padStart(2, '0')}.${String(matchDate.getDate()).padStart(2, '0')}`;
+    const dateString = `${matchDate.getFullYear()}.${String(matchDate.getMonth() + 1).padStart(2, "0")}.${String(matchDate.getDate()).padStart(2, "0")}`;
     const result = getMatchResult(item);
-    
+
     return (
-      <TouchableOpacity 
+      <TouchableOpacity
         activeOpacity={0.7}
         onPress={() => router.push(`/attendance/detail/${item.id}`)}
         style={styles.cardContainer}
       >
-        <Box 
-          bg="brand.mintAlpha10" 
-          p="md" 
-          rounded="lg" 
-          flexDir="row" 
+        <Box
+          bg="brand.mintAlpha10"
+          p="md"
+          rounded="lg"
+          flexDir="row"
           align="center"
           style={styles.attendanceCard}
         >
           <Box flex={1}>
-             <Box flexDir="row" align="center" mb="xs">
-                <Typography variant="body1" weight="bold">{item.homeTeamName}</Typography>
-                <Typography variant="caption" color="text.secondary" mx="xs">vs</Typography>
-                <Typography variant="body1" weight="bold">{item.awayTeamName}</Typography>
-             </Box>
-             
-             <Box flexDir="row" align="center" mb="xxs">
-                <Ionicons name="calendar-outline" size={14} color={theme.colors.text.secondary} />
-                <Typography variant="caption" color="text.secondary" ml="xxs">{dateString}</Typography>
-             </Box>
-             
-             <Box flexDir="row" align="center">
-                <Ionicons name="location-outline" size={14} color={theme.colors.text.secondary} />
-                <Typography variant="caption" color="text.secondary" ml="xxs">{item.seat}</Typography>
-             </Box>
+            <Box flexDir="row" align="center" mb="xs">
+              <Typography variant="body1" weight="bold">
+                {item.homeTeamName}
+              </Typography>
+              <Typography variant="caption" color="text.secondary" mx="xs">
+                vs
+              </Typography>
+              <Typography variant="body1" weight="bold">
+                {item.awayTeamName}
+              </Typography>
+            </Box>
+
+            <Box flexDir="row" align="center" mb="xxs">
+              <Ionicons
+                name="calendar-outline"
+                size={14}
+                color={theme.colors.text.secondary}
+              />
+              <Typography variant="caption" color="text.secondary" ml="xxs">
+                {dateString}
+              </Typography>
+            </Box>
+
+            <Box flexDir="row" align="center">
+              <Ionicons
+                name="location-outline"
+                size={14}
+                color={theme.colors.text.secondary}
+              />
+              <Typography variant="caption" color="text.secondary" ml="xxs">
+                {item.seat}
+              </Typography>
+            </Box>
           </Box>
 
           <Box width={1} height="80%" bg="team.neutralLight" mx="md" />
 
           <Box align="center" justify="center" width={50}>
-             <Typography style={styles.resultEmoji}>{result?.emoji ?? "🏟️"}</Typography>
-             <Typography variant="caption" weight="bold" color={result?.color as any ?? "text.secondary"}>
-               {result?.text ?? "MATCH"}
-             </Typography>
+            <Typography style={styles.resultEmoji}>
+              {result?.emoji ?? "🏟️"}
+            </Typography>
+            <Typography
+              variant="caption"
+              weight="bold"
+              color={result?.color ?? "text.secondary"}
+            >
+              {result?.text ?? "MATCH"}
+            </Typography>
           </Box>
         </Box>
       </TouchableOpacity>
@@ -115,7 +144,13 @@ export default function HistoryScreen() {
           />
         ) : (
           <Box flex={1} justify="center" align="center">
-            <Typography variant="h2" color="text.primary" weight="bold" center mb="sm">
+            <Typography
+              variant="h2"
+              color="text.primary"
+              weight="bold"
+              center
+              mb="sm"
+            >
               아직 기록된 직관이 없어요
             </Typography>
             <Typography variant="body2" color="text.secondary" center mb="md">
@@ -126,8 +161,8 @@ export default function HistoryScreen() {
       </Box>
 
       {/* Floating Action Button for Adding Record */}
-      <TouchableOpacity 
-        style={styles.fab} 
+      <TouchableOpacity
+        style={styles.fab}
         activeOpacity={0.8}
         onPress={() => router.push("/schedule")}
       >
