@@ -21,7 +21,7 @@ import * as path from "node:path";
  * Default source-file extensions. Kept in sync with design.md's
  * `Fat_File_Scanner.extensions` and with `requirements.md` Req 1.2.
  */
-export const DEFAULT_EXTENSIONS: ReadonlyArray<string> = [
+export const DEFAULT_EXTENSIONS: readonly string[] = [
   ".ts",
   ".tsx",
   ".js",
@@ -33,7 +33,7 @@ export const DEFAULT_EXTENSIONS: ReadonlyArray<string> = [
  * to one of these disqualifies a file. Matches design.md's
  * `Fat_File_Scanner.excludes` and `requirements.md` Req 1.3.
  */
-export const DEFAULT_EXCLUDE_DIRS: ReadonlyArray<string> = [
+export const DEFAULT_EXCLUDE_DIRS: readonly string[] = [
   "node_modules",
   ".expo",
   "dist",
@@ -56,9 +56,9 @@ export const DEFAULT_EXCLUDE_DIRS: ReadonlyArray<string> = [
  */
 export type EnumerateOptions = {
   readonly rootDir: string;
-  readonly targets: ReadonlyArray<string>;
-  readonly extensions?: ReadonlyArray<string>;
-  readonly excludeDirs?: ReadonlyArray<string>;
+  readonly targets: readonly string[];
+  readonly extensions?: readonly string[];
+  readonly excludeDirs?: readonly string[];
 };
 
 /**
@@ -82,9 +82,19 @@ export function enumerateSourceFiles(opts: EnumerateOptions): string[] {
   const excludeSet = new Set(excludeDirs);
 
   const collected: string[] = [];
+  const rootAbs = path.resolve(opts.rootDir);
 
   for (const target of opts.targets) {
-    const targetAbs = path.resolve(opts.rootDir, target);
+    const targetAbs = path.resolve(rootAbs, target);
+    const relToRoot = path.relative(rootAbs, targetAbs);
+
+    // Why: ../를 포함하거나 절대 경로인 경우 rootDir 바깥을 가리키므로 차단.
+    //      path.resolve 단독 사용은 ../을 정상 처리하므로 상대 경로로 변환 후 검증 필수.
+    if (relToRoot.startsWith("..") || path.isAbsolute(relToRoot)) {
+      throw new Error(
+        `[enumerate] Target '${target}' is outside rootDir '${opts.rootDir}'. Path traversal blocked.`
+      );
+    }
 
     // Skip if any segment of the target itself is excluded (e.g. a caller
     // accidentally passing "node_modules/foo"). Cheaper and safer than
