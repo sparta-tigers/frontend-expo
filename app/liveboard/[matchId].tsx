@@ -13,7 +13,13 @@ import { LiveSection } from "./[matchId]/LiveSection";
 import { WeatherPanel } from "./[matchId]/WeatherPanel";
 import { styles } from "./[matchId]/matchId.styles";
 
+/**
+ * 라이브보드 탭 키 집합
+ * Why: 허용 가능한 탭 상태를 유니온으로 제한해 잘못된 문자열 유입을
+ *      컴파일 단계에서 차단하기 위함.
+ */
 type TabKey = "chat" | "text" | "lineup" | "weather";
+
 const TABS: { key: TabKey; label: string }[] = [
   { key: "chat", label: "라이브채팅" },
   { key: "text", label: "텍스트 중계" },
@@ -21,7 +27,19 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "weather", label: "구장날씨" },
 ];
 
-function PlaceholderPanel({ label }: { label: string }) {
+/**
+ * PlaceholderPanelProps
+ * Why: 미구현 탭에서 노출할 안내 문구 계약을 명시해 재사용성과 타입 안정성을 유지하기 위함.
+ */
+interface PlaceholderPanelProps {
+  label: string;
+}
+
+/**
+ * 준비 중인 탭의 임시 콘텐츠 패널
+ * Why: 미구현 상태에서도 사용자에게 일관된 피드백을 제공해 빈 화면 인지를 방지하기 위함.
+ */
+function PlaceholderPanel({ label }: PlaceholderPanelProps) {
   return (
     <Box flex={1} align="center" justify="center" gap="sm">
       <Typography variant="body1" color="text.secondary" weight="medium">
