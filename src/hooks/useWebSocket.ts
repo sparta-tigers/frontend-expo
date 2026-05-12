@@ -53,15 +53,22 @@ const checkPolyfills = (): boolean => {
 
 /**
  * 동적 WebSocket URL 설정
- * 개발 환경의 안드로이드 에뮬레이터에서는 10.0.2.2로 강제 설정
+ * 1. 환경 변수(EXPO_PUBLIC_WS_BASE_URL)를 최우선으로 사용
+ * 2. 명시적으로 전달된 url 인자 사용
+ * 3. 기본값으로 localhost 사용
+ * 4. 개발 환경의 안드로이드 에뮬레이터에서는 localhost를 10.0.2.2로 치환
  */
 const getWebSocketURL = (url?: string): string => {
+  const envUrl = process.env.EXPO_PUBLIC_WS_BASE_URL;
   const defaultUrl = "http://localhost:8080/ws";
-  const resolved = url || defaultUrl;
+  const resolved = url || envUrl || defaultUrl;
 
-  // 개발 환경 + 안드로이드 에뮬레이터 → localhost를 10.0.2.2로 치환
+  // 개발 환경 + 안드로이드 에뮬레이터 + (환경변수가 없거나 localhost인 경우) → 10.0.2.2로 치환
   if (__DEV__ && Platform.OS === "android") {
-    return resolved.replace(/localhost|127\.0\.0\.1/, "10.0.2.2");
+    // 환경 변수조차 설정되지 않았을 때만 에뮬레이터 전용 IP로 폴백
+    if (!envUrl || envUrl.includes("localhost") || envUrl.includes("127.0.0.1")) {
+      return resolved.replace(/localhost|127\.0\.0\.1/, "10.0.2.2");
+    }
   }
 
   return resolved;

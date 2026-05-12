@@ -39,18 +39,21 @@ const processQueue = (token?: string, error?: unknown) => {
 
 /**
  * 동적 API Base URL 설정
- * 개발 환경의 안드로이드 에뮬레이터에서는 10.0.2.2로 강제 설정
+ * 1. 환경 변수(EXPO_PUBLIC_API_BASE_URL)를 최우선으로 사용
+ * 2. 개발 환경의 안드로이드 에뮬레이터에서는 10.0.2.2로 폴백
+ * 3. 기본값으로 localhost 사용
  */
 const getDynamicBaseURL = (): string => {
-  // 기본값: 환경변수 또는 localhost
-  let baseURL = process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:8080";
+  const envBaseURL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
   // 개발 환경의 안드로이드 에뮬레이터용 핫픽스
   if (__DEV__ && Platform.OS === "android") {
-    baseURL = "http://10.0.2.2:8080";
+    // 환경 변수가 설정되어 있다면 그것을 우선 사용, 없으면 에뮬레이터 IP 사용
+    return envBaseURL || "http://10.0.2.2:8080";
   }
 
-  return baseURL;
+  // 그 외 환경 (iOS 실기기, 웹 등)에서는 환경 변수 또는 localhost 사용
+  return envBaseURL || "http://localhost:8080";
 };
 
 /**

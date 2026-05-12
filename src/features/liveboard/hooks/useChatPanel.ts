@@ -65,7 +65,11 @@ interface UseChatPanelReturn {
 export function useChatPanel(matchId: string): UseChatPanelReturn {
   const { user } = useAuth();
   const roomId = `LIVEBOARD_${matchId}`;
-  const { client, status } = useWebSocket(roomId, "liveboard");
+  const { client, status } = useWebSocket(
+    roomId,
+    "liveboard",
+    process.env.EXPO_PUBLIC_WS_BASE_URL,
+  );
   const isConnected = status === "CONNECTED";
 
   const [messages, setMessages] = useState<ChatBubbleMessage[]>([]);
