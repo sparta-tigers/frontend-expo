@@ -15,11 +15,6 @@ interface FormDataValue {
 }
 
 /**
- * JSON 데이터 전송 규약
- * Why: [Phase 33] 비표준 FormDataJson 방식을 폐기하고 표준 JSON.stringify 문자열 전송으로 대체함.
- */
-
-/**
  * 표준 FormData 인터페이스 확장
  * Why: React Native 환경에서 Multipart/form-data 전송 시 문자열/파일 외에 
  * 네이티브 브릿지 규격(FormDataValue)을 append할 수 있도록 오버로딩함.

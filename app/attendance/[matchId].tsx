@@ -172,9 +172,7 @@ export default function AttendanceFormScreen() {
         ? { seat, contents, oldImageUrls }
         : { matchId: matchIdNumber, seat, contents };
 
-      // Request DTO (JSON Blob)
-      // ⚠️ React Native 네이티브 환경에서는 { string: ..., type: ... } 형태 지원
-      // TypeScript 타입 시스템 제약으로 인해 as any 사용 (Phase 1-2 예외 사항)
+      // multipart/form-data의 JSON 파트는 문자열로 전송 (RN 표준 FormData append)
       formData.append("request", JSON.stringify(requestDto));
 
       // New Image Processing
@@ -304,7 +302,11 @@ export default function AttendanceFormScreen() {
                       style={styles.removeButton}
                       onPress={() => removeImage(index)}
                     >
-                      <Ionicons name="close" size={14} color="background" />
+                      <Ionicons
+                        name="close"
+                        size={14}
+                        color={theme.colors.background}
+                      />
                     </TouchableOpacity>
                   </Box>
                 ))}
