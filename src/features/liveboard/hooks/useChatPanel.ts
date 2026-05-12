@@ -17,6 +17,8 @@ export interface ChatBubbleMessage {
   mine: boolean;
   /** Why: 동일 텍스트 중복 전송 시 정확한 낙관적 메시지 식별을 위한 생성 시각(ms) */
   localTimestamp?: number;
+  /** Why: 서버에서 에코백된 고유 ID를 통한 정확한 낙관적 업데이트 매칭 */
+  tempId?: string;
 }
 
 /**
@@ -30,6 +32,7 @@ interface StompChatMessage {
   sentAt: string; // ISO
   domain: "LIVEBOARD" | "EXCHANGE" | "LOCATION";
   favTeamSymbolUrl?: string | null;
+  tempId?: string;
 }
 
 function toBubbleMessage(
@@ -44,6 +47,7 @@ function toBubbleMessage(
     text: msg.content,
     time,
     mine: myUserId !== undefined && msg.senderId === myUserId,
+    tempId: msg.tempId,
   };
 }
 
@@ -93,10 +97,13 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
                   (m) =>
                     !(
                       m.key.startsWith("local-") &&
-                      m.senderId === bubble.senderId &&
-                      m.text === bubble.text &&
-                      // Why: 1초 이내 전송된 낙관적 메시지만 대체 (동일 텍스트 중복 전송 방어)
-                      Math.abs(new Date(parsed.sentAt).getTime() - (m.localTimestamp ?? 0)) < 1000
+                      (m.tempId === bubble.tempId ||
+                        (m.senderId === bubble.senderId &&
+                          m.text === bubble.text &&
+                          Math.abs(
+                            new Date(parsed.sentAt).getTime() -
+                              (m.localTimestamp ?? 0),
+                          ) < 30000))
                     ),
                 )
               : prev;
@@ -139,7 +146,8 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
       return;
     }
 
-    const localKey = `local-${Date.now()}`;
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    const localKey = `local-${tempId}`;
     const optimistic: ChatBubbleMessage = {
       key: localKey,
       senderId: user.userId,
@@ -148,6 +156,7 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
       time: new Date().toTimeString().slice(0, 5),
       mine: true,
       localTimestamp: Date.now(),
+      tempId,
     };
     setMessages((prev) => [...prev, optimistic]);
     setDraft("");
@@ -155,7 +164,7 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
     try {
       client.publish({
         destination: "/client/liveboard/send",
-        body: JSON.stringify({ roomId, content }),
+        body: JSON.stringify({ roomId, content, tempId }),
       });
     } catch {
       setMessages((prev) => prev.filter((m) => m.key !== localKey));
