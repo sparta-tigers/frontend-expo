@@ -25,7 +25,7 @@ export const attendanceKeys = {
  */
 export const useMyAttendances = (page: number = 1, size: number = 100) => {
   return useQuery({
-    queryKey: attendanceKeys.my(),
+    queryKey: [...attendanceKeys.my(), page, size], // 🚨 페이지 번호/사이즈를 키에 포함하여 캐시 파편화 방지
     queryFn: () => attendanceGetMyAPI(page, size),
     select: (response) => response.data?.content ?? [],
   });
@@ -39,7 +39,7 @@ export const useAttendance = (id: number) => {
     queryKey: attendanceKeys.detail(id),
     queryFn: () => attendanceGetDetailAPI(id),
     select: (response) => response.data,
-    enabled: !!id,
+    enabled: !!id && !isNaN(id), // 🚨 NaN 체크 추가 (Fail-fast)
   });
 };
 
@@ -52,8 +52,8 @@ export const useCreateAttendance = () => {
   return useMutation({
     mutationFn: (formData: FormData) => attendanceCreateAPI(formData),
     onSuccess: () => {
-      // 목록 쿼리 무효화
-      queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
+      // 🚨 목록 쿼리만 정밀 무효화 (all 사용 시 모든 캐시가 날아감)
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.my() });
     },
   });
 };
@@ -67,8 +67,10 @@ export const useUpdateAttendance = () => {
   return useMutation({
     mutationFn: ({ id, formData }: { id: number; formData: FormData }) => 
       attendanceUpdateAPI(id, formData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
+    onSuccess: (_, variables) => {
+      // 🚨 수정된 항목의 상세 캐시와 목록 캐시만 무효화
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.my() });
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.detail(variables.id) });
     },
   });
 };
