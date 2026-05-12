@@ -64,7 +64,8 @@ export default function HomeScreen() {
     return new Set(firstPageContent.map((a) => a.matchId));
   }, [infiniteAttendances]);
 
-  // 총 직관 횟수는 서버에서 제공하는 totalElements 활용
+  // 🎯 [Phase 28] 총 직관 횟수는 서버에서 제공하는 totalElements 활용
+  // TODO: 추후 BE에서 전용 카운트 API 제공 시 해당 API로 전환하여 오버헤드 최적화 필요
   const totalAttendanceCount = infiniteAttendances?.pages[0]?.data?.totalElements ?? 0;
 
   // 🚨 앙드레 카파시: 데이터 슬라이싱 최적화 (Top 5 + My Team)

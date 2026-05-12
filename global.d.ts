@@ -16,5 +16,7 @@ interface FormDataJson {
 }
 
 declare interface FormData {
+  append(name: string, value: string | Blob): void;
+  append(name: string, value: FormDataValue | FormDataJson): void;
   append(name: string, value: string | Blob | FormDataValue | FormDataJson, fileName?: string): void;
 }
