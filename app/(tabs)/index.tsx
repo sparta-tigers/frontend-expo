@@ -98,6 +98,7 @@ export default function HomeScreen() {
           userNickname={dashboardData?.nickname ?? mockData.userNickname}
           enrollmentDays={dashboardData?.enrollmentDays ?? 0}
           remainingMatches={dashboardData?.remainingMatches ?? 0}
+          attendanceCount={attendances?.length ?? 0} // 🚨 추가: 실제 직관 기록 갯수 연동
           favoriteTeamCode={myTeamId ?? dashboardData?.favoriteTeamCode}
           onPressChangeTeam={handlePressChangeTeam}
         />
