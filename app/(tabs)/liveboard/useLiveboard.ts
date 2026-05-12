@@ -12,11 +12,20 @@ import { MaterialIcons } from "@expo/vector-icons";
 // ── 날씨 아이콘/텍스트 매핑 ──────────────────────────────
 type WeatherIconName = keyof typeof MaterialIcons.glyphMap;
 
+/**
+ * WeatherDisplay
+ * Why: API의 날씨 코드를 UI에서 직접 사용 가능한 텍스트와 아이콘 쌍으로 정규화한 형태.
+ */
 export interface WeatherDisplay {
   text: string;
   icon: WeatherIconName;
 }
 
+/**
+ * 날씨 상태 코드 기반 UI 데이터 변환
+ * Why: 기상청 기반의 복잡한 하늘상태(Sky)와 강수형태(Rain) 조합을 
+ *      사용자 친화적인 '비/눈/맑음' 등의 단어와 Material 아이콘으로 매핑하기 위함.
+ */
 export function getWeatherDisplay(
   skyStatus: SkyStatus | null | undefined,
   rainType: RainType | null | undefined,
@@ -47,6 +56,12 @@ export function getWeatherDisplay(
 }
 
 // ── 주간 날짜 계산 유틸 ──────────────────────────────────
+
+/**
+ * WeekDayDto
+ * Why: 주간 캘린더의 각 날짜 칸을 그리는 데 필요한 정보 집합.
+ *      anydayKey(YYYYMMDD)는 API 요청과 데이터 매핑의 고유 키로 활용됨.
+ */
 export interface WeekDayDto {
   dayOfWeek: string;
   date: number;
@@ -57,6 +72,10 @@ export interface WeekDayDto {
 
 const DAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 
+/**
+ * Date 객체를 YYYYMMDD 문자열로 변환
+ * Why: 백엔드 API가 기대하는 날짜 형식과 프론트엔드 캐시 키를 일치시키기 위함.
+ */
 export function toAnydayKey(date: Date): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -64,6 +83,10 @@ export function toAnydayKey(date: Date): string {
   return `${y}${m}${d}`;
 }
 
+/**
+ * 특정 날짜와 주 오프셋 기준의 주 시작일(월요일) 계산
+ * Why: 일요일(0) 시작이 아닌 월요일(1) 시작 달력을 기준으로 주간 데이터를 조회하기 위함.
+ */
 function getWeekStartDate(baseDate: Date, weekOffset: number): Date {
   const d = new Date(baseDate);
   const dayOfWeek = d.getDay();
@@ -73,6 +96,11 @@ function getWeekStartDate(baseDate: Date, weekOffset: number): Date {
   return d;
 }
 
+/**
+ * 주간 날짜 목록(WeekDayDto[]) 생성
+ * Why: 7일간의 날짜 객체를 생성하고, 조회된 경기 정보와 대조하여 
+ *      캘린더에 '경기 있음' 도트를 표시할지 결정함.
+ */
 function buildWeekDays(weekStart: Date, rooms: LiveBoardRoomDto[]): WeekDayDto[] {
   const gameDays = new Set(
     rooms.map((r) => toAnydayKey(new Date(r.matchTime))),
@@ -91,6 +119,10 @@ function buildWeekDays(weekStart: Date, rooms: LiveBoardRoomDto[]): WeekDayDto[]
   });
 }
 
+/**
+ * 주차 레이블 포맷팅 (예: 2024년 5월 둘째 주)
+ * Why: 사용자가 현재 보고 있는 주간 범위가 어디인지 직관적인 텍스트로 제공하기 위함.
+ */
 function formatWeekLabel(weekStart: Date): string {
   const year = weekStart.getFullYear();
   const month = weekStart.getMonth() + 1;
@@ -142,15 +174,28 @@ export function useLiveboard(): UseLiveboardReturn {
   );
 
   // 주간 hasGame 도트를 위한 7일치 병렬 조회
-  const { data: weekRoomsMap = {} } = useQuery({
+  const {
+    data: weekRoomsMap = {},
+    isError: isWeekError,
+    refetch: refetchWeek,
+  } = useQuery({
     queryKey: ["liveboard", "week", weekAnydayKeys[0]],
     queryFn: async () => {
-      const results = await Promise.all(
-        weekAnydayKeys.map((key) =>
-          fetchLiveBoardRooms(key).then((rooms) => ({ key, rooms })),
+      // Promise.allSettled를 사용하여 일부 날짜 조회 실패가 
+      // 전체 주간 달력 로드 실패로 이어지지 않도록 격리(Isolate).
+      const results = await Promise.allSettled(
+        weekAnydayKeys.map(async (key) => ({
+          key,
+          rooms: await fetchLiveBoardRooms(key),
+        })),
+      );
+      return Object.fromEntries(
+        results.flatMap((result) =>
+          result.status === "fulfilled"
+            ? [[result.value.key, result.value.rooms]]
+            : [],
         ),
       );
-      return Object.fromEntries(results.map(({ key, rooms }) => [key, rooms]));
     },
     staleTime: 60_000,
   });
@@ -178,8 +223,8 @@ export function useLiveboard(): UseLiveboardReturn {
   const {
     data: selectedDayRooms = [],
     isLoading,
-    isError,
-    refetch,
+    isError: isSelectedDayError,
+    refetch: refetchSelectedDay,
   } = useQuery({
     queryKey: ["liveboard", "rooms", selectedAnyday],
     queryFn: () => fetchLiveBoardRooms(selectedAnyday),
@@ -196,7 +241,10 @@ export function useLiveboard(): UseLiveboardReturn {
     selectedDay,
     selectedDayRooms,
     isLoading,
-    isError,
-    refetch,
+    isError: isWeekError || isSelectedDayError,
+    refetch: () => {
+      void refetchWeek();
+      void refetchSelectedDay();
+    },
   };
 }

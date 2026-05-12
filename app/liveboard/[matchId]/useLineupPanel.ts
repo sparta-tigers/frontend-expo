@@ -2,7 +2,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { fetchMatchLineup } from "@/src/features/liveboard/api";
 import { LineupRowDto } from "@/src/features/liveboard/types";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type FetchState = "LOADING" | "SUCCESS" | "ERROR";
 type ActiveTeam = "HOME" | "AWAY";
@@ -21,7 +21,7 @@ interface UseLineupPanelReturn {
  * useLineupPanel
  *
  * Why: LineupPanel의 데이터 페칭·팀 토글 상태를 UI로부터 분리.
- * cancelled 플래그로 비동기 경합(Race Condition) 방어.
+ * cancelledRef로 컴포넌트 언마운트 후의 비동기 상태 업데이트를 차단(Race Condition 방어).
  */
 export function useLineupPanel(
   matchId: string,
@@ -35,43 +35,41 @@ export function useLineupPanel(
   const [fetchState, setFetchState] = useState<FetchState>("LOADING");
   const [homeBatters, setHomeBatters] = useState<LineupRowDto[]>([]);
   const [awayBatters, setAwayBatters] = useState<LineupRowDto[]>([]);
+  const cancelledRef = useRef(false);
 
-  const loadLineup = useCallback(
-    (cancelled: { current: boolean }) => {
-      if (!isLoggedIn) {
+  const loadLineup = useCallback(() => {
+    if (!isLoggedIn) {
+      setFetchState("ERROR");
+      return;
+    }
+
+    setFetchState("LOADING");
+
+    fetchMatchLineup(matchId)
+      .then((data) => {
+        if (cancelledRef.current) return;
+        if (!isLoggedIn) return;
+        setHomeBatters(data.homeBatters ?? []);
+        setAwayBatters(data.awayBatters ?? []);
+        setFetchState("SUCCESS");
+      })
+      .catch(() => {
+        if (cancelledRef.current) return;
         setFetchState("ERROR");
-        return;
-      }
-
-      setFetchState("LOADING");
-
-      fetchMatchLineup(matchId)
-        .then((data) => {
-          if (cancelled.current) return;
-          if (!isLoggedIn) return;
-          setHomeBatters(data.homeBatters ?? []);
-          setAwayBatters(data.awayBatters ?? []);
-          setFetchState("SUCCESS");
-        })
-        .catch(() => {
-          if (cancelled.current) return;
-          setFetchState("ERROR");
-        });
-    },
-    [matchId, isLoggedIn],
-  );
+      });
+  }, [matchId, isLoggedIn]);
 
   useEffect(() => {
-    const cancelled = { current: false };
-    loadLineup(cancelled);
+    cancelledRef.current = false;
+    loadLineup();
     return () => {
-      cancelled.current = true;
+      cancelledRef.current = true;
     };
   }, [loadLineup]);
 
   const handleRetry = useCallback(() => {
-    const cancelled = { current: false };
-    loadLineup(cancelled);
+    cancelledRef.current = false;
+    loadLineup();
   }, [loadLineup]);
 
   const currentLineup = activeTeam === "HOME" ? homeBatters : awayBatters;
