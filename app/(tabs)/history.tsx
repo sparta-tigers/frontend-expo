@@ -24,12 +24,23 @@ import {
 export default function HistoryScreen() {
   const { data: attendances, isLoading, refetch } = useMyAttendances(1, 100);
   const [favoriteTeam, setFavoriteTeam] = useState<FavoriteTeam | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     favoriteTeamGetAPI().then((res) => {
       if (res.resultType === "SUCCESS") setFavoriteTeam(res.data);
     });
   }, []);
+
+  // 🚨 [Phase 2-3] Pull-to-refresh 상태 동기화
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const getMatchResult = (item: MatchAttendance) => {
     return calculateMatchResult(
@@ -129,7 +140,7 @@ export default function HistoryScreen() {
     <SafeLayout style={styles.safeLayout}>
       <Box flex={1} p="SCREEN">
         <Typography variant="h2" weight="bold" color="text.primary" mb="SCREEN">
-          나의 직관 기록
+          나의 직관 일기
         </Typography>
 
         {attendances && attendances.length > 0 ? (
@@ -139,8 +150,8 @@ export default function HistoryScreen() {
             keyExtractor={(item) => item.id.toString()}
             contentContainerStyle={styles.listContainer}
             showsVerticalScrollIndicator={false}
-            onRefresh={refetch}
-            refreshing={isLoading}
+            onRefresh={onRefresh}
+            refreshing={isRefreshing}
           />
         ) : (
           <Box flex={1} justify="center" align="center">
