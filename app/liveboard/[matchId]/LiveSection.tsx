@@ -58,8 +58,9 @@ function PlayerTag({
         : styles.playerTagRunner;
   const textStyle =
     kind === "runner" ? styles.playerNameRunner : styles.playerName;
+  const positionStyle = { left: x, top: y };
   return (
-    <Box style={[styles.playerTag, tagStyle, { left: x, top: y }]}>
+    <Box style={[styles.playerTag, tagStyle, positionStyle]}>
       <Typography style={textStyle} weight="medium">
         {name}
       </Typography>
