@@ -53,8 +53,8 @@ const checkPolyfills = (): boolean => {
 
 /**
  * 동적 WebSocket URL 설정
- * 1. 환경 변수(EXPO_PUBLIC_WS_BASE_URL)를 최우선으로 사용
- * 2. 명시적으로 전달된 url 인자 사용
+ * 1. 명시적으로 전달된 url 인자를 최우선으로 사용
+ * 2. 환경 변수(EXPO_PUBLIC_WS_BASE_URL) 사용
  * 3. 기본값으로 localhost 사용
  * 4. 개발 환경의 안드로이드 에뮬레이터에서는 localhost를 10.0.2.2로 치환
  */

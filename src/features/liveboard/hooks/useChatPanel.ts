@@ -4,6 +4,8 @@ import { useWebSocket } from "@/src/hooks/useWebSocket";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, ScrollView } from "react-native";
 
+let messageCounter = 0;
+
 /**
  * 라이브보드 채팅 버블 메시지 (UI 렌더링용)
  */
@@ -17,8 +19,7 @@ export interface ChatBubbleMessage {
   mine: boolean;
   /** Why: 동일 텍스트 중복 전송 시 정확한 낙관적 메시지 식별을 위한 생성 시각(ms) */
   localTimestamp?: number;
-  /** Why: 서버에서 에코백된 고유 ID를 통한 정확한 낙관적 업데이트 매칭 */
-  tempId?: string;
+  tempId?: string | undefined;
 }
 
 /**
@@ -103,7 +104,7 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
                           Math.abs(
                             new Date(parsed.sentAt).getTime() -
                               (m.localTimestamp ?? 0),
-                          ) < 30000))
+                          ) < 10000)) // 30초 -> 10초로 단축
                     ),
                 )
               : prev;
@@ -146,7 +147,7 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
       return;
     }
 
-    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+    const tempId = `temp-${Date.now()}-${++messageCounter}-${Math.random().toString(36).slice(2, 9)}`;
     const localKey = `local-${tempId}`;
     const optimistic: ChatBubbleMessage = {
       key: localKey,
