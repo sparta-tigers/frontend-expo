@@ -22,6 +22,9 @@ export interface MatchAttendance {
   awayTeamName: string; // 🚨 추가
   homeTeamCode: string; // 🚨 추가
   awayTeamCode: string; // 🚨 추가
+  homeScore?: number;
+  awayScore?: number;
+  stadiumName: string;
 }
 
 /**
