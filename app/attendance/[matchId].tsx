@@ -25,6 +25,17 @@ import {
 } from "react-native";
 
 /**
+ * 레이아웃 고정 상수
+ * Why: StyleSheet 내에서 매직 넘버 사용을 방지하고 일관된 UI 규격을 유지하기 위함.
+ */
+const LOCAL_LAYOUT = {
+  textAreaMinHeight: 150,
+  imageSize: 100,
+  removeButtonSize: 24,
+  submitButtonHeight: 56,
+} as const;
+
+/**
  * 🚨 [Phase 24] 직관 기록 작성/수정 화면
  *
  * Why: 사용자가 특정 경기에 대한 직관 일기(내용, 사진, 좌석)를 기록함.
@@ -346,11 +357,11 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.size.md,
     borderWidth: theme.colors.border.width.light,
     borderColor: theme.colors.border.medium,
-    minHeight: 150, // 🚨 고정 높이는 레이아웃 특성상 허용
+    minHeight: LOCAL_LAYOUT.textAreaMinHeight,
   },
   imagePickerButton: {
-    width: 100, // 🚨 이미지 그리드 규격은 테마보다 상수로 관리 고려 가능
-    height: 100,
+    width: LOCAL_LAYOUT.imageSize,
+    height: LOCAL_LAYOUT.imageSize,
     borderRadius: theme.radius.md,
     backgroundColor: theme.colors.surface,
     borderWidth: theme.colors.border.width.light,
@@ -361,8 +372,8 @@ const styles = StyleSheet.create({
     marginRight: theme.spacing.sm,
   },
   thumbnail: {
-    width: 100,
-    height: 100,
+    width: LOCAL_LAYOUT.imageSize,
+    height: LOCAL_LAYOUT.imageSize,
     borderRadius: theme.radius.md,
   },
   removeButton: {
@@ -370,8 +381,8 @@ const styles = StyleSheet.create({
     top: -theme.spacing.xs,
     right: -theme.spacing.xs,
     backgroundColor: theme.colors.error,
-    width: 24,
-    height: 24,
+    width: LOCAL_LAYOUT.removeButtonSize,
+    height: LOCAL_LAYOUT.removeButtonSize,
     borderRadius: theme.radius.full,
     justifyContent: "center",
     alignItems: "center",
@@ -380,7 +391,7 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     backgroundColor: theme.colors.brand.mint,
-    height: 56,
+    height: LOCAL_LAYOUT.submitButtonHeight,
     borderRadius: theme.radius.lg,
     justifyContent: "center",
     alignItems: "center",
