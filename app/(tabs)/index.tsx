@@ -16,7 +16,7 @@ import { ScheduleSkeleton } from "@/src/features/home/components/ScheduleSkeleto
 import { RankingSkeleton } from "@/src/features/home/components/RankingSkeleton";
 import { getTodayString, getCurrentYear, getCurrentMonth, getCurrentDay } from "@/src/utils/date";
 import { useDashboardSummary } from "@/src/features/home/hooks/useDashboardSummary";
-import { useMyAttendances } from "@/src/features/match-attendance/queries"; // 🚨 추가
+import { useInfiniteMyAttendances } from "@/src/features/match-attendance/queries"; // 🚨 변경
 
 /**
  * 홈 화면 (`main_0`)
@@ -56,11 +56,16 @@ export default function HomeScreen() {
   const { data: dashboardRes } = useDashboardSummary();
   const dashboardData = dashboardRes?.data;
 
-  // 🚨 [Phase 24] 직관 기록 데이터 연동
-  const { data: attendances } = useMyAttendances(1, 100);
+  // 🚨 [Phase 28] 직관 기록 데이터 연동 (무한 스크롤 첫 페이지 활용)
+  const { data: infiniteAttendances } = useInfiniteMyAttendances(100);
   const attendanceMatchIds = useMemo(() => {
-    return new Set(attendances?.map((a) => a.matchId) ?? []);
-  }, [attendances]);
+    // 캘린더 하이라이트를 위해 첫 100건만 활용 (성능 최적화)
+    const firstPageContent = infiniteAttendances?.pages[0]?.data?.content ?? [];
+    return new Set(firstPageContent.map((a) => a.matchId));
+  }, [infiniteAttendances]);
+
+  // 총 직관 횟수는 서버에서 제공하는 totalElements 활용
+  const totalAttendanceCount = infiniteAttendances?.pages[0]?.data?.totalElements ?? 0;
 
   // 🚨 앙드레 카파시: 데이터 슬라이싱 최적화 (Top 5 + My Team)
   const displayRankings = useMemo(() => {
@@ -98,7 +103,7 @@ export default function HomeScreen() {
           userNickname={dashboardData?.nickname ?? mockData.userNickname}
           enrollmentDays={dashboardData?.enrollmentDays ?? 0}
           remainingMatches={dashboardData?.remainingMatches ?? 0}
-          attendanceCount={attendances?.length ?? 0} // 🚨 추가: 실제 직관 기록 갯수 연동
+          attendanceCount={totalAttendanceCount} // 🚨 수정: 전체 카운트 연동
           favoriteTeamCode={myTeamId ?? dashboardData?.favoriteTeamCode}
           onPressChangeTeam={handlePressChangeTeam}
         />

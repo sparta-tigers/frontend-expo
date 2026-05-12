@@ -5,7 +5,7 @@ import { useMatchSchedule } from "@/src/features/match/hooks/useMatchSchedule";
 import { LeagueType } from "@/src/features/match/types";
 import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
 import { theme } from "@/src/styles/theme";
-import { useMyAttendances } from "@/src/features/match-attendance/queries";
+import { useInfiniteMyAttendances } from "@/src/features/match-attendance/queries";
 import { 
   getCurrentMonth,
   getCurrentYear,
@@ -118,13 +118,14 @@ export default function ScheduleScreen() {
     isFetching,
   } = useMatchSchedule(year, month, activeTeamCode, leagueType);
 
-  // 2. 직관 기록 데이터 로드 및 맵 생성
-  const { data: attendances } = useMyAttendances(1, 100);
+  // 2. 직관 기록 데이터 로드 및 맵 생성 (캘린더 하이라이트용 100건 활용)
+  const { data: infiniteAttendances } = useInfiniteMyAttendances(100);
   const attendanceMap = useMemo(() => {
     const map = new Map<number, number>();
-    attendances?.forEach((a) => map.set(a.matchId, a.id));
+    const firstPageContent = infiniteAttendances?.pages[0]?.data?.content ?? [];
+    firstPageContent.forEach((a) => map.set(a.matchId, a.id));
     return map;
-  }, [attendances]);
+  }, [infiniteAttendances]);
 
   const attendanceMatchIds = useMemo(() => {
     return new Set(attendanceMap.keys());
