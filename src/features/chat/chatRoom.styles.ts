@@ -1,7 +1,6 @@
 // app/exchange/chat/[roomId]/roomId.styles.ts
 import { StyleSheet } from "react-native";
-import { theme } from "@/src/styles/theme";
-import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/unified-design";
+import { theme, BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/theme";
 
 export const styles = StyleSheet.create({
   container: {

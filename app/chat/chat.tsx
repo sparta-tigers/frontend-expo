@@ -7,9 +7,9 @@ import { ApiResponse } from "@/src/shared/types/common";
 import {
     BORDER_RADIUS,
     FONT_SIZE,
-    SHADOW,
+    theme,
     SPACING,
-} from "@/src/styles/unified-design";
+} from "@/src/styles/theme";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback } from "react";
 import {
@@ -34,7 +34,7 @@ const chatStyles = StyleSheet.create({
     borderRadius: BORDER_RADIUS.CARD,
     marginVertical: SPACING.TINY,
     marginHorizontal: SPACING.SMALL,
-    ...SHADOW.CARD,
+    ...theme.shadow.card,
   },
   avatar: {
     width: 50,

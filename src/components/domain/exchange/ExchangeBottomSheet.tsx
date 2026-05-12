@@ -13,7 +13,7 @@ import {
 } from "@/src/features/exchange/api";
 import { CreateExchangeDto, Item } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
-import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/unified-design";
+import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
 
 /**

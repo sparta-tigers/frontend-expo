@@ -1,5 +1,5 @@
 import { useTheme } from "@/hooks/useTheme";
-import { FONT_SIZE, SPACING } from "@/src/styles/unified-design";
+import { FONT_SIZE, SPACING } from "@/src/styles/theme";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
