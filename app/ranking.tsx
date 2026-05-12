@@ -179,7 +179,11 @@ export default function RankingScreen() {
               <TouchableOpacity 
                 key={y} 
                 onPress={() => updateYear(y)}
-                style={[styles.yearChip, selectedYear === y && { borderColor: brandColor, backgroundColor: theme.colors.team.neutralLight }]}
+                style={[
+                  styles.yearChip,
+                  selectedYear === y && styles.yearChipActive,
+                  selectedYear === y && { borderColor: brandColor }
+                ]}
               >
                 <Typography variant="caption" weight="bold" color={selectedYear === y ? "text.primary" : "brand.subtitle"}>
                   {y}
@@ -332,15 +336,18 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   yearChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 8,
-    borderWidth: 1,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.md,
+    borderWidth: theme.colors.border.width.light,
     borderColor: theme.colors.team.neutralLight,
   },
+  yearChipActive: {
+    backgroundColor: theme.colors.team.neutralLight,
+  },
   leagueBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 999,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.radius.full,
   },
 });

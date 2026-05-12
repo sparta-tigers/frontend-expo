@@ -412,14 +412,14 @@ export const apiClient = {
   patch: async <T = unknown>(
     url: string,
     data?: unknown,
-    schema?: z.ZodType<T>,
+    config?: AxiosRequestConfig & { schema?: z.ZodType<T> },
   ): Promise<T> => {
     try {
-      const response = await axiosInstance.patch(url, data);
+      const response = await axiosInstance.patch(url, data, config);
       const responseData = response.data;
 
-      if (schema) {
-        const result = schema.safeParse(responseData);
+      if (config?.schema) {
+        const result = config.schema.safeParse(responseData);
         if (!result.success) {
           apiLogger.error(
             `데이터 검증 실패 (Zod Validation Failed) PATCH ${url}`,

@@ -5,7 +5,7 @@
  * 모든 디자인 토큰을 단일 theme 객체로 통합
  */
 
-import { Dimensions, Platform } from "react-native";
+import { Dimensions, Platform, StyleSheet } from "react-native";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -206,6 +206,12 @@ export const theme = {
       medium: "#E5E7EB", // 기본 선 (gray-200)
       dark: "#D1D5DB", // 진한 선 (gray-300)
       bottom: "#e0e0e0",
+      width: {
+        thin: StyleSheet.hairlineWidth,
+        light: 1,
+        medium: 1.5,
+        bold: 2,
+      },
     },
     // 기존 호환성을 위한 별칭
     muted: "#6B7280", // 보조 텍스트와 동일

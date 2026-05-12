@@ -1,0 +1,53 @@
+/**
+ * 🚨 앙드레 카파시: 직관 기록(Match Attendance) 관련 타입 정의
+ *
+ * Why: 백엔드 DTO(MatchAttendanceResponseDto, MatchAttendanceRequestDto)와 1:1 매핑하여
+ * 타입 안정성을 확보하고 런타임 에러를 방지함.
+ */
+
+export interface AttendanceImage {
+  id: number;
+  imageUrl: string;
+}
+
+export interface MatchAttendance {
+  id: number;
+  matchId: number;
+  seat: string;
+  contents: string;
+  images: AttendanceImage[]; // 🚨 imageUrls → images (객체 배열)로 변경
+  createdAt: string;
+  matchTime: string; // 🚨 추가
+  homeTeamName: string; // 🚨 추가
+  awayTeamName: string; // 🚨 추가
+  homeTeamCode: string; // 🚨 추가
+  awayTeamCode: string; // 🚨 추가
+  homeScore?: number;
+  awayScore?: number;
+  stadiumName: string;
+}
+
+export interface MatchAttendanceRequestDto {
+  matchId: number;
+  seat: string;
+  contents?: string;
+  /** 백엔드 저장 후 반환되는 URL 리스트 (읽기 전용) */
+  imageUrls?: string[];
+}
+
+/**
+ * 직관 기록 수정 요청 DTO
+ */
+export interface MatchAttendanceUpdateRequestDto {
+  seat?: string;
+  contents?: string;
+  oldImageUrls?: string[]; // 유지할 기존 이미지 URL들
+}
+
+/**
+ * 티켓 OCR 응답 DTO
+ */
+export interface TicketOcrResponseDto {
+  imageUrl: string;
+  seat: string;
+}

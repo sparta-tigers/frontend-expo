@@ -73,6 +73,7 @@ interface MyTeamSectionProps {
   userNickname: string;
   enrollmentDays: number;
   remainingMatches: number;
+  attendanceCount: number; // 🚨 추가
   favoriteTeamCode?: string | null | undefined;
   onPressChangeTeam?: () => void;
 }
@@ -88,6 +89,7 @@ export const MyTeamSection = memo(
     userNickname,
     enrollmentDays,
     remainingMatches,
+    attendanceCount, // 🚨 추가
     favoriteTeamCode,
     onPressChangeTeam,
   }: MyTeamSectionProps) => {
@@ -106,7 +108,7 @@ export const MyTeamSection = memo(
       {
         key: "visit",
         icon: "bar-chart",
-        value: "13회",
+        value: `${attendanceCount}회`,
         label: "올해 직관횟수",
         toneColor: "dashboard.statTonePink",
         iconColor: theme.colors.dashboard.statIconPink,
