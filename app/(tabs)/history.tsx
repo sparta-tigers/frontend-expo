@@ -1,6 +1,6 @@
 import { Box, Typography } from "@/components/ui";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { useMyAttendances } from "@/src/features/match-attendance/queries";
+import { useInfiniteMyAttendances } from "@/src/features/match-attendance/queries";
 import { MatchAttendance } from "@/src/features/match-attendance/types";
 import { FavoriteTeam } from "@/src/features/user/favorite-team";
 import { favoriteTeamGetAPI } from "@/src/features/user/favorite-team-api";
@@ -22,8 +22,18 @@ import {
  * Why: 사용자가 과거에 기록한 직관 일기들을 타임라인 형태로 확인하고 관리함.
  */
 export default function HistoryScreen() {
-  const { data: attendances, isLoading, refetch, isRefetching } = useMyAttendances(1, 100);
+  const {
+    data,
+    isLoading,
+    refetch,
+    isRefetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteMyAttendances(10);
   const [favoriteTeam, setFavoriteTeam] = useState<FavoriteTeam | null>(null);
+
+  const attendances = data?.pages.flatMap((page) => page.data?.content || []) || [];
 
   useEffect(() => {
     favoriteTeamGetAPI().then((res) => {
@@ -146,6 +156,19 @@ export default function HistoryScreen() {
             showsVerticalScrollIndicator={false}
             onRefresh={onRefresh}
             refreshing={isRefetching}
+            onEndReached={() => {
+              if (hasNextPage && !isFetchingNextPage) {
+                fetchNextPage();
+              }
+            }}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={
+              isFetchingNextPage ? (
+                <Box py="md">
+                  <ActivityIndicator color={theme.colors.brand.mint} />
+                </Box>
+              ) : null
+            }
           />
         ) : (
           <Box flex={1} justify="center" align="center">
