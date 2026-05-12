@@ -74,7 +74,7 @@ export default function HistoryScreen() {
     return (
       <SafeLayout style={styles.safeLayout}>
         <Box flex={1} justify="center" align="center">
-          <ActivityIndicator color={theme.colors.brand.primary} />
+          <ActivityIndicator color={theme.colors.brand.mint} />
         </Box>
       </SafeLayout>
     );

@@ -61,8 +61,7 @@ export async function attendanceUpdateAPI(
     headers: {
       "Content-Type": "multipart/form-data",
     },
-    // patch는 apiClient에 transformRequest 커스텀이 없으므로 인스턴스 직접 사용 고려 가능하나
-    // 일단 apiClient의 구조를 따름. (apiClient.patch는 내부적으로 axiosInstance.patch 사용)
+    transformRequest: (data) => data,
   });
 }
 
