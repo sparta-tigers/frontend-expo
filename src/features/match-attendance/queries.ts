@@ -22,6 +22,7 @@ export const attendanceKeys = {
   infinite: (size: number) => [...attendanceKeys.lists(), "infinite", { size }] as const,
   details: () => [...attendanceKeys.all, "detail"] as const,
   detail: (id: number) => [...attendanceKeys.details(), id] as const,
+  byMatch: (matchId: number) => [...attendanceKeys.all, "my", "match", matchId] as const,
 };
 
 /**
@@ -41,7 +42,7 @@ export const useMyAttendances = (page: number = 1, size: number = 100) => {
  */
 export const useMyAttendanceByMatchId = (matchId: number) => {
   return useQuery({
-    queryKey: [...attendanceKeys.all, "my", "match", matchId],
+    queryKey: attendanceKeys.byMatch(matchId),
     queryFn: async () => {
       try {
         const response = await attendanceGetMyByMatchIdAPI(matchId);

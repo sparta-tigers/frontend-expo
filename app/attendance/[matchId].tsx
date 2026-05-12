@@ -1,6 +1,7 @@
 import { Box, Typography } from "@/components/ui";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import {
+  attendanceKeys,
   useCreateAttendance,
   useMyAttendanceByMatchId,
   useUpdateAttendance,
@@ -199,9 +200,9 @@ export default function AttendanceFormScreen() {
         await createAttendanceMutation.mutateAsync(formData);
       }
 
-      // 🚨 [Phase 2-4] 쿼리 무효화 최적화
-      // 직관 기록 생성/수정 후 캐시 무효화하여 최신 데이터 반영
-      queryClient.invalidateQueries({ queryKey: ["myAttendances"] });
+      // 🚨 [Phase 34] 쿼리 무효화 정상화
+      // 의미 없는 ["myAttendances"] 키를 제거하고, SSOT 팩토리 키를 사용하여 정확히 단건 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.byMatch(matchIdNumber) });
 
       Alert.alert("성공", "직관 기록이 저장되었습니다.", [
         { text: "확인", onPress: () => router.replace("/(tabs)/history") },
