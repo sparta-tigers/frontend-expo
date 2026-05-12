@@ -17,6 +17,11 @@ export interface MatchAttendance {
   contents: string;
   imageUrls: string[];
   createdAt: string;
+  matchTime: string; // 🚨 추가
+  homeTeamName: string; // 🚨 추가
+  awayTeamName: string; // 🚨 추가
+  homeTeamCode: string; // 🚨 추가
+  awayTeamCode: string; // 🚨 추가
 }
 
 /**
