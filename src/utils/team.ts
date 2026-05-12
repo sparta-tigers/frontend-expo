@@ -8,7 +8,7 @@
 import { TeamDto } from "@/src/features/home/types";
 import { ThemeColorPath } from "@/src/shared/types/theme";
 import { theme } from "@/src/styles/theme";
-import { StyleSheet } from "react-native";
+import { ImageSourcePropType, StyleSheet } from "react-native";
 
 /**
  * KBO 10개 구단 상세 데이터 맵
@@ -100,6 +100,7 @@ export const TEAM_DATA = {
 
 /**
  * 팀 코드가 유효한지 검사하는 타입 가드
+ * Why: 외부 API나 라우트 파라미터로부터 들어온 임의의 문자열을 안전한 TeamCode 타입으로 좁히기 위함.
  */
 export const isValidTeamCode = (
   code: string | null | undefined,
@@ -283,30 +284,29 @@ export const getTeamBgStyle = (teamName: string) => {
 
 /**
  * 팀 로고 소스 타입
- *
- * Why: React Native의 Image 컴포넌트가 지원하는 모든 형태를 포함
+ * Why: React Native의 공식 이미지 소스 타입을 사용하여 컴포넌트와의 호환성을 보장함.
  */
-export type TeamLogoSource = number | { uri: string } | undefined;
+export type TeamLogoSource = ImageSourcePropType;
 
 /**
  * 팀 로고 매핑 테이블
- *
- * Why: 팀 코드별 로고 에셋 경로를 중앙 관리하기 위함.
- * 현재는 프로젝트 내 에셋 부재로 빈 맵으로 유지하며,
- * 추후 로고 에셋 추가 시 이곳에 매핑하면 됨.
+ * Why: 팀 코드별 로고 에셋 경로를 중앙 관리하여 불필요한 조건부 렌더링 로직을 제거함.
+ * 
+ * ⚠️ 아직 실제 PNG 에셋이 준비되지 않았으므로 Partial로 선언하여 안전성을 확보함.
+ * 에셋 추가 시: KIA: require('@/assets/images/team/kia.png') 형태로 추가.
  */
-const TEAM_LOGO_MAP: Record<string, TeamLogoSource> = {};
+const TEAM_LOGO_MAP: Partial<Record<TeamCode, TeamLogoSource>> = {};
 
 /**
  * 팀 로고 에셋 반환 유틸리티
- *
- * @param teamCode - 팀 코드 (KIA, LG 등)
- * @returns 팀 로고 소스 또는 undefined (폴백)
- *
- * Why: 팀 코드로부터 로고 에셋을 조회하여 UI에 표시함.
- * 현재는 프로젝트 내 에셋 부재로 undefined를 반환하지만,
- * 구조는 확보되어 있어 추후 로고 추가 시 즉시 연동 가능.
+ * 
+ * @param teamCode - 엄격하게 제한된 팀 코드 (KIA, LG 등)
+ * @returns 팀 로고 소스 또는 undefined
+ * 
+ * 🛡️ [Phase 1 방어] 
+ * 반환값이 undefined일 수 있으므로, 호출부에서는 반드시 null 체크를 하거나 
+ * <Image source={logo || DEFAULT_LOGO} /> 와 같이 폴백 처리를 해야 함.
  */
-export const getTeamLogo = (teamCode: string): TeamLogoSource => {
+export const getTeamLogo = (teamCode: TeamCode): TeamLogoSource | undefined => {
   return TEAM_LOGO_MAP[teamCode];
 };
