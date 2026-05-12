@@ -4,68 +4,88 @@ import { useMyAttendances } from "@/src/features/match-attendance/queries";
 import { MatchAttendance } from "@/src/features/match-attendance/types";
 import { theme } from "@/src/styles/theme";
 import { router } from "expo-router";
-import React from "react";
-import { FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from "react-native";
-import { Image } from "expo-image";
+import React, { useEffect, useState } from "react";
+import { FlatList, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { favoriteTeamGetAPI } from "@/src/features/user/favorite-team-api";
+import { FavoriteTeam } from "@/src/features/user/favorite-team";
 
 /**
  * 🚨 [Phase 24] 직관 기록 목록 화면 (Match Diary)
  * 
  * Why: 사용자가 과거에 기록한 직관 일기들을 타임라인 형태로 확인하고 관리함.
- * Zero-Magic: TanStack Query를 통해 서버 상태를 동기화하고, 결정론적 UI를 렌더링함.
  */
 export default function HistoryScreen() {
   const { data: attendances, isLoading, refetch } = useMyAttendances(1, 100);
+  const [favoriteTeam, setFavoriteTeam] = useState<FavoriteTeam | null>(null);
+
+  useEffect(() => {
+    favoriteTeamGetAPI().then(res => {
+      if (res.resultType === "SUCCESS") setFavoriteTeam(res.data);
+    });
+  }, []);
+
+  const getMatchResult = (item: MatchAttendance) => {
+    if (item.homeScore === undefined || item.awayScore === undefined || !favoriteTeam) return null;
+    
+    const isHome = item.homeTeamCode === favoriteTeam.teamCode;
+    const isAway = item.awayTeamCode === favoriteTeam.teamCode;
+    
+    if (!isHome && !isAway) return null;
+    
+    const myScore = isHome ? item.homeScore : item.awayScore;
+    const opponentScore = isHome ? item.awayScore : item.homeScore;
+    
+    if (myScore > opponentScore) return { text: "WIN", color: theme.colors.brand.mint, emoji: "😊" };
+    if (myScore < opponentScore) return { text: "LOSE", color: theme.colors.error, emoji: "😭" };
+    return { text: "DRAW", color: theme.colors.text.secondary, emoji: "😐" };
+  };
 
   const renderAttendanceItem = ({ item }: { item: MatchAttendance }) => {
     const matchDate = new Date(item.matchTime);
-    const dateString = `${matchDate.getMonth() + 1}월 ${matchDate.getDate()}일`;
+    const dateString = `${matchDate.getFullYear()}.${String(matchDate.getMonth() + 1).padStart(2, '0')}.${String(matchDate.getDate()).padStart(2, '0')}`;
+    const result = getMatchResult(item);
     
     return (
       <TouchableOpacity 
         activeOpacity={0.7}
-        onPress={() => router.push(`/attendance/${item.matchId}`)}
+        onPress={() => router.push(`/attendance/detail/${item.id}`)}
         style={styles.cardContainer}
       >
-        <Box bg="card" p="SCREEN" rounded="lg" style={theme.shadow.card}>
-          <Box flexDir="row" justify="space-between" align="center" mb="xs">
-            <Typography variant="caption" color="text.secondary">
-              {dateString} • {item.seat}
-            </Typography>
+        <Box 
+          bg="brand.mintAlpha10" 
+          p="md" 
+          rounded="lg" 
+          flexDir="row" 
+          align="center"
+          style={styles.attendanceCard}
+        >
+          <Box flex={1}>
+             <Box flexDir="row" align="center" mb="xs">
+                <Typography variant="body1" weight="bold">{item.homeTeamName}</Typography>
+                <Typography variant="caption" color="text.secondary" mx="xs">vs</Typography>
+                <Typography variant="body1" weight="bold">{item.awayTeamName}</Typography>
+             </Box>
+             
+             <Box flexDir="row" align="center" mb="xxs">
+                <Ionicons name="calendar-outline" size={14} color={theme.colors.text.secondary} />
+                <Typography variant="caption" color="text.secondary" ml="xxs">{dateString}</Typography>
+             </Box>
+             
+             <Box flexDir="row" align="center">
+                <Ionicons name="location-outline" size={14} color={theme.colors.text.secondary} />
+                <Typography variant="caption" color="text.secondary" ml="xxs">{item.seat}</Typography>
+             </Box>
           </Box>
 
-          <Typography variant="body1" weight="bold" color="text.primary" mb="sm">
-            {item.homeTeamName} vs {item.awayTeamName}
-          </Typography>
+          <Box width={1} height="80%" bg="team.neutralLight" mx="md" />
 
-          {item.imageUrls && item.imageUrls.length > 0 && (
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false} 
-              style={styles.thumbnailList}
-              contentContainerStyle={styles.thumbnailContent}
-            >
-              {item.imageUrls.map((url, index) => (
-                <Image 
-                  key={`${item.id}-img-${index}`}
-                  source={{ uri: url }} 
-                  style={styles.thumbnail}
-                  contentFit="cover"
-                  transition={200}
-                />
-              ))}
-            </ScrollView>
-          )}
-
-          <Typography 
-            variant="body2" 
-            color="text.secondary" 
-            numberOfLines={2}
-            style={styles.contentsText}
-          >
-            {item.contents}
-          </Typography>
+          <Box align="center" justify="center" width={50}>
+             <Typography style={styles.resultEmoji}>{result?.emoji ?? "🏟️"}</Typography>
+             <Typography variant="caption" weight="bold" color={result?.color as any ?? "text.primary"}>
+               {result?.text ?? "GAME"}
+             </Typography>
+          </Box>
         </Box>
       </TouchableOpacity>
     );
@@ -130,23 +150,15 @@ const styles = StyleSheet.create({
     paddingBottom: theme.spacing.SCREEN * 2,
   },
   cardContainer: {
-    marginBottom: theme.spacing.COMPONENT,
-  },
-  thumbnailList: {
     marginBottom: theme.spacing.sm,
   },
-  thumbnailContent: {
-    paddingRight: theme.spacing.sm,
+  attendanceCard: {
+    borderWidth: 1,
+    borderColor: theme.colors.brand.mintAlpha10,
   },
-  thumbnail: {
-    width: 100,
-    height: 100,
-    borderRadius: theme.radius.md,
-    marginRight: theme.spacing.xs,
-    backgroundColor: theme.colors.surface,
-  },
-  contentsText: {
-    lineHeight: 20,
+  resultEmoji: {
+    fontSize: 24,
+    marginBottom: 2,
   },
   fab: {
     position: "absolute",
