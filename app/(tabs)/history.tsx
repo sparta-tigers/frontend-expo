@@ -7,6 +7,7 @@ import { router } from "expo-router";
 import React from "react";
 import { FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from "react-native";
 import { Image } from "expo-image";
+import { Ionicons } from "@expo/vector-icons";
 
 /**
  * 🚨 [Phase 24] 직관 기록 목록 화면 (Match Diary)
@@ -108,6 +109,15 @@ export default function HistoryScreen() {
           </Box>
         )}
       </Box>
+
+      {/* Floating Action Button for Adding Record */}
+      <TouchableOpacity 
+        style={styles.fab} 
+        activeOpacity={0.8}
+        onPress={() => router.push("/schedule")}
+      >
+        <Ionicons name="add" size={32} color={theme.colors.background} />
+      </TouchableOpacity>
     </SafeLayout>
   );
 }
@@ -137,5 +147,17 @@ const styles = StyleSheet.create({
   },
   contentsText: {
     lineHeight: 20,
+  },
+  fab: {
+    position: "absolute",
+    bottom: theme.spacing.SCREEN + 80, // 탭 바 높이 고려
+    right: theme.spacing.SCREEN,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: theme.colors.brand.mint,
+    justifyContent: "center",
+    alignItems: "center",
+    ...theme.shadow.card,
   },
 });

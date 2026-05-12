@@ -287,10 +287,19 @@ export default function ScheduleScreen() {
             {days.map((cell, idx) => {
               const isEmpty = cell.day === 0;
               return (
-                <Box
+                <TouchableOpacity
                   key={`${cell.day}-${idx}`}
-                  style={styles.calendarCell}
-                  bg={cell.isToday ? "brand.mintAlpha10" : "transparent"}
+                  style={[
+                    styles.calendarCell,
+                    cell.isToday && { backgroundColor: theme.colors.brand.mintAlpha10 }
+                  ]}
+                  activeOpacity={0.7}
+                  disabled={isEmpty || !cell.hasGame}
+                  onPress={() => {
+                    if (cell.matchId) {
+                      router.push(`/attendance/${cell.matchId}`);
+                    }
+                  }}
                 >
                   {!isEmpty && (
                     <>
@@ -349,7 +358,7 @@ export default function ScheduleScreen() {
                       )}
                     </>
                   )}
-                </Box>
+                </TouchableOpacity>
               );
             })}
           </Box>
