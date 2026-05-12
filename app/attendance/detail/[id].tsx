@@ -213,7 +213,7 @@ export default function AttendanceDetailScreen() {
                 mb="xs"
                 style={[
                   styles.teamMascotContainer,
-                  { borderColor: homeTeam?.color },
+                  { borderColor: homeTeam?.color ?? theme.colors.border.light },
                 ]}
               >
                 <Typography style={styles.mascotEmoji}>
@@ -253,7 +253,7 @@ export default function AttendanceDetailScreen() {
                 mb="xs"
                 style={[
                   styles.teamMascotContainer,
-                  { borderColor: awayTeam?.color },
+                  { borderColor: awayTeam?.color ?? theme.colors.border.light },
                 ]}
               >
                 <Typography style={styles.mascotEmoji}>
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
   },
   teamMascotContainer: {
-    borderWidth: 2,
+    borderWidth: theme.colors.border.width.bold,
   },
   resultBanner: {
     borderColor: theme.colors.brand.mintAlpha10,

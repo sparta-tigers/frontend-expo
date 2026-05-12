@@ -441,7 +441,7 @@ const styles = StyleSheet.create({
   leagueSelector: {
     paddingHorizontal: theme.spacing.xl,
     paddingVertical: theme.spacing.md,
-    borderWidth: 1.5,
+    borderWidth: theme.colors.border.width.medium,
     borderRadius: theme.radius.full,
     backgroundColor: theme.colors.background,
   },
@@ -478,7 +478,7 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.size.CAPTION,
   },
   matchTimeText: {
-    fontSize: 9,
+    fontSize: theme.typography.size.xxs,
   },
   todayBtn: {
     marginTop: theme.spacing.xxl,
