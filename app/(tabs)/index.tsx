@@ -16,6 +16,7 @@ import { ScheduleSkeleton } from "@/src/features/home/components/ScheduleSkeleto
 import { RankingSkeleton } from "@/src/features/home/components/RankingSkeleton";
 import { getTodayString, getCurrentYear, getCurrentMonth, getCurrentDay } from "@/src/utils/date";
 import { useDashboardSummary } from "@/src/features/home/hooks/useDashboardSummary";
+import { useMyAttendances } from "@/src/features/match-attendance/queries"; // 🚨 추가
 
 /**
  * 홈 화면 (`main_0`)
@@ -54,6 +55,12 @@ export default function HomeScreen() {
   // 🚨 [Phase 10] 대시보드 요약 데이터 연동
   const { data: dashboardRes } = useDashboardSummary();
   const dashboardData = dashboardRes?.data;
+
+  // 🚨 [Phase 24] 직관 기록 데이터 연동
+  const { data: attendances } = useMyAttendances(1, 100);
+  const attendanceMatchIds = useMemo(() => {
+    return new Set(attendances?.map((a) => a.matchId) ?? []);
+  }, [attendances]);
 
   // 🚨 앙드레 카파시: 데이터 슬라이싱 최적화 (Top 5 + My Team)
   const displayRankings = useMemo(() => {
@@ -116,6 +123,7 @@ export default function HomeScreen() {
             year={currentYear} 
             month={currentMonth}
             today={today}
+            attendanceMatchIds={attendanceMatchIds} // 🚨 추가
           />
         )}
       </ScrollView>

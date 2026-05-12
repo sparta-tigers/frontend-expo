@@ -6,6 +6,7 @@
  */
 
 export interface MatchScheduleDto {
+  matchId: number;       // 경기 고유 ID (🚨 추가)
   day: number;           // 경기 일 (1-31)
   opponentCode: string;  // 상대 팀 코드 (예: "OB", "HT", "LG")
   location: "H" | "A";   // 홈/어웨이 여부

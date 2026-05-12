@@ -91,7 +91,9 @@ export interface CalendarGameDto {
  */
 export type CalendarCellModel = {
   day: number;
+  matchId?: number | undefined; // 🚨 수정
   hasGame: boolean;
+  hasAttendance?: boolean | undefined; // 🚨 수정: 직관 기록 여부
   location?: "H" | "A" | undefined;
   opponentCode?: string | undefined; // 🚨 팀 식별을 위한 코드 추가
   opponentShort: string;

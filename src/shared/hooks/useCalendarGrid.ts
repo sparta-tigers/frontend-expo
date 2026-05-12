@@ -18,7 +18,8 @@ export const useCalendarGrid = (
   month: number,
   schedule: MatchScheduleDto[],
   today?: { year: number; month: number; day: number },
-  selectedDay?: number
+  selectedDay?: number,
+  attendanceMatchIds?: Set<number> // 🚨 추가: 직관 기록이 있는 경기 ID 목록
 ): (CalendarCellModel & { isToday: boolean })[] => {
   return useMemo(() => {
     // 🚨 앙드레 카파시: 결정론적 그리드 생성
@@ -59,7 +60,9 @@ export const useCalendarGrid = (
 
       daysArray.push({
         day: d,
+        matchId: game?.matchId, // 🚨 추가
         hasGame: !!game,
+        hasAttendance: game?.matchId ? attendanceMatchIds?.has(game.matchId) : false, // 🚨 추가
         opponentCode: game?.opponentCode,
         opponentShort: opponentInfo?.shortName ?? "", 
         isSelected: d === selectedDay,
@@ -85,5 +88,5 @@ export const useCalendarGrid = (
     }
 
     return daysArray;
-  }, [year, month, schedule, today, selectedDay]);
+  }, [year, month, schedule, today, selectedDay, attendanceMatchIds]);
 };

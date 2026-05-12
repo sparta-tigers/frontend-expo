@@ -24,6 +24,7 @@ interface ScheduleSectionProps {
   year: number;
   month: number;
   today?: { year: number; month: number; day: number }; // 🚨 앙드레 카파시: 결정론적 렌더링을 위해 외부에서 주입받음
+  attendanceMatchIds?: Set<number>; // 🚨 추가
 }
 
 /**
@@ -37,8 +38,9 @@ export const ScheduleSection = React.memo(function ScheduleSection({
   year,
   month,
   today,
+  attendanceMatchIds, // 🚨 추가
 }: ScheduleSectionProps) {
-  const days = useCalendarGrid(year, month, schedule, today);
+  const days = useCalendarGrid(year, month, schedule, today, undefined, attendanceMatchIds);
 
   return (
     <Box mt="xxxxl" pb="xxl" px="SCREEN_DASHBOARD">
@@ -124,6 +126,16 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                       justify="space-between"
                       width="100%"
                     >
+                      {cell.hasAttendance && (
+                        <Box
+                          position="absolute"
+                          top={2}
+                          left="50%"
+                          style={styles.attendanceDot}
+                          rounded="full"
+                          bg="error"
+                        />
+                      )}
                       <Typography
                         variant="caption"
                         weight={cell.isToday ? "bold" : "medium"}
@@ -226,5 +238,10 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontSize: theme.typography.size.xs,
+  },
+  attendanceDot: {
+    width: 4,
+    height: 4,
+    marginLeft: -2,
   },
 });
