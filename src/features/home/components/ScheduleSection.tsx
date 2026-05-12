@@ -97,21 +97,17 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                 key={`${cell.day}-${idx}`}
                 activeOpacity={theme.layout.dashboard.activeOpacity}
                 disabled={isEmpty || !cell.hasGame}
-                onPress={() => {
-                  if (cell.matchId) {
-                    router.push(`/attendance/${cell.matchId}`);
-                  } else {
-                    router.push({
-                      pathname: "/schedule",
-                      params: {
-                        view: "day",
-                        day: cell.day.toString(),
-                        year: year.toString(),
-                        month: month.toString(),
-                      },
-                    });
-                  }
-                }}
+                onPress={() =>
+                  router.push({
+                    pathname: "/schedule",
+                    params: {
+                      view: "day",
+                      day: cell.day.toString(),
+                      year: year.toString(),
+                      month: month.toString(),
+                    },
+                  })
+                }
                 style={[styles.cell, cell.isToday && styles.todayCell]}
                 accessibilityRole={isEmpty ? undefined : "button"}
                 accessibilityLabel={

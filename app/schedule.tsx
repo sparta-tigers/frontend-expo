@@ -286,6 +286,11 @@ export default function ScheduleScreen() {
           >
             {days.map((cell, idx) => {
               const isEmpty = cell.day === 0;
+              const cellDate = new Date(year, month - 1, cell.day);
+              const todayDate = new Date();
+              todayDate.setHours(0, 0, 0, 0);
+              const isFuture = cellDate > todayDate;
+
               return (
                 <TouchableOpacity
                   key={`${cell.day}-${idx}`}
@@ -294,7 +299,7 @@ export default function ScheduleScreen() {
                     cell.isToday && { backgroundColor: theme.colors.brand.mintAlpha10 }
                   ]}
                   activeOpacity={0.7}
-                  disabled={isEmpty || !cell.hasGame}
+                  disabled={isEmpty || !cell.hasGame || isFuture}
                   onPress={() => {
                     if (cell.matchId) {
                       router.push(`/attendance/${cell.matchId}`);
