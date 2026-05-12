@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
 // Feature: fat-file-refactoring
 import { readFileSync, writeFileSync } from "fs";
-import { join } from "path";
 import { scan } from "./scanner/index.ts";
 import { diagnose } from "./diagnosis/index.ts";
 import { buildSpec, renderMarkdown } from "./spec/index.ts";

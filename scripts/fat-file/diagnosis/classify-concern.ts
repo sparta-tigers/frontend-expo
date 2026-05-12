@@ -143,7 +143,7 @@ export type TopLevelBlock = {
  */
 export function splitTopLevelBlocks(
   source: string,
-): ReadonlyArray<TopLevelBlock> {
+): readonly TopLevelBlock[] {
   if (source === "") return [];
 
   const lines = source.split("\n");
@@ -262,8 +262,8 @@ export type ClassifiedBlock = {
  *   - `mixed` is true iff `concerns.length >= 2` (Property 4).
  */
 export type ClassifyConcernsResult = {
-  readonly blocks: ReadonlyArray<ClassifiedBlock>;
-  readonly concerns: ReadonlyArray<Concern_Category>;
+  readonly blocks: readonly ClassifiedBlock[];
+  readonly concerns: readonly Concern_Category[];
   readonly mixed: boolean;
 };
 

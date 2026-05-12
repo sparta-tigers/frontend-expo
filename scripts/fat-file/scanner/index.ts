@@ -43,9 +43,9 @@ import { sortScanResults } from "./sort.ts";
  */
 export type ScanOptions = {
   readonly rootDir: string;
-  readonly targets: ReadonlyArray<string>;
-  readonly extensions?: ReadonlyArray<string>;
-  readonly excludeDirs?: ReadonlyArray<string>;
+  readonly targets: readonly string[];
+  readonly extensions?: readonly string[];
+  readonly excludeDirs?: readonly string[];
 };
 
 /**
@@ -69,9 +69,9 @@ export type ScanOptions = {
 export function scan(opts: ScanOptions): ScanResult[] {
   const enumerateOpts: {
     readonly rootDir: string;
-    readonly targets: ReadonlyArray<string>;
-    extensions?: ReadonlyArray<string>;
-    excludeDirs?: ReadonlyArray<string>;
+    readonly targets: readonly string[];
+    extensions?: readonly string[];
+    excludeDirs?: readonly string[];
   } = {
     rootDir: opts.rootDir,
     targets: opts.targets,

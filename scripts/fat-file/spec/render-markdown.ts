@@ -4,7 +4,7 @@ import type { RefactoringSpecEntry } from "../types.ts";
 /**
  * Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5, 3.6
  */
-export function renderMarkdown(specs: RefactoringSpecEntry[]): string {
+export function renderMarkdown(specs: readonly RefactoringSpecEntry[]): string {
   let md = "# Fat File Refactoring Specification\n\n";
 
   for (const spec of specs) {

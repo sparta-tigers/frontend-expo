@@ -1,5 +1,5 @@
 // Feature: fat-file-refactoring, Property 16: Checklist Evaluation
-import fc from "fast-check";
+
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import { evaluateChecklist } from "./checklist.ts";

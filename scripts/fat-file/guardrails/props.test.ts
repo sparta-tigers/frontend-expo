@@ -1,5 +1,4 @@
 // Feature: fat-file-refactoring, Property 14: Sub-component props 최소성/참조 안정성 검사
-import fc from "fast-check";
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import { checkPropsStability } from "./props.ts";

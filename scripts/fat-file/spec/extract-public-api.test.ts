@@ -1,5 +1,4 @@
 // Feature: fat-file-refactoring, Property 11: Public_API 3축 무손실 추출
-import fc from "fast-check";
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import { extractPublicApi } from "./extract-public-api.ts";

@@ -30,6 +30,6 @@ export function planTask(spec: RefactoringSpecEntry): RefactoringTask {
   };
 }
 
-export function planTasks(specs: RefactoringSpecEntry[]): RefactoringTask[] {
+export function planTasks(specs: readonly RefactoringSpecEntry[]): RefactoringTask[] {
   return specs.map(planTask);
 }

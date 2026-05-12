@@ -14,7 +14,7 @@
 //   - The input array is never mutated.
 //   - The output is a permutation of the input (same multiset of elements).
 
-import fc from "fast-check";
+import { Arbitrary, array, assert as fcAssert, constant, constantFrom, integer, property, record, string } from "fast-check";
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 
@@ -29,30 +29,29 @@ import { compareScanResult, sortScanResults } from "./sort.ts";
 // axis (tier, loc, absolutePath) so the comparator's tie-break cascade is
 // actually exercised. `fc.string({ unit, ... })` is the v4 replacement for
 // the now-removed `fc.stringOf` constructor.
-const pathArb = fc.string({
-  unit: fc.constantFrom("a", "b", "c", "d"),
+const pathArb = string({
+  unit: constantFrom("a", "b", "c", "d"),
   minLength: 1,
   maxLength: 5,
 });
 
 // Tier determines the allowed `loc` band so the ScanResult invariant
 // `(loc >= 1000) ↔ (tier === "TOP")` holds by construction.
-const scanResultArb: fc.Arbitrary<ScanResult> = fc
-  .constantFrom("TOP" as const, "REVIEW" as const)
+const scanResultArb: Arbitrary<ScanResult> = constantFrom("TOP" as const, "REVIEW" as const)
   .chain((priorityTier) => {
     const locArb =
       priorityTier === "TOP"
-        ? fc.integer({ min: 1000, max: 2500 })
-        : fc.integer({ min: 500, max: 999 });
-    return fc.record({
+        ? integer({ min: 1000, max: 2500 })
+        : integer({ min: 500, max: 999 });
+    return record({
       absolutePath: pathArb,
       relativePath: pathArb,
       loc: locArb,
-      priorityTier: fc.constant(priorityTier),
+      priorityTier: constant(priorityTier),
     });
   });
 
-const scanResultsArb = fc.array(scanResultArb, { minLength: 0, maxLength: 20 });
+const scanResultsArb = array(scanResultArb, { minLength: 0, maxLength: 20 });
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -63,7 +62,7 @@ const scanResultsArb = fc.array(scanResultArb, { minLength: 0, maxLength: 20 });
  * every `ScanResult` is a flat record of string/number literals and the
  * fields are written in a fixed order by the arbitrary above.
  */
-function multiset(xs: ReadonlyArray<ScanResult>): string[] {
+function multiset(xs: readonly ScanResult[]): string[] {
   return xs.map((x) => JSON.stringify(x)).sort();
 }
 
@@ -72,8 +71,8 @@ function multiset(xs: ReadonlyArray<ScanResult>): string[] {
 // ---------------------------------------------------------------------------
 
 test("Property 6a: sortScanResults output is monotone non-decreasing under compareScanResult", () => {
-  fc.assert(
-    fc.property(scanResultsArb, (xs) => {
+  fcAssert(
+    property(scanResultsArb, (xs) => {
       const sorted = sortScanResults(xs);
       for (let i = 0; i < sorted.length - 1; i += 1) {
         assert.ok(
@@ -87,8 +86,8 @@ test("Property 6a: sortScanResults output is monotone non-decreasing under compa
 });
 
 test("Property 6b: sortScanResults is idempotent (sort ∘ sort = sort)", () => {
-  fc.assert(
-    fc.property(scanResultsArb, (xs) => {
+  fcAssert(
+    property(scanResultsArb, (xs) => {
       const once = sortScanResults(xs);
       const twice = sortScanResults(once);
       assert.deepEqual(twice, once);
@@ -97,8 +96,8 @@ test("Property 6b: sortScanResults is idempotent (sort ∘ sort = sort)", () => 
 });
 
 test("Property 6c: sortScanResults does not mutate the input array", () => {
-  fc.assert(
-    fc.property(scanResultsArb, (xs) => {
+  fcAssert(
+    property(scanResultsArb, (xs) => {
       const snapshot = xs.slice();
       sortScanResults(xs);
       assert.deepEqual(xs, snapshot);
@@ -107,8 +106,8 @@ test("Property 6c: sortScanResults does not mutate the input array", () => {
 });
 
 test("Property 6d: sortScanResults output is a permutation of the input", () => {
-  fc.assert(
-    fc.property(scanResultsArb, (xs) => {
+  fcAssert(
+    property(scanResultsArb, (xs) => {
       const sorted = sortScanResults(xs);
       assert.equal(sorted.length, xs.length);
       assert.deepEqual(multiset(sorted), multiset(xs));

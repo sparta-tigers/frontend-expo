@@ -1,15 +1,15 @@
 // Feature: fat-file-refactoring, Property 10: any 치환 완전성 및 잔존 0
-import fc from "fast-check";
+import { array, assert as fcAssert, constantFrom, nat, property, record, string } from "fast-check";
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import type { AnyOccurrence } from "../types.ts";
 import { planTypeReplacement } from "./plan-type-replacement.ts";
 
 test("Property 10: any 치환 완전성 및 잔존 0", () => {
-  const occArb = fc.record({
-    line: fc.nat(),
-    context: fc.constantFrom("variable", "parameter", "return", "generic", "assertion", "array", "record"),
-    snippet: fc.string()
+  const occArb = record({
+    line: nat(),
+    context: constantFrom("variable", "parameter", "return", "generic", "assertion", "array", "record"),
+    snippet: string()
   }).map((occ: any): AnyOccurrence => {
     // Generate valid snippets based on context
     let snippet = "";
@@ -21,8 +21,8 @@ test("Property 10: any 치환 완전성 및 잔존 0", () => {
     return { ...occ, snippet };
   });
 
-  fc.assert(
-    fc.property(fc.array(occArb), (occurrences) => {
+  fcAssert(
+    property(array(occArb), (occurrences) => {
       const replacements = planTypeReplacement(occurrences);
 
       // 1. R과 A는 라인 번호 기준 1:1 대응

@@ -4,7 +4,7 @@ import type { AnyOccurrence, TypeReplacement } from "../types.ts";
 /**
  * Validates: Requirements 6.1, 6.2, 6.3
  */
-export function planTypeReplacement(occurrences: ReadonlyArray<AnyOccurrence>): TypeReplacement[] {
+export function planTypeReplacement(occurrences: readonly AnyOccurrence[]): TypeReplacement[] {
   return occurrences.map((occ, idx) => {
     let to = "";
     let strategy: "named-type" | "named-interface" | "unknown-with-guard" = "named-interface";
@@ -36,7 +36,7 @@ export function planTypeReplacement(occurrences: ReadonlyArray<AnyOccurrence>): 
       from: occ.snippet,
       to,
       strategy,
-      guardFunction,
+      ...(guardFunction !== undefined ? { guardFunction } : {}),
     };
   });
 }

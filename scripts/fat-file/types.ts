@@ -137,9 +137,9 @@ export type AnyOccurrence = {
  * - Every `anyOccurrences[i].line` is within the source file's line range.
  */
 export type Diagnosis = ScanResult & {
-  readonly concerns: ReadonlyArray<Concern_Category>;
+  readonly concerns: readonly Concern_Category[];
   readonly mixed: boolean;
-  readonly anyOccurrences: ReadonlyArray<AnyOccurrence>;
+  readonly anyOccurrences: readonly AnyOccurrence[];
 };
 
 // ---------------------------------------------------------------------------
@@ -161,7 +161,7 @@ export type ModulePlan = {
   readonly path: string;
   readonly concern: Concern_Category;
   readonly expectedLoc: number;
-  readonly publicApi: ReadonlyArray<string>;
+  readonly publicApi: readonly string[];
 };
 
 /**
@@ -209,7 +209,7 @@ export type TypeReplacement = {
  */
 export type BarrelFilePlan = {
   readonly path: string;
-  readonly reExports: ReadonlyArray<string>;
+  readonly reExports: readonly string[];
 };
 
 /**
@@ -239,8 +239,8 @@ export type RefactoringException = {
  */
 export type RefactoringSpecEntry = {
   readonly source: Diagnosis;
-  readonly decomposition: ReadonlyArray<ModulePlan>;
-  readonly typeReplacements: ReadonlyArray<TypeReplacement>;
+  readonly decomposition: readonly ModulePlan[];
+  readonly typeReplacements: readonly TypeReplacement[];
   readonly barrelFile: BarrelFilePlan;
   readonly exception?: RefactoringException;
 };
@@ -282,9 +282,9 @@ export type RefactoringTaskState =
 export type RefactoringTask = {
   readonly id: string;
   readonly targetFile: string;
-  readonly generatedModules: ReadonlyArray<string>;
-  readonly expectedLocs: ReadonlyArray<number>;
-  readonly requirementsRefs: ReadonlyArray<number>;
+  readonly generatedModules: readonly string[];
+  readonly expectedLocs: readonly number[];
+  readonly requirementsRefs: readonly number[];
   readonly state: RefactoringTaskState;
 };
 
@@ -332,6 +332,6 @@ export type ValidationReport = {
   readonly file: string;
   readonly checklist: ValidationChecklist;
   readonly passed: boolean;
-  readonly failedReasons: ReadonlyArray<string>;
-  readonly notes: ReadonlyArray<string>;
+  readonly failedReasons: readonly string[];
+  readonly notes: readonly string[];
 };

@@ -26,7 +26,7 @@
 //   `classifyConcerns` 이다 (design.md 의 `classifyFile` 와 동의어).
 //   본 테스트는 구현이 실제로 export 하는 심볼을 그대로 호출한다.
 
-import fc from "fast-check";
+import { Arbitrary, array, assert as fcAssert, oneof, property, stringMatching } from "fast-check";
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import type { Concern_Category } from "../types.ts";
@@ -45,53 +45,53 @@ type CategorizedBlock = {
   readonly text: string;
 };
 
-const pascalName = fc.stringMatching(/^[A-Z][a-zA-Z0-9]{0,5}$/);
-const screamingName = fc.stringMatching(/^[A-Z][A-Z0-9_]{0,5}$/);
+const pascalName = stringMatching(/^[A-Z][a-zA-Z0-9]{0,5}$/);
+const screamingName = stringMatching(/^[A-Z][A-Z0-9_]{0,5}$/);
 
-const uiBlock: fc.Arbitrary<CategorizedBlock> = pascalName.map((n) => ({
+const uiBlock: Arbitrary<CategorizedBlock> = pascalName.map((n) => ({
   cat: "UI",
   text: `export function ${n}() { return ( <View><Text>hi</Text></View> ); }\n`,
 }));
 
-const logicFnBlock: fc.Arbitrary<CategorizedBlock> = pascalName.map((n) => ({
+const logicFnBlock: Arbitrary<CategorizedBlock> = pascalName.map((n) => ({
   cat: "Logic",
   text: `export function use${n}() { return 1; }\n`,
 }));
 
-const logicArrowBlock: fc.Arbitrary<CategorizedBlock> = pascalName.map((n) => ({
+const logicArrowBlock: Arbitrary<CategorizedBlock> = pascalName.map((n) => ({
   cat: "Logic",
   text: `export const use${n} = () => { return 1; };\n`,
 }));
 
-const logicBlock: fc.Arbitrary<CategorizedBlock> = fc.oneof(
+const logicBlock: Arbitrary<CategorizedBlock> = oneof([
   logicFnBlock,
   logicArrowBlock,
-);
+]);
 
-const typeBlock: fc.Arbitrary<CategorizedBlock> = pascalName.map((n) => ({
+const typeBlock: Arbitrary<CategorizedBlock> = pascalName.map((n) => ({
   cat: "Type",
   text: `export type ${n} = { a: number };\n`,
 }));
 
-const styleBlock: fc.Arbitrary<CategorizedBlock> = pascalName.map((n) => ({
+const styleBlock: Arbitrary<CategorizedBlock> = pascalName.map((n) => ({
   cat: "Style",
   text: `export const ${n}Styles = StyleSheet.create({ wrap: { flex: 1 } });\n`,
 }));
 
-const constantBlock: fc.Arbitrary<CategorizedBlock> = screamingName.map(
+const constantBlock: Arbitrary<CategorizedBlock> = screamingName.map(
   (n) => ({
     cat: "Constant",
     text: `export const ${n} = 42;\n`,
   }),
 );
 
-const categoryBlock: fc.Arbitrary<CategorizedBlock> = fc.oneof(
+const categoryBlock: Arbitrary<CategorizedBlock> = oneof([
   uiBlock,
   logicBlock,
   typeBlock,
   styleBlock,
   constantBlock,
-);
+]);
 
 const CANONICAL_ORDER: readonly Concern_Category[] = [
   "UI",
@@ -114,9 +114,9 @@ function expectedConcerns(
 // ---------------------------------------------------------------------------
 
 test("Property 4: classifyConcerns returns distinct canonical-ordered set, mixed = (concerns.length >= 2)", () => {
-  fc.assert(
-    fc.property(
-      fc.array(categoryBlock, { minLength: 1, maxLength: 6 }),
+  fcAssert(
+    property(
+      array(categoryBlock, { minLength: 1, maxLength: 6 }),
       (blocks) => {
         const source = blocks.map((b) => b.text).join("");
         const result = classifyConcerns(source);
@@ -166,7 +166,7 @@ test("mixed two-category input (UI + Logic) → mixed === true, canonical order"
 });
 
 test("each generated block is classified into exactly one of the 5 categories", () => {
-  const cases: ReadonlyArray<readonly [string, Concern_Category]> = [
+  const cases: readonly (readonly [string, Concern_Category])[] = [
     [
       `export function Foo() { return ( <View><Text>hi</Text></View> ); }`,
       "UI",

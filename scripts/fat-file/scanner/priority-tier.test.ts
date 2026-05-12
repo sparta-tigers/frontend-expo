@@ -14,7 +14,7 @@
 // Invalid loc values (NaN, negative) are also exercised: they must fall into
 // the "excluded" branch.
 
-import fc from "fast-check";
+import { assert as fcAssert, integer, property, string } from "fast-check";
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 
@@ -26,22 +26,22 @@ import { buildScanResult, priorityTier } from "./priority-tier.ts";
 
 // Non-negative integer loc that spans all three branches
 // (below REVIEW threshold, REVIEW band, TOP band).
-const nonNegativeLoc = fc.integer({ min: 0, max: 10_000 });
+const nonNegativeLoc = integer({ min: 0, max: 10_000 });
 
 // Absolute path: any non-empty printable string is sufficient for the
 // invariants we assert here. The scanner itself validates absolute-ness
 // elsewhere (Req 1.1); Property 1 only cares that the value is threaded
 // through unchanged.
-const absolutePathArb = fc.string({ minLength: 1, maxLength: 64 });
-const relativePathArb = fc.string({ minLength: 1, maxLength: 64 });
+const absolutePathArb = string({ minLength: 1, maxLength: 64 });
+const relativePathArb = string({ minLength: 1, maxLength: 64 });
 
 // ---------------------------------------------------------------------------
 // Properties
 // ---------------------------------------------------------------------------
 
 test("Property 1a: priorityTier partitions non-negative integer loc into three disjoint branches", () => {
-  fc.assert(
-    fc.property(nonNegativeLoc, (loc) => {
+  fcAssert(
+    property(nonNegativeLoc, (loc) => {
       const tier = priorityTier(loc);
       if (loc >= 1000) {
         assert.equal(tier, "TOP");
@@ -55,8 +55,8 @@ test("Property 1a: priorityTier partitions non-negative integer loc into three d
 });
 
 test("Property 1b: priorityTier biconditionals hold across a wide integer range", () => {
-  fc.assert(
-    fc.property(fc.integer({ min: -500, max: 5_000 }), (loc) => {
+  fcAssert(
+    property(integer({ min: -500, max: 5_000 }), (loc) => {
       const tier = priorityTier(loc);
       // (loc >= 1000) ↔ (tier === "TOP")
       assert.equal(loc >= 1000, tier === "TOP");
@@ -71,8 +71,8 @@ test("Property 1b: priorityTier biconditionals hold across a wide integer range"
 });
 
 test("Property 1c: buildScanResult returns null iff loc < 500", () => {
-  fc.assert(
-    fc.property(
+  fcAssert(
+    property(
       absolutePathArb,
       relativePathArb,
       nonNegativeLoc,
@@ -89,11 +89,11 @@ test("Property 1c: buildScanResult returns null iff loc < 500", () => {
 });
 
 test("Property 1d: ScanResult carries the (absolutePath, loc, priorityTier) 3-tuple and satisfies the biconditional", () => {
-  fc.assert(
-    fc.property(
+  fcAssert(
+    property(
       absolutePathArb,
       relativePathArb,
-      fc.integer({ min: 500, max: 10_000 }),
+      integer({ min: 500, max: 10_000 }),
       (absolutePath, relativePath, loc) => {
         const result = buildScanResult({ absolutePath, relativePath, loc });
         assert.notEqual(result, null);
@@ -132,8 +132,8 @@ test("Property 1e: invalid loc (NaN) is excluded from the scan output", () => {
 });
 
 test("Property 1f: negative loc is excluded from the scan output", () => {
-  fc.assert(
-    fc.property(fc.integer({ min: -1_000_000, max: -1 }), (loc) => {
+  fcAssert(
+    property(integer({ min: -1_000_000, max: -1 }), (loc) => {
       assert.equal(priorityTier(loc), null);
       assert.equal(
         buildScanResult({ absolutePath: "/x", relativePath: "x", loc }),

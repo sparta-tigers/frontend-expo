@@ -1,42 +1,42 @@
 // Feature: fat-file-refactoring, Property 15: Task_Planner의 결정론적 생성
-import fc from "fast-check";
+import { Arbitrary, array, assert as fcAssert, boolean, constant, constantFrom, nat, option, property, record, string } from "fast-check";
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import { planTask } from "./index.ts";
 import type { RefactoringSpecEntry } from "../types.ts";
 
 test("Property 15: Task_Planner의 결정론적 생성", () => {
-  const specArb = fc.record({
-    source: fc.record({
-      absolutePath: fc.constant("/path.ts"),
-      relativePath: fc.constant("path.ts"),
-      extension: fc.constant(".ts"),
-      content: fc.constant(""),
-      loc: fc.nat(),
-      priorityTier: fc.constant("TOP"),
-      concerns: fc.array(fc.constantFrom("Logic", "UI")),
-      mixed: fc.boolean(),
-      anyOccurrences: fc.constant([])
+  const specArb = record({
+    source: record({
+      absolutePath: constant("/path.ts"),
+      relativePath: constant("path.ts"),
+      extension: constant(".ts"),
+      content: constant(""),
+      loc: nat(),
+      priorityTier: constant("TOP"),
+      concerns: array(constantFrom("Logic", "UI")),
+      mixed: boolean(),
+      anyOccurrences: constant([])
     }),
-    decomposition: fc.array(fc.record({
-      path: fc.constant("mod.ts"),
-      concern: fc.constantFrom("Logic", "UI"),
-      expectedLoc: fc.nat(),
-      publicApi: fc.array(fc.string())
+    decomposition: array(record({
+      path: constant("mod.ts"),
+      concern: constantFrom("Logic", "UI"),
+      expectedLoc: nat(),
+      publicApi: array(string())
     })),
-    typeReplacements: fc.constant([]),
-    barrelFile: fc.record({
-      path: fc.constant("index.ts"),
-      reExports: fc.array(fc.string())
+    typeReplacements: constant([]),
+    barrelFile: record({
+      path: constant("index.ts"),
+      reExports: array(string())
     }),
-    exception: fc.option(fc.record({
-      reason: fc.constant("Exception"),
-      userConfirmationRequired: fc.constant(true as const)
+    exception: option(record({
+      reason: constant("Exception"),
+      userConfirmationRequired: constant(true as const)
     }))
-  }) as fc.Arbitrary<RefactoringSpecEntry>;
+  }) as Arbitrary<RefactoringSpecEntry>;
 
-  fc.assert(
-    fc.property(specArb, (spec) => {
+  fcAssert(
+    property(specArb, (spec) => {
       const task = planTask(spec);
 
       assert.equal(task.targetFile, spec.source.relativePath);

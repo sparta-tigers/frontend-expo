@@ -17,7 +17,7 @@
 //   - 테스트가 AST 나 정규식이 아닌, 실제 구현과 동일한 라인 스캔 규칙을
 //     검증하도록 입력 공간을 의도적으로 제한한다.
 
-import fc from "fast-check";
+import { Arbitrary, array, assert as fcAssert, constantFrom, nat, oneof, property } from "fast-check";
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import { countLoC } from "./count-loc.ts";
@@ -31,65 +31,61 @@ type Item = { readonly lines: readonly string[]; readonly count: number };
 
 // Body text that is safe inside any comment or code line: no `*`, `/`, `{`,
 // `}` so we never accidentally form `*/`, `/*`, `//`, or `{/*...*/}`.
-const SAFE_CHAR = fc.constantFrom("a", "b", "c", "x", "y", "1", "2", "3", " ");
-const safeBody = fc
-  .array(SAFE_CHAR, { maxLength: 20 })
+const SAFE_CHAR = constantFrom("a", "b", "c", "x", "y", "1", "2", "3", " ");
+const safeBody = array(SAFE_CHAR, { maxLength: 20 })
   .map((chars) => chars.join(""));
 
 // --- Item arbitraries ------------------------------------------------------
 
 // Code line: `const x = N`. Deterministically a real code line — no leading
 // `/`, `*`, or `{`, so the state machine falls through to rule 7.
-const codeItem: fc.Arbitrary<Item> = fc
-  .nat({ max: 9_999 })
+const codeItem: Arbitrary<Item> = nat({ max: 9_999 })
   .map((n) => ({ lines: [`const x = ${n}`], count: 1 }));
 
 // Blank line: empty or whitespace-only (both trim to "").
-const blankItem: fc.Arbitrary<Item> = fc
-  .nat({ max: 4 })
+const blankItem: Arbitrary<Item> = nat({ max: 4 })
   .map((spaces) => ({ lines: [" ".repeat(spaces)], count: 0 }));
 
 // Line comment occupying the whole line.
-const lineCommentItem: fc.Arbitrary<Item> = safeBody.map((body) => ({
+const lineCommentItem: Arbitrary<Item> = safeBody.map((body) => ({
   lines: [`// ${body}`],
   count: 0,
 }));
 
 // JSX comment-only line: `{/* ... */}`.
-const jsxCommentItem: fc.Arbitrary<Item> = safeBody.map((body) => ({
+const jsxCommentItem: Arbitrary<Item> = safeBody.map((body) => ({
   lines: [`{/* ${body} */}`],
   count: 0,
 }));
 
 // Single-line block comment: `/* ... */`.
-const singleBlockItem: fc.Arbitrary<Item> = safeBody.map((body) => ({
+const singleBlockItem: Arbitrary<Item> = safeBody.map((body) => ({
   lines: [`/* ${body} */`],
   count: 0,
 }));
 
 // Multi-line block comment: opening `/*`, 0..N interior lines that never
 // contain `*/`, closing ` */`.
-const multiBlockItem: fc.Arbitrary<Item> = fc
-  .array(safeBody, { maxLength: 4 })
+const multiBlockItem: Arbitrary<Item> = array(safeBody, { maxLength: 4 })
   .map((interiors) => ({
     lines: ["/*", ...interiors.map((b) => ` * ${b}`), " */"],
     count: 0,
   }));
 
-const anyItem: fc.Arbitrary<Item> = fc.oneof(
+const anyItem: Arbitrary<Item> = oneof(
   codeItem,
   blankItem,
   lineCommentItem,
   jsxCommentItem,
   singleBlockItem,
   multiBlockItem,
-);
+) as Arbitrary<Item>;
 
 // --- Property 3 ------------------------------------------------------------
 
 test("Property 3: countLoC ignores blanks and all comment shapes under arbitrary shuffling", () => {
-  fc.assert(
-    fc.property(fc.array(anyItem, { maxLength: 40 }), (items) => {
+  fcAssert(
+    property(array(anyItem, { maxLength: 40 }), (items) => {
       const expected = items.reduce((sum, item) => sum + item.count, 0);
       const source = items.flatMap((item) => item.lines).join("\n");
       assert.equal(countLoC(source), expected);

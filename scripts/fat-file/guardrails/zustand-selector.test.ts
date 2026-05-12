@@ -1,5 +1,4 @@
 // Feature: fat-file-refactoring, Property 13: Zustand selector arity 보존 검사
-import fc from "fast-check";
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import { checkZustandSelectors } from "./zustand-selector.ts";

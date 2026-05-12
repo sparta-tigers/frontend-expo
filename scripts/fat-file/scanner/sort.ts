@@ -60,6 +60,6 @@ export function compareScanResult(a: ScanResult, b: ScanResult): number {
  *   - Idempotent: `sortScanResults(sortScanResults(xs))` is deep-equal to
  *     `sortScanResults(xs)` because `compareScanResult` is a total order.
  */
-export function sortScanResults(xs: ReadonlyArray<ScanResult>): ScanResult[] {
+export function sortScanResults(xs: readonly ScanResult[]): ScanResult[] {
   return xs.slice().sort(compareScanResult);
 }

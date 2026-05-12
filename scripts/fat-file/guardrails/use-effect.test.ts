@@ -1,5 +1,4 @@
 // Feature: fat-file-refactoring, Property 12: useEffect 순증가 없음 및 동기화 이펙트 판별
-import fc from "fast-check";
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import { checkUseEffect } from "./use-effect.ts";

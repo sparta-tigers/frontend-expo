@@ -27,7 +27,7 @@
 //     가지지만 본 테스트는 `variable` 경로만 사용한다(현재 구현 계약을
 //     그대로 반영).
 
-import fc from "fast-check";
+import { Arbitrary, array, assert as fcAssert, nat, oneof, property } from "fast-check";
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import { detectAnyOccurrences } from "./detect-any.ts";
@@ -39,57 +39,51 @@ type Injection = { readonly kind: Kind; readonly line: string };
 
 // Each injection arbitrary yields exactly one `any` token in a shape that
 // the detector classifies into a single context (see "Zero Magic" note).
-const variableInjection: fc.Arbitrary<Injection> = fc
-  .nat({ max: 999 })
+const variableInjection: Arbitrary<Injection> = nat({ max: 999 })
   .map((n) => ({ kind: "variable", line: `let v${n}: any = 1` }));
 
-const assertionInjection: fc.Arbitrary<Injection> = fc
-  .nat({ max: 999 })
+const assertionInjection: Arbitrary<Injection> = nat({ max: 999 })
   .map((n) => ({ kind: "assertion", line: `const a${n} = x as any` }));
 
-const arrayInjection: fc.Arbitrary<Injection> = fc
-  .nat({ max: 999 })
+const arrayInjection: Arbitrary<Injection> = nat({ max: 999 })
   .map((n) => ({ kind: "array", line: `const arr${n}: any[] = []` }));
 
-const genericInjection: fc.Arbitrary<Injection> = fc
-  .nat({ max: 999 })
+const genericInjection: Arbitrary<Injection> = nat({ max: 999 })
   .map((n) => ({ kind: "generic", line: `const g${n} = foo<any>()` }));
 
-const recordInjection: fc.Arbitrary<Injection> = fc
-  .nat({ max: 999 })
+const recordInjection: Arbitrary<Injection> = nat({ max: 999 })
   .map((n) => ({
     kind: "record",
     line: `const r${n}: Record<string, any> = {}`,
   }));
 
-const injectionArb: fc.Arbitrary<Injection> = fc.oneof(
+const injectionArb: Arbitrary<Injection> = oneof(
   variableInjection,
   assertionInjection,
   arrayInjection,
   genericInjection,
   recordInjection,
-);
+) as Arbitrary<Injection>;
 
 // Safe base line: ASCII only, never contains `any`, always evaluated as a
 // real code line by the detector's comment state machine.
-const baseLineArb: fc.Arbitrary<string> = fc
-  .nat({ max: 9_999 })
+const baseLineArb: Arbitrary<string> = nat({ max: 9_999 })
   .map((n) => `const b${n} = ${n}`);
 
 type Chunk =
   | { readonly kind: "base"; readonly line: string }
   | { readonly kind: "injection"; readonly injection: Injection };
 
-const chunkArb: fc.Arbitrary<Chunk> = fc.oneof(
+const chunkArb: Arbitrary<Chunk> = oneof(
   baseLineArb.map((line): Chunk => ({ kind: "base", line })),
   injectionArb.map((injection): Chunk => ({ kind: "injection", injection })),
-);
+) as Arbitrary<Chunk>;
 
 // --- Property 5 ------------------------------------------------------------
 
 test("Property 5: detectAnyOccurrences recovers every injected any with correct line and context", () => {
-  fc.assert(
-    fc.property(fc.array(chunkArb, { maxLength: 40 }), (chunks) => {
+  fcAssert(
+    property(array(chunkArb, { maxLength: 40 }), (chunks) => {
       const lines: string[] = [];
       const expected: { line: number; context: Kind }[] = [];
 
@@ -116,7 +110,7 @@ test("Property 5: detectAnyOccurrences recovers every injected any with correct 
       // 2) (line, context) multiset equality. Sort by `line` for a stable
       //    comparison — each injected line carries at most one `any`, so
       //    the line number alone keys the pair unambiguously.
-      const norm = (rows: ReadonlyArray<{ line: number; context: string }>) =>
+      const norm = (rows: readonly { line: number; context: string }[]) =>
         [...rows].sort((a, b) => a.line - b.line);
 
       assert.deepEqual(

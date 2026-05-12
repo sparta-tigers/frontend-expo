@@ -1,20 +1,20 @@
 // Feature: fat-file-refactoring, Property 9: 네이밍 규칙 매핑의 건전성
-import fc from "fast-check";
+import { array, assert as fcAssert, constantFrom, property, tuple } from "fast-check";
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
 import { namingMap } from "./naming-map.ts";
 
 const letterChars = Array.from("abcdefghijklmnopqrstuvwxyz");
 const idChars = Array.from("abcdefghijklmnopqrstuvwxyz0123456789");
-const idSegmentArb = fc.tuple(
-  fc.constantFrom(...letterChars),
-  fc.array(fc.constantFrom(...idChars), { minLength: 0, maxLength: 9 })
+const idSegmentArb = tuple(
+  constantFrom(...letterChars),
+  array(constantFrom(...idChars), { minLength: 0, maxLength: 9 })
 ).map(([first, rest]) => first + rest.join(""));
-const kebabArb = fc.array(idSegmentArb, { minLength: 1, maxLength: 5 }).map(parts => parts.join("-"));
+const kebabArb = array(idSegmentArb, { minLength: 1, maxLength: 5 }).map(parts => parts.join("-"));
 
 test("Property 9: 네이밍 규칙 매핑의 건전성", () => {
-  fc.assert(
-    fc.property(kebabArb, (featureId) => {
+  fcAssert(
+    property(kebabArb, (featureId) => {
       // Logic
       const logic = namingMap("Logic", featureId);
       assert.match(logic.filename, /^use-[a-z0-9-]+\.ts$/);

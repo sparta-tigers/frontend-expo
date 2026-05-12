@@ -23,7 +23,7 @@
 //   - Assert soundness (every returned path passes (a)+(b)+(c)) and
 //     completeness (every file matching (a)+(b)+(c) is in the result).
 
-import fc from "fast-check";
+import { array, assert as fcAssert, constantFrom, property, record, stringMatching } from "fast-check";
 import { strict as assert } from "node:assert";
 import * as fs from "node:fs";
 import * as os from "node:os";
@@ -49,7 +49,7 @@ const TARGETS = ["foo", "bar", "baz"] as const;
 //   - EXCLUDED segment names: "node_modules", ".expo", "dist", "build", ".git"
 //     (should be pruned by (c), at any depth)
 //   - Plain directory names: "a", "b", "c"
-const segmentArb = fc.constantFrom(
+const segmentArb = constantFrom(
   "foo",
   "bar",
   "baz",
@@ -65,7 +65,7 @@ const segmentArb = fc.constantFrom(
 );
 
 // Mix of source and non-source extensions so completeness is non-trivial.
-const extensionArb = fc.constantFrom(
+const extensionArb = constantFrom(
   ".ts",
   ".tsx",
   ".js",
@@ -75,19 +75,19 @@ const extensionArb = fc.constantFrom(
 );
 
 // File base name — short, filesystem-safe, non-empty.
-const baseNameArb = fc.stringMatching(/^[a-z][a-z0-9]{0,5}$/);
+const baseNameArb = stringMatching(/^[a-z][a-z0-9]{0,5}$/);
 
 // A single file entry: 1..4 directory segments + a base name + an extension.
 // The first segment acts as the top-level; when it is not in TARGETS the
 // entry is always excluded by condition (a).
-const fileEntryArb = fc.record({
-  segments: fc.array(segmentArb, { minLength: 1, maxLength: 4 }),
+const fileEntryArb = record({
+  segments: array(segmentArb, { minLength: 1, maxLength: 4 }),
   baseName: baseNameArb,
   ext: extensionArb,
 });
 
 // A file tree: at most 20 entries to keep each fc run cheap and shrink-friendly.
-const fileTreeArb = fc.array(fileEntryArb, { minLength: 0, maxLength: 20 });
+const fileTreeArb = array(fileEntryArb, { minLength: 0, maxLength: 20 });
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -119,14 +119,14 @@ function shouldBeIncluded(relPath: string): boolean {
 
   // (c) no segment may equal an excluded directory name.
   for (const seg of segments) {
-    if ((DEFAULT_EXCLUDE_DIRS as ReadonlyArray<string>).includes(seg)) {
+    if ((DEFAULT_EXCLUDE_DIRS as readonly string[]).includes(seg)) {
       return false;
     }
   }
 
   // (b) extension must be in the allowlist.
   const ext = path.extname(segments[segments.length - 1]);
-  if (!(DEFAULT_EXTENSIONS as ReadonlyArray<string>).includes(ext)) {
+  if (!(DEFAULT_EXTENSIONS as readonly string[]).includes(ext)) {
     return false;
   }
 
@@ -141,7 +141,7 @@ function shouldBeIncluded(relPath: string): boolean {
  */
 function materializeTree(
   rootDir: string,
-  entries: ReadonlyArray<FileEntry>,
+  entries: readonly FileEntry[],
 ): Set<string> {
   const uniqueRel = new Set<string>();
   for (const entry of entries) {
@@ -170,8 +170,8 @@ test("Property 2: enumerateSourceFiles is sound and complete w.r.t. (targets, ex
     fs.rmSync(parentTmp, { recursive: true, force: true });
   });
 
-  fc.assert(
-    fc.property(fileTreeArb, (entries) => {
+  fcAssert(
+    property(fileTreeArb, (entries) => {
       // Each fc iteration gets its own rootDir under parentTmp and cleans up
       // deterministically, regardless of assertion outcome.
       const rootDir = fs.mkdtempSync(path.join(parentTmp, "run-"));
@@ -180,7 +180,7 @@ test("Property 2: enumerateSourceFiles is sound and complete w.r.t. (targets, ex
 
         const result = enumerateSourceFiles({
           rootDir,
-          targets: TARGETS as ReadonlyArray<string>,
+          targets: TARGETS as readonly string[],
         });
 
         // Convert absolute paths back to rootDir-relative for assertions.
