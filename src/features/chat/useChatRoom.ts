@@ -17,6 +17,12 @@ import { useWebSocket } from "@/src/hooks/useWebSocket";
 import { ApiResponse } from "@/src/shared/types/common";
 import { Logger } from "@/src/utils/logger";
 
+/**
+ * ChatMessage
+ *
+ * Why: id가 음수(negative)인 경우 낙관적 업데이트용 임시 메시지를 의미.
+ *      isMine 판정은 현재 로그인 userId와 senderId 비교로 결정됨.
+ */
 export interface ChatMessage {
   id: number;
   roomId: number;
@@ -28,11 +34,23 @@ export interface ChatMessage {
   type?: "CHAT" | "SYSTEM";
 }
 
+/**
+ * ChatMessagesPage
+ *
+ * Why: 무한 스크롤 페이지 단위 캐싱을 위해 content 배열과 함께
+ *      hasNext 플래그(API의 last 역산)를 묶은 단위.
+ */
 interface ChatMessagesPage {
   content: ChatMessage[];
   hasNext: boolean;
 }
 
+/**
+ * ExchangeItem
+ *
+ * Why: 채팅방과 연결된 중고 거래/교환 아이템의 정보를 담는 DTO.
+ *      상태(status, exchangeStatus)에 따라 채팅 입력창 활성화 여부가 결정됨.
+ */
 export interface ExchangeItem {
   itemId: number;
   title: string;
@@ -44,6 +62,11 @@ export interface ExchangeItem {
   exchangeStatus: "PENDING" | "ACCEPTED" | "REJECTED" | "COMPLETED";
 }
 
+/**
+ * UseChatRoomReturn
+ *
+ * Why: useChatRoom 훅의 반환 타입 정의. UI에서 필요한 모든 상태와 핸들러를 포함.
+ */
 interface UseChatRoomReturn {
   exchangeItem: ExchangeItem | undefined;
   itemLoading: boolean;
@@ -76,7 +99,11 @@ export function useChatRoom(
 
   const roomIdNumber = Number(roomId);
   const isRoomIdInvalid =
-    !roomId || !Number.isFinite(roomIdNumber) || roomIdNumber <= 0;
+    !roomId ||
+    roomId === "undefined" ||
+    roomId === "null" ||
+    !Number.isFinite(roomIdNumber) ||
+    roomIdNumber <= 0;
 
   // 아이템 조회
   const { data: exchangeItem, isLoading: itemLoading } = useQuery({
@@ -123,7 +150,7 @@ export function useChatRoom(
         isMine: message.isMyMessage ?? false,
         type: "CHAT" as const,
       }));
-      return { content: mapped, hasNext: mapped.length > 0 };
+      return { content: mapped, hasNext: !(response.data?.last ?? true) };
     },
     getNextPageParam: (lastPage, allPages) =>
       lastPage.hasNext ? allPages.length : undefined,
@@ -137,7 +164,10 @@ export function useChatRoom(
   }, [messagesData]);
 
   // WebSocket
-  const { client, connect, status: wsStatus } = useWebSocket(roomId, "directroom");
+  const { client, connect, status: wsStatus } = useWebSocket(
+    isRoomIdInvalid ? "" : roomId,
+    "directroom",
+  );
   const isConnected = wsStatus === "CONNECTED";
 
   // 메시지 수신 → QueryClient 업데이트
@@ -195,6 +225,7 @@ export function useChatRoom(
       type: "CHAT",
     };
 
+    const prevText = messageText;
     handleMessageReceived(optimistic);
     setMessageText("");
 
@@ -222,6 +253,8 @@ export function useChatRoom(
           };
         },
       );
+      // Why: 사용자가 다시 타이핑하지 않도록 입력값 복원
+      setMessageText(prevText);
       Alert.alert("전송 실패", "메시지 전송에 실패했습니다.");
     }
   }, [client, handleMessageReceived, isConnected, messageText, queryClient, roomIdNumber, user, setMessageText]);

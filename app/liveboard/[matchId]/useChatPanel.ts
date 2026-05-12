@@ -15,6 +15,8 @@ export interface ChatBubbleMessage {
   text: string;
   time: string; // HH:mm
   mine: boolean;
+  /** Why: 동일 텍스트 중복 전송 시 정확한 낙관적 메시지 식별을 위한 생성 시각(ms) */
+  localTimestamp?: number;
 }
 
 /**
@@ -88,7 +90,9 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
                     !(
                       m.key.startsWith("local-") &&
                       m.senderId === bubble.senderId &&
-                      m.text === bubble.text
+                      m.text === bubble.text &&
+                      // Why: 1초 이내 전송된 낙관적 메시지만 대체 (동일 텍스트 중복 전송 방어)
+                      Math.abs(new Date(parsed.sentAt).getTime() - (m.localTimestamp ?? 0)) < 1000
                     ),
                 )
               : prev;
@@ -139,6 +143,7 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
       text: content,
       time: new Date().toTimeString().slice(0, 5),
       mine: true,
+      localTimestamp: Date.now(),
     };
     setMessages((prev) => [...prev, optimistic]);
     setDraft("");
