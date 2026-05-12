@@ -2,6 +2,7 @@ import { Box, Typography } from "@/components/ui";
 import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
 import { theme } from "@/src/styles/theme";
 import { getTeamColorPath } from "@/src/utils/team";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
@@ -127,14 +128,9 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                       width="100%"
                     >
                       {cell.hasAttendance && (
-                        <Box
-                          position="absolute"
-                          top={2}
-                          left="50%"
-                          style={styles.attendanceDot}
-                          rounded="full"
-                          bg="error"
-                        />
+                        <Box style={styles.attendanceStamp}>
+                          <Ionicons name="checkmark-done-circle" size={32} color={theme.colors.brand.mintAlpha10} />
+                        </Box>
                       )}
                       <Typography
                         variant="caption"
@@ -239,9 +235,11 @@ const styles = StyleSheet.create({
   timeText: {
     fontSize: theme.typography.size.xs,
   },
-  attendanceDot: {
-    width: 4,
-    height: 4,
-    marginLeft: -2,
+  attendanceStamp: {
+    position: "absolute",
+    top: "10%",
+    left: "10%",
+    opacity: 0.8,
+    zIndex: 1,
   },
 });

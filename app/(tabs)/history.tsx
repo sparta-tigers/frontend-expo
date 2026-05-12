@@ -9,6 +9,7 @@ import { FlatList, StyleSheet, TouchableOpacity, ActivityIndicator } from "react
 import { Ionicons } from "@expo/vector-icons";
 import { favoriteTeamGetAPI } from "@/src/features/user/favorite-team-api";
 import { FavoriteTeam } from "@/src/features/user/favorite-team";
+import { calculateMatchResult } from "@/src/utils/match";
 
 /**
  * 🚨 [Phase 24] 직관 기록 목록 화면 (Match Diary)
@@ -26,21 +27,13 @@ export default function HistoryScreen() {
   }, []);
 
   const getMatchResult = (item: MatchAttendance) => {
-    // 🚨 앙드레 카파시: null/undefined 체크를 유연하게 수행 (JS == null 은 null과 undefined 모두 체크)
-    if (item.homeScore == null || item.awayScore == null || !favoriteTeam) return null;
-    
-    const isHome = item.homeTeamCode === favoriteTeam.teamCode;
-    const isAway = item.awayTeamCode === favoriteTeam.teamCode;
-    
-    // 응원 팀이 참여한 경기가 아닌 경우
-    if (!isHome && !isAway) return { text: "MATCH", color: theme.colors.text.secondary, emoji: "🏟️" };
-    
-    const myScore = isHome ? item.homeScore : item.awayScore;
-    const opponentScore = isHome ? item.awayScore : item.homeScore;
-    
-    if (myScore > opponentScore) return { text: "WIN", color: theme.colors.brand.mint, emoji: "😊" };
-    if (myScore < opponentScore) return { text: "LOSE", color: theme.colors.error, emoji: "😭" };
-    return { text: "DRAW", color: theme.colors.text.secondary, emoji: "😐" };
+    return calculateMatchResult(
+      item.homeScore,
+      item.awayScore,
+      item.homeTeamCode,
+      item.awayTeamCode,
+      favoriteTeam?.teamCode
+    );
   };
 
   const renderAttendanceItem = ({ item }: { item: MatchAttendance }) => {

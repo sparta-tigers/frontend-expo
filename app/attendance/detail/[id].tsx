@@ -10,6 +10,7 @@ import { Image } from "expo-image";
 import { TEAM_DATA, isValidTeamCode } from "@/src/utils/team";
 import { favoriteTeamGetAPI } from "@/src/features/user/favorite-team-api";
 import { FavoriteTeam } from "@/src/features/user/favorite-team";
+import { calculateMatchResult } from "@/src/utils/match";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -65,19 +66,13 @@ export default function AttendanceDetailScreen() {
   
   // 승무패 결과 계산
   const getMatchResult = () => {
-    if (attendance.homeScore == null || attendance.awayScore == null || !favoriteTeam) return null;
-    
-    const isHome = attendance.homeTeamCode === favoriteTeam.teamCode;
-    const isAway = attendance.awayTeamCode === favoriteTeam.teamCode;
-    
-    if (!isHome && !isAway) return { text: "경기 종료", color: theme.colors.text.secondary, emoji: "🏟️" };
-    
-    const myScore = isHome ? attendance.homeScore : attendance.awayScore;
-    const opponentScore = isHome ? attendance.awayScore : attendance.homeScore;
-    
-    if (myScore > opponentScore) return { text: "WIN", color: theme.colors.brand.mint, emoji: "😊" };
-    if (myScore < opponentScore) return { text: "LOSE", color: theme.colors.error, emoji: "😭" };
-    return { text: "DRAW", color: theme.colors.text.secondary, emoji: "😐" };
+    return calculateMatchResult(
+      attendance.homeScore,
+      attendance.awayScore,
+      attendance.homeTeamCode,
+      attendance.awayTeamCode,
+      favoriteTeam?.teamCode
+    );
   };
 
   const result = getMatchResult();
