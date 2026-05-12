@@ -1,7 +1,7 @@
 // app/exchange/chat/[roomId].tsx
 // Why: Expo Router 라우트 파일. 실제 로직은 [roomId]/ 하위 모듈에 위임.
 import { useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
+import React from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -19,7 +19,6 @@ import { useAuth } from "@/src/hooks/useAuth";
 export default function ChatRoomScreen() {
   const { roomId } = useLocalSearchParams<{ roomId: string }>();
   const { user } = useAuth();
-  const [messageText, setMessageText] = useState("");
 
   const {
     exchangeItem,
@@ -33,7 +32,9 @@ export default function ChatRoomScreen() {
     handleSendMessage,
     handleStatusChange,
     isRoomIdInvalid,
-  } = useChatRoom(roomId, setMessageText, messageText);
+    messageText,
+    setMessageText,
+  } = useChatRoom(roomId);
 
   if (isRoomIdInvalid) {
     return (
