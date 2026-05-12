@@ -17,7 +17,11 @@ import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
 import { Ionicons } from "@expo/vector-icons";
-import { useCreateAttendance, useMyAttendances } from "@/src/features/match-attendance/queries";
+import { 
+  useCreateAttendance, 
+  useUpdateAttendance,
+  useMyAttendances 
+} from "@/src/features/match-attendance/queries";
 
 /**
  * 🚨 [Phase 24] 직관 기록 작성/수정 화면
@@ -29,10 +33,12 @@ export default function AttendanceFormScreen() {
   const { matchId } = useLocalSearchParams<{ matchId: string }>();
   const { data: attendances } = useMyAttendances();
   const createAttendanceMutation = useCreateAttendance();
+  const updateAttendanceMutation = useUpdateAttendance();
 
   const [contents, setContents] = useState("");
   const [seat, setSeat] = useState("");
   const [images, setImages] = useState<string[]>([]);
+  const [existingId, setExistingId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 기존 기록이 있는지 확인 (수정 모드 대비)
@@ -40,6 +46,7 @@ export default function AttendanceFormScreen() {
     if (attendances && matchId) {
       const existing = attendances.find(a => a.matchId === Number(matchId));
       if (existing) {
+        setExistingId(existing.id);
         setContents(existing.contents);
         setSeat(existing.seat);
         setImages(existing.imageUrls);
@@ -75,26 +82,21 @@ export default function AttendanceFormScreen() {
     try {
       const formData = new FormData();
       
+      const oldImageUrls = images.filter(img => img.startsWith('http'));
+      
       // Request DTO (JSON Blob)
-      const requestDto = {
-        matchId: Number(matchId),
-        seat,
-        contents,
-      };
+      const requestDto = existingId 
+        ? { seat, contents, oldImageUrls }
+        : { matchId: Number(matchId), seat, contents };
       
       formData.append("request", {
         string: JSON.stringify(requestDto),
         type: 'application/json',
       } as any);
 
-      // Image Processing (Resizing)
-      for (const uri of images) {
-        if (uri.startsWith('http')) {
-          // 기존 서버 이미지는 URL 문자열로 추가 (백엔드 구현에 따라 다를 수 있음)
-          // 현재 백엔드 DTO에 imageUrls 리스트가 있으므로 requestDto에 포함하거나 별도 처리 필요
-          continue; 
-        }
-
+      // New Image Processing
+      const newImages = images.filter(img => !img.startsWith('http'));
+      for (const uri of newImages) {
         const manipulatedImage = await ImageManipulator.manipulateAsync(
           uri,
           [{ resize: { width: 1024 } }],
@@ -112,7 +114,12 @@ export default function AttendanceFormScreen() {
         } as any);
       }
 
-      await createAttendanceMutation.mutateAsync(formData);
+      if (existingId) {
+        await updateAttendanceMutation.mutateAsync({ id: existingId, formData });
+      } else {
+        await createAttendanceMutation.mutateAsync(formData);
+      }
+
       Alert.alert("성공", "직관 기록이 저장되었습니다.", [
         { text: "확인", onPress: () => router.back() }
       ]);

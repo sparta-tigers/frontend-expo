@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
   attendanceGetMyAPI, 
   attendanceCreateAPI, 
+  attendanceUpdateAPI,
   attendanceDeleteAPI 
 } from "./api";
 
@@ -39,6 +40,21 @@ export const useCreateAttendance = () => {
     mutationFn: (formData: FormData) => attendanceCreateAPI(formData),
     onSuccess: () => {
       // 목록 쿼리 무효화
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
+    },
+  });
+};
+
+/**
+ * 직관 기록 수정 뮤테이션
+ */
+export const useUpdateAttendance = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, formData }: { id: number; formData: FormData }) => 
+      attendanceUpdateAPI(id, formData),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
     },
   });
