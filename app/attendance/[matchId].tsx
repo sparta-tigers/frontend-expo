@@ -2,7 +2,7 @@ import { Box, Typography } from "@/components/ui";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import {
   useCreateAttendance,
-  useMyAttendances,
+  useMyAttendanceByMatchId,
   useUpdateAttendance,
 } from "@/src/features/match-attendance/queries";
 import { useQueryClient } from "@tanstack/react-query";
@@ -32,7 +32,9 @@ import {
  */
 export default function AttendanceFormScreen() {
   const { matchId } = useLocalSearchParams<{ matchId: string }>();
-  const { data: attendances } = useMyAttendances();
+  const matchIdNumber = Number(matchId);
+  
+  const { data: attendance, isLoading: isAttendanceLoading } = useMyAttendanceByMatchId(matchIdNumber);
   const createAttendanceMutation = useCreateAttendance();
   const updateAttendanceMutation = useUpdateAttendance();
   const queryClient = useQueryClient();
@@ -43,26 +45,32 @@ export default function AttendanceFormScreen() {
   const [existingId, setExistingId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // [Phase 2-1] 라우트 파라미터 유효성 검사 (Fail-fast)
-  const matchIdNumber = Number(matchId);
-
-  // 기존 기록이 있는지 확인 (수정 모드 대비)
+  /**
+   * 🎯 [Phase 2] 결정론적 수정 모드 판별 및 데이터 초기화
+   * Why: matchId 단건 조회 결과(attendance)가 존재하면 수정 모드로 동작함.
+   * 100건 제한 목록에 의존하지 않아 데이터 누락 위험이 없음.
+   */
   useEffect(() => {
-    // [Phase 2-1] 라우트 파라미터 유효성 검사 (useEffect 내부)
-    if (!matchId || isNaN(matchIdNumber)) {
-      return;
+    if (attendance) {
+      setExistingId(attendance.id);
+      setContents(attendance.contents);
+      setSeat(attendance.seat);
+      setImages(attendance.images.map(img => img.imageUrl));
     }
+  }, [attendance]);
 
-    if (attendances && matchId) {
-      const existing = attendances.find((a) => a.matchId === matchIdNumber);
-      if (existing) {
-        setExistingId(existing.id);
-        setContents(existing.contents);
-        setSeat(existing.seat);
-        setImages(existing.images.map(img => img.imageUrl));
-      }
-    }
-  }, [attendances, matchId, matchIdNumber]);
+  if (isAttendanceLoading) {
+    return (
+      <SafeLayout style={styles.safeLayout}>
+        <Box flex={1} justify="center" align="center">
+          <ActivityIndicator size="large" color={theme.colors.brand.mint} />
+          <Typography variant="caption" color="text.secondary" mt="md">
+            기록을 확인하고 있습니다...
+          </Typography>
+        </Box>
+      </SafeLayout>
+    );
+  }
 
   if (!matchId || isNaN(matchIdNumber)) {
     // 화이트 스크린 방지: 명시적인 에러 UI 렌더링
@@ -99,6 +107,10 @@ export default function AttendanceFormScreen() {
     );
   }
 
+  /**
+   * 사진 선택 핸들러
+   * Why: 네이티브 갤러리 API를 호출하여 직관 인증샷을 안전하게 메모리에 적재하기 위함.
+   */
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -113,10 +125,18 @@ export default function AttendanceFormScreen() {
     }
   };
 
+  /**
+   * 사진 제거 핸들러
+   * Why: 업로드 전 사용자가 잘못 선택한 사진을 목록에서 제외하기 위함.
+   */
   const removeImage = (index: number) => {
     setImages(images.filter((_, i) => i !== index));
   };
 
+  /**
+   * 기록 저장 핸들러
+   * Why: 작성된 일기와 사진을 Multipart/form-data 형태로 백엔드에 전송하여 영구 저장하기 위함.
+   */
   const handleSubmit = async () => {
     if (!seat.trim()) {
       Alert.alert("알림", "좌석 정보를 입력해주세요.");
@@ -314,8 +334,8 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.md,
     padding: theme.spacing.md,
     color: theme.colors.text.primary,
-    fontSize: 16,
-    borderWidth: 1,
+    fontSize: theme.typography.size.md,
+    borderWidth: theme.colors.border.width.light,
     borderColor: theme.colors.border.medium,
   },
   textArea: {
@@ -323,17 +343,17 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.md,
     padding: theme.spacing.md,
     color: theme.colors.text.primary,
-    fontSize: 16,
-    borderWidth: 1,
+    fontSize: theme.typography.size.md,
+    borderWidth: theme.colors.border.width.light,
     borderColor: theme.colors.border.medium,
-    minHeight: 150,
+    minHeight: 150, // 🚨 고정 높이는 레이아웃 특성상 허용
   },
   imagePickerButton: {
-    width: 100,
+    width: 100, // 🚨 이미지 그리드 규격은 테마보다 상수로 관리 고려 가능
     height: 100,
     borderRadius: theme.radius.md,
     backgroundColor: theme.colors.surface,
-    borderWidth: 1,
+    borderWidth: theme.colors.border.width.light,
     borderStyle: "dashed",
     borderColor: theme.colors.border.medium,
     justifyContent: "center",
@@ -347,15 +367,15 @@ const styles = StyleSheet.create({
   },
   removeButton: {
     position: "absolute",
-    top: -8,
-    right: -8,
+    top: -theme.spacing.xs,
+    right: -theme.spacing.xs,
     backgroundColor: theme.colors.error,
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: theme.radius.full,
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 2,
+    borderWidth: theme.colors.border.width.medium,
     borderColor: theme.colors.background,
   },
   submitButton: {
