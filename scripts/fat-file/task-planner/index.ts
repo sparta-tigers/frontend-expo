@@ -1,4 +1,5 @@
 // Feature: fat-file-refactoring
+import { createHash } from "node:crypto";
 import type { RefactoringSpecEntry, RefactoringTask } from "../types.ts";
 
 /**
@@ -12,8 +13,15 @@ export function planTask(spec: RefactoringSpecEntry): RefactoringTask {
   const generatedModules = spec.decomposition.map(m => m.path);
   const expectedLocs = spec.decomposition.map(m => m.expectedLoc);
 
+  // Why: 동일 파일에 대해 항상 동일한 ID를 보장하는 결정론적 생성.
+  //      Date.now() + random 조합은 파이프라인 재실행 시 ID가 달라져 상태 추적을 불가능하게 한다.
+  const hash = createHash("sha256")
+    .update(spec.source.relativePath)
+    .digest("hex")
+    .slice(0, 12);
+
   return {
-    id: `TASK-${Date.now()}-${Math.floor(Math.random() * 10000)}`, // Simple deterministic-ish ID, for strict deterministic use hashing of relativePath
+    id: `TASK-${hash}`,
     targetFile: spec.source.relativePath,
     generatedModules,
     expectedLocs,
