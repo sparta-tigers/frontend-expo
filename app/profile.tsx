@@ -12,11 +12,11 @@ import {
   MenuDivider,
   MenuItem,
   MenuSection,
-} from "./profile/ProfileMenu";
-import { TeamSelectSheet } from "./profile/TeamSelectSheet";
-import { NicknameEditModal } from "./profile/NicknameEditModal";
-import { LOCAL_LAYOUT, styles } from "./profile/profile.styles";
-import { useProfile, KBO_TEAMS } from "./profile/useProfile";
+} from "@/src/features/user/components/ProfileMenu";
+import { TeamSelectSheet } from "@/src/features/user/components/TeamSelectSheet";
+import { NicknameEditModal } from "@/src/features/user/components/NicknameEditModal";
+import { LOCAL_LAYOUT, styles } from "@/src/features/user/styles/profile.styles";
+import { useProfile, KBO_TEAMS } from "@/src/features/user/hooks/useProfile";
 
 export default function ProfileScreen() {
   const {

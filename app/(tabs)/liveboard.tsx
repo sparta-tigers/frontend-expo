@@ -17,8 +17,8 @@ import {
   WeekDayDto,
   getWeatherDisplay,
   useLiveboard,
-} from "./liveboard/useLiveboard";
-import { LOCAL_LAYOUT, styles } from "./liveboard/liveboard.styles";
+} from "@/src/features/liveboard/hooks/useLiveboard";
+import { LOCAL_LAYOUT, styles } from "@/src/features/liveboard/styles/liveboard.styles";
 
 /**
  * 라이브보드 화면

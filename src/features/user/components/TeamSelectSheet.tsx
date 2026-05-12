@@ -1,4 +1,4 @@
-// app/profile/TeamSelectSheet.tsx
+// src/features/user/components/TeamSelectSheet.tsx
 import React from "react";
 import { TouchableOpacity } from "react-native";
 import {
@@ -11,8 +11,8 @@ import { Box } from "@/components/ui/box";
 import { Typography } from "@/components/ui/typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { theme } from "@/src/styles/theme";
-import { styles, LOCAL_LAYOUT } from "./profile.styles";
-import { KBO_TEAMS } from "./useProfile";
+import { styles, LOCAL_LAYOUT } from "@/src/features/user/styles/profile.styles";
+import { KBO_TEAMS } from "@/src/features/user/hooks/useProfile";
 
 interface TeamSelectSheetProps {
   modalRef: React.RefObject<BottomSheetModal | null>;

@@ -1,12 +1,12 @@
-// app/liveboard/[matchId]/ChatPanel.tsx
+// src/features/liveboard/components/ChatPanel.tsx
 import { Box } from "@/components/ui/box";
 import { Typography } from "@/components/ui/typography";
 import { theme } from "@/src/styles/theme";
 import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import { ScrollView, TextInput, TouchableOpacity } from "react-native";
-import { ChatBubbleMessage, useChatPanel } from "./useChatPanel";
-import { styles } from "./matchId.styles";
+import { ChatBubbleMessage, useChatPanel } from "@/src/features/liveboard/hooks/useChatPanel";
+import { styles } from "@/src/features/liveboard/styles/matchId.styles";
 
 function ChatBubble({
   author,
