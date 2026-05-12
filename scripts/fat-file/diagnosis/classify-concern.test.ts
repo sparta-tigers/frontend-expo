@@ -63,10 +63,10 @@ const logicArrowBlock: Arbitrary<CategorizedBlock> = pascalName.map((n) => ({
   text: `export const use${n} = () => { return 1; };\n`,
 }));
 
-const logicBlock: Arbitrary<CategorizedBlock> = oneof([
+const logicBlock: Arbitrary<CategorizedBlock> = oneof(
   logicFnBlock,
-  logicArrowBlock,
-]);
+  logicArrowBlock
+);
 
 const typeBlock: Arbitrary<CategorizedBlock> = pascalName.map((n) => ({
   cat: "Type",
@@ -85,13 +85,13 @@ const constantBlock: Arbitrary<CategorizedBlock> = screamingName.map(
   }),
 );
 
-const categoryBlock: Arbitrary<CategorizedBlock> = oneof([
+const categoryBlock: Arbitrary<CategorizedBlock> = oneof(
   uiBlock,
   logicBlock,
   typeBlock,
   styleBlock,
-  constantBlock,
-]);
+  constantBlock
+);
 
 const CANONICAL_ORDER: readonly Concern_Category[] = [
   "UI",

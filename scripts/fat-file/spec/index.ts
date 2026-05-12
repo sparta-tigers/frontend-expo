@@ -21,6 +21,6 @@ export function buildSpec(diagnosis: Diagnosis): RefactoringSpecEntry {
     decomposition,
     typeReplacements,
     barrelFile,
-    exception
+    ...(exception ? { exception } : {}),
   };
 }

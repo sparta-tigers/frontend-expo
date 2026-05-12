@@ -11,6 +11,16 @@ export interface VerificationInput {
 }
 
 /**
+ * 체크리스트 검증기 (Property 16)
+ *
+ * Why: 
+ * 추출된 파일과 모듈들이 리팩토링 규칙을 모두 만족하는지 정량적으로 평가하기 위함.
+ * - locBound: 개별 모듈이 300 LoC를 초과하지 않아야 인지 부하가 감소함.
+ * - singleConcern: 단일 책임 원칙(SRP) 준수 여부 검증.
+ * - tscBaselineClean: 리팩토링으로 인한 새로운 타입 에러가 없음을 보장.
+ * - publicApiPreserved: 기존에 노출되던 Public API가 유실되거나 서명이 변경되지 않았음을 보장하여 브레이킹 체인지를 차단.
+ * - anyResidualCount: `any` 타입 잔재 여부를 파악하여 점진적 제거 전략 제공.
+ *
  * Validates: Requirements 10, Property 16
  */
 export function evaluateChecklist(input: VerificationInput): ValidationReport {

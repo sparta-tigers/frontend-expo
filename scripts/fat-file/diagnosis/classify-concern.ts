@@ -1,25 +1,19 @@
 // Feature: fat-file-refactoring
-//
-// Concern 분류기 (Task 4.1).
-//
-// Public surface:
-//   - splitTopLevelBlocks(source) : source -> top-level declaration blocks.
-//   - classifyBlock(block)        : single block text -> Concern_Category.
-//   - classifyConcerns(source)    : per-block classification + distinct
-//                                   concern set + mixed flag, one pass.
-//
-// Karpathy / Zero Magic:
-//   - AST 파서, TypeScript Compiler API, tokenizer 는 일체 쓰지 않는다.
-//     Node stdlib 도 사용하지 않는다. 순수 문자열 + 가시적인 정규식 테이블.
-//   - Brace depth 추적은 단일 문자 루프. 문자열 리터럴 내부의 중괄호,
-//     슬래시-별표 주석 내부 중괄호 등은 design 명시를 따라 근사 처리한다
-//     ("문자열 리터럴과 주석은 의도적으로 토큰화하지 않는다").
-//   - 분류 직전에만 주석(line/block) 을 stripping 해서 regex 테이블이
-//     주석 내부 키워드에 오탐하지 않도록 한다.
-//
-// Evaluation order (priority):  UI -> Style -> Type -> Constant -> Logic.
-//
-// Requirements covered: 2.1, 2.2, 2.4.
+/**
+ * Feature: fat-file-refactoring
+ *
+ * Concern 분류기 (Task 4.1)
+ *
+ * Why:
+ * AST 파서나 TypeScript Compiler API와 같은 무거운 툴링 없이 순수 정규식과 휴리스틱만으로
+ * 소스 코드 블록의 관심사(UI, Logic, Type, Style, Constant)를 분류하여 빠른 분석 속도와
+ * 결정론적 결과를 보장하기 위함. 
+ *
+ * - 문자열 리터럴과 주석은 의도적으로 토큰화하지 않으며, AST 파싱 없이 단일 루프를 통해 블록의 brace depth를 추적함.
+ * - 분류 직전에만 주석을 stripping 하여 정규식이 오탐하지 않도록 함.
+ * - 평가 우선순위(Evaluation priority)는 UI -> Style -> Type -> Constant -> Logic 순으로 적용됨.
+ * - 최종 반환되는 분류 순서(CANONICAL_ORDER)는 UI -> Logic -> Type -> Style -> Constant 순으로 통일됨.
+ */
 
 import type { Concern_Category } from "../types.ts";
 
@@ -94,9 +88,9 @@ const CONSTANT_RULES = {
 } as const;
 
 /**
- * Canonical order of Concern_Category values returned by
- * {@link classifyConcerns}. Mirrors the `Diagnosis.concerns` invariant
- * declared in `types.ts`.
+ * Canonical order of Concern_Category values returned by {@link classifyConcerns}.
+ * Why: 출력되는 관심사의 순서를 항상 UI -> Logic -> Type -> Style -> Constant 로
+ *      고정하여, 툴 체인 다운스트림에서 예측 가능한 결과 포맷을 보장함.
  */
 const CANONICAL_ORDER: readonly Concern_Category[] = [
   "UI",

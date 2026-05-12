@@ -3,7 +3,7 @@ import type { SourceFile } from "../types.ts";
 
 export interface PublicApiSymbol {
   name: string;
-  kind: "value" | "type" | "default";
+  kind: "value" | "type" | "default" | "reexport";
   signature?: string; // e.g. "() => void" (rough heuristic for static analysis)
 }
 
@@ -48,7 +48,7 @@ export function extractPublicApi(file: SourceFile): PublicApiSymbol[] {
     // export * from / export * as ns from
     if (/^export\s+\*/.test(trimmed)) {
       // Why: 재-export는 개별 심볼 추출 불가 — 경계 표시만 기록
-      exports.push({ name: "*", kind: "reexport" } as any);
+      exports.push({ name: "*", kind: "reexport" });
       continue;
     }
     
@@ -61,10 +61,13 @@ export function extractPublicApi(file: SourceFile): PublicApiSymbol[] {
         const name = parts.length > 1 ? parts[1] : parts[0];
         // We can't trivially tell if it's type or value from export {}
         // Assume value by default, or type if it has 'type' keyword prefix
-        if (name.startsWith("type ")) {
-          exports.push({ name: name.slice(5).trim(), kind: "type" });
+        const isType = parts[0].startsWith("type ");
+        if (isType) {
+          // 'type ' 접두어를 제거 (as 구문이 없었을 경우 대비)
+          const actualName = parts.length > 1 ? parts[1] : parts[0].replace(/^type\s+/, "");
+          exports.push({ name: actualName.trim(), kind: "type" });
         } else {
-          exports.push({ name, kind: "value" });
+          exports.push({ name: name.trim(), kind: "value" });
         }
       }
     }
