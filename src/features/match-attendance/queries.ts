@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
   attendanceGetMyAPI, 
   attendanceCreateAPI, 
@@ -16,8 +16,11 @@ import {
 
 export const attendanceKeys = {
   all: ["attendances"] as const,
-  my: () => [...attendanceKeys.all, "my"] as const,
-  detail: (id: number) => [...attendanceKeys.all, "detail", id] as const,
+  lists: () => [...attendanceKeys.all, "list"] as const,
+  my: (page?: number, size?: number) => [...attendanceKeys.lists(), "my", { page, size }] as const,
+  infinite: (size: number) => [...attendanceKeys.lists(), "infinite", { size }] as const,
+  details: () => [...attendanceKeys.all, "detail"] as const,
+  detail: (id: number) => [...attendanceKeys.details(), id] as const,
 };
 
 /**
@@ -25,9 +28,26 @@ export const attendanceKeys = {
  */
 export const useMyAttendances = (page: number = 1, size: number = 100) => {
   return useQuery({
-    queryKey: [...attendanceKeys.my(), page, size], // 🚨 페이지 번호/사이즈를 키에 포함하여 캐시 파편화 방지
+    queryKey: attendanceKeys.my(page, size),
     queryFn: () => attendanceGetMyAPI(page, size),
     select: (response) => response.data?.content ?? [],
+  });
+};
+
+/**
+ * 🚨 [Phase 28] 무한 스크롤 기반 직관 기록 목록 조회
+ * Why: 100건 하드코딩 제한을 철폐하고 대용량 데이터를 안전하게 로드함.
+ */
+export const useInfiniteMyAttendances = (size: number = 10) => {
+  return useInfiniteQuery({
+    queryKey: attendanceKeys.infinite(size),
+    queryFn: ({ pageParam = 0 }) => attendanceGetMyAPI((pageParam as number) + 1, size),
+    getNextPageParam: (lastPage) => {
+      const data = lastPage.data;
+      if (!data || data.last) return undefined;
+      return data.number + 1; // number는 0-indexed (Spring Pageable)
+    },
+    initialPageParam: 0,
   });
 };
 
@@ -52,8 +72,8 @@ export const useCreateAttendance = () => {
   return useMutation({
     mutationFn: (formData: FormData) => attendanceCreateAPI(formData),
     onSuccess: () => {
-      // 🚨 목록 쿼리만 정밀 무효화 (all 사용 시 모든 캐시가 날아감)
-      queryClient.invalidateQueries({ queryKey: attendanceKeys.my() });
+      // 🚨 목록 쿼리들 무효화
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() });
     },
   });
 };
@@ -69,7 +89,7 @@ export const useUpdateAttendance = () => {
       attendanceUpdateAPI(id, formData),
     onSuccess: (_, variables) => {
       // 🚨 수정된 항목의 상세 캐시와 목록 캐시만 무효화
-      queryClient.invalidateQueries({ queryKey: attendanceKeys.my() });
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() });
       queryClient.invalidateQueries({ queryKey: attendanceKeys.detail(variables.id) });
     },
   });
