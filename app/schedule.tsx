@@ -5,14 +5,15 @@ import { useMatchSchedule } from "@/src/features/match/hooks/useMatchSchedule";
 import { LeagueType } from "@/src/features/match/types";
 import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
 import { theme } from "@/src/styles/theme";
-import {
+import { useInfiniteMyAttendances } from "@/src/features/match-attendance/queries";
+import { 
   getCurrentMonth,
   getCurrentYear,
   getCurrentDay,
   getRelativeMonth,
 } from "@/src/utils/date";
 import { TEAM_DATA, TeamCode, getTeamColorPath } from "@/src/utils/team";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import React, { useState, useMemo } from "react";
 import { Pressable, StyleSheet, TouchableOpacity } from "react-native";
@@ -116,7 +117,21 @@ export default function ScheduleScreen() {
     isLoading,
     isFetching,
   } = useMatchSchedule(year, month, activeTeamCode, leagueType);
-  const days = useCalendarGrid(year, month, schedule || [], today);
+
+  // 2. 직관 기록 데이터 로드 및 맵 생성 (캘린더 하이라이트용 100건 활용)
+  const { data: infiniteAttendances } = useInfiniteMyAttendances(100);
+  const attendanceMap = useMemo(() => {
+    const map = new Map<number, number>();
+    const firstPageContent = infiniteAttendances?.pages[0]?.data?.content ?? [];
+    firstPageContent.forEach((a) => map.set(a.matchId, a.id));
+    return map;
+  }, [infiniteAttendances]);
+
+  const attendanceMatchIds = useMemo(() => {
+    return new Set(attendanceMap.keys());
+  }, [attendanceMap]);
+
+  const days = useCalendarGrid(year, month, schedule || [], today, undefined, attendanceMatchIds);
 
   // 3. 핸들러
   const handleMoveMonth = (offset: number) => {
@@ -158,8 +173,7 @@ export default function ScheduleScreen() {
       {/* Branded Header */}
       <BrandingHeader teamCode={activeTeamCode} />
 
-      {/* Click-outside Overlay (드롭다운이 열렸을 때만 활성화) 
-          Z-index를 활용하여 헤더와 컨텐츠 아래, 하지만 배경 위에 배치 */}
+      {/* Click-outside Overlay (드롭다운이 열렸을 때만 활성화) */}
       {isDropdownOpen && (
         <Pressable
           style={styles.overlay}
@@ -278,21 +292,49 @@ export default function ScheduleScreen() {
           >
             {days.map((cell, idx) => {
               const isEmpty = cell.day === 0;
+              const cellDate = new Date(year, month - 1, cell.day);
+              const todayDate = new Date();
+              todayDate.setHours(0, 0, 0, 0);
+              const isFuture = cellDate > todayDate;
+              const attendanceId = cell.matchId ? attendanceMap.get(cell.matchId) : null;
+
               return (
-                <Box
+                <TouchableOpacity
                   key={`${cell.day}-${idx}`}
-                  style={styles.calendarCell}
-                  bg={cell.isToday ? "brand.mintAlpha10" : "transparent"}
+                  style={[
+                    styles.calendarCell,
+                    cell.isToday && { backgroundColor: theme.colors.brand.mintAlpha10 }
+                  ]}
+                  activeOpacity={0.7}
+                  disabled={isEmpty || !cell.hasGame || isFuture}
+                  onPress={() => {
+                    if (attendanceId) {
+                      // 🚨 이미 기록이 있는 경우 상세 페이지로 이동
+                      router.push(`/attendance/detail/${attendanceId}`);
+                    } else if (cell.matchId) {
+                      // 기록이 없는 경우에만 등록 폼으로 이동
+                      router.push(`/attendance/${cell.matchId}`);
+                    }
+                  }}
                 >
                   {!isEmpty && (
                     <>
+                      {/* 🚨 직관 스탬프 효과 (기존 빨간 점 제거) */}
+                      {cell.hasAttendance && (
+                        <Box style={styles.attendanceStamp}>
+                          <Ionicons name="checkmark-done-circle" size={40} color={theme.colors.brand.mintAlpha10} />
+                        </Box>
+                      )}
+
                       <Box flexDir="row" justify="space-between" width="100%">
-                        <Typography
-                          variant="caption"
-                          color={cell.isToday ? "brand.mint" : "text.secondary"}
-                        >
-                          {cell.day}
-                        </Typography>
+                        <Box flexDir="row" align="center">
+                          <Typography
+                            variant="caption"
+                            color={cell.isToday ? "brand.mint" : "text.secondary"}
+                          >
+                            {cell.day}
+                          </Typography>
+                        </Box>
                         {cell.location && (
                           <Typography
                             variant="caption"
@@ -330,7 +372,7 @@ export default function ScheduleScreen() {
                       )}
                     </>
                   )}
-                </Box>
+                </TouchableOpacity>
               );
             })}
           </Box>
@@ -399,7 +441,7 @@ const styles = StyleSheet.create({
   leagueSelector: {
     paddingHorizontal: theme.spacing.xl,
     paddingVertical: theme.spacing.md,
-    borderWidth: theme.layout.dashboard.activeOpacity === 0.7 ? 1.5 : 1.5, // 가독성을 위해 테마 참조 가능성 열어둠
+    borderWidth: theme.colors.border.width.medium,
     borderRadius: theme.radius.full,
     backgroundColor: theme.colors.background,
   },
@@ -436,7 +478,7 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.size.CAPTION,
   },
   matchTimeText: {
-    fontSize: 9, // 미세 조정용 하드코딩 허용 여부 검토 필요하나 일단 유지 또는 theme.typography.size.xxs 등 고려
+    fontSize: theme.typography.size.xxs,
   },
   todayBtn: {
     marginTop: theme.spacing.xxl,
@@ -449,5 +491,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     backgroundColor: theme.colors.card,
     ...theme.shadow.card,
+  },
+  attendanceStamp: {
+    position: "absolute",
+    top: "15%",
+    left: "15%",
+    opacity: 0.8,
+    zIndex: 1,
   },
 });

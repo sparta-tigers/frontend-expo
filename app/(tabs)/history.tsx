@@ -1,176 +1,140 @@
-import { Button } from "@/components/ui/button";
-import { SafeLayout } from "@/components/ui/safe-layout";
-import {
-  exchangeGetReceivedAPI,
-  exchangeUpdateStatusAPI,
-} from "@/src/features/exchange/api";
-import {
-  ExchangeRequestStatus,
-  ReceiveExchangeRequest,
-  UpdateExchangeStatusDto,
-} from "@/src/features/exchange/types";
-import { useAuth } from "@/src/hooks/useAuth";
-import { theme } from "@/src/styles/theme";
-import { Logger } from "@/src/utils/logger";
-import { router } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
-import { Alert, FlatList, StyleSheet } from "react-native";
 import { Box, Typography } from "@/components/ui";
+import { SafeLayout } from "@/components/ui/safe-layout";
+import { useInfiniteMyAttendances } from "@/src/features/match-attendance/queries";
+import { MatchAttendance } from "@/src/features/match-attendance/types";
+import { FavoriteTeam } from "@/src/features/user/favorite-team";
+import { favoriteTeamGetAPI } from "@/src/features/user/favorite-team-api";
+import { theme } from "@/src/styles/theme";
+import { calculateMatchResult } from "@/src/utils/match";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+    ActivityIndicator,
+    FlatList,
+    StyleSheet,
+    TouchableOpacity,
+} from "react-native";
 
+/**
+ * 🚨 [Phase 24] 직관 기록 목록 화면 (Match Diary)
+ *
+ * Why: 사용자가 과거에 기록한 직관 일기들을 타임라인 형태로 확인하고 관리함.
+ */
 export default function HistoryScreen() {
-  const { user } = useAuth();
-  const [exchangeRequests, setExchangeRequests] = useState<ReceiveExchangeRequest[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const {
+    data,
+    isLoading,
+    refetch,
+    isRefetching,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteMyAttendances(10);
+  const [favoriteTeam, setFavoriteTeam] = useState<FavoriteTeam | null>(null);
 
-  // 받은 교환 요청 목록 조회
-  const fetchExchangeRequests = useCallback(async () => {
-    if (!user?.accessToken) return;
-
-    try {
-      setLoading(true);
-      const response = await exchangeGetReceivedAPI(0, 20);
-
-      if (response.resultType === "SUCCESS" && response.data) {
-        setExchangeRequests(response.data.content);
-      }
-    } catch (error) {
-      Logger.error("교환 요청 목록 로딩 중 에러 발생", error);
-      Alert.alert("오류", "교환 요청 목록을 불러올 수 없습니다.");
-      throw error; // 🚨 [Senior Architect] Critical 에러 전파
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
-  // 교환 요청 상태 업데이트 (수락/거절)
-  const handleUpdateStatus = useCallback(
-    async (requestId: number, status: ExchangeRequestStatus) => {
-      const request: UpdateExchangeStatusDto = {
-        status,
-      };
-
-      try {
-        setActionLoading(requestId);
-        const response = await exchangeUpdateStatusAPI(requestId, request);
-
-        if (response.resultType === "SUCCESS") {
-          Alert.alert(
-            "성공",
-            status === ExchangeRequestStatus.ACCEPTED
-              ? "교환을 수락했습니다."
-              : "교환을 거절했습니다.",
-            [{ text: "확인" }],
-          );
-
-          // 목록 새로고침
-          fetchExchangeRequests();
-        } else {
-          Alert.alert("오류", "상태 업데이트에 실패했습니다.");
-        }
-      } catch (error) {
-        Logger.error("교환 상태 업데이트 중 에러 발생", error);
-        Alert.alert("오류", "네트워크 에러가 발생했습니다.");
-      } finally {
-        setActionLoading(null);
-      }
-    },
-    [fetchExchangeRequests],
-  );
+  const attendances = data?.pages.flatMap((page) => page.data?.content || []) || [];
 
   useEffect(() => {
-    fetchExchangeRequests();
-  }, [fetchExchangeRequests]);
+    favoriteTeamGetAPI().then((res) => {
+      if (res.resultType === "SUCCESS") setFavoriteTeam(res.data);
+    });
+  }, []);
 
-  const renderExchangeRequest = ({ item }: { item: ReceiveExchangeRequest }) => {
-    const statusColor: keyof typeof theme.colors =
-      item.exchangeStatus === ExchangeRequestStatus.PENDING
-        ? "warning"
-        : item.exchangeStatus === ExchangeRequestStatus.ACCEPTED
-          ? "success"
-          : "error";
+  // 🚨 [Phase 2-3] Pull-to-refresh 상태 동기화
+  const onRefresh = async () => {
+    await refetch();
+  };
 
-    return (
-      <Box bg="card" p="SCREEN" rounded="lg" mb="sm" style={theme.shadow.card}>
-        <Box flexDir="row" justify="space-between" align="center" mb="sm">
-          <Typography variant="body2" weight="semibold" color="text.primary" style={styles.itemTitle}>
-            {item.title || "아이템 정보 없음"}
-          </Typography>
-          <Box 
-            bg="surface" 
-            px="sm" 
-            py="xxs" 
-            rounded="sm" 
-            style={[styles.statusBadge, { borderColor: theme.colors[statusColor] }]}
-          >
-            <Typography variant="caption" color={statusColor} weight="semibold">
-              {item.exchangeStatus === ExchangeRequestStatus.PENDING
-                ? "대기 중"
-                : item.exchangeStatus === ExchangeRequestStatus.ACCEPTED
-                  ? "수락됨"
-                  : "거절됨"}
-            </Typography>
-          </Box>
-        </Box>
-
-        <Typography variant="body2" color="text.primary" mb="sm">
-          요청자: {item.sender.userNickname || "알 수 없음"}
-        </Typography>
-
-        <Typography variant="caption" color="text.secondary" mb="md">
-          요청일: {new Date(item.createdAt).toLocaleDateString()}
-        </Typography>
-
-        {item.exchangeStatus === ExchangeRequestStatus.PENDING && (
-          <Box flexDir="row" gap="sm">
-            <Button
-              variant="primary"
-              size="sm"
-              loading={actionLoading === item.exchangeRequestId}
-              onPress={() =>
-                handleUpdateStatus(item.exchangeRequestId, ExchangeRequestStatus.ACCEPTED)
-              }
-              style={styles.flexButton}
-            >
-              수락
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              loading={actionLoading === item.exchangeRequestId}
-              onPress={() =>
-                handleUpdateStatus(item.exchangeRequestId, ExchangeRequestStatus.REJECTED)
-              }
-              style={styles.flexButton}
-            >
-              거절
-            </Button>
-          </Box>
-        )}
-
-        {item.exchangeStatus === ExchangeRequestStatus.ACCEPTED && item.directRoomId && (
-          <Box flexDir="row">
-            <Button
-              variant="primary"
-              size="sm"
-              onPress={() => router.push(`/exchange/chat/${item.directRoomId}`)}
-              style={styles.flexButton}
-            >
-              채팅방 가기
-            </Button>
-          </Box>
-        )}
-      </Box>
+  const getMatchResult = (item: MatchAttendance) => {
+    return calculateMatchResult(
+      item.homeScore,
+      item.awayScore,
+      item.homeTeamCode,
+      item.awayTeamCode,
+      favoriteTeam?.teamCode,
     );
   };
 
-  if (loading) {
+  const renderAttendanceItem = ({ item }: { item: MatchAttendance }) => {
+    const matchDate = new Date(item.matchTime);
+    const dateString = `${matchDate.getFullYear()}.${String(matchDate.getMonth() + 1).padStart(2, "0")}.${String(matchDate.getDate()).padStart(2, "0")}`;
+    const result = getMatchResult(item);
+
+    return (
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => router.push(`/attendance/detail/${item.id}`)}
+        style={styles.cardContainer}
+      >
+        <Box
+          bg="brand.mintAlpha10"
+          p="md"
+          rounded="lg"
+          flexDir="row"
+          align="center"
+          style={styles.attendanceCard}
+        >
+          <Box flex={1}>
+            <Box flexDir="row" align="center" mb="xs">
+              <Typography variant="body1" weight="bold">
+                {item.homeTeamName}
+              </Typography>
+              <Typography variant="caption" color="text.secondary" mx="xs">
+                vs
+              </Typography>
+              <Typography variant="body1" weight="bold">
+                {item.awayTeamName}
+              </Typography>
+            </Box>
+
+            <Box flexDir="row" align="center" mb="xxs">
+              <Ionicons
+                name="calendar-outline"
+                size={14}
+                color={theme.colors.text.secondary}
+              />
+              <Typography variant="caption" color="text.secondary" ml="xxs">
+                {dateString}
+              </Typography>
+            </Box>
+
+            <Box flexDir="row" align="center">
+              <Ionicons
+                name="location-outline"
+                size={14}
+                color={theme.colors.text.secondary}
+              />
+              <Typography variant="caption" color="text.secondary" ml="xxs">
+                {item.seat}
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box width={1} height="80%" bg="team.neutralLight" mx="md" />
+
+          <Box align="center" justify="center" width={50}>
+            <Typography style={styles.resultEmoji}>
+              {result?.emoji ?? "🏟️"}
+            </Typography>
+            <Typography
+              variant="caption"
+              weight="bold"
+              color={result?.color ?? "text.secondary"}
+            >
+              {result?.text ?? "MATCH"}
+            </Typography>
+          </Box>
+        </Box>
+      </TouchableOpacity>
+    );
+  };
+
+  if (isLoading) {
     return (
       <SafeLayout style={styles.safeLayout}>
         <Box flex={1} justify="center" align="center">
-          <Typography variant="body2" color="text.primary">
-            교환 요청 목록을 불러오는 중...
-          </Typography>
+          <ActivityIndicator color={theme.colors.brand.mint} />
         </Box>
       </SafeLayout>
     );
@@ -180,25 +144,58 @@ export default function HistoryScreen() {
     <SafeLayout style={styles.safeLayout}>
       <Box flex={1} p="SCREEN">
         <Typography variant="h2" weight="bold" color="text.primary" mb="SCREEN">
-          받은 교환 요청
+          나의 직관 일기
         </Typography>
 
-        {exchangeRequests.length === 0 ? (
-          <Box flex={1} justify="center" align="center">
-            <Typography variant="body2" color="text.secondary" center>
-              받은 교환 요청이 없습니다.
-            </Typography>
-          </Box>
-        ) : (
+        {attendances && attendances.length > 0 ? (
           <FlatList
-            data={exchangeRequests}
-            renderItem={renderExchangeRequest}
-            keyExtractor={(item) => item.exchangeRequestId.toString()}
+            data={attendances}
+            renderItem={renderAttendanceItem}
+            keyExtractor={(item) => item.id.toString()}
             contentContainerStyle={styles.listContainer}
             showsVerticalScrollIndicator={false}
+            onRefresh={onRefresh}
+            refreshing={isRefetching}
+            onEndReached={() => {
+              if (hasNextPage && !isFetchingNextPage) {
+                fetchNextPage();
+              }
+            }}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={
+              isFetchingNextPage ? (
+                <Box py="md">
+                  <ActivityIndicator color={theme.colors.brand.mint} />
+                </Box>
+              ) : null
+            }
           />
+        ) : (
+          <Box flex={1} justify="center" align="center">
+            <Typography
+              variant="h2"
+              color="text.primary"
+              weight="bold"
+              center
+              mb="sm"
+            >
+              아직 기록된 직관이 없어요
+            </Typography>
+            <Typography variant="body2" color="text.secondary" center mb="md">
+              첫 직관 일기를 작성하고{"\n"}캘린더를 채워보세요!
+            </Typography>
+          </Box>
         )}
       </Box>
+
+      {/* Floating Action Button for Adding Record */}
+      <TouchableOpacity
+        style={styles.fab}
+        activeOpacity={0.8}
+        onPress={() => router.push("/schedule")}
+      >
+        <Ionicons name="add" size={32} color={theme.colors.background} />
+      </TouchableOpacity>
     </SafeLayout>
   );
 }
@@ -208,16 +205,29 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   listContainer: {
-    gap: theme.spacing.COMPONENT,
+    paddingBottom: theme.spacing.SCREEN * 2,
   },
-  itemTitle: {
-    flex: 1,
+  cardContainer: {
+    marginBottom: theme.spacing.sm,
   },
-  flexButton: {
-    flex: 1,
-  },
-  statusBadge: {
+  attendanceCard: {
     borderWidth: 1,
-    borderRadius: theme.radius.sm,
+    borderColor: theme.colors.brand.mintAlpha10,
+  },
+  resultEmoji: {
+    fontSize: 24,
+    marginBottom: 2,
+  },
+  fab: {
+    position: "absolute",
+    bottom: theme.spacing.SCREEN + 80, // 탭 바 높이 고려
+    right: theme.spacing.SCREEN,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: theme.colors.brand.mint,
+    justifyContent: "center",
+    alignItems: "center",
+    ...theme.shadow.card,
   },
 });

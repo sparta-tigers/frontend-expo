@@ -2,6 +2,7 @@ import { Box, Typography } from "@/components/ui";
 import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
 import { theme } from "@/src/styles/theme";
 import { getTeamColorPath } from "@/src/utils/team";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
@@ -24,6 +25,7 @@ interface ScheduleSectionProps {
   year: number;
   month: number;
   today?: { year: number; month: number; day: number }; // 🚨 앙드레 카파시: 결정론적 렌더링을 위해 외부에서 주입받음
+  attendanceMatchIds?: Set<number>; // 🚨 추가
 }
 
 /**
@@ -37,8 +39,9 @@ export const ScheduleSection = React.memo(function ScheduleSection({
   year,
   month,
   today,
+  attendanceMatchIds, // 🚨 추가
 }: ScheduleSectionProps) {
-  const days = useCalendarGrid(year, month, schedule, today);
+  const days = useCalendarGrid(year, month, schedule, today, undefined, attendanceMatchIds);
 
   return (
     <Box mt="xxxxl" pb="xxl" px="SCREEN_DASHBOARD">
@@ -124,6 +127,11 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                       justify="space-between"
                       width="100%"
                     >
+                      {cell.hasAttendance && (
+                        <Box style={styles.attendanceStamp}>
+                          <Ionicons name="checkmark-done-circle" size={32} color={theme.colors.brand.mintAlpha10} />
+                        </Box>
+                      )}
                       <Typography
                         variant="caption"
                         weight={cell.isToday ? "bold" : "medium"}
@@ -226,5 +234,12 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontSize: theme.typography.size.xs,
+  },
+  attendanceStamp: {
+    position: "absolute",
+    top: "10%",
+    left: "10%",
+    opacity: 0.8,
+    zIndex: 1,
   },
 });
