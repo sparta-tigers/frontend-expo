@@ -168,10 +168,7 @@ export default function AttendanceFormScreen() {
       // Request DTO (JSON Blob)
       // ⚠️ React Native 네이티브 환경에서는 { string: ..., type: ... } 형태 지원
       // TypeScript 타입 시스템 제약으로 인해 as any 사용 (Phase 1-2 예외 사항)
-      formData.append("request", {
-        string: JSON.stringify(requestDto),
-        type: "application/json",
-      });
+      formData.append("request", JSON.stringify(requestDto));
 
       // New Image Processing
       const newImages = images.filter((img) => !img.startsWith("http"));
@@ -182,20 +179,15 @@ export default function AttendanceFormScreen() {
           { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG },
         );
 
-        const filename = manipulatedImage.uri.split("/").pop();
-        const match = /\.(\w+)$/.exec(filename || "");
-        const type = match ? `image/${match[1]}` : `image`;
+        // [Phase 33] 정규식 기반 MIME 추론 제거 및 타임스탬프 기반 안전한 파일명 생성
+        const timestamp = Date.now();
+        const filename = `attendance_${matchIdNumber}_${timestamp}.jpg`;
 
-        // 이미지 append 부분
-        // formData에 이미지 데이터를 추가
-        // uri: 이미지 uri
-        // name: 이미지 파일명
-        // type: 이미지 타입 (e.g. image/jpeg)
         formData.append("images", {
           uri: manipulatedImage.uri,
           name: filename,
-          type,
-        } as unknown as string & Blob); // 🚨 global.d.ts 확장 후에도 React Native 특수 객체 전달을 위해 안전하게 캐스팅
+          type: "image/jpeg",
+        });
       }
 
       if (existingId) {

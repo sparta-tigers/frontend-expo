@@ -16,20 +16,14 @@ interface FormDataValue {
 
 /**
  * JSON 데이터 전송 규약
- * Why: Multipart 요청 내에서 application/json 파트를 문자열화하여 전송하기 위한 래퍼 타입임.
+ * Why: [Phase 33] 비표준 FormDataJson 방식을 폐기하고 표준 JSON.stringify 문자열 전송으로 대체함.
  */
-interface FormDataJson {
-  string: string;
-  type: string;
-}
 
 /**
  * 표준 FormData 인터페이스 확장
  * Why: React Native 환경에서 Multipart/form-data 전송 시 문자열/파일 외에 
- * 커스텀 객체(FormDataValue, FormDataJson)를 append할 수 있도록 오버로딩함.
+ * 네이티브 브릿지 규격(FormDataValue)을 append할 수 있도록 오버로딩함.
  */
 declare interface FormData {
-  append(name: string, value: string | Blob): void;
-  append(name: string, value: FormDataValue | FormDataJson): void;
-  append(name: string, value: string | Blob | FormDataValue | FormDataJson, fileName?: string): void;
+  append(name: string, value: string | Blob | FormDataValue): void;
 }
