@@ -5,7 +5,8 @@ import { useMatchSchedule } from "@/src/features/match/hooks/useMatchSchedule";
 import { LeagueType } from "@/src/features/match/types";
 import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
 import { theme } from "@/src/styles/theme";
-import {
+import { useMyAttendances } from "@/src/features/match-attendance/queries";
+import { 
   getCurrentMonth,
   getCurrentYear,
   getCurrentDay,
@@ -116,7 +117,14 @@ export default function ScheduleScreen() {
     isLoading,
     isFetching,
   } = useMatchSchedule(year, month, activeTeamCode, leagueType);
-  const days = useCalendarGrid(year, month, schedule || [], today);
+
+  // 2. 직관 기록 데이터 로드
+  const { data: attendances } = useMyAttendances(1, 100);
+  const attendanceMatchIds = useMemo(() => {
+    return new Set(attendances?.map((a) => a.matchId) ?? []);
+  }, [attendances]);
+
+  const days = useCalendarGrid(year, month, schedule || [], today, undefined, attendanceMatchIds);
 
   // 3. 핸들러
   const handleMoveMonth = (offset: number) => {
@@ -287,12 +295,23 @@ export default function ScheduleScreen() {
                   {!isEmpty && (
                     <>
                       <Box flexDir="row" justify="space-between" width="100%">
-                        <Typography
-                          variant="caption"
-                          color={cell.isToday ? "brand.mint" : "text.secondary"}
-                        >
-                          {cell.day}
-                        </Typography>
+                        <Box flexDir="row" align="center">
+                          <Typography
+                            variant="caption"
+                            color={cell.isToday ? "brand.mint" : "text.secondary"}
+                          >
+                            {cell.day}
+                          </Typography>
+                          {cell.hasAttendance && (
+                            <Box 
+                              width={4} 
+                              height={4} 
+                              rounded="full" 
+                              bg="error" 
+                              ml="xxs"
+                            />
+                          )}
+                        </Box>
                         {cell.location && (
                           <Typography
                             variant="caption"
