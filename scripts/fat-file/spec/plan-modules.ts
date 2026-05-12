@@ -1,5 +1,5 @@
 // Feature: fat-file-refactoring
-import type { BarrelFilePlan, Concern_Category, Diagnosis, ModulePlan, RefactoringException } from "../types.ts";
+import type { BarrelFilePlan, Diagnosis, ModulePlan, RefactoringException } from "../types.ts";
 import { namingMap } from "./naming-map.ts";
 
 export function extractFeatureId(relativePath: string): string {
@@ -9,15 +9,17 @@ export function extractFeatureId(relativePath: string): string {
   if (name === "index") {
     return parts.length > 0 ? parts[parts.length - 1] : "unknown";
   }
-  if (name.startsWith("use-")) return name.slice(4);
-  if (name.startsWith("use")) return name.slice(3);
+  // Why: 훅 컨벤션은 'use' 뒤에 반드시 대문자(use[A-Z]) 또는 하이픈+알파벳(use-[A-Za-z])이 와야 함.
+  //      startsWith("use") 단독 사용 시 userProfile -> rProfile처럼 비-훅 이름을 잘못 자른다.
+  if (/^use-[A-Za-z]/.test(name)) return name.slice(4);
+  if (/^use[A-Z]/.test(name)) return name.slice(3);
   return name;
 }
 
 export interface ModulesPlanResult {
   decomposition: ModulePlan[];
   barrelFile: BarrelFilePlan;
-  exception?: RefactoringException;
+  exception?: RefactoringException | undefined;
 }
 
 /**

@@ -24,23 +24,31 @@ export function extractPublicApi(file: SourceFile): PublicApiSymbol[] {
     }
 
     // export type / interface
-    let match = trimmed.match(/^export\s+(type|interface)\s+([A-Za-z0-9_]+)/);
+    let match = trimmed.match(/^export\s+(type|interface)\s+([A-Za-z0-9_$]+)/);
     if (match) {
       exports.push({ name: match[2], kind: "type" });
       continue;
     }
 
     // export const / let / var
-    match = trimmed.match(/^export\s+(const|let|var)\s+([A-Za-z0-9_]+)/);
+    match = trimmed.match(/^export\s+(const|let|var)\s+([A-Za-z0-9_$]+)/);
     if (match) {
       exports.push({ name: match[2], kind: "value" });
       continue;
     }
 
     // export function / class
-    match = trimmed.match(/^export\s+(function|class)\s+([A-Za-z0-9_]+)/);
+    // Why: export async function은 실무에서 흔하며 기존 정규식은 async 키워드를 무시해 누락됨.
+    match = trimmed.match(/^export\s+(?:async\s+)?(function\*?|class)\s+([A-Za-z0-9_$]+)/);
     if (match) {
       exports.push({ name: match[2], kind: "value" });
+      continue;
+    }
+
+    // export * from / export * as ns from
+    if (/^export\s+\*/.test(trimmed)) {
+      // Why: 재-export는 개별 심볼 추출 불가 — 경계 표시만 기록
+      exports.push({ name: "*", kind: "reexport" } as any);
       continue;
     }
     
