@@ -68,6 +68,12 @@ export default function AttendanceFormScreen() {
       setContents(attendance.contents);
       setSeat(attendance.seat);
       setImages(attendance.images.map(img => img.imageUrl));
+    } else {
+      // 🎯 [Phase 36] 결정론적 상태 리셋: 데이터 부재 시(기록 없음 등) 폼 초기화
+      setExistingId(null);
+      setContents("");
+      setSeat("");
+      setImages([]);
     }
   }, [attendance]);
 
@@ -164,7 +170,7 @@ export default function AttendanceFormScreen() {
       // Request DTO (JSON Blob)
       const requestDto = existingId
         ? { seat, contents, oldImageUrls }
-        : { matchId: Number(matchId), seat, contents };
+        : { matchId: matchIdNumber, seat, contents };
 
       // Request DTO (JSON Blob)
       // ⚠️ React Native 네이티브 환경에서는 { string: ..., type: ... } 형태 지원
@@ -286,7 +292,7 @@ export default function AttendanceFormScreen() {
                 )}
 
                 {images.map((uri, index) => (
-                  <Box key={`img-${index}`} mr="sm" position="relative">
+                  <Box key={uri} mr="sm" position="relative">
                     <Image
                       source={{ uri }}
                       style={styles.thumbnail}
