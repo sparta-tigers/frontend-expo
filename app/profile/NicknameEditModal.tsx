@@ -51,6 +51,11 @@ export function NicknameEditModal({
     }
   }, [visible, initialNickname]);
 
+  /**
+   * 닉네임 저장 시 공백 검증 및 상위 컴포넌트 전달
+   * Why: 모달 자체에서 비동기 요청을 수행하지 않고 부모(useProfile)에게 위임하여,
+   *      데이터 fetching의 책임을 컴포넌트(UI)와 분리함.
+   */
   const handleSave = () => {
     if (!nickname || nickname.trim().length === 0) {
       return;
@@ -135,11 +140,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
     borderRadius: theme.radius.lg,
     padding: theme.spacing.xxl,
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    ...theme.shadow.button,
   },
   title: {
     fontSize: theme.typography.size.lg,

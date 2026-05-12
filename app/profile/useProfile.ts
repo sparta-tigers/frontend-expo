@@ -34,6 +34,11 @@ export function useProfile() {
   const [favoriteTeam, setFavoriteTeam] = useState<FavoriteTeam | null>(null);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 
+  /**
+   * 즐겨찾기 팀 정보 로딩
+   * Why: 로그인된 사용자의 최초 팀 정보를 캐싱하여 UI 초기화 시 깜빡임을 방지하고
+   *      마이페이지 및 팀 선택 컴포넌트의 초기 상태를 결정함.
+   */
   const loadFavoriteTeam = useCallback(async () => {
     if (!user?.accessToken) {
       setFavoriteTeam(null);
@@ -60,6 +65,11 @@ export function useProfile() {
     setIsEditModalVisible(true);
   };
 
+  /**
+   * 닉네임 저장 핸들러
+   * Why: 불필요한 네트워크 요청을 방지하기 위해 빈 문자열 및 기존 닉네임과 동일한 경우를 Guard clause로 필터링하며,
+   *      저장 완료 후 authContext의 전역 상태를 업데이트하여 앱 전체에 즉각 반영함.
+   */
   const handleSaveNickname = async (newNickname: string) => {
     if (!newNickname || newNickname.trim().length === 0) {
       Alert.alert("오류", "닉네임을 입력해주세요.");
@@ -93,6 +103,11 @@ export function useProfile() {
     }
   };
 
+  /**
+   * 계정 탈퇴 핸들러
+   * Why: 데이터가 영구적으로 삭제되므로 2단계 교차 확인(Alert) 로직을 통해 사용자의 실수를 방지하고,
+   *      API 호출 성공 시 로컬 세션(JWT 등)을 파기(signout)하여 보안 결함을 차단함.
+   */
   const handleDeleteAccount = () => {
     Alert.alert(
       "회원 탈퇴",
@@ -144,6 +159,11 @@ export function useProfile() {
     );
   };
 
+  /**
+   * 로그아웃 핸들러
+   * Why: 사용자의 명시적 요청에 의한 로컬 세션 만료 처리를 안전하게 수행하며,
+   *      어떤 상황에서도(네트워크 에러 포함) 로그인 화면으로 fallback되도록 finally 블록에서 라우팅함.
+   */
   const handleLogout = () => {
     Alert.alert("로그아웃", "정말 로그아웃하시겠습니까?", [
       { text: "취소", style: "cancel" },
@@ -163,6 +183,11 @@ export function useProfile() {
     ]);
   };
 
+  /**
+   * 즐겨찾기 팀 선택/변경 핸들러
+   * Why: 기존 팀 유무를 조회(checkRes)하여 Add/Update API를 분기함으로써
+   *      단일 엔드포인트에 묶이지 않고 명시적인 비즈니스 트랜잭션을 구현함.
+   */
   const handleSelectTeam = async (team: (typeof KBO_TEAMS)[number]) => {
     try {
       const checkRes = await favoriteTeamGetAPI();
@@ -184,6 +209,11 @@ export function useProfile() {
     }
   };
 
+  /**
+   * 즐겨찾기 팀 삭제 핸들러
+   * Why: 명시적인 삭제 의도를 확인한 후 상태를 갱신(loadFavoriteTeam)하여,
+   *      로컬 상태와 리모트 상태의 불일치를 최소화함.
+   */
   const handleDeleteFavoriteTeam = (team: FavoriteTeam) => {
     Alert.alert(
       "즐겨찾기 팀 삭제",
