@@ -13,7 +13,7 @@ import {
   getRelativeMonth,
 } from "@/src/utils/date";
 import { TEAM_DATA, TeamCode, getTeamColorPath } from "@/src/utils/team";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import React, { useState, useMemo } from "react";
 import { Pressable, StyleSheet, TouchableOpacity } from "react-native";
@@ -118,11 +118,17 @@ export default function ScheduleScreen() {
     isFetching,
   } = useMatchSchedule(year, month, activeTeamCode, leagueType);
 
-  // 2. 직관 기록 데이터 로드
+  // 2. 직관 기록 데이터 로드 및 맵 생성
   const { data: attendances } = useMyAttendances(1, 100);
-  const attendanceMatchIds = useMemo(() => {
-    return new Set(attendances?.map((a) => a.matchId) ?? []);
+  const attendanceMap = useMemo(() => {
+    const map = new Map<number, number>();
+    attendances?.forEach((a) => map.set(a.matchId, a.id));
+    return map;
   }, [attendances]);
+
+  const attendanceMatchIds = useMemo(() => {
+    return new Set(attendanceMap.keys());
+  }, [attendanceMap]);
 
   const days = useCalendarGrid(year, month, schedule || [], today, undefined, attendanceMatchIds);
 
@@ -166,8 +172,7 @@ export default function ScheduleScreen() {
       {/* Branded Header */}
       <BrandingHeader teamCode={activeTeamCode} />
 
-      {/* Click-outside Overlay (드롭다운이 열렸을 때만 활성화) 
-          Z-index를 활용하여 헤더와 컨텐츠 아래, 하지만 배경 위에 배치 */}
+      {/* Click-outside Overlay (드롭다운이 열렸을 때만 활성화) */}
       {isDropdownOpen && (
         <Pressable
           style={styles.overlay}
@@ -290,6 +295,7 @@ export default function ScheduleScreen() {
               const todayDate = new Date();
               todayDate.setHours(0, 0, 0, 0);
               const isFuture = cellDate > todayDate;
+              const attendanceId = cell.matchId ? attendanceMap.get(cell.matchId) : null;
 
               return (
                 <TouchableOpacity
@@ -301,13 +307,24 @@ export default function ScheduleScreen() {
                   activeOpacity={0.7}
                   disabled={isEmpty || !cell.hasGame || isFuture}
                   onPress={() => {
-                    if (cell.matchId) {
+                    if (attendanceId) {
+                      // 🚨 이미 기록이 있는 경우 상세 페이지로 이동
+                      router.push(`/attendance/detail/${attendanceId}`);
+                    } else if (cell.matchId) {
+                      // 기록이 없는 경우에만 등록 폼으로 이동
                       router.push(`/attendance/${cell.matchId}`);
                     }
                   }}
                 >
                   {!isEmpty && (
                     <>
+                      {/* 🚨 직관 스탬프 효과 (기존 빨간 점 제거) */}
+                      {cell.hasAttendance && (
+                        <Box style={styles.attendanceStamp}>
+                          <Ionicons name="checkmark-done-circle" size={40} color={theme.colors.brand.mintAlpha10} />
+                        </Box>
+                      )}
+
                       <Box flexDir="row" justify="space-between" width="100%">
                         <Box flexDir="row" align="center">
                           <Typography
@@ -316,15 +333,6 @@ export default function ScheduleScreen() {
                           >
                             {cell.day}
                           </Typography>
-                          {cell.hasAttendance && (
-                            <Box 
-                              width={4} 
-                              height={4} 
-                              rounded="full" 
-                              bg="error" 
-                              ml="xxs"
-                            />
-                          )}
                         </Box>
                         {cell.location && (
                           <Typography
@@ -432,7 +440,7 @@ const styles = StyleSheet.create({
   leagueSelector: {
     paddingHorizontal: theme.spacing.xl,
     paddingVertical: theme.spacing.md,
-    borderWidth: theme.layout.dashboard.activeOpacity === 0.7 ? 1.5 : 1.5, // 가독성을 위해 테마 참조 가능성 열어둠
+    borderWidth: 1.5,
     borderRadius: theme.radius.full,
     backgroundColor: theme.colors.background,
   },
@@ -469,7 +477,7 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.size.CAPTION,
   },
   matchTimeText: {
-    fontSize: 9, // 미세 조정용 하드코딩 허용 여부 검토 필요하나 일단 유지 또는 theme.typography.size.xxs 등 고려
+    fontSize: 9,
   },
   todayBtn: {
     marginTop: theme.spacing.xxl,
@@ -482,5 +490,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     backgroundColor: theme.colors.card,
     ...theme.shadow.card,
+  },
+  attendanceStamp: {
+    position: "absolute",
+    top: "15%",
+    left: "15%",
+    opacity: 0.8,
+    zIndex: 1,
   },
 });
