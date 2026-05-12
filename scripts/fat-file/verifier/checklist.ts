@@ -1,5 +1,5 @@
 // Feature: fat-file-refactoring
-import type { BarrelFilePlan, ModulePlan, SourceFile, ValidationChecklist, ValidationReport } from "../types.ts";
+import type { BarrelFilePlan, ModulePlan, SourceFile, ValidationReport } from "../types.ts";
 import { extractPublicApi } from "../spec/extract-public-api.ts";
 
 export interface VerificationInput {
@@ -21,7 +21,7 @@ export function evaluateChecklist(input: VerificationInput): ValidationReport {
 
   // 1. locBound
   let locBound = true;
-  for (const { plan, file } of generatedModules) {
+  for (const { file } of generatedModules) {
     const loc = file.content.split("\n").length;
     // We allow a small margin (e.g. +10%) or strictly <= 300?
     // Requirement says strictly <= 300
@@ -32,9 +32,20 @@ export function evaluateChecklist(input: VerificationInput): ValidationReport {
   }
 
   // 2. singleConcern (Static check: is there more than one concern type exported/used?)
-  // For now, we trust the generator to make single concern, but we could parse.
-  // We'll mark it as true if we didn't find violations (heuristic).
-  let singleConcern = true;
+  // Why: 각 생성 모듈 경로에 단일 관심사만 매핑되는지 실제로 검증.
+  //      동일 path에 여러 concern이 할당되면 단일 관심사 원칙 위반.
+  const concernsByPath = new Map<string, Set<string>>();
+  for (const { plan } of generatedModules) {
+    const current = concernsByPath.get(plan.path) ?? new Set<string>();
+    current.add(plan.concern);
+    concernsByPath.set(plan.path, current);
+  }
+  const singleConcern = [...concernsByPath.values()].every(
+    (set) => set.size === 1
+  );
+  if (!singleConcern) {
+    failedReasons.push("At least one generated module contains multiple concerns.");
+  }
 
   // 3. tscBaselineClean
   // current errors \ baseline errors = empty
@@ -47,18 +58,21 @@ export function evaluateChecklist(input: VerificationInput): ValidationReport {
 
   // 4. publicApiPreserved
   const originalApi = extractPublicApi(originalFile);
-  const newApiSymbols = new Set<string>();
-  
-  for (const { file } of generatedModules) {
-    extractPublicApi(file).forEach(sym => newApiSymbols.add(sym.name));
-  }
-  extractPublicApi(barrelFile.file).forEach(sym => newApiSymbols.add(sym.name));
+  const newApi = [
+    ...generatedModules.flatMap(m => extractPublicApi(m.file)),
+    ...extractPublicApi(barrelFile.file)
+  ];
 
   let publicApiPreserved = true;
-  for (const sym of originalApi) {
-    if (!newApiSymbols.has(sym.name)) {
+  for (const orig of originalApi) {
+    // Why: name만 비교하면 함수→타입 변경 등 브레이킹 변경을 놓칠 수 있음.
+    //      name + kind 조합으로 시그니처 레벨 보존을 검증한다.
+    const isPreserved = newApi.some(
+      (gen) => gen.name === orig.name && gen.kind === orig.kind
+    );
+    if (!isPreserved) {
       publicApiPreserved = false;
-      failedReasons.push(`Public API symbol '${sym.name}' was lost during refactoring.`);
+      failedReasons.push(`Public API symbol '${orig.name}'(${orig.kind}) was lost or changed during refactoring.`);
     }
   }
 
