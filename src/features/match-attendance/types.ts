@@ -15,7 +15,7 @@ export interface MatchAttendance {
   matchId: number;
   seat: string;
   contents: string;
-  imageUrls: string[];
+  images: AttendanceImage[]; // 🚨 imageUrls → images (객체 배열)로 변경
   createdAt: string;
   matchTime: string; // 🚨 추가
   homeTeamName: string; // 🚨 추가
@@ -27,13 +27,12 @@ export interface MatchAttendance {
   stadiumName: string;
 }
 
-/**
- * 직관 기록 생성 요청 DTO
- */
 export interface MatchAttendanceRequestDto {
   matchId: number;
   seat: string;
   contents?: string;
+  /** 백엔드 저장 후 반환되는 URL 리스트 (읽기 전용) */
+  imageUrls?: string[];
 }
 
 /**

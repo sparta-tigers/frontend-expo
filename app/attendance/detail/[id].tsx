@@ -38,10 +38,52 @@ export default function AttendanceDetailScreen() {
   const [favoriteTeam, setFavoriteTeam] = useState<FavoriteTeam | null>(null);
 
   useEffect(() => {
+    // [Phase 2-1] 라우트 파라미터 유효성 검사 (useEffect 내부)
+    const idNumber = Number(id);
+    if (!id || isNaN(idNumber)) {
+      return;
+    }
+
     favoriteTeamGetAPI().then((res) => {
       if (res.resultType === "SUCCESS") setFavoriteTeam(res.data);
     });
-  }, []);
+  }, [id]);
+
+  // [Phase 2-1] 라우트 파라미터 유효성 검사 (Fail-fast)
+  const idNumber = Number(id);
+  if (!id || isNaN(idNumber)) {
+    return (
+      <SafeLayout style={styles.safeLayout}>
+        <Box flex={1} justify="center" align="center" p="SCREEN">
+          <Ionicons
+            name="alert-circle-outline"
+            size={64}
+            color={theme.colors.error}
+          />
+          <Typography
+            variant="h3"
+            color="text.primary"
+            weight="bold"
+            center
+            mt="md"
+          >
+            유효하지 않은 기록 ID
+          </Typography>
+          <Typography variant="body2" color="text.secondary" center mt="sm">
+            기록 정보를 불러올 수 없습니다.
+          </Typography>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.replace("/(tabs)/history")}
+          >
+            <Typography variant="body1" color="background" weight="bold">
+              이전 화면으로
+            </Typography>
+          </TouchableOpacity>
+        </Box>
+      </SafeLayout>
+    );
+  }
 
   const handleDelete = () => {
     Alert.alert("삭제 확인", "이 직관 기록을 정말 삭제하시겠습니까?", [
@@ -61,11 +103,48 @@ export default function AttendanceDetailScreen() {
     ]);
   };
 
-  if (isLoading || !attendance) {
+  // 🚨 [Phase 2-2] 무한 로딩 UI 방어
+  // isLoading이 true일 때만 로딩 UI 표시
+  // attendance가 null이고 isLoading이 false일 때는 에러 UI 표시
+  if (isLoading) {
     return (
       <SafeLayout style={styles.safeLayout}>
         <Box flex={1} justify="center" align="center">
           <ActivityIndicator color={theme.colors.brand.mint} />
+        </Box>
+      </SafeLayout>
+    );
+  }
+
+  if (!attendance) {
+    return (
+      <SafeLayout style={styles.safeLayout}>
+        <Box flex={1} justify="center" align="center" p="SCREEN">
+          <Ionicons
+            name="alert-circle-outline"
+            size={64}
+            color={theme.colors.error}
+          />
+          <Typography
+            variant="h3"
+            color="text.primary"
+            weight="bold"
+            center
+            mt="md"
+          >
+            기록을 찾을 수 없습니다
+          </Typography>
+          <Typography variant="body2" color="text.secondary" center mt="sm">
+            해당 기록이 삭제되었거나 존재하지 않습니다.
+          </Typography>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.replace("/(tabs)/history")}
+          >
+            <Typography variant="body1" color="background" weight="bold">
+              이전 화면으로
+            </Typography>
+          </TouchableOpacity>
         </Box>
       </SafeLayout>
     );
@@ -216,7 +295,7 @@ export default function AttendanceDetailScreen() {
         </Box>
 
         {/* Gallery */}
-        {attendance.imageUrls && attendance.imageUrls.length > 0 && (
+        {attendance.images && attendance.images.length > 0 && (
           <Box mb="SCREEN">
             <Typography
               variant="label"
@@ -231,10 +310,10 @@ export default function AttendanceDetailScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.galleryContent}
             >
-              {attendance.imageUrls.map((url: string, index: number) => (
+              {attendance.images.map((img) => (
                 <Image
-                  key={index}
-                  source={{ uri: url }}
+                  key={img.id}
+                  source={{ uri: img.imageUrl }}
                   style={styles.galleryImage}
                   contentFit="cover"
                 />
@@ -291,5 +370,12 @@ const styles = StyleSheet.create({
   },
   memoText: {
     lineHeight: 24,
+  },
+  backButton: {
+    backgroundColor: theme.colors.brand.mint,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.radius.md,
+    marginTop: theme.spacing.lg,
   },
 });
