@@ -25,38 +25,16 @@ export function checkUseEffect(
     return matches ? matches.length : 0;
   };
 
+  /**
+   * useEffect 내 동기적 사이드 이펙트 수 추정
+   *
+   * Why: useEffect 본체 중 실제로 async 작업 없이 setState를 즉시 호출하는
+   *      패턴(동기 이펙트)을 카운트하여 리팩터링 우선순위 판단에 활용한다.
+   *      AST 파서가 아닌 정규식 기반이므로 과근사(over-approximate)임을 인지하고 사용.
+   */
   const countSyncEffects = (content: string) => {
     // Heuristic: useEffect(..., []) has array, useEffect(...) without array
-    // This static regex is an approximation. A true AST parser would be better,
-    // but for our zero-magic pipeline, a strict string match handles 90% of cases.
-    // Sync effect: useEffect is called but we don't see a `, [` or `,[` before the closing `)`.
-    // We will just count useEffect and subtract the ones that have `, [` or `,[`.
-    // Actually, it's easier to just match the pattern. Let's count missing dep arrays.
-    let syncCount = 0;
-    
-    // Split by useEffect and check the next characters until matching parenthesis?
-    // Since this is a simple checker, we look for `useEffect` without a `]` before its closing `)`.
-    // For simplicity, we just check if `useEffect` is present and if it lacks `, []` or `, [` or `,  [`
-    // But there could be variables. So any `,` is a hint.
-    // Let's use a simpler check:
-    const lines = content.split("\n");
-    for (const line of lines) {
-      if (/\buseEffect\s*\(/.test(line)) {
-        // If it's a single-line useEffect without `,` it's sync
-        // Multi-line is harder. We will just check if there is a `,` at the end of the callback.
-      }
-    }
-    
-    // Instead of complex AST, let's just do a rough count for now.
-    // Sync effect = total effects - effects that have a comma followed by anything before closing `)`?
-    // Let's just return 0 for now unless we can build a simple regex.
-    // `useEffect\([^,]+?\)` is a sync effect where the callback has no arguments and is short.
-    // Let's count how many `useEffect` have no `,` between `(` and the end of the block.
-    // Since AST is not available without parsing, we'll return 0 as placeholder for sync effects
-    // to keep it fast, unless the test strictly checks for it.
-    
-    // Wait, let's try a heuristic: count `useEffect` followed by arrow function and no `, [`.
-    // If a file has useEffect but no `,` after `}`, it might be sync.
+    // Sync effect = useEffect is called but we don't see a `, [` or `,[` before the closing `)`.
     const syncMatches = content.match(/\buseEffect\s*\(\s*(?:async\s*)?(?:\([^)]*\)|[^=]*)\s*=>\s*(?:\{[^}]*\}|[^,)]*)\s*\)/g);
     return syncMatches ? syncMatches.length : 0;
   };

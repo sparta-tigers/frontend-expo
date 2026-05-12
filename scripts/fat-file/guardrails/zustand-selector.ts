@@ -7,10 +7,15 @@ export interface ZustandGuardrailResult {
 }
 
 /**
- * Validates: Requirements 8.4
- * 
- * Flags Zustand `useStore` calls that are missing a selector or might be returning
- * multiple properties without a `shallow` equality function.
+ * Zustand 셀렉터 배열 반환 패턴 탐지
+ *
+ * Why: 생성 코드에서 `state => [...]` 또는 `state => ({...})` 형태의
+ *      복수 값 셀렉터를 감지해 단순 구조분해 패턴으로 교체하도록 유도한다.
+ *
+ * ⚠ 한계 (Limitation):
+ * - 멀티라인 셀렉터: `state =>\n[state.x, state.y]` 는 감지 불가
+ * - 주석 내 패턴: `// => [` 오탐 가능
+ * - 정확한 검증이 필요하면 AST 파서(@typescript-eslint/typescript-estree) 도입을 검토할 것
  */
 export function checkZustandSelectors(generatedFiles: SourceFile[]): ZustandGuardrailResult {
   const violations: string[] = [];
