@@ -4,7 +4,8 @@ import {
   attendanceCreateAPI, 
   attendanceUpdateAPI,
   attendanceDeleteAPI,
-  attendanceGetDetailAPI
+  attendanceGetDetailAPI,
+  attendanceGetMyByMatchIdAPI
 } from "./api";
 
 /**
@@ -31,6 +32,27 @@ export const useMyAttendances = (page: number = 1, size: number = 100) => {
     queryKey: attendanceKeys.my(page, size),
     queryFn: () => attendanceGetMyAPI(page, size),
     select: (response) => response.data?.content ?? [],
+  });
+};
+
+/**
+ * 🛡️ [Phase 2 방어] 특정 경기에 대한 내 직관 기록 조회 훅
+ * Why: 100건 제한 목록 검색 안티패턴을 피하고, 결정론적으로 수정/생성 모드를 판별하기 위함.
+ */
+export const useMyAttendanceByMatchId = (matchId: number) => {
+  return useQuery({
+    queryKey: [...attendanceKeys.all, "my", "match", matchId],
+    queryFn: async () => {
+      try {
+        const response = await attendanceGetMyByMatchIdAPI(matchId);
+        return response.data;
+      } catch {
+        // 기록이 없는 경우(404 등) 에러를 터뜨리지 않고 null 반환
+        return null;
+      }
+    },
+    enabled: !!matchId && !isNaN(matchId),
+    retry: false, // 생성 모드 유도 시 불필요한 재시도 방지
   });
 };
 

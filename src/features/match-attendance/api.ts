@@ -26,6 +26,17 @@ export async function attendanceGetMyAPI(
 }
 
 /**
+ * 특정 경기에 대한 내 직관 기록 조회 API
+ * 
+ * @param matchId - 경기 ID
+ */
+export async function attendanceGetMyByMatchIdAPI(
+  matchId: number,
+): Promise<ApiResponse<MatchAttendance | null>> {
+  return apiClient.get(`/api/attendances/my/match/${matchId}`);
+}
+
+/**
  * 직관 기록 상세 조회 API
  */
 export async function attendanceGetDetailAPI(
