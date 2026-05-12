@@ -82,5 +82,9 @@ export function namingMap(concern: Concern_Category, featureId: string): NamingM
         filename: `${kebabFeature}.styles.ts`,
         symbol: "styles",
       };
+    default:
+      // Why: TypeScript exhaustiveness check는 컴파일 타임에만 동작함.
+      //      런타임에서 예상 범위를 벗어난 값이 들어오면 즉시 에러를 던져 조기 발견한다.
+      throw new Error(`[naming-map] Unknown concern category: '${concern as string}'`);
   }
 }
