@@ -19,4 +19,7 @@ export const ticketAlarmKeys = {
 
   /** 🔍 list: 페이지 번호와 사이즈별로 구체화된 목록 식별자 */
   list: (page: number, size: number) => [...ticketAlarmKeys.lists(), { page, size }] as const,
+
+  /** 🔢 count: 전체 알림 개수 식별자 */
+  count: () => [...ticketAlarmKeys.all, "count"] as const,
 };

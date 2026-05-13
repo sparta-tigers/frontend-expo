@@ -62,3 +62,13 @@ export async function ticketAlarmDeleteAPI(
 ): Promise<ApiResponse<void>> {
   return apiClient.delete(`/api/ticketalarm/${alarmId}`);
 }
+
+/**
+ * 🔢 ticketAlarmGetCountAPI: 사용자의 전체 예매 알림 개수를 조회합니다.
+ * 
+ * Why: 대시보드 상단 '나의 팀' 섹션 등에서 사용자의 활동 요약을 숫자로 명확히 보여주기 위함입니다.
+ * 전체 목록을 가져와 클라이언트에서 계산하는 것보다 서버에서 count 결과만 받아오는 것이 훨씬 효율적입니다.
+ */
+export async function ticketAlarmGetCountAPI(): Promise<ApiResponse<number>> {
+  return apiClient.get("/api/ticketalarm/count");
+}
