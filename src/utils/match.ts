@@ -1,4 +1,5 @@
 import { ThemeColorPath } from "@/src/shared/types/theme";
+import { findTeamMeta } from "./team";
 
 /**
  * 경기 결과 정보를 담는 인터페이스
@@ -31,8 +32,12 @@ export const calculateMatchResult = (
     return null;
   }
 
-  const isHome = homeTeamCode === favoriteTeamCode;
-  const isAway = awayTeamCode === favoriteTeamCode;
+  const homeMeta = findTeamMeta(homeTeamCode);
+  const awayMeta = findTeamMeta(awayTeamCode);
+  const favoriteMeta = findTeamMeta(favoriteTeamCode);
+
+  const isHome = homeMeta.id === favoriteMeta.id;
+  const isAway = awayMeta.id === favoriteMeta.id;
 
   // 응원 팀이 참여한 경기가 아닌 경우
   if (!isHome && !isAway) {

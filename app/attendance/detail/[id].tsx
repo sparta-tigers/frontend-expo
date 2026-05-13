@@ -8,7 +8,7 @@ import { FavoriteTeam } from "@/src/features/user/favorite-team";
 import { favoriteTeamGetAPI } from "@/src/features/user/favorite-team-api";
 import { theme } from "@/src/styles/theme";
 import { calculateMatchResult } from "@/src/utils/match";
-import { TEAM_DATA, isValidTeamCode } from "@/src/utils/team";
+import { findTeamMeta } from "@/src/utils/team";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -165,12 +165,8 @@ export default function AttendanceDetailScreen() {
   };
 
   const result = getMatchResult();
-  const homeTeam = isValidTeamCode(attendance.homeTeamCode)
-    ? TEAM_DATA[attendance.homeTeamCode]
-    : null;
-  const awayTeam = isValidTeamCode(attendance.awayTeamCode)
-    ? TEAM_DATA[attendance.awayTeamCode]
-    : null;
+  const homeTeam = findTeamMeta(attendance.homeTeamCode);
+  const awayTeam = findTeamMeta(attendance.awayTeamCode);
 
   return (
     <SafeLayout style={styles.safeLayout}>
