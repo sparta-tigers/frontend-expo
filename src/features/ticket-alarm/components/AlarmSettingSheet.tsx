@@ -11,6 +11,12 @@ import Slider from "@react-native-community/slider";
 import { useTicketAlarmMutation } from "../hooks/useTicketAlarm";
 import { Logger } from "@/src/utils/logger";
 
+/**
+ * 📝 AlarmSettingSheetProps: 알림 설정 시트의 외부 제어 계약(Contract)
+ * 
+ * Why: 컴포넌트 호출부에서 필수 데이터(식별자, 타이틀)와 제어용 Refs를 명확히 전달하도록 강제하여, 
+ * 데이터 흐름을 예측 가능하게 만들고 UI 상태와 도메인 데이터를 동기화하기 위함입니다.
+ */
 interface AlarmSettingSheetProps {
   modalRef: React.RefObject<BottomSheetModal | null>;
   matchId: number | null;
@@ -20,10 +26,10 @@ interface AlarmSettingSheetProps {
 }
 
 /**
- * 🚨 앙드레 카파시: 티켓 예매 알림 설정 바텀 시트
+ * 🔔 AlarmSettingSheet: 사용자가 특정 경기의 티켓 예매 알림을 설정하는 BottomSheet 레이어입니다.
  * 
- * Why: 사용자가 특정 경기의 예매 알림을 직관적으로 설정할 수 있도록 함.
- * Zero Magic: 상태 관리를 단순하게 유지하고 비동기 처리를 명시적으로 수행함.
+ * Why: 메인 캘린더 화면의 맥락(Context)을 유지한 상태에서, 특정 경기에 대한 부가 설정(시간, 멤버십)을 
+ * 독립된 모달 레이어에서 처리함으로써 UX 흐름을 매끄럽게 연결하고 단일 책임 원칙을 준수하기 위함입니다.
  */
 export function AlarmSettingSheet({ 
   modalRef, 
@@ -46,8 +52,9 @@ export function AlarmSettingSheet({
   );
 
   const handleSave = async () => {
-    if (!matchId || !teamId) {
-      Logger.error("Missing matchId or teamId");
+    /** 🛡 [Guard] 명시적 식별자 검증: 유효 ID(0 등) 오판 방지를 위해 null/undefined 체크 수행 */
+    if (matchId == null || teamId == null) {
+      Logger.error("Missing matchId or teamId", { matchId, teamId });
       return;
     }
 
