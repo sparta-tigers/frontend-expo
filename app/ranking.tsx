@@ -11,7 +11,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 
 import { Box, Typography } from "@/components/ui";
 import { theme } from "@/src/styles/theme";
-import { TEAM_DATA, TeamCode } from "@/src/utils/team";
+import { findTeamMeta } from "@/src/utils/team";
 import { useAuth } from "@/context/AuthContext";
 import { useMatchRanking } from "@/src/features/match/hooks/useMatchRanking";
 import { LeagueType, RankingRowDto } from "@/src/features/match/types";
@@ -55,13 +55,8 @@ export default function RankingScreen() {
   const rankings = React.useMemo(() => rankingRes?.data || [], [rankingRes?.data]);
 
   // 내 팀 정보 (Branding용)
-  const activeTeamCode = (myTeam as TeamCode) || "KIA";
-  const team = TEAM_DATA[activeTeamCode] || TEAM_DATA["KIA"];
-  
-  // 테마 색상 추출 (Brutal Style)
-  const brandColor = React.useMemo(() => 
-    theme.colors.team[activeTeamCode.toLowerCase() as keyof typeof theme.colors.team] || theme.colors.brand.mint
-  , [activeTeamCode]);
+  const team = findTeamMeta(myTeam);
+  const brandColor = team.color;
 
   // 네비게이션 헬퍼 (SSOT 가이드 준수)
   const switchMode = React.useCallback((mode: "year" | "day") => {
@@ -279,7 +274,7 @@ const RankingRow = React.memo(({ row, isMyTeam }: { row: RankingRowDto, isMyTeam
     <Box flex={2} flexDir="row" align="center">
       <Box width={32} height={32} rounded="full" bg="team.neutralLight" align="center" justify="center" mr="sm">
         <Typography style={styles.teamIconText}>
-          {TEAM_DATA[row.teamCode as TeamCode]?.mascotEmoji || "⚾"}
+          {findTeamMeta(row.teamCode)?.mascotEmoji || "⚾"}
         </Typography>
       </Box>
       <Typography variant="body2" weight={isMyTeam ? "bold" : "medium"} color={isMyTeam ? "brand.mint" : "text.primary"}>

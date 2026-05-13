@@ -5,7 +5,7 @@ import { StyleSheet, TouchableOpacity } from "react-native";
 import { Box, Typography } from "@/components/ui";
 import { RankingRowDto } from "@/src/features/match/types";
 import { theme } from "@/src/styles/theme";
-import { TEAM_DATA, TeamCode } from "@/src/utils/team";
+import { findTeamMeta, TeamCode } from "@/src/utils/team";
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -140,7 +140,7 @@ const RankingRow = React.memo(function RankingRow({
   row,
   isMyTeam,
 }: RankingRowProps) {
-  const teamInfo = TEAM_DATA[row.teamCode as TeamCode];
+  const teamInfo = findTeamMeta(row.teamCode);
 
   return (
     <Box

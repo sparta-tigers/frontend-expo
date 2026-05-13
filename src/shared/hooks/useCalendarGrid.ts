@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { MatchScheduleDto } from "@/src/features/match/types";
 import { CalendarCellModel } from "@/src/features/home/types/calendar";
-import { getTeamByBackendCode } from "@/src/utils/team";
+import { findTeamMeta, DEFAULT_TEAM_ID } from "@/src/utils/team";
 
 /**
  * 전역 달력 그리드 생성 엔진 (Deterministic)
@@ -50,7 +50,7 @@ export const useCalendarGrid = (
     for (let d = 1; d <= daysInMonth; d++) {
       const game = dayToGame.get(d);
       // 백엔드 코드(HT, OB 등)를 통해 팀 정보 조회 (Safe Mapping)
-      const opponentInfo = game?.opponentCode ? getTeamByBackendCode(game.opponentCode) : null;
+      const opponentInfo = findTeamMeta(game?.opponentCode);
 
       // 오늘 여부 판별 (연, 월, 일이 모두 일치해야 함)
       const isToday = 
@@ -64,7 +64,7 @@ export const useCalendarGrid = (
         hasGame: !!game,
         hasAttendance: game?.matchId ? attendanceMatchIds?.has(game.matchId) : false, // 🚨 추가
         opponentCode: game?.opponentCode,
-        opponentShort: opponentInfo?.shortName ?? "", 
+        opponentShort: opponentInfo.id !== DEFAULT_TEAM_ID ? opponentInfo.shortName : "", 
         isSelected: d === selectedDay,
         isToday: isToday, 
         location: game?.location,

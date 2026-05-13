@@ -12,7 +12,7 @@ import { Typography } from "@/components/ui/typography";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { theme } from "@/src/styles/theme";
 import { styles, LOCAL_LAYOUT } from "@/src/features/user/styles/profile.styles";
-import { KBO_TEAMS } from "@/src/features/user/hooks/useProfile";
+import { KBO_TEAMS } from "@/src/features/user/types";
 
 interface TeamSelectSheetProps {
   modalRef: React.RefObject<BottomSheetModal | null>;

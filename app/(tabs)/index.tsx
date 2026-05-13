@@ -8,7 +8,7 @@ import { commonStyles as styles } from "@/src/features/home/components/common.st
 import React, { useMemo } from "react";
 import { ScrollView } from "react-native";
 import { useAuth } from "@/context/AuthContext";
-import { TEAM_DATA, TeamCode, isValidTeamCode } from "@/src/utils/team";
+import { findTeamMeta, TeamCode } from "@/src/utils/team";
 import { router } from "expo-router";
 import { useMatchSchedule } from "@/src/features/match/hooks/useMatchSchedule";
 import { useMatchRanking } from "@/src/features/match/hooks/useMatchRanking";
@@ -84,10 +84,7 @@ export default function HomeScreen() {
     return top5;
   }, [rankingRes?.data, myTeamId]);
 
-  // 🚨 앙드레 카파시: 낙관적 업데이트를 고려한 데이터 병합
-  // Why: AsyncStorage에서 로드된 실제 응원팀 정보가 있다면 우선 사용, 없으면 목 데이터 사용.
-  const activeTeamCode: TeamCode = isValidTeamCode(myTeamId) ? myTeamId : "KIA";
-  const myTeam = TEAM_DATA[activeTeamCode] ?? mockData.myTeam;
+  const myTeam = findTeamMeta(myTeamId);
 
   const handlePressChangeTeam = () => {
     router.push("/change-team");
@@ -118,7 +115,7 @@ export default function HomeScreen() {
           />
         )}
 
-        <LineupSection lineup={dashboardData?.todayLineup ?? []} teamName={myTeam.name} />
+        <LineupSection lineup={dashboardData?.todayLineup ?? []} teamName={myTeam?.name || "KBO"} />
 
         {isScheduleLoading ? (
           <ScheduleSkeleton />

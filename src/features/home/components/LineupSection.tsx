@@ -1,7 +1,8 @@
 import { Box, Typography } from "@/components/ui";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { theme } from "@/src/styles/theme";
-import { getTeamColorPath } from "@/src/utils/team";
+import { findTeamMeta } from "@/src/utils/team";
+import { ThemeColorPath } from "@/src/shared/types/theme";
 import React from "react";
 import { StyleSheet } from "react-native";
 import { LineupRowDto } from "../types/dashboard";
@@ -38,7 +39,8 @@ export const LineupSection = React.memo(function LineupSection({
   lineup,
   teamName,
 }: LineupSectionProps) {
-  const teamColorPath = getTeamColorPath(teamName ?? "");
+  const myTeam = findTeamMeta(teamName ?? "");
+  const teamColorPath = `team.${myTeam?.colorToken || "fallback"}` as ThemeColorPath;
 
   // 🚨 Empty State: 라인업 데이터가 없는 경우 (경기 전)
   if (!lineup || lineup.length === 0) {

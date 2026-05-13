@@ -5,7 +5,8 @@ import { useAuth } from "@/context/AuthContext";
 import { Stack, router } from "expo-router";
 import React from "react";
 import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
-import { getTeamBorderStyle } from "@/src/utils/team";
+import { TEAM_LIST } from "@/src/utils/team";
+import { ThemeColorPath } from "@/src/shared/types/theme";
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -37,19 +38,6 @@ const LOCAL_LAYOUT = {
   checkFontSize: theme.typography.size.xs,
 } as const;
 
-const TEAMS = [
-  { id: "KIA", name: "KIA 타이거즈", mascot: "🐯", colorPath: "team.kia" as const },
-  { id: "LG", name: "LG 트윈스", mascot: "👯", colorPath: "team.lg" as const },
-  { id: "KT", name: "KT 위즈", mascot: "🧙", colorPath: "team.kt" as const },
-  { id: "SSG", name: "SSG 랜더스", mascot: "🛸", colorPath: "team.ssg" as const },
-  { id: "NC", name: "NC 다이노스", mascot: "🦖", colorPath: "team.nc" as const },
-  { id: "DOOSAN", name: "두산 베어스", mascot: "🐻", colorPath: "team.doosan" as const },
-  { id: "LOTTE", name: "롯데 자이언츠", mascot: "⚓", colorPath: "team.lotte" as const },
-  { id: "SAMSUNG", name: "삼성 라이온즈", mascot: "🦁", colorPath: "team.samsung" as const },
-  { id: "HANWHA", name: "한화 이글스", mascot: "🦅", colorPath: "team.hanwha" as const },
-  { id: "KIWOOM", name: "키움 히어로즈", mascot: "🦸", colorPath: "team.kiwoom" as const },
-];
-
 /**
  * 응원팀 변경 화면
  * 
@@ -65,7 +53,7 @@ export default function ChangeTeamScreen() {
   };
 
   return (
-    <SafeLayout style={styles.container}>
+    <SafeLayout style={styles.container} edges={["top", "left", "right"]}>
       <Stack.Screen 
         options={{ 
           title: "응원팀 변경",
@@ -91,8 +79,9 @@ export default function ChangeTeamScreen() {
         </Box>
 
         <Box flexDir="row" flexWrap="wrap" justify="space-between">
-          {TEAMS.map((team) => {
+          {TEAM_LIST.map((team) => {
             const isSelected = myTeam === team.id;
+            const colorPath = `team.${team.colorToken}` as ThemeColorPath;
             
             return (
               <TouchableOpacity
@@ -102,7 +91,7 @@ export default function ChangeTeamScreen() {
                 style={[
                   styles.teamCard,
                   isSelected && styles.teamCardSelected,
-                  isSelected && getTeamBorderStyle(team.name)
+                  isSelected && { borderColor: team.color }
                 ]}
               >
                 <Box 
@@ -112,16 +101,16 @@ export default function ChangeTeamScreen() {
                   justify="center"
                   align="center"
                   mb="md"
-                  bg={team.colorPath}
+                  bg={colorPath}
                   style={styles.colorBadge}
                 >
-                  <Typography style={styles.mascot}>{team.mascot}</Typography>
+                  <Typography style={styles.mascot}>{team.mascotEmoji}</Typography>
                 </Box>
                 <Typography 
                   variant="caption" 
                   weight={isSelected ? "bold" : "semibold"} 
                   center
-                  color={isSelected ? team.colorPath : "primary"}
+                  color={isSelected ? colorPath : "primary"}
                 >
                   {team.name}
                 </Typography>
@@ -130,7 +119,7 @@ export default function ChangeTeamScreen() {
                     rounded="sm"
                     px="xs"
                     py="xxs"
-                    bg={team.colorPath}
+                    bg={colorPath}
                     style={styles.checkBadge}
                   >
                     <Typography 

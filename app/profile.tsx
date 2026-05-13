@@ -13,7 +13,8 @@ import {
 import { TeamSelectSheet } from "@/src/features/user/components/TeamSelectSheet";
 import { NicknameEditModal } from "@/src/features/user/components/NicknameEditModal";
 import { LOCAL_LAYOUT, styles } from "@/src/features/user/styles/profile.styles";
-import { useProfile, KBO_TEAMS } from "@/src/features/user/hooks/useProfile";
+import { useProfile } from "@/src/features/user/hooks/useProfile";
+import { KBO_TEAMS } from "@/src/features/user/types";
 
 export default function ProfileScreen() {
   const {

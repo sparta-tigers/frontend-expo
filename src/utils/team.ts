@@ -1,312 +1,262 @@
-/**
- * KBO 팀 컬러 유틸리티
- *
- * Why: liveboard.tsx, schedule.tsx 등 다수 화면에서 팀명 → 컬러 매핑이 필요.
- * 각 파일에서 하드코딩하면 SSOT가 깨지므로, theme.colors.team 토큰을 기반으로
- * 순수 함수 + StyleSheet 사전 정의 맵을 제공한다.
- */
-import { ImageSourcePropType, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { theme } from "@/src/styles/theme";
-import { TeamDto } from "@/src/features/home/types/team";
-import { ThemeColorPath } from "@/src/shared/types/theme";
 
 /**
- * KBO 10개 구단 상세 데이터 맵
- *
- * Why: 팀 ID(코드)만으로 마스코트, 약칭, 풀네임 등을 즉시 조회하기 위함.
+ * 🛡️ TeamCode: KBO 구단 식별자 유니온 타입
+ * Why: 단순 문자열 사용을 지양하고 타입 안정성을 확보하여 Fail-fast를 실현함.
  */
-export const TEAM_DATA = {
+export type TeamCode =
+  | "KIA"
+  | "LG"
+  | "KT"
+  | "SSG"
+  | "NC"
+  | "DOOSAN"
+  | "LOTTE"
+  | "SAMSUNG"
+  | "HANWHA"
+  | "KIWOOM"
+  | "DEFAULT";
+
+/**
+ * 🆔 DEFAULT_TEAM_ID: 기본 구단 식별자 (매직 스트링 방지)
+ */
+export const DEFAULT_TEAM_ID = "DEFAULT";
+
+/**
+ * 🔌 BackendCode: DB 및 API 통신용 구단 식별 유니온 타입
+ * Why: 백엔드 스펙과의 오차를 방지하고 타입 안정성을 확보함.
+ */
+export type BackendCode =
+  | "HT"
+  | "LG"
+  | "SK"
+  | "WO"
+  | "NC"
+  | "OB"
+  | "LT"
+  | "SS"
+  | "HH"
+  | "KT"
+  | "KBO";
+
+/**
+ * 🎨 TeamColorToken: 테마 시스템과 연동되는 컬러 토큰 타입
+ */
+export type TeamColorToken = keyof typeof theme.colors.team;
+
+/**
+ * 🏛️ TeamMeta: 구단 메타데이터 인터페이스 (SSOT)
+ */
+export interface TeamMeta {
+  readonly id: TeamCode;
+  readonly name: string; // 풀네임 (예: KIA 타이거즈)
+  readonly shortName: string; // 약칭 (예: KIA)
+  readonly subName: string; // 서브 명칭 (예: 타이거즈)
+  readonly mascotEmoji: string; // 마스코트 이모지
+  readonly color: string; // 테마 Hex 값
+  readonly colorToken: TeamColorToken; // 테마 토큰 키
+  readonly backendCode: BackendCode; // DB 매핑 코드 (HT, SK, WO 등)
+  readonly stadium: string; // 홈 구장명
+  readonly logo?: any; // 구단 로고 에셋 (require 구문 사용 예정)
+}
+
+/**
+ * 💎 TEAM_DATA: 전 구단 메타데이터 (Single Source of Truth)
+ */
+export const TEAM_DATA: Record<TeamCode, TeamMeta> = {
   KIA: {
+    id: "KIA",
     name: "KIA 타이거즈",
     shortName: "KIA",
     subName: "타이거즈",
     mascotEmoji: "🐯",
     color: theme.colors.team.kia,
+    colorToken: "kia",
     backendCode: "HT",
+    stadium: "광주-기아 챔피언스 필드",
   },
   LG: {
+    id: "LG",
     name: "LG 트윈스",
     shortName: "LG",
     subName: "트윈스",
     mascotEmoji: "👯",
     color: theme.colors.team.lg,
+    colorToken: "lg",
     backendCode: "LG",
+    stadium: "서울 잠실 야구장",
   },
   KT: {
+    id: "KT",
     name: "KT 위즈",
     shortName: "KT",
     subName: "위즈",
     mascotEmoji: "🧙",
     color: theme.colors.team.kt,
+    colorToken: "kt",
     backendCode: "KT",
+    stadium: "수원 KT 위즈 파크",
   },
   SSG: {
+    id: "SSG",
     name: "SSG 랜더스",
     shortName: "SSG",
     subName: "랜더스",
     mascotEmoji: "🛸",
     color: theme.colors.team.ssg,
+    colorToken: "ssg",
     backendCode: "SK",
+    stadium: "인천 SSG 랜더스 필드",
   },
   NC: {
+    id: "NC",
     name: "NC 다이노스",
     shortName: "NC",
     subName: "다이노스",
     mascotEmoji: "🦖",
     color: theme.colors.team.nc,
+    colorToken: "nc",
     backendCode: "NC",
+    stadium: "창원 NC 파크",
   },
   DOOSAN: {
+    id: "DOOSAN",
     name: "두산 베어스",
     shortName: "두산",
     subName: "베어스",
     mascotEmoji: "🐻",
     color: theme.colors.team.doosan,
+    colorToken: "doosan",
     backendCode: "OB",
+    stadium: "서울 잠실 야구장",
   },
   LOTTE: {
+    id: "LOTTE",
     name: "롯데 자이언츠",
     shortName: "롯데",
     subName: "자이언츠",
     mascotEmoji: "⚓",
     color: theme.colors.team.lotte,
+    colorToken: "lotte",
     backendCode: "LT",
+    stadium: "부산 사직 야구장",
   },
   SAMSUNG: {
+    id: "SAMSUNG",
     name: "삼성 라이온즈",
     shortName: "삼성",
     subName: "라이온즈",
     mascotEmoji: "🦁",
     color: theme.colors.team.samsung,
+    colorToken: "samsung",
     backendCode: "SS",
+    stadium: "대구 삼성 라이온즈 파크",
   },
   HANWHA: {
+    id: "HANWHA",
     name: "한화 이글스",
     shortName: "한화",
     subName: "이글스",
     mascotEmoji: "🦅",
     color: theme.colors.team.hanwha,
+    colorToken: "hanwha",
     backendCode: "HH",
+    stadium: "한화생명 이글스 파크",
   },
   KIWOOM: {
+    id: "KIWOOM",
     name: "키움 히어로즈",
     shortName: "키움",
     subName: "히어로즈",
     mascotEmoji: "🦸",
     color: theme.colors.team.kiwoom,
+    colorToken: "kiwoom",
     backendCode: "WO",
+    stadium: "고척 스카이돔",
   },
-} as const satisfies Record<string, TeamDto>;
-
-/**
- * 팀 코드가 유효한지 검사하는 타입 가드
- * Why: 외부 API나 라우트 파라미터로부터 들어온 임의의 문자열을 안전한 TeamCode 타입으로 좁히기 위함.
- */
-export const isValidTeamCode = (
-  code: string | null | undefined,
-): code is TeamCode => {
-  return !!code && code in TEAM_DATA;
-};
-
-/**
- * 프론트엔드에서 사용하는 KBO 팀 코드 타입 (KIA, LG, DOOSAN 등)
- */
-export type TeamCode = keyof typeof TEAM_DATA;
-
-/**
- * 백엔드 코드(HT, OB 등)로부터 팀 데이터를 조회하는 유틸리티
- */
-export const getTeamByBackendCode = (
-  backendCode: string,
-): TeamDto | undefined => {
-  return Object.values(TEAM_DATA).find(
-    (team) => team.backendCode === backendCode,
-  );
-};
-
-/**
- * KBO 팀 약칭 → theme 컬러 매핑 테이블
- *
- * Java의 static Map<String, String>과 동일한 역할.
- * key: 화면에서 사용되는 팀 약칭(한글/영문)
- * value: theme.colors.team.* 컬러 값
- */
-const TEAM_NAME_TO_COLOR: Record<string, string> = {
-  // 한글 약칭
-  한화: theme.colors.team.hanwha,
-  LG: theme.colors.team.lg,
-  롯데: theme.colors.team.lotte,
-  삼성: theme.colors.team.samsung,
-  NC: theme.colors.team.nc,
-  SSG: theme.colors.team.ssg,
-  두산: theme.colors.team.doosan,
-  KT: theme.colors.team.kt,
-  키움: theme.colors.team.kiwoom,
-  KIA: theme.colors.team.kia,
-
-  // 영문 ID 및 풀네임
-  KIA_TIGERS: theme.colors.team.kia,
-  LG_TWINS: theme.colors.team.lg,
-  HANWHA_EAGLES: theme.colors.team.hanwha,
-  LOTTE_GIANTS: theme.colors.team.lotte,
-  SAMSUNG_LIONS: theme.colors.team.samsung,
-  SSG_LANDERS: theme.colors.team.ssg,
-  NC_DINOS: theme.colors.team.nc,
-  KT_WIZ: theme.colors.team.kt,
-  DOOSAN_BEARS: theme.colors.team.doosan,
-  KIWOOM_HEROES: theme.colors.team.kiwoom,
-
-  // 경기 일정 등에서 사용되는 풀네임
-  "한화 이글스": theme.colors.team.hanwha,
-  "LG 트윈스": theme.colors.team.lg,
-  "롯데 자이언츠": theme.colors.team.lotte,
-  "삼성 라이온즈": theme.colors.team.samsung,
-  "NC 다이노스": theme.colors.team.nc,
-  "SSG 랜더스": theme.colors.team.ssg,
-  "두산 베어스": theme.colors.team.doosan,
-  "KT 위즈": theme.colors.team.kt,
-  "키움 히어로즈": theme.colors.team.kiwoom,
-  "KIA 타이거즈": theme.colors.team.kia,
+  DEFAULT: {
+    id: "DEFAULT",
+    name: "KBO",
+    shortName: "KBO",
+    subName: "KBO",
+    mascotEmoji: "⚾",
+    color: theme.colors.team.fallback,
+    colorToken: "fallback",
+    backendCode: "KBO",
+    stadium: "KBO 야구장",
+  },
 } as const;
 
 /**
- * 팀명으로부터 테마 컬러 경로(dot notation)를 반환하는 유틸리티
- *
- * Why: Typography나 Box의 color/bg prop에 "team.kia"와 같은 토큰을 직접 전달하기 위함.
+ * ⚡ O(1) 조회를 위한 내부 매핑 맵 (Internal Lookup Maps)
  */
-export const getTeamColorPath = (teamName: string): ThemeColorPath => {
-  // 1. 직접 매핑 시도 (KIA, LG 등)
-  const directMapping: Record<string, ThemeColorPath> = {
-    KIA: "team.kia",
-    "KIA 타이거즈": "team.kia",
-    KIA_TIGERS: "team.kia",
-    LG: "team.lg",
-    "LG 트윈스": "team.lg",
-    LG_TWINS: "team.lg",
-    한화: "team.hanwha",
-    "한화 이글스": "team.hanwha",
-    HANWHA_EAGLES: "team.hanwha",
-    롯데: "team.lotte",
-    "롯데 자이언츠": "team.lotte",
-    LOTTE_GIANTS: "team.lotte",
-    삼성: "team.samsung",
-    "삼성 라이온즈": "team.samsung",
-    SAMSUNG_LIONS: "team.samsung",
-    SSG: "team.ssg",
-    "SSG 랜더스": "team.ssg",
-    SSG_LANDERS: "team.ssg",
-    NC: "team.nc",
-    "NC 다이노스": "team.nc",
-    NC_DINOS: "team.nc",
-    KT: "team.kt",
-    "KT 위즈": "team.kt",
-    KT_WIZ: "team.kt",
-    두산: "team.doosan",
-    "두산 베어스": "team.doosan",
-    DOOSAN_BEARS: "team.doosan",
-    키움: "team.kiwoom",
-    "키움 히어로즈": "team.kiwoom",
-    KIWOOM_HEROES: "team.kiwoom",
-  };
+const BACKEND_CODE_MAP = Object.values(TEAM_DATA).reduce((acc, team) => {
+  acc[team.backendCode] = team;
+  return acc;
+}, {} as Record<string, TeamMeta>);
 
-  if (directMapping[teamName]) return directMapping[teamName];
-
-  // 2. 백엔드 코드(HT, OB 등)로 매핑 시도
-  const team = getTeamByBackendCode(teamName);
-  if (team) {
-    // backendCode(HT) -> frontendCode(KIA)로 변환 후 재귀 호출 또는 직접 반환
-    const frontendCode = (Object.keys(TEAM_DATA) as TeamCode[]).find(
-      (key) => TEAM_DATA[key].backendCode === team.backendCode,
-    );
-    if (frontendCode && directMapping[frontendCode]) {
-      return directMapping[frontendCode];
-    }
-  }
-
-  return "team.neutralDark";
-};
+const NAME_MAP = Object.values(TEAM_DATA).reduce((acc, team) => {
+  acc[team.name.toUpperCase()] = team;
+  acc[team.shortName.toUpperCase()] = team;
+  return acc;
+}, {} as Record<string, TeamMeta>);
 
 /**
- * 팀명으로부터 컬러 값을 반환하는 순수 함수
- *
- * @param teamName - KBO 팀 약칭 또는 풀네임
- * @returns hex 컬러 문자열
+ * 🔍 findTeamMeta: 구단 식별자를 기반으로 결정론적 메타데이터 반환
  */
-export const getTeamColor = (teamName: string): string => {
-  return TEAM_NAME_TO_COLOR[teamName] ?? theme.colors.team.fallback;
-};
+export function findTeamMeta(identifier: string | null | undefined): TeamMeta {
+  if (!identifier) return TEAM_DATA[DEFAULT_TEAM_ID];
+
+  const id = identifier.toUpperCase();
+  
+  // 1. TeamCode ID 직접 매칭 (KIA, LG, SSG 등)
+  if (id in TEAM_DATA) return TEAM_DATA[id as TeamCode];
+
+  // 2. 백엔드 코드 매칭 (HT, SK, WO 등)
+  if (BACKEND_CODE_MAP[id]) return BACKEND_CODE_MAP[id];
+
+  // 3. 이름/약칭 매칭 (기아, KIA 등) - 대소문자 무관
+  if (NAME_MAP[id]) return NAME_MAP[id];
+
+  // 4. 모두 실패 시 DEFAULT
+  return TEAM_DATA[DEFAULT_TEAM_ID];
+}
 
 /**
- * 팀별 배경색 StyleSheet 사전 정의 맵
- *
- * Why: useMemo로 매 렌더마다 스타일 객체를 생성하는 대신,
- * 컴포넌트 밖에서 StyleSheet.create로 10개 구단 배경색을 미리 만들어 둔다.
- * 렌더링 시 TEAM_BG_STYLES[teamName]로 O(1) 접근.
+ * 🎨 TEAM_STYLES: 전 구단 공통 스타일 맵 (StyleSheet 사전 정의)
  */
-export const TEAM_BG_STYLES = StyleSheet.create(
-  Object.fromEntries(
-    Object.entries(TEAM_NAME_TO_COLOR).map(([name, color]) => [
-      name,
-      { backgroundColor: color },
-    ]),
-  ) as Record<string, { backgroundColor: string }>,
+export const TEAM_STYLES = StyleSheet.create(
+  Object.entries(TEAM_DATA).reduce((acc, [code, meta]) => {
+    const teamCode = code as TeamCode;
+    acc[teamCode] = {
+      backgroundColor: meta.color,
+    };
+    acc[`${teamCode}_TEXT`] = {
+      color: meta.color,
+    };
+    return acc;
+  }, {} as any) // StyleSheet.create가 최종 타입을 결정함
 );
 
 /**
- * 팀별 테두리색 StyleSheet 사전 정의 맵
+ * 💅 getTeamBgStyle: 구단 배경색 스타일 반환 (하위 호환성용)
  */
-export const TEAM_BORDER_STYLES = StyleSheet.create(
-  Object.fromEntries(
-    Object.entries(TEAM_NAME_TO_COLOR).map(([name, color]) => [
-      name,
-      { borderColor: color },
-    ]),
-  ) as Record<string, { borderColor: string }>,
-);
+export function getTeamBgStyle(identifier: string | null | undefined) {
+  const meta = findTeamMeta(identifier);
+  return TEAM_STYLES[meta.id] || TEAM_STYLES.DEFAULT;
+}
 
 /**
- * 팀명에 대한 테두리색 스타일 반환
+ * 📦 TEAM_LIST: 전체 구단 목록 (마스코트 포함)
  */
-export const getTeamBorderStyle = (teamName: string) => {
-  return (
-    TEAM_BORDER_STYLES[teamName] ?? { borderColor: theme.colors.team.fallback }
-  );
-};
+export const TEAM_LIST = Object.values(TEAM_DATA).filter(t => t.id !== DEFAULT_TEAM_ID);
 
 /**
- * 팀명에 대한 배경색 스타일 반환
+ * ✅ isValidTeamCode: 유효한 팀 코드인지 확인 (Type Guard)
+ * Why: 런타임 입력을 unknown으로 받아 타입 안정성을 검증함.
  */
-export const getTeamBgStyle = (teamName: string) => {
-  return (
-    TEAM_BG_STYLES[teamName] ?? { backgroundColor: theme.colors.team.fallback }
-  );
-};
-
-/**
- * 팀 로고 소스 타입
- * Why: React Native의 공식 이미지 소스 타입을 사용하여 컴포넌트와의 호환성을 보장함.
- */
-export type TeamLogoSource = ImageSourcePropType;
-
-/**
- * 팀 로고 매핑 테이블
- * Why: 팀 코드별 로고 에셋 경로를 중앙 관리하여 불필요한 조건부 렌더링 로직을 제거함.
- * 
- * ⚠️ 아직 실제 PNG 에셋이 준비되지 않았으므로 Partial로 선언하여 안전성을 확보함.
- * 에셋 추가 시: KIA: require('@/assets/images/team/kia.png') 형태로 추가.
- */
-const TEAM_LOGO_MAP: Partial<Record<TeamCode, TeamLogoSource>> = {};
-
-/**
- * 팀 로고 에셋 반환 유틸리티
- * 
- * @param teamCode - 엄격하게 제한된 팀 코드 (KIA, LG 등)
- * @returns 팀 로고 소스 또는 undefined
- * 
- * 🛡️ [Phase 1 방어] 
- * 반환값이 undefined일 수 있으므로, 호출부에서는 반드시 null 체크를 하거나 
- * <Image source={logo || DEFAULT_LOGO} /> 와 같이 폴백 처리를 해야 함.
- */
-export const getTeamLogo = (teamCode: TeamCode): TeamLogoSource | undefined => {
-  return TEAM_LOGO_MAP[teamCode];
-};
+export function isValidTeamCode(code: unknown): code is TeamCode {
+  if (typeof code !== "string") return false;
+  return code in TEAM_DATA && code !== DEFAULT_TEAM_ID;
+}

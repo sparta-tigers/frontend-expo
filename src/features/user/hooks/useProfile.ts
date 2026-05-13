@@ -16,12 +16,9 @@ import {
   favoriteTeamGetAPI,
   favoriteTeamUpdateAPI,
 } from "@/src/features/user/favorite-team-api";
-import { TEAM_DATA } from "@/src/utils/team";
+import { KBO_TEAMS } from "@/src/features/user/types";
 
-export const KBO_TEAMS = Object.entries(TEAM_DATA).map(([_, team]) => ({
-  name: team.name,
-  code: team.backendCode,
-}));
+
 
 /**
  * useProfile
