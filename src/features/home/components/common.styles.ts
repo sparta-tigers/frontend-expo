@@ -25,6 +25,6 @@ export const commonStyles = StyleSheet.create({
     fontSize: theme.typography.size.sm,
     fontWeight: theme.typography.weight.medium,
     color: theme.colors.brand.subtitle,
-    letterSpacing: -0.2,
+    letterSpacing: theme.typography.letterSpacing.tight,
   },
 });
