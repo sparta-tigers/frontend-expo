@@ -3,7 +3,8 @@ import {
   ticketAlarmGetListAPI, 
   ticketAlarmCreateAPI, 
   ticketAlarmDeleteAPI, 
-  ticketAlarmUpdateAPI 
+  ticketAlarmUpdateAPI,
+  ticketAlarmGetCountAPI
 } from "../api";
 import { ticketAlarmKeys } from "../queries";
 import { CreateTicketAlarmRequest, UpdateTicketAlarmRequest } from "../types";
@@ -27,6 +28,19 @@ export function useTicketAlarms(page: number = 1, size: number = 20) {
     queryKey: ticketAlarmKeys.list(page, size),
     queryFn: () => ticketAlarmGetListAPI(page, size),
     select: (res) => res.data,
+  });
+}
+
+/**
+ * 🔢 useTicketAlarmCount: 사용자의 전체 티켓 알림 개수를 조회하는 훅입니다.
+ * 
+ * Why: 대시보드 상단 섹션 등 요약 UI에서 실제 데이터 기반의 카운트를 보여주기 위함입니다.
+ */
+export function useTicketAlarmCount() {
+  return useQuery({
+    queryKey: ticketAlarmKeys.count(),
+    queryFn: ticketAlarmGetCountAPI,
+    select: (res) => res.data ?? 0,
   });
 }
 

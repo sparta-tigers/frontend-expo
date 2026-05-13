@@ -74,6 +74,7 @@ interface MyTeamSectionProps {
   enrollmentDays: number;
   remainingMatches: number;
   attendanceCount: number;
+  ticketAlarmCount: number;
   /** 구단 메타데이터 (SSOT) */
   teamMeta: TeamMeta | null;
   onPressChangeTeam?: () => void;
@@ -91,6 +92,7 @@ export const MyTeamSection = memo(
     enrollmentDays,
     remainingMatches,
     attendanceCount,
+    ticketAlarmCount,
     teamMeta,
     onPressChangeTeam,
   }: MyTeamSectionProps) => {
@@ -113,7 +115,7 @@ export const MyTeamSection = memo(
       {
         key: "alarm",
         icon: "notifications-none",
-        value: "2개",
+        value: `${ticketAlarmCount}개`,
         label: "예매 알람",
         toneColor: "dashboard.statToneYellow",
         iconColor: theme.colors.dashboard.statIconYellow,
