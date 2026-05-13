@@ -67,9 +67,9 @@ export default function HomeScreen() {
 
   const totalAttendanceCount = infiniteAttendances?.pages[0]?.data?.totalElements ?? 0;
 
-  // 🚨 앙드레 카파시: 데이터 슬라이싱 최적화 (Top 5 + My Team)
   const displayRankings = useMemo(() => {
-    if (!ranking || ranking.length === 0) return [];
+    // 🚨 앙드레 카파시: 데이터 타입 방어 (Array.isArray 미준수 시 TypeError 발생 위험)
+    if (!Array.isArray(ranking) || ranking.length === 0) return [];
     
     const top5 = ranking.slice(0, 5);
     const myTeamRank = ranking.find(r => r.teamCode === myTeamId);

@@ -1,4 +1,5 @@
 import { CombinedProvider } from "@/components/providers/combined-provider";
+import { Logger } from "@/src/utils/logger";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/hooks/useTheme";
 import { ErrorBoundaryFallback } from "@/src/components/shared/ErrorBoundaryFallback";
@@ -16,19 +17,26 @@ import { theme } from "@/src/styles/theme";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Box, Typography } from "@/components/ui";
 
+import Constants, { AppOwnership } from "expo-constants";
+
 /**
  * 푸시 알림 핸들러 설정 (모듈 스코프)
- *
- * Why: 컴포넌트 렌더 본문에 두면 매 렌더마다 핸들러가 재설정됨.
+ * 🚨 앙드레 카파시: Expo Go (SDK 53+)에서는 알림 기능이 제한되므로 에러 방지 처리.
  */
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+if (Constants.appOwnership !== AppOwnership.Expo) {
+  try {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    });
+  } catch (e) {
+    Logger.category('SYSTEM').warn("Notifications are not supported in this environment", e);
+  }
+}
 
 /**
  * 루트 레이아웃
