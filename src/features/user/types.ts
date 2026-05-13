@@ -1,4 +1,4 @@
-import { TEAM_LIST } from "@/src/utils/team";
+import { TEAM_LIST, BackendCode } from "@/src/utils/team";
 
 /**
  * 즐겨찾기 팀 관련 타입 정의
@@ -13,7 +13,7 @@ export interface FavoriteTeam {
   id: number;
   userId: number;
   teamName: string;
-  teamCode: string;
+  teamCode: BackendCode;
   createdAt: string;
   updatedAt?: string;
 }
@@ -24,7 +24,7 @@ export interface FavoriteTeam {
  */
 export interface AddFavoriteTeamRequest {
   teamName: string;
-  teamCode: string;
+  teamCode: BackendCode;
 }
 
 /**
@@ -33,7 +33,7 @@ export interface AddFavoriteTeamRequest {
  */
 export interface UpdateFavoriteTeamRequest {
   teamName: string;
-  teamCode: string;
+  teamCode: BackendCode;
 }
 
 /**
@@ -45,4 +45,4 @@ export const KBO_TEAMS = TEAM_LIST.map(team => ({
   code: team.backendCode
 }));
 
-export type KboTeamCode = typeof KBO_TEAMS[number]["code"];
+export type KboTeamCode = BackendCode;

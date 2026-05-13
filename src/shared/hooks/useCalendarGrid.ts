@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { MatchScheduleDto } from "@/src/features/match/types";
 import { CalendarCellModel } from "@/src/features/home/types/calendar";
-import { findTeamMeta } from "@/src/utils/team";
+import { findTeamMeta, DEFAULT_TEAM_ID } from "@/src/utils/team";
 
 /**
  * 전역 달력 그리드 생성 엔진 (Deterministic)
@@ -64,7 +64,7 @@ export const useCalendarGrid = (
         hasGame: !!game,
         hasAttendance: game?.matchId ? attendanceMatchIds?.has(game.matchId) : false, // 🚨 추가
         opponentCode: game?.opponentCode,
-        opponentShort: opponentInfo.id !== 'DEFAULT' ? opponentInfo.shortName : "", 
+        opponentShort: opponentInfo.id !== DEFAULT_TEAM_ID ? opponentInfo.shortName : "", 
         isSelected: d === selectedDay,
         isToday: isToday, 
         location: game?.location,

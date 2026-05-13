@@ -11,12 +11,17 @@ export interface MatchResultInfo {
 }
 
 /**
- * 경기 스코어와 응원 팀 정보를 바탕으로 승/무/패 결과를 계산합니다. (DRY)
+ * 🧮 calculateMatchResult: 경기 스코어와 응원 팀 정보를 바탕으로 승/무/패 결과를 계산 (Deterministic)
+ * 
+ * Why: 
+ * 1. UI 컴포넌트에서 직접적인 승패 계산 로직을 분리하여 '멍청한 View'를 유지함.
+ * 2. findTeamMeta를 통해 구단 코드가 HT, KIA 등으로 들어오더라도 표준화된 TeamCode로 변환 후 비교함 (레거시 호환성).
+ * 3. 응원 팀이 참여하지 않은 경기는 'MATCH' 상태로 처리하여 시각적 정합성을 보장함.
  *
  * @param homeScore 홈 팀 점수
  * @param awayScore 어웨이 팀 점수
- * @param homeTeamCode 홈 팀 코드
- * @param awayTeamCode 어웨이 팀 코드
+ * @param homeTeamCode 홈 팀 코드 (HT, KIA 등)
+ * @param awayTeamCode 어웨이 팀 코드 (SK, SSG 등)
  * @param favoriteTeamCode 사용자의 응원 팀 코드
  * @returns MatchResultInfo 또는 null (데이터가 부족한 경우)
  */

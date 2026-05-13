@@ -19,6 +19,28 @@ export type TeamCode =
   | "DEFAULT";
 
 /**
+ * 🆔 DEFAULT_TEAM_ID: 기본 구단 식별자 (매직 스트링 방지)
+ */
+export const DEFAULT_TEAM_ID = "DEFAULT";
+
+/**
+ * 🔌 BackendCode: DB 및 API 통신용 구단 식별 유니온 타입
+ * Why: 백엔드 스펙과의 오차를 방지하고 타입 안정성을 확보함.
+ */
+export type BackendCode =
+  | "HT"
+  | "LG"
+  | "SK"
+  | "WO"
+  | "NC"
+  | "OB"
+  | "LT"
+  | "SS"
+  | "HH"
+  | "KT"
+  | "KBO";
+
+/**
  * 🎨 TeamColorToken: 테마 시스템과 연동되는 컬러 토큰 타입
  */
 export type TeamColorToken = keyof typeof theme.colors.team;
@@ -34,7 +56,7 @@ export interface TeamMeta {
   readonly mascotEmoji: string; // 마스코트 이모지
   readonly color: string; // 테마 Hex 값
   readonly colorToken: TeamColorToken; // 테마 토큰 키
-  readonly backendCode: string; // DB 매핑 코드 (HT, SK, WO 등)
+  readonly backendCode: BackendCode; // DB 매핑 코드 (HT, SK, WO 등)
   readonly stadium: string; // 홈 구장명
   readonly logo?: any; // 구단 로고 에셋 (require 구문 사용 예정)
 }
@@ -184,7 +206,7 @@ const NAME_MAP = Object.values(TEAM_DATA).reduce((acc, team) => {
  * 🔍 findTeamMeta: 구단 식별자를 기반으로 결정론적 메타데이터 반환
  */
 export function findTeamMeta(identifier: string | null | undefined): TeamMeta {
-  if (!identifier) return TEAM_DATA.DEFAULT;
+  if (!identifier) return TEAM_DATA[DEFAULT_TEAM_ID];
 
   const id = identifier.toUpperCase();
   
@@ -198,7 +220,7 @@ export function findTeamMeta(identifier: string | null | undefined): TeamMeta {
   if (NAME_MAP[identifier]) return NAME_MAP[identifier];
 
   // 4. 모두 실패 시 DEFAULT
-  return TEAM_DATA.DEFAULT;
+  return TEAM_DATA[DEFAULT_TEAM_ID];
 }
 
 /**
@@ -206,14 +228,15 @@ export function findTeamMeta(identifier: string | null | undefined): TeamMeta {
  */
 export const TEAM_STYLES = StyleSheet.create(
   Object.entries(TEAM_DATA).reduce((acc, [code, meta]) => {
-    acc[code] = {
+    const teamCode = code as TeamCode;
+    acc[teamCode] = {
       backgroundColor: meta.color,
     };
-    acc[`${code}_TEXT`] = {
+    acc[`${teamCode}_TEXT`] = {
       color: meta.color,
     };
     return acc;
-  }, {} as Record<string, { backgroundColor?: string; color?: string }>)
+  }, {} as any) // StyleSheet.create가 최종 타입을 결정함
 );
 
 /**
@@ -227,11 +250,13 @@ export function getTeamBgStyle(identifier: string | null | undefined) {
 /**
  * 📦 TEAM_LIST: 전체 구단 목록 (마스코트 포함)
  */
-export const TEAM_LIST = Object.values(TEAM_DATA).filter(t => t.id !== 'DEFAULT');
+export const TEAM_LIST = Object.values(TEAM_DATA).filter(t => t.id !== DEFAULT_TEAM_ID);
 
 /**
  * ✅ isValidTeamCode: 유효한 팀 코드인지 확인 (Type Guard)
+ * Why: 런타임 입력을 unknown으로 받아 타입 안정성을 검증함.
  */
-export function isValidTeamCode(code: any): code is TeamCode {
-  return code in TEAM_DATA && code !== 'DEFAULT';
+export function isValidTeamCode(code: unknown): code is TeamCode {
+  if (typeof code !== "string") return false;
+  return code in TEAM_DATA && code !== DEFAULT_TEAM_ID;
 }
