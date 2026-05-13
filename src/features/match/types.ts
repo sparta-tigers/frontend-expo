@@ -18,6 +18,14 @@ export interface MatchTeamInfo {
 }
 
 /**
+ * 🏆 RankingUIModel: 순위 목록 UI에 최적화된 모델 (SSOT)
+ */
+export interface RankingUIModel extends RankingRowDto {
+  /** 구단 메타데이터 (엠블럼, 컬러 등) */
+  meta: TeamMeta;
+}
+
+/**
  * 📋 MatchSummary: 목록형 UI(일정 등)에 최적화된 경기 요약 정보
  * Why: 컴포넌트 내부 로직을 줄이기 위해 가공된 필드(isLive, displayStatus)를 미리 포함함.
  */

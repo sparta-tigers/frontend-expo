@@ -1,5 +1,5 @@
 import { findTeamMeta } from "@/src/utils/team";
-import { MatchScheduleDto, MatchSummary, MatchDetail, MatchTeamInfo } from "./types";
+import { MatchScheduleDto, MatchSummary, MatchDetail, MatchTeamInfo, RankingRowDto, RankingUIModel } from "./types";
 import { LiveBoardRoomDto } from "@/src/features/liveboard/types";
 
 /**
@@ -87,6 +87,30 @@ export class MatchMapper {
       liveBoardStatus: dto.liveBoardStatus,
       nowCast: dto.nowCast,
       foreCast: dto.foreCast,
+    };
+  }
+
+  /**
+   * 🏆 toRanking: RankingRowDto를 RankingUIModel로 변환
+   * Why: 순위 목록 UI에서 구단 메타데이터(엠블럼, 컬러)를 즉시 사용할 수 있도록 바인딩함.
+   */
+  static toRanking(dto: RankingRowDto): RankingUIModel {
+    return {
+      ...dto,
+      meta: findTeamMeta(dto.teamCode) || findTeamMeta("DEFAULT"),
+    };
+  }
+
+  /**
+   * 🏟️ toTeamInfo: 구단 코드를 MatchTeamInfo로 변환
+   * Why: 경기와 무관한 단순 팀 정보 표시(내 응원팀 등) 시에도 SSOT 메타데이터를 보장함.
+   */
+  static toTeamInfo(teamCode: string, teamName?: string): MatchTeamInfo {
+    const meta = findTeamMeta(teamCode) || findTeamMeta("DEFAULT");
+    return {
+      code: teamCode,
+      name: teamName || meta.name,
+      meta,
     };
   }
 }
