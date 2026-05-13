@@ -1,7 +1,7 @@
 import { Box, Typography } from "@/components/ui";
-import { ThemeColorPath } from "@/src/shared/types/theme";
+import { ThemeColorPath, getTeamColorPath } from "@/src/shared/types/theme";
 import { theme } from "@/src/styles/theme";
-import { findTeamMeta } from "@/src/utils/team";
+import { TeamMeta } from "@/src/utils/team";
 import { MaterialIcons } from "@expo/vector-icons";
 import React, { memo } from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
@@ -73,8 +73,9 @@ interface MyTeamSectionProps {
   userNickname: string;
   enrollmentDays: number;
   remainingMatches: number;
-  attendanceCount: number; // 🚨 추가
-  favoriteTeamCode?: string | null | undefined;
+  attendanceCount: number;
+  /** 구단 메타데이터 (SSOT) */
+  teamMeta: TeamMeta | null;
   onPressChangeTeam?: () => void;
 }
 
@@ -89,12 +90,10 @@ export const MyTeamSection = memo(
     userNickname,
     enrollmentDays,
     remainingMatches,
-    attendanceCount, // 🚨 추가
-    favoriteTeamCode,
+    attendanceCount,
+    teamMeta,
     onPressChangeTeam,
   }: MyTeamSectionProps) => {
-    const myTeam = findTeamMeta(favoriteTeamCode);
-
     const activityStats: {
       key: string;
       icon: keyof typeof MaterialIcons.glyphMap;
@@ -162,7 +161,7 @@ export const MyTeamSection = memo(
           bg="card"
           rounded="xl"
           p="lg"
-          borderColor={`team.${myTeam?.colorToken || "fallback"}` as ThemeColorPath}
+          borderColor={getTeamColorPath(teamMeta?.colorToken)}
           style={styles.myTeamCard}
         >
           {/* 인사말 영역 */}
@@ -176,7 +175,7 @@ export const MyTeamSection = memo(
               {userNickname}
             </Typography>
             <Typography variant="h3" weight="bold" ml="xxs">
-              {myTeam?.mascotEmoji || "⚾"}
+              {teamMeta?.mascotEmoji || "⚾"}
             </Typography>
             <Typography variant="caption" color="text.secondary" ml="xxs">
               님, 입학한지
@@ -212,7 +211,7 @@ export const MyTeamSection = memo(
             {/* 입체적인 마스코트 영역 (Absolute Positioning) */}
             <Box style={styles.mascotContainer}>
               <Typography style={styles.mascotEmoji}>
-                {myTeam?.mascotEmoji || "⚾"}
+                {teamMeta?.mascotEmoji || "⚾"}
               </Typography>
             </Box>
           </Box>

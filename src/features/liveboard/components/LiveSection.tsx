@@ -2,39 +2,11 @@
 import { Box } from "@/components/ui/box";
 import { Typography } from "@/components/ui/typography";
 import { theme } from "@/src/styles/theme";
+import { MatchDetail } from "@/src/features/match/types";
 import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import { styles } from "@/src/features/liveboard/styles/matchId.styles";
 
-// ========================================================
-// 목데이터 (상단 라이브 섹션용)
-// ========================================================
-const MOCK_LIVE_DATA = {
-  inning: 9,
-  inningHalf: "말" as "초" | "말",
-  awayScore: 6,
-  homeScore: 13,
-  ballCount: 2,
-  strikeCount: 1,
-  outCount: 1,
-  bases: { first: true, second: false, third: false },
-  pitcherName: "이강준",
-  pitchCount: 13,
-  lastEvent: " [7회 말] 오선우 : 우익수 플라이 아웃",
-  defenders: [
-    { name: "이주형", x: 106, y: 17 },
-    { name: "이강준", x: 103, y: 102 },
-    { name: "박주홍", x: 15, y: 31 },
-    { name: "김건희", x: 101, y: 194 },
-    { name: "전태현", x: 156, y: 62 },
-    { name: "송성문", x: 21, y: 92 },
-    { name: "김태진", x: 44, y: 62 },
-    { name: "최주환", x: 185, y: 94 },
-    { name: "카디네스", x: 185, y: 31 },
-  ],
-  batter: { name: "오선우", x: 139, y: 178 },
-  runner: { name: "김선빈", x: 186, y: 108 },
-};
 
 /**
  * PlayerTag — 선수 이름 태그 (수비/타자/주자 색상 구분)
@@ -107,39 +79,36 @@ function getBsoDotActiveStyle(label: string) {
  * LiveSection
  *
  * Why: 경기장 배경 위에 선수 배치, 좌측 정보 바, 텍스트 중계 배너를 절대좌표로 배치.
+ * MatchDetail 모델을 통해 홈/어웨이 팀 정보 및 경기 상태를 중앙에서 관리함.
  */
-export function LiveSection({
-  awayTeamName,
-  homeTeamName,
-}: {
-  awayTeamName: string;
-  homeTeamName: string;
-}) {
+export function LiveSection({ match }: { match: MatchDetail }) {
+  const { homeTeam, awayTeam } = match;
+
   return (
     <Box style={styles.liveSection}>
       <Box style={styles.stadiumBg} />
 
       <Box style={styles.eventBanner}>
         <Typography style={styles.eventBannerText} weight="bold">
-          {MOCK_LIVE_DATA.lastEvent}
+          {match.lastEvent || "진행 중인 이벤트가 없습니다"}
         </Typography>
       </Box>
 
       <Box style={styles.leftBar}>
         <Box style={[styles.scoreRow, styles.scoreAway]}>
           <Typography style={styles.scoreTeamLabel} weight="bold">
-            {awayTeamName}
+            {awayTeam.name}
           </Typography>
           <Typography style={styles.scoreValue} weight="semibold">
-            {MOCK_LIVE_DATA.awayScore}
+            {match.awayScore ?? 0}
           </Typography>
         </Box>
         <Box style={[styles.scoreRow, styles.scoreHome]}>
           <Typography style={styles.scoreTeamLabel} weight="bold">
-            {homeTeamName}
+            {homeTeam.name}
           </Typography>
           <Typography style={styles.scoreValue} weight="semibold">
-            {MOCK_LIVE_DATA.homeScore}
+            {match.homeScore ?? 0}
           </Typography>
         </Box>
 
@@ -150,19 +119,19 @@ export function LiveSection({
                 name="arrow-drop-up"
                 size={14}
                 color={
-                  MOCK_LIVE_DATA.inningHalf === "초"
+                  match.inningHalf === "초"
                     ? theme.colors.background
                     : theme.colors.transparent
                 }
               />
               <Typography style={styles.inningText} weight="semibold">
-                {MOCK_LIVE_DATA.inning}
+                {match.inning || "-"}
               </Typography>
               <MaterialIcons
                 name="arrow-drop-down"
                 size={14}
                 color={
-                  MOCK_LIVE_DATA.inningHalf === "말"
+                  match.inningHalf === "말"
                     ? theme.colors.background
                     : theme.colors.transparent
                 }
@@ -173,40 +142,40 @@ export function LiveSection({
                 style={[
                   styles.base,
                   styles.baseSecond,
-                  MOCK_LIVE_DATA.bases.second && styles.baseActive,
+                  !!match.bases?.second && styles.baseActive,
                 ]}
               />
               <Box
                 style={[
                   styles.base,
                   styles.baseThird,
-                  MOCK_LIVE_DATA.bases.third && styles.baseActive,
+                  !!match.bases?.third && styles.baseActive,
                 ]}
               />
               <Box
                 style={[
                   styles.base,
                   styles.baseFirst,
-                  MOCK_LIVE_DATA.bases.first && styles.baseActive,
+                  !!match.bases?.first && styles.baseActive,
                 ]}
               />
             </Box>
           </Box>
 
           <Box style={styles.bsoRow}>
-            <BsoLine label="B" count={MOCK_LIVE_DATA.ballCount} max={4} />
-            <BsoLine label="S" count={MOCK_LIVE_DATA.strikeCount} max={3} />
-            <BsoLine label="O" count={MOCK_LIVE_DATA.outCount} max={3} />
+            <BsoLine label="B" count={match.ballCount || 0} max={4} />
+            <BsoLine label="S" count={match.strikeCount || 0} max={3} />
+            <BsoLine label="O" count={match.outCount || 0} max={3} />
           </Box>
 
           <Box style={styles.pitcherBox} align="center">
             <Typography style={styles.pitcherName} weight="medium">
-              {MOCK_LIVE_DATA.pitcherName}
+              {match.pitcherName || "-"}
             </Typography>
             <Typography style={styles.pitcherPitchLabel}>
               투구수{" "}
               <Typography style={styles.pitcherPitchCount} weight="semibold">
-                {MOCK_LIVE_DATA.pitchCount}
+                {match.pitchCount || 0}
               </Typography>
             </Typography>
           </Box>
@@ -214,7 +183,7 @@ export function LiveSection({
       </Box>
 
       <Box style={styles.playerArea}>
-        {MOCK_LIVE_DATA.defenders.map((p) => (
+        {match.defenders?.map((p) => (
           <PlayerTag
             key={p.name}
             name={p.name}
@@ -223,18 +192,22 @@ export function LiveSection({
             kind="defender"
           />
         ))}
-        <PlayerTag
-          name={MOCK_LIVE_DATA.batter.name}
-          x={MOCK_LIVE_DATA.batter.x}
-          y={MOCK_LIVE_DATA.batter.y}
-          kind="batter"
-        />
-        <PlayerTag
-          name={MOCK_LIVE_DATA.runner.name}
-          x={MOCK_LIVE_DATA.runner.x}
-          y={MOCK_LIVE_DATA.runner.y}
-          kind="runner"
-        />
+        {match.batter && (
+          <PlayerTag
+            name={match.batter.name}
+            x={match.batter.x}
+            y={match.batter.y}
+            kind="batter"
+          />
+        )}
+        {match.runner && (
+          <PlayerTag
+            name={match.runner.name}
+            x={match.runner.x}
+            y={match.runner.y}
+            kind="runner"
+          />
+        )}
       </Box>
     </Box>
   );

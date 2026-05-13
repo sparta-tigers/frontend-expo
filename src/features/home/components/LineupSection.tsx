@@ -1,8 +1,8 @@
 import { Box, Typography } from "@/components/ui";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { theme } from "@/src/styles/theme";
-import { findTeamMeta } from "@/src/utils/team";
-import { ThemeColorPath } from "@/src/shared/types/theme";
+import { TeamMeta } from "@/src/utils/team";
+import { getTeamColorPath } from "@/src/shared/types/theme";
 import React from "react";
 import { StyleSheet } from "react-native";
 import { LineupRowDto } from "../types/dashboard";
@@ -25,8 +25,8 @@ const LOCAL_LAYOUT = {
 interface LineupSectionProps {
   /** 표시할 라인업 데이터 배열 */
   lineup: LineupRowDto[];
-  /** 사용자의 팀명 (색상 주입용) */
-  teamName?: string;
+  /** 구단 메타데이터 (SSOT) */
+  teamMeta: TeamMeta | null;
 }
 
 /**
@@ -37,10 +37,9 @@ interface LineupSectionProps {
  */
 export const LineupSection = React.memo(function LineupSection({
   lineup,
-  teamName,
+  teamMeta,
 }: LineupSectionProps) {
-  const myTeam = findTeamMeta(teamName ?? "");
-  const teamColorPath = `team.${myTeam?.colorToken || "fallback"}` as ThemeColorPath;
+  const teamColorPath = getTeamColorPath(teamMeta?.colorToken);
 
   // 🚨 Empty State: 라인업 데이터가 없는 경우 (경기 전)
   if (!lineup || lineup.length === 0) {

@@ -14,7 +14,7 @@ import { theme } from "@/src/styles/theme";
 import { findTeamMeta } from "@/src/utils/team";
 import { useAuth } from "@/context/AuthContext";
 import { useMatchRanking } from "@/src/features/match/hooks/useMatchRanking";
-import { LeagueType, RankingRowDto } from "@/src/features/match/types";
+import { LeagueType, RankingUIModel } from "@/src/features/match/types";
 
 /**
  * 팀 순위 상세 화면 (`ranking_0`)
@@ -44,15 +44,13 @@ export default function RankingScreen() {
   const selectedYear = params.year ? parseInt(params.year) : currentYear;
   const leagueType = (params.type as LeagueType) || "REGULAR";
 
-  // 데이터 패칭 (TanStack Query)
-  const { data: rankingRes, isLoading } = useMatchRanking({
+  // 데이터 패칭 (TanStack Query) - 🚨 이제 배열을 직접 반환
+  const { data: rankings = [], isLoading } = useMatchRanking({
     viewMode,
     year: selectedYear,
     leagueType,
     date: selectedDate
   });
-
-  const rankings = React.useMemo(() => rankingRes?.data || [], [rankingRes?.data]);
 
   // 내 팀 정보 (Branding용)
   const team = findTeamMeta(myTeam);
@@ -240,16 +238,13 @@ export default function RankingScreen() {
             </Box>
 
             {/* Ranking List */}
-            {rankings.map((row) => {
-              const isMyTeam = myTeam === row.teamCode;
-              return (
-                <RankingRow 
-                  key={row.teamId} 
-                  row={row} 
-                  isMyTeam={isMyTeam} 
-                />
-              );
-            })}
+            {rankings.map((row) => (
+              <RankingRow 
+                key={row.teamCode} 
+                row={row} 
+                isMyTeam={myTeam === row.teamCode} 
+              />
+            ))}
           </ScrollView>
         )}
       </Box>
@@ -257,46 +252,49 @@ export default function RankingScreen() {
   );
 }
 
-const RankingRow = React.memo(({ row, isMyTeam }: { row: RankingRowDto, isMyTeam: boolean }) => (
-  <Box 
-    flexDir="row" 
-    height={52} 
-    align="center"
-    my="xs"
-    rounded="md"
-    style={isMyTeam ? styles.myTeamRow : styles.normalRow}
-  >
-    <Box width={40} align="center">
-      <Typography variant="h3" weight="bold" color={isMyTeam ? "brand.mint" : "text.secondary"}>
-        {row.rank}
-      </Typography>
-    </Box>
-    <Box flex={2} flexDir="row" align="center">
-      <Box width={32} height={32} rounded="full" bg="team.neutralLight" align="center" justify="center" mr="sm">
-        <Typography style={styles.teamIconText}>
-          {findTeamMeta(row.teamCode)?.mascotEmoji || "⚾"}
+const RankingRow = React.memo(({ row, isMyTeam }: { row: RankingUIModel, isMyTeam: boolean }) => {
+  const { meta } = row;
+  return (
+    <Box 
+      flexDir="row" 
+      height={52} 
+      align="center"
+      my="xs"
+      rounded="md"
+      style={isMyTeam ? styles.myTeamRow : styles.normalRow}
+    >
+      <Box width={40} align="center">
+        <Typography variant="h3" weight="bold" color={isMyTeam ? "brand.mint" : "text.secondary"}>
+          {row.rank}
         </Typography>
       </Box>
-      <Typography variant="body2" weight={isMyTeam ? "bold" : "medium"} color={isMyTeam ? "brand.mint" : "text.primary"}>
-        {row.teamName}
-      </Typography>
-      {isMyTeam && (
-        <Box ml="xs" bg="brand.mint" px="xs" rounded="sm">
-          <Typography variant="caption" color="card" weight="bold">MY</Typography>
+      <Box flex={2} flexDir="row" align="center">
+        <Box width={32} height={32} rounded="full" bg="team.neutralLight" align="center" justify="center" mr="sm">
+          <Typography style={styles.teamIconText}>
+            {meta.mascotEmoji}
+          </Typography>
         </Box>
-      )}
+        <Typography variant="body2" weight={isMyTeam ? "bold" : "medium"} color={isMyTeam ? "brand.mint" : "text.primary"}>
+          {meta.name}
+        </Typography>
+        {isMyTeam && (
+          <Box ml="xs" bg="brand.mint" px="xs" rounded="sm">
+            <Typography variant="caption" color="card" weight="bold">MY</Typography>
+          </Box>
+        )}
+      </Box>
+      <Box flex={1} align="center"><Typography variant="caption" color="text.secondary">{row.matchCount}</Typography></Box>
+      <Box flex={1} align="center"><Typography variant="caption" color="text.secondary">{row.winCount}</Typography></Box>
+      <Box flex={1} align="center"><Typography variant="caption" color="text.secondary">{row.loseCount}</Typography></Box>
+      <Box flex={1} align="center"><Typography variant="caption" color="text.secondary">{row.drawCount}</Typography></Box>
+      <Box flex={1.5} align="center">
+        <Typography variant="caption" weight="bold" color="text.primary">
+          {row.winRate.toFixed(3)}
+        </Typography>
+      </Box>
     </Box>
-    <Box flex={1} align="center"><Typography variant="caption" color="text.secondary">{row.matchCount}</Typography></Box>
-    <Box flex={1} align="center"><Typography variant="caption" color="text.secondary">{row.winCount}</Typography></Box>
-    <Box flex={1} align="center"><Typography variant="caption" color="text.secondary">{row.loseCount}</Typography></Box>
-    <Box flex={1} align="center"><Typography variant="caption" color="text.secondary">{row.drawCount}</Typography></Box>
-    <Box flex={1.5} align="center">
-      <Typography variant="caption" weight="bold" color="text.primary">
-        {row.winRate.toFixed(3)}
-      </Typography>
-    </Box>
-  </Box>
-));
+  );
+});
 RankingRow.displayName = "RankingRow";
 
 const styles = StyleSheet.create({
