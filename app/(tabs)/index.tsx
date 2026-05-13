@@ -17,6 +17,7 @@ import { RankingSkeleton } from "@/src/features/home/components/RankingSkeleton"
 import { getTodayString, getCurrentYear, getCurrentMonth, getCurrentDay } from "@/src/utils/date";
 import { useDashboardSummary } from "@/src/features/home/hooks/useDashboardSummary";
 import { useInfiniteMyAttendances } from "@/src/features/match-attendance/queries";
+import { useTicketAlarmCount } from "@/src/features/ticket-alarm/hooks/useTicketAlarm";
 
 /**
  * 홈 화면 (`main_0`)
@@ -67,6 +68,9 @@ export default function HomeScreen() {
 
   const totalAttendanceCount = infiniteAttendances?.pages[0]?.data?.totalElements ?? 0;
 
+  // 🚨 예매 알람 개수 실제 연동
+  const { data: ticketAlarmCount } = useTicketAlarmCount();
+
   const displayRankings = useMemo(() => {
     // 🚨 앙드레 카파시: 데이터 타입 방어 (Array.isArray 미준수 시 TypeError 발생 위험)
     if (!Array.isArray(ranking) || ranking.length === 0) return [];
@@ -100,6 +104,7 @@ export default function HomeScreen() {
           enrollmentDays={dashboardData?.enrollmentDays ?? 0}
           remainingMatches={dashboardData?.remainingMatches ?? 0}
           attendanceCount={totalAttendanceCount}
+          ticketAlarmCount={ticketAlarmCount ?? 0}
           teamMeta={myTeam}
           onPressChangeTeam={handlePressChangeTeam}
         />
