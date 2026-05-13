@@ -70,6 +70,7 @@ export const useCalendarGrid = (
         location: game?.location,
         timeText: game?.startTime,
         opponentColor: opponent?.meta.color,
+        opponentColorToken: opponent?.meta.colorToken,
       });
     }
 

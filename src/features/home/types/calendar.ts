@@ -1,3 +1,5 @@
+import { TeamColorToken } from "@/src/utils/team";
+
 /**
  * 캘린더 경기 정보 데이터 모델
  *
@@ -29,5 +31,5 @@ export type CalendarCellModel = {
   timeText?: string | undefined;
   isSelected: boolean;
   opponentColor?: string | undefined;
-  opponentColorToken?: string | undefined; // 🚨 추가: 테마 토큰 기반 컬러링용
+  opponentColorToken?: TeamColorToken | undefined; // 🚨 타입 좁히기: 테마 토큰 기반 컬러링용
 };
