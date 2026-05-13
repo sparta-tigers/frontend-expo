@@ -16,7 +16,7 @@ import { Alert, ScrollView, StyleSheet } from "react-native";
  * 바텀시트 대신 독립된 페이지를 사용하여 직관 기록과 일관된 내비게이션 경험을 제공함.
  */
 export default function TicketAlarmFormScreen() {
-  const { matchId } = useLocalSearchParams<{ matchId: string }>();
+  const { matchId, from } = useLocalSearchParams<{ matchId: string; from?: string }>();
   const matchIdNumber = Number(matchId);
   const { myTeamId } = useAuth();
 
@@ -44,7 +44,17 @@ export default function TicketAlarmFormScreen() {
       });
 
       Alert.alert("성공", "예매 알림이 설정되었습니다.", [
-        { text: "확인", onPress: () => router.back() },
+        { 
+          text: "확인", 
+          onPress: () => {
+            if (from === "notification") {
+              // 🔄 알림 관리 페이지에서 온 경우, 스케줄을 건너뛰고 즉시 복귀
+              router.replace("/(tabs)/notification");
+            } else {
+              router.back();
+            }
+          } 
+        },
       ]);
     } catch (error) {
       Logger.error("Failed to create alarm", { error });

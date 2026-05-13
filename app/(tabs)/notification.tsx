@@ -8,6 +8,8 @@ import {
     TouchableOpacity,
 } from "react-native";
 import { Box, Typography, List } from "@/components/ui";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { useTicketAlarms, useTicketAlarmMutation } from "@/src/features/ticket-alarm/hooks/useTicketAlarm";
 import { TicketAlarm } from "@/src/features/ticket-alarm/types";
 
@@ -138,6 +140,15 @@ export default function NotificationScreen() {
           }
         />
       </Box>
+
+      {/* ➕ 알림 추가 FAB: 직관 일기 탭과 동일한 플로우 제공 */}
+      <TouchableOpacity
+        style={styles.fab}
+        activeOpacity={0.8}
+        onPress={() => router.push("/schedule?from=notification")}
+      >
+        <Ionicons name="add" size={32} color={theme.colors.background} />
+      </TouchableOpacity>
     </SafeLayout>
   );
 }
@@ -162,5 +173,17 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.xs,
     marginLeft: theme.spacing.sm,
     alignSelf: "flex-start",
+  },
+  fab: {
+    position: "absolute",
+    bottom: theme.spacing.SCREEN + 80, // 하단 탭 바 높이 고려
+    right: theme.spacing.SCREEN,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: theme.colors.brand.mint,
+    justifyContent: "center",
+    alignItems: "center",
+    ...theme.shadow.card,
   },
 });

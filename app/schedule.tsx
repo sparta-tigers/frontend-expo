@@ -100,10 +100,12 @@ export default function ScheduleScreen() {
     year?: string;
     month?: string;
     leagueType?: string;
+    from?: string;
   }>();
   const year = params.year ? parseInt(params.year) : getCurrentYear();
   const month = params.month ? parseInt(params.month) : getCurrentMonth();
   const leagueType = (params.leagueType as LeagueType) || "REGULAR";
+  const from = params.from;
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // 2. [PERF] 구단 데이터 메모이제이션
@@ -316,7 +318,7 @@ export default function ScheduleScreen() {
                     if (isFuture) {
                       // 🔔 미래 경기: 예매 알림 페이지로 이동
                       if (cell.matchId) {
-                        router.push(`/ticket-alarm/${cell.matchId}`);
+                        router.push(`/ticket-alarm/${cell.matchId}${from ? `?from=${from}` : ""}`);
                       }
                     } else {
                       // 📝 과거 경기: 직관 기록 페이지로 이동
