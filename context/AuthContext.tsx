@@ -424,15 +424,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           }
           
           if (teamExists) {
-            await favoriteTeamUpdateAPI({ teamCode: backendCode });
+            const updateRes = await favoriteTeamUpdateAPI({ teamCode: backendCode });
+            if (updateRes.resultType !== "SUCCESS") {
+              throw new Error(updateRes.error?.message ?? "응원팀 정보를 업데이트하지 못했습니다.");
+            }
           } else {
-            await favoriteTeamAddAPI({ teamCode: backendCode });
+            const addRes = await favoriteTeamAddAPI({ teamCode: backendCode });
+            if (addRes.resultType !== "SUCCESS") {
+              throw new Error(addRes.error?.message ?? "응원팀을 등록하지 못했습니다.");
+            }
           }
           
-          // 🚨 [ID Sync] 다시 조회하여 최신 teamId 확보
+          // 🚨 [ID Sync] 최신 teamId 확보 (단일 출처 유지를 위해 재조회 수행)
           const teamRes = await favoriteTeamGetAPI();
           if (teamRes.resultType === "SUCCESS" && teamRes.data) {
             setMyTeamId(teamRes.data.teamId);
+          } else {
+            throw new Error(teamRes.error?.message ?? "최신 팀 정보를 불러오는데 실패했습니다.");
           }
         }
       }
