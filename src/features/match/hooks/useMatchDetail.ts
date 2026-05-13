@@ -27,8 +27,8 @@ export const useMatchDetail = (matchId: number, myTeamCode: TeamCode | null) => 
         throw new Error("경기 정보를 찾을 수 없습니다.");
       }
       
-      // MatchDetail 모델로 변환 (TeamMeta 바인딩 포함)
-      return MatchMapper.toDetail(room);
+      // MatchDetail 모델로 변환 (TeamMeta 바인딩 및 사용자 컨텍스트 반영)
+      return MatchMapper.toDetail(room, myTeamCode ?? undefined);
     },
     staleTime: 1000 * 30, // 상세 정보는 30초 정도의 신선도 유지
     enabled: !!matchId,
