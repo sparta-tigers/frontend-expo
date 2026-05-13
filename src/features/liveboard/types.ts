@@ -1,4 +1,4 @@
-import { LineupRowDto } from "@/src/features/home/types";
+import { LineupRowDto } from "@/src/features/home/types/dashboard";
 
 /**
  * Liveboard 도메인 타입 정의

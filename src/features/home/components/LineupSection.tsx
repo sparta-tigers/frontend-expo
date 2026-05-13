@@ -4,7 +4,7 @@ import { theme } from "@/src/styles/theme";
 import { getTeamColorPath } from "@/src/utils/team";
 import React from "react";
 import { StyleSheet } from "react-native";
-import { LineupRowDto } from "../types";
+import { LineupRowDto } from "../types/dashboard";
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)

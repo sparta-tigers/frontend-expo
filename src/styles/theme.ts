@@ -270,6 +270,11 @@ export const theme = {
       extrabold: "800",
       black: "900",
     },
+    letterSpacing: {
+      tight: -0.2,
+      normal: 0,
+      wide: 0.5,
+    },
   },
   radius: {
     xxs: 2,

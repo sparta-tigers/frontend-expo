@@ -57,17 +57,4 @@ export async function chatroomsGetMessagesAPI(
   return apiClient.get(`/api/direct-rooms/${roomId}/messages`, { page, size });
 }
 
-/**
- * 채팅 메시지 전송 API
- * HTTP API를 통한 메시지 전송 (WebSocket 연동 전까지 임시 사용)
- *
- * @param request - 메시지 전송 요청 데이터
- * @returns 메시지 전송 결과
- * @deprecated WebSocket 연동 후에는 useWebSocket 훅 사용 권장
- * @note 백엔드에는 해당 HTTP 엔드포인트가 없으므로 사용 중단
- */
-// export async function chatroomsSendMessageAPI(
-//   request: SendMessageRequest,
-// ): Promise<ApiResponse<void>> {
-//   return apiClient.post("/api/chat/send", request);
-// }
+

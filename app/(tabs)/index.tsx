@@ -4,7 +4,7 @@ import { MyTeamSection } from "@/src/features/home/components/MyTeamSection";
 import { RankingSummarySection } from "@/src/features/home/components/RankingSummarySection";
 import { ScheduleSection } from "@/src/features/home/components/ScheduleSection";
 import { useFakeHomeData } from "@/src/features/home/mocks";
-import { styles } from "@/src/features/home/styles";
+import { commonStyles as styles } from "@/src/features/home/components/common.styles";
 import React, { useMemo } from "react";
 import { ScrollView } from "react-native";
 import { useAuth } from "@/context/AuthContext";

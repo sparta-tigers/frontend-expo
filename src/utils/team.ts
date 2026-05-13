@@ -5,10 +5,10 @@
  * 각 파일에서 하드코딩하면 SSOT가 깨지므로, theme.colors.team 토큰을 기반으로
  * 순수 함수 + StyleSheet 사전 정의 맵을 제공한다.
  */
-import { TeamDto } from "@/src/features/home/types";
-import { ThemeColorPath } from "@/src/shared/types/theme";
-import { theme } from "@/src/styles/theme";
 import { ImageSourcePropType, StyleSheet } from "react-native";
+import { theme } from "@/src/styles/theme";
+import { TeamDto } from "@/src/features/home/types/team";
+import { ThemeColorPath } from "@/src/shared/types/theme";
 
 /**
  * KBO 10개 구단 상세 데이터 맵

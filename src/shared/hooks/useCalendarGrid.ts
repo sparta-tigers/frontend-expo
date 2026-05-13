@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { MatchScheduleDto } from "@/src/features/match/types";
-import { CalendarCellModel } from "@/src/features/home/types";
+import { CalendarCellModel } from "@/src/features/home/types/calendar";
 import { getTeamByBackendCode } from "@/src/utils/team";
 
 /**

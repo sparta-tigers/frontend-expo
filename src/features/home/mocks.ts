@@ -1,12 +1,9 @@
 import { useMemo } from "react";
 import { TEAM_DATA, TeamCode, isValidTeamCode } from "@/src/utils/team";
-import {
-  TeamDto,
-  MiniStatDto,
-  RankingRowDto,
-  LineupRowDto,
-  CalendarGameDto,
-} from "./types";
+import { TeamDto } from "@/src/features/home/types/team";
+import { MiniStatDto, LineupRowDto } from "@/src/features/home/types/dashboard";
+import { RankingRowDto } from "@/src/features/home/types/ranking";
+import { CalendarGameDto } from "@/src/features/home/types/calendar";
 
 /**
  * 홈 화면 가짜 데이터 생성 훅
