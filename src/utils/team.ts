@@ -197,8 +197,8 @@ const BACKEND_CODE_MAP = Object.values(TEAM_DATA).reduce((acc, team) => {
 }, {} as Record<string, TeamMeta>);
 
 const NAME_MAP = Object.values(TEAM_DATA).reduce((acc, team) => {
-  acc[team.name] = team;
-  acc[team.shortName] = team;
+  acc[team.name.toUpperCase()] = team;
+  acc[team.shortName.toUpperCase()] = team;
   return acc;
 }, {} as Record<string, TeamMeta>);
 
@@ -210,14 +210,14 @@ export function findTeamMeta(identifier: string | null | undefined): TeamMeta {
 
   const id = identifier.toUpperCase();
   
-  // 1. TeamCode ID 직접 매칭
+  // 1. TeamCode ID 직접 매칭 (KIA, LG, SSG 등)
   if (id in TEAM_DATA) return TEAM_DATA[id as TeamCode];
 
   // 2. 백엔드 코드 매칭 (HT, SK, WO 등)
   if (BACKEND_CODE_MAP[id]) return BACKEND_CODE_MAP[id];
 
-  // 3. 이름/약칭 매칭
-  if (NAME_MAP[identifier]) return NAME_MAP[identifier];
+  // 3. 이름/약칭 매칭 (기아, KIA 등) - 대소문자 무관
+  if (NAME_MAP[id]) return NAME_MAP[id];
 
   // 4. 모두 실패 시 DEFAULT
   return TEAM_DATA[DEFAULT_TEAM_ID];
