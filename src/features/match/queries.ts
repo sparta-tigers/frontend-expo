@@ -17,4 +17,11 @@ export const matchKeys = {
     yearly: (year: number, type: string) => [...matchKeys.ranking.all(), "yearly", { year, type }] as const,
     daily: (date: string, type: string) => [...matchKeys.ranking.all(), "daily", { date, type }] as const,
   },
+  liveboard: {
+    all: () => [...matchKeys.all, "liveboard"] as const,
+    week: (startDate: string) => [...matchKeys.liveboard.all(), "week", { startDate }] as const,
+    rooms: (date: string) => [...matchKeys.liveboard.all(), "rooms", { date }] as const,
+    lineup: (matchId: string) => [...matchKeys.liveboard.all(), "lineup", { matchId }] as const,
+    weather: (matchId: string) => [...matchKeys.liveboard.all(), "weather", { matchId }] as const,
+  },
 } as const;

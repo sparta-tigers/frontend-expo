@@ -4,6 +4,7 @@ import { fetchMatchLineup } from "@/src/features/liveboard/api";
 import { LineupRowDto } from "@/src/features/liveboard/types";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { matchKeys } from "../../match/queries";
 
 type FetchState = "LOADING" | "SUCCESS" | "ERROR";
 type ActiveTeam = "HOME" | "AWAY";
@@ -39,7 +40,7 @@ export function useLineupPanel(
     status,
     refetch,
   } = useQuery({
-    queryKey: ["liveboard", "lineup", matchId],
+    queryKey: matchKeys.liveboard.lineup(matchId),
     queryFn: () => fetchMatchLineup(matchId),
     enabled: isLoggedIn && !!matchId,
     staleTime: 1000 * 60 * 5, // 5분 캐시 유지

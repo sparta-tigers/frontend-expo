@@ -1,4 +1,3 @@
-// app/(tabs)/liveboard/useLiveboard.ts
 import { fetchLiveBoardRooms } from "@/src/features/liveboard/api";
 import {
   LiveBoardRoomDto,
@@ -8,6 +7,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import React, { useMemo, useState } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
+import { matchKeys } from "../../match/queries";
 
 // ── 날씨 아이콘/텍스트 매핑 ──────────────────────────────
 type WeatherIconName = keyof typeof MaterialIcons.glyphMap;
@@ -179,7 +179,7 @@ export function useLiveboard(): UseLiveboardReturn {
     isError: isWeekError,
     refetch: refetchWeek,
   } = useQuery({
-    queryKey: ["liveboard", "week", weekAnydayKeys[0]],
+    queryKey: matchKeys.liveboard.week(weekAnydayKeys[0]),
     queryFn: async () => {
       // Promise.allSettled를 사용하여 일부 날짜 조회 실패가 
       // 전체 주간 달력 로드 실패로 이어지지 않도록 격리(Isolate).
@@ -226,7 +226,7 @@ export function useLiveboard(): UseLiveboardReturn {
     isError: isSelectedDayError,
     refetch: refetchSelectedDay,
   } = useQuery({
-    queryKey: ["liveboard", "rooms", selectedAnyday],
+    queryKey: matchKeys.liveboard.rooms(selectedAnyday),
     queryFn: () => fetchLiveBoardRooms(selectedAnyday),
     staleTime: 60_000,
   });

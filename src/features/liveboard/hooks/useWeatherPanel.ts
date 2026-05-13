@@ -8,6 +8,7 @@ import {
 } from "@/src/features/liveboard/types";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { matchKeys } from "../../match/queries";
 
 type FetchState = "LOADING" | "SUCCESS" | "ERROR";
 
@@ -36,7 +37,7 @@ export function useWeatherPanel(matchId: string): UseWeatherPanelReturn {
     status,
     refetch,
   } = useQuery({
-    queryKey: ["liveboard", "weather", matchId],
+    queryKey: matchKeys.liveboard.weather(matchId),
     queryFn: () => fetchMatchWeather(matchId),
     enabled: isLoggedIn && !!matchId,
     staleTime: 1000 * 60 * 10, // 10분 캐시 유지
