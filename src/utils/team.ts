@@ -30,6 +30,7 @@ export interface TeamMeta {
   readonly id: TeamCode;
   readonly name: string; // 풀네임 (예: KIA 타이거즈)
   readonly shortName: string; // 약칭 (예: KIA)
+  readonly subName: string; // 서브 명칭 (예: 타이거즈)
   readonly mascotEmoji: string; // 마스코트 이모지
   readonly color: string; // 테마 Hex 값
   readonly colorToken: TeamColorToken; // 테마 토큰 키
@@ -40,15 +41,13 @@ export interface TeamMeta {
 
 /**
  * 💎 TEAM_DATA: 전 구단 메타데이터 (Single Source of Truth)
- * 
- * Why: 아키텍처 가이드에 따라 에셋(Logo)을 require로 직접 포함하며, 
- *      DB 매핑 코드(HT, SK 등)를 명시적으로 관리하여 결정론적 조회를 보장함.
  */
 export const TEAM_DATA: Record<TeamCode, TeamMeta> = {
   KIA: {
     id: "KIA",
     name: "KIA 타이거즈",
     shortName: "KIA",
+    subName: "타이거즈",
     mascotEmoji: "🐯",
     color: theme.colors.team.kia,
     colorToken: "kia",
@@ -59,6 +58,7 @@ export const TEAM_DATA: Record<TeamCode, TeamMeta> = {
     id: "LG",
     name: "LG 트윈스",
     shortName: "LG",
+    subName: "트윈스",
     mascotEmoji: "👯",
     color: theme.colors.team.lg,
     colorToken: "lg",
@@ -69,6 +69,7 @@ export const TEAM_DATA: Record<TeamCode, TeamMeta> = {
     id: "KT",
     name: "KT 위즈",
     shortName: "KT",
+    subName: "위즈",
     mascotEmoji: "🧙",
     color: theme.colors.team.kt,
     colorToken: "kt",
@@ -79,6 +80,7 @@ export const TEAM_DATA: Record<TeamCode, TeamMeta> = {
     id: "SSG",
     name: "SSG 랜더스",
     shortName: "SSG",
+    subName: "랜더스",
     mascotEmoji: "🛸",
     color: theme.colors.team.ssg,
     colorToken: "ssg",
@@ -89,6 +91,7 @@ export const TEAM_DATA: Record<TeamCode, TeamMeta> = {
     id: "NC",
     name: "NC 다이노스",
     shortName: "NC",
+    subName: "다이노스",
     mascotEmoji: "🦖",
     color: theme.colors.team.nc,
     colorToken: "nc",
@@ -99,6 +102,7 @@ export const TEAM_DATA: Record<TeamCode, TeamMeta> = {
     id: "DOOSAN",
     name: "두산 베어스",
     shortName: "두산",
+    subName: "베어스",
     mascotEmoji: "🐻",
     color: theme.colors.team.doosan,
     colorToken: "doosan",
@@ -109,6 +113,7 @@ export const TEAM_DATA: Record<TeamCode, TeamMeta> = {
     id: "LOTTE",
     name: "롯데 자이언츠",
     shortName: "롯데",
+    subName: "자이언츠",
     mascotEmoji: "⚓",
     color: theme.colors.team.lotte,
     colorToken: "lotte",
@@ -119,6 +124,7 @@ export const TEAM_DATA: Record<TeamCode, TeamMeta> = {
     id: "SAMSUNG",
     name: "삼성 라이온즈",
     shortName: "삼성",
+    subName: "라이온즈",
     mascotEmoji: "🦁",
     color: theme.colors.team.samsung,
     colorToken: "samsung",
@@ -129,6 +135,7 @@ export const TEAM_DATA: Record<TeamCode, TeamMeta> = {
     id: "HANWHA",
     name: "한화 이글스",
     shortName: "한화",
+    subName: "이글스",
     mascotEmoji: "🦅",
     color: theme.colors.team.hanwha,
     colorToken: "hanwha",
@@ -139,6 +146,7 @@ export const TEAM_DATA: Record<TeamCode, TeamMeta> = {
     id: "KIWOOM",
     name: "키움 히어로즈",
     shortName: "키움",
+    subName: "히어로즈",
     mascotEmoji: "🦸",
     color: theme.colors.team.kiwoom,
     colorToken: "kiwoom",
@@ -149,6 +157,7 @@ export const TEAM_DATA: Record<TeamCode, TeamMeta> = {
     id: "DEFAULT",
     name: "KBO",
     shortName: "KBO",
+    subName: "KBO",
     mascotEmoji: "⚾",
     color: theme.colors.team.fallback,
     colorToken: "fallback",
@@ -173,10 +182,6 @@ const NAME_MAP = Object.values(TEAM_DATA).reduce((acc, team) => {
 
 /**
  * 🔍 findTeamMeta: 구단 식별자를 기반으로 결정론적 메타데이터 반환
- * 
- * Why: backendCode(HT), shortName(KIA), name(KIA 타이거즈) 등 
- *      어떤 입력값이 들어와도 동일한 TeamMeta 객체로 수렴하게 함.
- * @param identifier - 구단 코드, 이름 또는 백엔드 코드
  */
 export function findTeamMeta(identifier: string | null | undefined): TeamMeta {
   if (!identifier) return TEAM_DATA.DEFAULT;
@@ -198,9 +203,6 @@ export function findTeamMeta(identifier: string | null | undefined): TeamMeta {
 
 /**
  * 🎨 TEAM_STYLES: 전 구단 공통 스타일 맵 (StyleSheet 사전 정의)
- * 
- * Why: 아키텍처 가이드에 따라 렌더링 시점의 스타일 계산 비용을 $O(1)$으로 최적화하고,
- *      인라인 스타일 사용을 방지함.
  */
 export const TEAM_STYLES = StyleSheet.create(
   Object.entries(TEAM_DATA).reduce((acc, [code, meta]) => {
@@ -216,7 +218,6 @@ export const TEAM_STYLES = StyleSheet.create(
 
 /**
  * 💅 getTeamBgStyle: 구단 배경색 스타일 반환 (하위 호환성용)
- * @param identifier - 구단 식별자
  */
 export function getTeamBgStyle(identifier: string | null | undefined) {
   const meta = findTeamMeta(identifier);
@@ -227,3 +228,10 @@ export function getTeamBgStyle(identifier: string | null | undefined) {
  * 📦 TEAM_LIST: 전체 구단 목록 (마스코트 포함)
  */
 export const TEAM_LIST = Object.values(TEAM_DATA).filter(t => t.id !== 'DEFAULT');
+
+/**
+ * ✅ isValidTeamCode: 유효한 팀 코드인지 확인 (Type Guard)
+ */
+export function isValidTeamCode(code: any): code is TeamCode {
+  return code in TEAM_DATA && code !== 'DEFAULT';
+}
