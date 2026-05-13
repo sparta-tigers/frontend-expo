@@ -162,7 +162,7 @@ export const MyTeamSection = memo(
           bg="card"
           rounded="xl"
           p="lg"
-          borderColor={`team.${myTeam.colorToken}` as ThemeColorPath}
+          borderColor={`team.${myTeam?.colorToken || "fallback"}` as ThemeColorPath}
           style={styles.myTeamCard}
         >
           {/* 인사말 영역 */}
@@ -176,7 +176,7 @@ export const MyTeamSection = memo(
               {userNickname}
             </Typography>
             <Typography variant="h3" weight="bold" ml="xxs">
-              {myTeam.mascotEmoji}
+              {myTeam?.mascotEmoji || "⚾"}
             </Typography>
             <Typography variant="caption" color="text.secondary" ml="xxs">
               님, 입학한지
@@ -212,7 +212,7 @@ export const MyTeamSection = memo(
             {/* 입체적인 마스코트 영역 (Absolute Positioning) */}
             <Box style={styles.mascotContainer}>
               <Typography style={styles.mascotEmoji}>
-                {myTeam.mascotEmoji}
+                {myTeam?.mascotEmoji || "⚾"}
               </Typography>
             </Box>
           </Box>
