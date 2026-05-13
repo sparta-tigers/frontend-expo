@@ -164,7 +164,7 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                         // 해결: TEAM_DATA와 연동된 브랜드 컬러를 테마 토큰으로 주입 (No any)
                         bg={
                           cell.opponentCode
-                            ? `team.${findTeamMeta(cell.opponentCode).colorToken}` as ThemeColorPath
+                            ? `team.${findTeamMeta(cell.opponentCode)?.colorToken || "fallback"}` as ThemeColorPath
                             : "surface"
                         }
                         align="center"
