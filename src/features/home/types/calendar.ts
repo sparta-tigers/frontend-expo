@@ -29,4 +29,5 @@ export type CalendarCellModel = {
   timeText?: string | undefined;
   isSelected: boolean;
   opponentColor?: string | undefined;
+  opponentColorToken?: string | undefined; // 🚨 추가: 테마 토큰 기반 컬러링용
 };

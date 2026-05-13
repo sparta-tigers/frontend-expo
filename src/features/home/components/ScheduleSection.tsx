@@ -1,13 +1,12 @@
 import { Box, Typography } from "@/components/ui";
 import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
 import { theme } from "@/src/styles/theme";
-import { findTeamMeta } from "@/src/utils/team";
 import { ThemeColorPath } from "@/src/shared/types/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
-import { MatchScheduleDto } from "../../match/types";
+import { MatchSummary } from "../../match/types";
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -22,7 +21,7 @@ const LOCAL_LAYOUT = {
 } as const;
 
 interface ScheduleSectionProps {
-  schedule: MatchScheduleDto[];
+  schedule: MatchSummary[];
   year: number;
   month: number;
   today?: { year: number; month: number; day: number }; // 🚨 앙드레 카파시: 결정론적 렌더링을 위해 외부에서 주입받음
@@ -33,7 +32,7 @@ interface ScheduleSectionProps {
  * 경기 일정 섹션 (캘린더 뷰)
  *
  * Why: 홈 화면 하단에서 월간 경기 일정을 시각적으로 요약하여 제공.
- * Zero-Magic UI 원칙에 따라 모든 수치는 테마 토큰 및 LOCAL_LAYOUT을 참조함.
+ * MatchSummary 모델을 사용하여 데이터 의존성을 중앙화하고, 컴포넌트는 오직 그리기만 담당함(Dumb View).
  */
 export const ScheduleSection = React.memo(function ScheduleSection({
   schedule,
@@ -161,10 +160,10 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                         width={theme.spacing.xxl}
                         height={theme.spacing.xl}
                         rounded="full"
-                        // 해결: TEAM_DATA와 연동된 브랜드 컬러를 테마 토큰으로 주입 (No any)
+                        // 🏛️ SSOT: findTeamMeta 호출을 제거하고 Mapper가 제공한 컬러 토큰을 직접 사용
                         bg={
-                          cell.opponentCode
-                            ? `team.${findTeamMeta(cell.opponentCode)?.colorToken || "fallback"}` as ThemeColorPath
+                          cell.opponentColorToken
+                            ? `team.${cell.opponentColorToken}` as ThemeColorPath
                             : "surface"
                         }
                         align="center"
@@ -179,7 +178,6 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                         <Typography
                           variant="caption"
                           weight="bold"
-                          // 해결: 테마에 정의된 card(#FFFFFF) 토큰을 사용하여 흰색 텍스트 구현
                           color={
                             cell.opponentCode ? "card" : "team.neutralDark"
                           }
