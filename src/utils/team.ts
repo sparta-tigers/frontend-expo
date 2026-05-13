@@ -244,7 +244,7 @@ export const TEAM_STYLES = StyleSheet.create(
  */
 export function getTeamBgStyle(identifier: string | null | undefined) {
   const meta = findTeamMeta(identifier);
-  return TEAM_STYLES[meta.id] || { backgroundColor: theme.colors.team.fallback };
+  return TEAM_STYLES[meta.id] || TEAM_STYLES.DEFAULT;
 }
 
 /**

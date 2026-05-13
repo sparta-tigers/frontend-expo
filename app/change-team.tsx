@@ -53,91 +53,89 @@ export default function ChangeTeamScreen() {
   };
 
   return (
-    <SafeLayout style={styles.container}>
-      <SafeLayout style={styles.container} edges={["top", "left", "right"]}>
-        <Stack.Screen 
-          options={{ 
-            title: "응원팀 변경",
-            headerShadowVisible: false,
-          }} 
-        />
-        
-        <ScrollView 
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <Box mb="xxl">
-            <Typography 
-              variant="h3" 
-              weight="bold" 
-              mb="sm"
-            >
-              응원하는 팀을 선택해주세요
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              선택한 팀에 맞춰 앱의 테마 색상이 변경됩니다.
-            </Typography>
-          </Box>
+    <SafeLayout style={styles.container} edges={["top", "left", "right"]}>
+      <Stack.Screen 
+        options={{ 
+          title: "응원팀 변경",
+          headerShadowVisible: false,
+        }} 
+      />
+      
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <Box mb="xxl">
+          <Typography 
+            variant="h3" 
+            weight="bold" 
+            mb="sm"
+          >
+            응원하는 팀을 선택해주세요
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            선택한 팀에 맞춰 앱의 테마 색상이 변경됩니다.
+          </Typography>
+        </Box>
 
-          <Box flexDir="row" flexWrap="wrap" justify="space-between">
-            {TEAM_LIST.map((team) => {
-              const isSelected = myTeam === team.id;
-              const colorPath = `team.${team.colorToken}` as ThemeColorPath;
-              
-              return (
-                <TouchableOpacity
-                  key={team.id}
-                  activeOpacity={0.7}
-                  onPress={() => handleSelectTeam(team.id)}
-                  style={[
-                    styles.teamCard,
-                    isSelected && styles.teamCardSelected,
-                    isSelected && { borderColor: team.color }
-                  ]}
+        <Box flexDir="row" flexWrap="wrap" justify="space-between">
+          {TEAM_LIST.map((team) => {
+            const isSelected = myTeam === team.id;
+            const colorPath = `team.${team.colorToken}` as ThemeColorPath;
+            
+            return (
+              <TouchableOpacity
+                key={team.id}
+                activeOpacity={0.7}
+                onPress={() => handleSelectTeam(team.id)}
+                style={[
+                  styles.teamCard,
+                  isSelected && styles.teamCardSelected,
+                  isSelected && { borderColor: team.color }
+                ]}
+              >
+                <Box 
+                  width={LOCAL_LAYOUT.avatarSize}
+                  height={LOCAL_LAYOUT.avatarSize}
+                  rounded="full"
+                  justify="center"
+                  align="center"
+                  mb="md"
+                  bg={colorPath}
+                  style={styles.colorBadge}
                 >
+                  <Typography style={styles.mascot}>{team.mascotEmoji}</Typography>
+                </Box>
+                <Typography 
+                  variant="caption" 
+                  weight={isSelected ? "bold" : "semibold"} 
+                  center
+                  color={isSelected ? colorPath : "primary"}
+                >
+                  {team.name}
+                </Typography>
+                {isSelected && (
                   <Box 
-                    width={LOCAL_LAYOUT.avatarSize}
-                    height={LOCAL_LAYOUT.avatarSize}
-                    rounded="full"
-                    justify="center"
-                    align="center"
-                    mb="md"
+                    rounded="sm"
+                    px="xs"
+                    py="xxs"
                     bg={colorPath}
-                    style={styles.colorBadge}
+                    style={styles.checkBadge}
                   >
-                    <Typography style={styles.mascot}>{team.mascotEmoji}</Typography>
-                  </Box>
-                  <Typography 
-                    variant="caption" 
-                    weight={isSelected ? "bold" : "semibold"} 
-                    center
-                    color={isSelected ? colorPath : "primary"}
-                  >
-                    {team.name}
-                  </Typography>
-                  {isSelected && (
-                    <Box 
-                      rounded="sm"
-                      px="xs"
-                      py="xxs"
-                      bg={colorPath}
-                      style={styles.checkBadge}
+                    <Typography 
+                      color="background" 
+                      weight="bold"
+                      style={styles.checkText}
                     >
-                      <Typography 
-                        color="background" 
-                        weight="bold"
-                        style={styles.checkText}
-                      >
-                        선택됨
-                      </Typography>
-                    </Box>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </Box>
-        </ScrollView>
-      </SafeLayout>
+                      선택됨
+                    </Typography>
+                  </Box>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </Box>
+      </ScrollView>
     </SafeLayout>
   );
 }

@@ -12,7 +12,7 @@ import {
   getCurrentDay,
   getRelativeMonth,
 } from "@/src/utils/date";
-import { findTeamMeta, TeamCode } from "@/src/utils/team";
+import { findTeamMeta, TeamCode, TeamMeta } from "@/src/utils/team";
 import { ThemeColorPath } from "@/src/shared/types/theme";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { Stack, router, useLocalSearchParams } from "expo-router";
@@ -34,9 +34,8 @@ const LOCAL_LAYOUT = {
 // ========================================================
 // [SHARED] 브랜딩 헤더 컴포넌트
 // ========================================================
-const BrandingHeader: React.FC<{ teamCode: TeamCode }> = ({ teamCode }) => {
+const BrandingHeader = React.memo<{ team: TeamMeta }>(({ team }) => {
   const insets = useSafeAreaInsets();
-  const team = findTeamMeta(teamCode);
 
   return (
     <Box
@@ -83,7 +82,8 @@ const BrandingHeader: React.FC<{ teamCode: TeamCode }> = ({ teamCode }) => {
       </Box>
     </Box>
   );
-};
+});
+BrandingHeader.displayName = "BrandingHeader";
 
 /**
  * 경기 일정 화면 (`main_1`)
@@ -104,8 +104,14 @@ export default function ScheduleScreen() {
   const year = params.year ? parseInt(params.year) : getCurrentYear();
   const month = params.month ? parseInt(params.month) : getCurrentMonth();
   const leagueType = (params.leagueType as LeagueType) || "REGULAR";
-
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  // 2. [PERF] 구단 데이터 메모이제이션 (PR 피드백 문제 5 반영)
+  const activeTeam = useMemo(() => findTeamMeta(activeTeamCode), [activeTeamCode]);
+  const activeTeamColorPath = useMemo(
+    () => `team.${activeTeam?.colorToken || "fallback"}` as ThemeColorPath,
+    [activeTeam?.colorToken]
+  );
 
   const today = useMemo(() => ({
     year: getCurrentYear(),
@@ -162,7 +168,7 @@ export default function ScheduleScreen() {
     return (
       <Box flex={1} bg="background">
         <Stack.Screen options={{ headerShown: false }} />
-        <BrandingHeader teamCode={activeTeamCode} />
+        <BrandingHeader team={activeTeam} />
         <ScheduleSkeleton />
       </Box>
     );
@@ -172,7 +178,7 @@ export default function ScheduleScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* Branded Header */}
-      <BrandingHeader teamCode={activeTeamCode} />
+      <BrandingHeader team={activeTeam} />
 
       {/* Click-outside Overlay (드롭다운이 열렸을 때만 활성화) */}
       {isDropdownOpen && (
@@ -192,13 +198,13 @@ export default function ScheduleScreen() {
             style={[
               styles.leagueSelector,
               {
-                borderColor: findTeamMeta(activeTeamCode)?.color || theme.colors.brand.mint,
+                borderColor: activeTeam?.color || theme.colors.brand.mint,
               },
             ]}
           >
             <Typography
               variant="caption"
-              color={`team.${findTeamMeta(activeTeamCode)?.colorToken || "fallback"}` as ThemeColorPath}
+              color={activeTeamColorPath}
               weight="bold"
             >
               {leagueLabelMap[leagueType]} ∨
@@ -384,7 +390,7 @@ export default function ScheduleScreen() {
           <TouchableOpacity
             style={[
               styles.todayBtn,
-              { borderColor: findTeamMeta(activeTeamCode)?.color || theme.colors.brand.mint },
+              { borderColor: activeTeam?.color || theme.colors.brand.mint },
             ]}
             onPress={() =>
               router.setParams({
@@ -397,12 +403,12 @@ export default function ScheduleScreen() {
             <MaterialIcons
               name="today"
               size={18}
-              color={theme.colors.team[activeTeamCode.toLowerCase() as keyof typeof theme.colors.team] || theme.colors.brand.mint}
+              color={activeTeam?.color || theme.colors.brand.mint}
             />
             <Typography
               variant="caption"
               weight="bold"
-              color={`team.${findTeamMeta(activeTeamCode)?.colorToken || "fallback"}` as ThemeColorPath}
+              color={activeTeamColorPath}
               ml="xs"
             >
               오늘로 돌아가기
