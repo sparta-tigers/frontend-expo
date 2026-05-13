@@ -62,13 +62,13 @@ export function useFakeHomeData(myTeamId: string | null) {
     // - 내 응원팀이 5위 밖이면 5위 다음에 내 팀 행 추가하여 노출
     const displayRanking: RankingRowDto[] = allRankings.slice(0, 5).map(row => ({
       ...row,
-      isMyTeam: row.team.shortName === myTeam.shortName
+      isMyTeam: row.team.id === myTeam.id
     }));
 
     const isMyTeamInTop5 = displayRanking.some(row => row.isMyTeam);
 
     if (!isMyTeamInTop5) {
-      const myTeamRankingRow = allRankings.find(row => row.team.shortName === myTeam.shortName);
+      const myTeamRankingRow = allRankings.find(row => row.team.id === myTeam.id);
       if (myTeamRankingRow) {
         displayRanking.push({ ...myTeamRankingRow, isMyTeam: true });
       }

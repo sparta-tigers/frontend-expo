@@ -1,7 +1,7 @@
 import { Box, Typography } from "@/components/ui";
 import { ThemeColorPath } from "@/src/shared/types/theme";
 import { theme } from "@/src/styles/theme";
-import { TEAM_DATA, TeamCode, getTeamColorPath, isValidTeamCode } from "@/src/utils/team";
+import { findTeamMeta } from "@/src/utils/team";
 import { MaterialIcons } from "@expo/vector-icons";
 import React, { memo } from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
@@ -93,9 +93,7 @@ export const MyTeamSection = memo(
     favoriteTeamCode,
     onPressChangeTeam,
   }: MyTeamSectionProps) => {
-    const activeTeamCode: TeamCode = isValidTeamCode(favoriteTeamCode) ? favoriteTeamCode : "KIA";
-    const myTeam = TEAM_DATA[activeTeamCode];
-    const teamColorPath = getTeamColorPath(activeTeamCode);
+    const myTeam = findTeamMeta(favoriteTeamCode);
 
     const activityStats: {
       key: string;
@@ -164,7 +162,7 @@ export const MyTeamSection = memo(
           bg="card"
           rounded="xl"
           p="lg"
-          borderColor={teamColorPath}
+          borderColor={`team.${myTeam.colorToken}` as ThemeColorPath}
           style={styles.myTeamCard}
         >
           {/* 인사말 영역 */}
