@@ -71,12 +71,23 @@ export class MatchMapper {
 
     return {
       matchId: dto.matchId,
-      day: dto.matchTime.includes("T") 
-        ? parseInt(dto.matchTime.split("T")[0].split("-")[2]) 
-        : 0,
-      startTime: dto.matchTime.includes("T") 
-        ? dto.matchTime.split("T")[1].substring(0, 5) 
-        : dto.matchTime,
+      day: (() => {
+        if (!dto.matchTime.includes("T")) {
+          throw new Error(`[MatchMapper] Invalid matchTime format: ${dto.matchTime}. Expected ISO format (YYYY-MM-DDTHH:mm:ss)`);
+        }
+        const datePart = dto.matchTime.split("T")[0];
+        const dateSegments = datePart.split("-");
+        if (dateSegments.length < 3) {
+          throw new Error(`[MatchMapper] Invalid date format in matchTime: ${dto.matchTime}`);
+        }
+        return parseInt(dateSegments[2]);
+      })(),
+      startTime: (() => {
+        if (!dto.matchTime.includes("T")) {
+          throw new Error(`[MatchMapper] Invalid matchTime format: ${dto.matchTime}. Expected ISO format (YYYY-MM-DDTHH:mm:ss)`);
+        }
+        return dto.matchTime.split("T")[1].substring(0, 5);
+      })(),
       homeTeam,
       awayTeam,
       stadium: dto.stadium || homeMeta.stadium,
