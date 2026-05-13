@@ -47,3 +47,29 @@ export const getRelativeMonth = (year: number, month: number, offset: number) =>
     month: date.getMonth() + 1,
   };
 };
+
+/**
+ * 날짜와 요일을 한국어로 포맷팅합니다.
+ * @param dateStr ISO 날짜 문자열
+ * @param includeYear 연도 포함 여부
+ */
+export const formatToKoreanDateTime = (dateStr: string, includeYear = true): string => {
+  const date = new Date(dateStr);
+  
+  // 🚨 [Safety] Invalid Date 체크
+  if (isNaN(date.getTime())) {
+    return "알 수 없는 날짜";
+  }
+
+  const days = ["일", "월", "화", "수", "목", "금", "토"];
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const dayOfWeek = days[date.getDay()];
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+
+  return includeYear 
+    ? `${year}년 ${month}월 ${day}일(${dayOfWeek}) ${hours}:${minutes}`
+    : `${month}월 ${day}일(${dayOfWeek}) ${hours}:${minutes}`;
+};
