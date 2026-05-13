@@ -44,9 +44,11 @@ if (Constants.appOwnership !== AppOwnership.Expo) {
  */
 export default function RootLayout() {
   return (
-    <CombinedProvider>
-      <RootLayoutInner />
-    </CombinedProvider>
+    <GestureHandlerRootView style={styles.gestureContainer}>
+      <CombinedProvider>
+        <RootLayoutInner />
+      </CombinedProvider>
+    </GestureHandlerRootView>
   );
 }
 
@@ -115,78 +117,76 @@ function RootLayoutInner() {
 
   return (
     <ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
-      <GestureHandlerRootView style={styles.gestureContainer}>
-        <SafeAreaProvider>
-          <SafeAreaView
-            style={[styles.safeArea, { backgroundColor: colors.background }]}
-            edges={["top", "left", "right"]}
-          >
-            {!netInfo.isConnected && <OfflineBanner />}
+      <SafeAreaProvider>
+        <SafeAreaView
+          style={[styles.safeArea, { backgroundColor: colors.background }]}
+          edges={["top", "left", "right"]}
+        >
+          {!netInfo.isConnected && <OfflineBanner />}
 
-            {/* 1. 고정 헤더 (전역) */}
-            {!inAuthGroup && segments[0] !== "schedule" && segments[1] !== "create" && (
-              <Box 
-                flexDir="row" 
-                align="center" 
-                justify="space-between" 
-                px="xl" 
-                py="lg"
-              >
-                <Box width={48} align="flex-start">
-                  {router.canGoBack() && (
-                    <TouchableOpacity 
-                      activeOpacity={0.7} 
-                      style={styles.headerIconBtn}
-                      onPress={() => router.back()}
-                    >
-                      <IconSymbol
-                        size={theme.layout.header.backIconSize}
-                        name="chevron.left"
-                        color={theme.colors.team.neutralDark}
-                      />
-                    </TouchableOpacity>
-                  )}
-                </Box>
-                
-                <Typography 
-                  variant="h3" 
-                  weight="black" 
-                  color="brand.mint"
-                  style={styles.headerTitle}
-                >
-                  YAGUNIV
-                </Typography>
-                
-                <Box width={48} align="flex-end">
+          {/* 1. 고정 헤더 (전역) */}
+          {!inAuthGroup && segments[0] !== "schedule" && segments[1] !== "create" && (
+            <Box 
+              flexDir="row" 
+              align="center" 
+              justify="space-between" 
+              px="xl" 
+              py="lg"
+            >
+              <Box width={48} align="flex-start">
+                {router.canGoBack() && (
                   <TouchableOpacity 
                     activeOpacity={0.7} 
-                    style={styles.headerIconBtn} 
-                    onPress={() => router.push("/profile")}
+                    style={styles.headerIconBtn}
+                    onPress={() => router.back()}
                   >
-                    <IconSymbol 
-                      name="person.fill" 
-                      size={theme.layout.header.profileIconSize} 
-                      color={theme.colors.team.neutralDark} 
+                    <IconSymbol
+                      size={theme.layout.header.backIconSize}
+                      name="chevron.left"
+                      color={theme.colors.team.neutralDark}
                     />
                   </TouchableOpacity>
-                </Box>
+                )}
               </Box>
-            )}
-
-            {/* 2. 하위 라우팅 화면 */}
-            <Box flex={1} bg="background">
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  gestureEnabled: true,
-                  animation: "slide_from_right",
-                  fullScreenGestureEnabled: true,
-                }}
-              />
+              
+              <Typography 
+                variant="h3" 
+                weight="black" 
+                color="brand.mint"
+                style={styles.headerTitle}
+              >
+                YAGUNIV
+              </Typography>
+              
+              <Box width={48} align="flex-end">
+                <TouchableOpacity 
+                  activeOpacity={0.7} 
+                  style={styles.headerIconBtn} 
+                  onPress={() => router.push("/profile")}
+                >
+                  <IconSymbol 
+                    name="person.fill" 
+                    size={theme.layout.header.profileIconSize} 
+                    color={theme.colors.team.neutralDark} 
+                  />
+                </TouchableOpacity>
+              </Box>
             </Box>
-          </SafeAreaView>
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
+          )}
+
+          {/* 2. 하위 라우팅 화면 */}
+          <Box flex={1} bg="background">
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                gestureEnabled: true,
+                animation: "slide_from_right",
+                fullScreenGestureEnabled: true,
+              }}
+            />
+          </Box>
+        </SafeAreaView>
+      </SafeAreaProvider>
     </ErrorBoundary>
   );
 }

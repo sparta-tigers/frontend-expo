@@ -1,7 +1,5 @@
 import { Box, Typography } from "@/components/ui";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useTicketAlarms } from "@/src/features/ticket-alarm/hooks/useTicketAlarm";
-import { AlarmSettingSheet } from "@/src/features/ticket-alarm/components/AlarmSettingSheet";
 import { useAuth } from "@/context/AuthContext";
 import { ScheduleSkeleton } from "@/src/features/home/components/ScheduleSkeleton";
 import { useMatchSchedule } from "@/src/features/match/hooks/useMatchSchedule";
@@ -20,7 +18,7 @@ import { ThemeColorPath } from "@/src/shared/types/theme";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import React, { useState, useMemo } from "react";
-import { Alert, Pressable, StyleSheet, TouchableOpacity } from "react-native";
+import { Pressable, StyleSheet, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // ========================================================
@@ -92,10 +90,9 @@ BrandingHeader.displayName = "BrandingHeader";
  * 경기 일정 화면 (`main_1`)
  *
  * Why: 월간 경기 일정을 캘린더 형태로 제공.
- * placeholderData와 isFetching 상태를 결합하여 부드러운 업데이트 경험 제공.
  */
 export default function ScheduleScreen() {
-  const { myTeam, myTeamId } = useAuth();
+  const { myTeam } = useAuth();
   const activeTeamCode = (myTeam as TeamCode) || "KIA";
 
   // 1. [SSOT] URL 파라미터 기반 상태 관리
@@ -109,7 +106,7 @@ export default function ScheduleScreen() {
   const leagueType = (params.leagueType as LeagueType) || "REGULAR";
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // 2. [PERF] 구단 데이터 메모이제이션 (PR 피드백 문제 5 반영)
+  // 2. [PERF] 구단 데이터 메모이제이션
   const activeTeam = useMemo(() => findTeamMeta(activeTeamCode), [activeTeamCode]);
   const activeTeamColorPath = useMemo(
     () => `team.${activeTeam?.colorToken || "fallback"}` as ThemeColorPath,
@@ -128,7 +125,7 @@ export default function ScheduleScreen() {
     isFetching,
   } = useMatchSchedule(year, month, activeTeamCode, leagueType);
 
-  // 2. 직관 기록 데이터 로드 및 맵 생성 (캘린더 하이라이트용 100건 활용)
+  // 2. 직관 기록 데이터 로드 및 맵 생성
   const { data: infiniteAttendances } = useInfiniteMyAttendances(100);
   const attendanceMap = useMemo(() => {
     const map = new Map<number, number>();
@@ -149,15 +146,8 @@ export default function ScheduleScreen() {
     return map;
   }, [ticketAlarmsRes]);
 
-  const [selectedMatchForAlarm, setSelectedMatchForAlarm] = useState<{
-    id: number;
-    title: string;
-  } | null>(null);
-  const alarmSheetRef = React.useRef<BottomSheetModal>(null);
-
   const days = useCalendarGrid(year, month, schedule || [], today, undefined, attendanceMatchIds);
 
-  // 3. 핸들러
   const handleMoveMonth = (offset: number) => {
     const { year: nextYear, month: nextMonth } = getRelativeMonth(
       year,
@@ -194,10 +184,8 @@ export default function ScheduleScreen() {
     <Box flex={1} bg="background">
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* Branded Header */}
       <BrandingHeader team={activeTeam} />
 
-      {/* Click-outside Overlay (드롭다운이 열렸을 때만 활성화) */}
       {isDropdownOpen && (
         <Pressable
           style={styles.overlay}
@@ -205,9 +193,7 @@ export default function ScheduleScreen() {
         />
       )}
 
-      {/* Filter & Calendar Content */}
       <Box style={styles.contentContainer}>
-        {/* League Selector & Dropdown Container */}
         <Box style={styles.dropdownContainer}>
           <TouchableOpacity
             onPress={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -228,7 +214,6 @@ export default function ScheduleScreen() {
             </Typography>
           </TouchableOpacity>
 
-          {/* Dropdown Menu (Absolute) */}
           {isDropdownOpen && (
             <Box
               style={styles.dropdownMenu}
@@ -256,7 +241,6 @@ export default function ScheduleScreen() {
           )}
         </Box>
 
-        {/* Month Selector */}
         <Box flexDir="row" align="center" mb="xl">
           <TouchableOpacity
             onPress={() => handleMoveMonth(-1)}
@@ -285,9 +269,7 @@ export default function ScheduleScreen() {
           </TouchableOpacity>
         </Box>
 
-        {/* Calendar Grid Container (Fetching 중일 때만 불투명도 조절) */}
         <Box style={styles.gridContainer} opacity={isFetching ? 0.5 : 1}>
-          {/* Calendar Grid Header */}
           <Box
             flexDir="row"
             bg="team.neutralLight"
@@ -307,7 +289,6 @@ export default function ScheduleScreen() {
             ))}
           </Box>
 
-          {/* Calendar Grid Body */}
           <Box
             flexDir="row"
             flexWrap="wrap"
@@ -333,20 +314,12 @@ export default function ScheduleScreen() {
                   disabled={isEmpty || !cell.hasGame}
                   onPress={() => {
                     if (isFuture) {
-                      // 🔔 미래 경기: 예매 알림 설정
-                      if (myTeamId == null) {
-                        Alert.alert("알림", "응원팀 정보를 먼저 설정해주세요.");
-                        return;
-                      }
+                      // 🔔 미래 경기: 예매 알림 페이지로 이동
                       if (cell.matchId) {
-                        setSelectedMatchForAlarm({
-                          id: cell.matchId,
-                          title: `${cell.location} 경기 (${cell.timeText})`,
-                        });
-                        alarmSheetRef.current?.present();
+                        router.push(`/ticket-alarm/${cell.matchId}`);
                       }
                     } else {
-                      // 📝 과거 경기: 직관 기록
+                      // 📝 과거 경기: 직관 기록 페이지로 이동
                       if (attendanceId) {
                         router.push(`/attendance/detail/${attendanceId}`);
                       } else if (cell.matchId) {
@@ -357,7 +330,6 @@ export default function ScheduleScreen() {
                 >
                   {!isEmpty && (
                     <>
-                      {/* 🚨 직관 스탬프 효과 (기존 빨간 점 제거) */}
                       {cell.hasAttendance && (
                         <Box style={styles.attendanceStamp}>
                           <Ionicons name="checkmark-done-circle" size={40} color={theme.colors.brand.mintAlpha10} />
@@ -426,7 +398,6 @@ export default function ScheduleScreen() {
           </Box>
         </Box>
 
-        {/* Back to Today Button (현재 보고 있는 월이 오늘이 아닐 때만 노출) */}
         {(year !== today.year || month !== today.month) && (
           <TouchableOpacity
             style={[
@@ -457,14 +428,6 @@ export default function ScheduleScreen() {
           </TouchableOpacity>
         )}
       </Box>
-
-      {/* Ticket Alarm Setting Sheet */}
-      <AlarmSettingSheet
-        modalRef={alarmSheetRef}
-        matchId={selectedMatchForAlarm?.id || null}
-        teamId={myTeamId}
-        matchTitle={selectedMatchForAlarm?.title || ""}
-      />
     </Box>
   );
 }
