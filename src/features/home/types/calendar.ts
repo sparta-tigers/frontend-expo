@@ -1,3 +1,8 @@
+/**
+ * 캘린더 경기 정보 데이터 모델
+ *
+ * Why: 캘린더 화면에서 특정 날짜의 경기 정보(상대 팀, 장소, 시간 등)를 표시하기 위해 사용됩니다.
+ */
 export interface CalendarGameDto {
   day: number;
   location?: "H" | "A" | undefined;
