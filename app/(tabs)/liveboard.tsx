@@ -247,7 +247,7 @@ export default function LiveboardScreen() {
                       rounded="full"
                       align="center"
                       justify="center"
-                      style={[styles.teamLogo, TEAM_STYLES[findTeamMeta(room.awayTeamName).id]]}
+                      style={[styles.teamLogo, TEAM_STYLES[findTeamMeta(room.awayTeamName)?.id || "KBO"]]}
                     >
                       <Typography
                         variant="caption"

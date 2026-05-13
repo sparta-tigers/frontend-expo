@@ -115,7 +115,7 @@ export default function HomeScreen() {
           />
         )}
 
-        <LineupSection lineup={dashboardData?.todayLineup ?? []} teamName={myTeam.name} />
+        <LineupSection lineup={dashboardData?.todayLineup ?? []} teamName={myTeam?.name || "KBO"} />
 
         {isScheduleLoading ? (
           <ScheduleSkeleton />
