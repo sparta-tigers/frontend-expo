@@ -2,6 +2,7 @@
 import { Box } from "@/components/ui/box";
 import { Typography } from "@/components/ui/typography";
 import { theme } from "@/src/styles/theme";
+import { MatchDetail } from "@/src/features/match/types";
 import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import { styles } from "@/src/features/liveboard/styles/matchId.styles";
@@ -107,14 +108,11 @@ function getBsoDotActiveStyle(label: string) {
  * LiveSection
  *
  * Why: 경기장 배경 위에 선수 배치, 좌측 정보 바, 텍스트 중계 배너를 절대좌표로 배치.
+ * MatchDetail 모델을 통해 홈/어웨이 팀 정보 및 경기 상태를 중앙에서 관리함.
  */
-export function LiveSection({
-  awayTeamName,
-  homeTeamName,
-}: {
-  awayTeamName: string;
-  homeTeamName: string;
-}) {
+export function LiveSection({ match }: { match: MatchDetail }) {
+  const { homeTeam, awayTeam } = match;
+
   return (
     <Box style={styles.liveSection}>
       <Box style={styles.stadiumBg} />
@@ -128,7 +126,7 @@ export function LiveSection({
       <Box style={styles.leftBar}>
         <Box style={[styles.scoreRow, styles.scoreAway]}>
           <Typography style={styles.scoreTeamLabel} weight="bold">
-            {awayTeamName}
+            {awayTeam.name}
           </Typography>
           <Typography style={styles.scoreValue} weight="semibold">
             {MOCK_LIVE_DATA.awayScore}
@@ -136,7 +134,7 @@ export function LiveSection({
         </Box>
         <Box style={[styles.scoreRow, styles.scoreHome]}>
           <Typography style={styles.scoreTeamLabel} weight="bold">
-            {homeTeamName}
+            {homeTeam.name}
           </Typography>
           <Typography style={styles.scoreValue} weight="semibold">
             {MOCK_LIVE_DATA.homeScore}

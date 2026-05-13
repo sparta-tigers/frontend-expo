@@ -15,15 +15,18 @@ import { styles } from "@/src/features/liveboard/styles/matchId.styles";
  *
  * Why: 라이브보드 룸의 "선수 라인업" 탭 콘텐츠. 로직은 useLineupPanel에 위임.
  */
-export function LineupPanel({
-  matchId,
-  homeTeamName,
-  awayTeamName,
-}: {
-  matchId: string;
-  homeTeamName: string;
-  awayTeamName: string;
-}) {
+import { MatchDetail } from "@/src/features/match/types";
+
+/**
+ * LineupPanel
+ *
+ * Why: 라이브보드 룸의 "선수 라인업" 탭 콘텐츠. 로직은 useLineupPanel에 위임.
+ */
+export function LineupPanel({ match }: { match: MatchDetail }) {
+  const { matchId, homeTeam, awayTeam } = match;
+  const homeTeamName = homeTeam.name;
+  const awayTeamName = awayTeam.name;
+
   const {
     activeTeam,
     setActiveTeam,
@@ -32,7 +35,7 @@ export function LineupPanel({
     currentTeamName,
     isLoggedIn,
     handleRetry,
-  } = useLineupPanel(matchId, homeTeamName, awayTeamName);
+  } = useLineupPanel(matchId.toString(), homeTeamName, awayTeamName);
 
   if (fetchState === "LOADING") {
     return (

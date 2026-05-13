@@ -1,23 +1,18 @@
-// app/liveboard/[matchId].tsx
-// Why: Expo Router는 파일명을 라우트 경로로 사용하므로 이 파일은 유지해야 함.
-// 실제 로직·UI·스타일은 [matchId]/ 하위 모듈에 위임.
 import { Box } from "@/components/ui/box";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { Typography } from "@/components/ui/typography";
 import { useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
-import { TouchableOpacity } from "react-native";
+import { ActivityIndicator, TouchableOpacity } from "react-native";
 import { ChatPanel } from "@/src/features/liveboard/components/ChatPanel";
 import { LineupPanel } from "@/src/features/liveboard/components/LineupPanel";
 import { LiveSection } from "@/src/features/liveboard/components/LiveSection";
 import { WeatherPanel } from "@/src/features/liveboard/components/WeatherPanel";
 import { styles } from "@/src/features/liveboard/styles/matchId.styles";
+import { useMatchDetail } from "@/src/features/match/hooks/useMatchDetail";
+import { theme } from "@/src/styles/theme";
 
-/**
- * 라이브보드 탭 키 집합
- * Why: 허용 가능한 탭 상태를 유니온으로 제한해 잘못된 문자열 유입을
- *      컴파일 단계에서 차단하기 위함.
- */
+// ... (TabKey type and TABS constant remain same)
 type TabKey = "chat" | "text" | "lineup" | "weather";
 
 const TABS: { key: TabKey; label: string }[] = [
@@ -28,18 +23,9 @@ const TABS: { key: TabKey; label: string }[] = [
 ];
 
 /**
- * PlaceholderPanelProps
- * Why: 미구현 탭에서 노출할 안내 문구 계약을 명시해 재사용성과 타입 안정성을 유지하기 위함.
+ * PlaceholderPanel
  */
-interface PlaceholderPanelProps {
-  label: string;
-}
-
-/**
- * 준비 중인 탭의 임시 콘텐츠 패널
- * Why: 미구현 상태에서도 사용자에게 일관된 피드백을 제공해 빈 화면 인지를 방지하기 위함.
- */
-function PlaceholderPanel({ label }: PlaceholderPanelProps) {
+function PlaceholderPanel({ label }: { label: string }) {
   return (
     <Box flex={1} align="center" justify="center" gap="sm">
       <Typography variant="body1" color="text.secondary" weight="medium">
@@ -53,25 +39,39 @@ function PlaceholderPanel({ label }: PlaceholderPanelProps) {
  * 라이브보드 상세 화면
  *
  * Why: 매치 카드 클릭 시 이동하는 실시간 경기 중계 화면.
- * 탭 상태 관리와 라우트 파라미터 접근만 담당. 각 탭 콘텐츠는 하위 모듈에 위임.
+ * useMatchDetail을 단일 진입점(SSOT)으로 삼아 모든 하위 컴포넌트에 일관된 데이터를 배분함.
  */
 export default function LiveboardDetailScreen() {
-  const params = useLocalSearchParams<{
-    matchId: string;
-    awayTeamName?: string;
-    homeTeamName?: string;
-    stadium?: string;
-    matchTime?: string;
-  }>();
-
+  const { matchId } = useLocalSearchParams<{ matchId: string }>();
+  const idNum = parseInt(matchId || "0");
+  
+  const { data: match, isLoading, isError } = useMatchDetail(idNum);
   const [activeTab, setActiveTab] = useState<TabKey>("chat");
+
+  if (isLoading) {
+    return (
+      <SafeLayout style={styles.container} edges={["left", "right"]}>
+        <Box flex={1} justify="center" align="center">
+          <ActivityIndicator size="large" color={theme.colors.brand.mint} />
+          <Typography mt="md" color="text.secondary">경기 정보를 불러오는 중...</Typography>
+        </Box>
+      </SafeLayout>
+    );
+  }
+
+  if (isError || !match) {
+    return (
+      <SafeLayout style={styles.container} edges={["left", "right"]}>
+        <Box flex={1} justify="center" align="center">
+          <Typography color="error">경기 정보를 불러오지 못했습니다.</Typography>
+        </Box>
+      </SafeLayout>
+    );
+  }
 
   return (
     <SafeLayout style={styles.container} edges={["left", "right"]}>
-      <LiveSection
-        awayTeamName={params.awayTeamName ?? "어웨이"}
-        homeTeamName={params.homeTeamName ?? "홈"}
-      />
+      <LiveSection match={match} />
 
       <Box style={styles.tabBar} flexDir="row" justify="space-between">
         {TABS.map((tab) => {
@@ -96,41 +96,17 @@ export default function LiveboardDetailScreen() {
       </Box>
 
       <Box flex={1}>
-        <Box
-          style={[
-            styles.tabPanel,
-            activeTab === "chat" ? styles.visible : styles.hidden,
-          ]}
-        >
-          <ChatPanel matchId={params.matchId} />
+        <Box style={[styles.tabPanel, activeTab === "chat" ? styles.visible : styles.hidden]}>
+          <ChatPanel matchId={matchId || ""} />
         </Box>
-        <Box
-          style={[
-            styles.tabPanel,
-            activeTab === "text" ? styles.visible : styles.hidden,
-          ]}
-        >
+        <Box style={[styles.tabPanel, activeTab === "text" ? styles.visible : styles.hidden]}>
           <PlaceholderPanel label="텍스트 중계" />
         </Box>
-        <Box
-          style={[
-            styles.tabPanel,
-            activeTab === "lineup" ? styles.visible : styles.hidden,
-          ]}
-        >
-          <LineupPanel
-            matchId={params.matchId}
-            homeTeamName={params.homeTeamName ?? "홈"}
-            awayTeamName={params.awayTeamName ?? "어웨이"}
-          />
+        <Box style={[styles.tabPanel, activeTab === "lineup" ? styles.visible : styles.hidden]}>
+          <LineupPanel match={match} />
         </Box>
-        <Box
-          style={[
-            styles.tabPanel,
-            activeTab === "weather" ? styles.visible : styles.hidden,
-          ]}
-        >
-          <WeatherPanel matchId={params.matchId} />
+        <Box style={[styles.tabPanel, activeTab === "weather" ? styles.visible : styles.hidden]}>
+          <WeatherPanel matchId={matchId || ""} />
         </Box>
       </Box>
     </SafeLayout>
