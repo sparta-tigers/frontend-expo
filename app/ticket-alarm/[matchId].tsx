@@ -29,9 +29,9 @@ export default function TicketAlarmFormScreen() {
    * Why: 작성된 설정을 백엔드에 전송하여 예매 알림을 등록함.
    */
   const handleSave = async () => {
-    if (matchIdNumber == null || myTeamId == null) {
-      Logger.error("Missing matchId or teamId", { matchIdNumber, myTeamId });
-      Alert.alert("오류", "필수 정보가 누락되었습니다.");
+    if (!matchId || Number.isNaN(matchIdNumber) || myTeamId == null) {
+      Logger.error("Missing or invalid matchId or teamId", { matchId, matchIdNumber, myTeamId });
+      Alert.alert("오류", "필수 정보가 누락되었거나 유효하지 않습니다.");
       return;
     }
 

@@ -318,7 +318,10 @@ export default function ScheduleScreen() {
                     if (isFuture) {
                       // 🔔 미래 경기: 예매 알림 페이지로 이동
                       if (cell.matchId) {
-                        router.push(`/ticket-alarm/${cell.matchId}${from ? `?from=${from}` : ""}`);
+                        router.push({
+                          pathname: "/ticket-alarm/[matchId]",
+                          params: { matchId: cell.matchId, ...(from ? { from } : {}) },
+                        });
                       }
                     } else {
                       // 📝 과거 경기: 직관 기록 페이지로 이동
