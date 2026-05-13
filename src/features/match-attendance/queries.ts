@@ -47,7 +47,10 @@ export const useMyAttendanceByMatchId = (matchId: number) => {
     queryFn: async () => {
       try {
         const response = await attendanceGetMyByMatchIdAPI(matchId);
-        return response.data;
+        // 🚨 [Phase 40] 앙드레 카파시: 백엔드 ApiResponse의 NON_NULL 정책으로 인해 
+        // data가 null인 경우 필드 자체가 유실되어 undefined가 반환될 수 있음.
+        // TanStack Query v5는 undefined 반환을 허용하지 않으므로 명시적 null 처리 필수.
+        return response.data ?? null;
       } catch (error: unknown) {
         // 🚨 [Phase 35] Fail-fast: 404(기록 없음)만 정상 null로 처리하고 나머지는 throw
         if (isAxiosError(error) && error.response?.status === 404) {
