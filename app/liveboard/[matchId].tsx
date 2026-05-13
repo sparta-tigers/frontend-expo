@@ -44,9 +44,26 @@ function PlaceholderPanel({ label }: { label: string }) {
 export default function LiveboardDetailScreen() {
   const { matchId } = useLocalSearchParams<{ matchId: string }>();
   const idNum = parseInt(matchId || "0");
-  
-  const { data: match, isLoading, isError } = useMatchDetail(idNum);
+  const isValidMatchId = !isNaN(idNum) && idNum > 0;
+
+  const { data: match, isLoading, isError } = useMatchDetail(isValidMatchId ? idNum : 0);
   const [activeTab, setActiveTab] = useState<TabKey>("chat");
+
+  // 🚨 Step 1: matchId 유효성 검사 (Fail-fast)
+  if (!isValidMatchId) {
+    return (
+      <SafeLayout style={styles.container} edges={["left", "right"]}>
+        <Box flex={1} justify="center" align="center" px="xl">
+          <Typography color="error" variant="h3" weight="bold" center>
+            잘못된 접근입니다.
+          </Typography>
+          <Typography color="text.secondary" mt="sm" center>
+            유효하지 않은 경기 식별자(ID)입니다.
+          </Typography>
+        </Box>
+      </SafeLayout>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -96,18 +113,27 @@ export default function LiveboardDetailScreen() {
       </Box>
 
       <Box flex={1}>
+        {/* 🚨 앙드레 카파시: ChatPanel은 WebSocket 연결 유지를 위해 항상 마운트 상태를 유지함 (display: none 제어) */}
         <Box style={[styles.tabPanel, activeTab === "chat" ? styles.visible : styles.hidden]}>
           <ChatPanel matchId={matchId || ""} />
         </Box>
-        <Box style={[styles.tabPanel, activeTab === "text" ? styles.visible : styles.hidden]}>
-          <PlaceholderPanel label="텍스트 중계" />
-        </Box>
-        <Box style={[styles.tabPanel, activeTab === "lineup" ? styles.visible : styles.hidden]}>
-          <LineupPanel match={match} />
-        </Box>
-        <Box style={[styles.tabPanel, activeTab === "weather" ? styles.visible : styles.hidden]}>
-          <WeatherPanel matchId={matchId || ""} />
-        </Box>
+
+        {/* 🚨 나머지 탭들은 불필요한 API 호출 및 렌더링 방지를 위해 조건부 렌더링(&&) 적용 */}
+        {activeTab === "text" && (
+          <Box style={[styles.tabPanel, styles.visible]}>
+            <PlaceholderPanel label="텍스트 중계" />
+          </Box>
+        )}
+        {activeTab === "lineup" && (
+          <Box style={[styles.tabPanel, styles.visible]}>
+            <LineupPanel match={match} />
+          </Box>
+        )}
+        {activeTab === "weather" && (
+          <Box style={[styles.tabPanel, styles.visible]}>
+            <WeatherPanel matchId={matchId || ""} />
+          </Box>
+        )}
       </Box>
     </SafeLayout>
   );

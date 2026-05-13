@@ -42,6 +42,12 @@ export interface MatchSummary {
   location: "H" | "A"; // 내 팀 기준 홈/어웨이
 }
 
+export interface PlayerPosition {
+  name: string;
+  x: number;
+  y: number;
+}
+
 /**
  * 🔬 MatchDetail: 상세 화면(라이브보드)에 필요한 전체 경기 정보
  */
@@ -49,6 +55,22 @@ export interface MatchDetail extends MatchSummary {
   liveBoardStatus: LiveBoardStatus;
   nowCast: NowCastDto | null;
   foreCast: ForeCastDto[] | null;
+
+  // 🚨 실시간 경기 상태 필드 추가 (Zero Magic: 목데이터 대체용)
+  inning?: number;
+  inningHalf?: "초" | "말";
+  homeScore?: number;
+  awayScore?: number;
+  ballCount?: number;
+  strikeCount?: number;
+  outCount?: number;
+  bases?: { first: boolean; second: boolean; third: boolean };
+  pitcherName?: string;
+  pitchCount?: number;
+  lastEvent?: string;
+  defenders?: PlayerPosition[];
+  batter?: PlayerPosition;
+  runner?: PlayerPosition;
 }
 
 
