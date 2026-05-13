@@ -16,7 +16,7 @@ import { ScheduleSkeleton } from "@/src/features/home/components/ScheduleSkeleto
 import { RankingSkeleton } from "@/src/features/home/components/RankingSkeleton";
 import { getTodayString, getCurrentYear, getCurrentMonth, getCurrentDay } from "@/src/utils/date";
 import { useDashboardSummary } from "@/src/features/home/hooks/useDashboardSummary";
-import { useInfiniteMyAttendances } from "@/src/features/match-attendance/queries"; // 🚨 변경
+import { useInfiniteMyAttendances } from "@/src/features/match-attendance/queries";
 
 /**
  * 홈 화면 (`main_0`)
@@ -45,8 +45,8 @@ export default function HomeScreen() {
     myTeamId as TeamCode | null
   );
 
-  // 🚨 [Phase 7] 순위 데이터 실제 연동
-  const { data: rankingRes, isLoading: isRankingLoading } = useMatchRanking({
+  // 🚨 [Phase 7] 순위 데이터 실제 연동 (Mapped UI Model)
+  const { data: ranking = [], isLoading: isRankingLoading } = useMatchRanking({
     viewMode: "day",
     date: todayString,
     leagueType: "REGULAR",
@@ -59,22 +59,18 @@ export default function HomeScreen() {
   // 🚨 [Phase 28] 직관 기록 데이터 연동 (무한 스크롤 첫 페이지 활용)
   const { data: infiniteAttendances } = useInfiniteMyAttendances(100);
   const attendanceMatchIds = useMemo(() => {
-    // 캘린더 하이라이트를 위해 첫 100건만 활용 (성능 최적화)
     const firstPageContent = infiniteAttendances?.pages[0]?.data?.content ?? [];
     return new Set(firstPageContent.map((a) => a.matchId));
   }, [infiniteAttendances]);
 
-  // 🎯 [Phase 28] 총 직관 횟수는 서버에서 제공하는 totalElements 활용
-  // TODO: 추후 BE에서 전용 카운트 API 제공 시 해당 API로 전환하여 오버헤드 최적화 필요
   const totalAttendanceCount = infiniteAttendances?.pages[0]?.data?.totalElements ?? 0;
 
   // 🚨 앙드레 카파시: 데이터 슬라이싱 최적화 (Top 5 + My Team)
   const displayRankings = useMemo(() => {
-    if (!rankingRes?.data) return [];
+    if (!ranking || ranking.length === 0) return [];
     
-    const allRankings = rankingRes.data;
-    const top5 = allRankings.slice(0, 5);
-    const myTeamRank = allRankings.find(r => r.teamCode === myTeamId);
+    const top5 = ranking.slice(0, 5);
+    const myTeamRank = ranking.find(r => r.teamCode === myTeamId);
     
     // 내 팀이 상위 5위 안에 없으면 추가
     if (myTeamRank && !top5.find(r => r.teamCode === myTeamId)) {
@@ -82,9 +78,9 @@ export default function HomeScreen() {
     }
     
     return top5;
-  }, [rankingRes?.data, myTeamId]);
+  }, [ranking, myTeamId]);
 
-  const myTeam = findTeamMeta(myTeamId);
+  const myTeam = useMemo(() => findTeamMeta(myTeamId), [myTeamId]);
 
   const handlePressChangeTeam = () => {
     router.push("/change-team");
@@ -101,8 +97,8 @@ export default function HomeScreen() {
           userNickname={dashboardData?.nickname ?? mockData.userNickname}
           enrollmentDays={dashboardData?.enrollmentDays ?? 0}
           remainingMatches={dashboardData?.remainingMatches ?? 0}
-          attendanceCount={totalAttendanceCount} // 🚨 수정: 전체 카운트 연동
-          favoriteTeamCode={myTeamId ?? dashboardData?.favoriteTeamCode}
+          attendanceCount={totalAttendanceCount}
+          teamMeta={myTeam}
           onPressChangeTeam={handlePressChangeTeam}
         />
 
@@ -115,7 +111,7 @@ export default function HomeScreen() {
           />
         )}
 
-        <LineupSection lineup={dashboardData?.todayLineup ?? []} teamName={myTeam?.name || "KBO"} />
+        <LineupSection lineup={dashboardData?.todayLineup ?? []} teamMeta={myTeam} />
 
         {isScheduleLoading ? (
           <ScheduleSkeleton />
@@ -127,7 +123,7 @@ export default function HomeScreen() {
             year={currentYear} 
             month={currentMonth}
             today={today}
-            attendanceMatchIds={attendanceMatchIds} // 🚨 추가
+            attendanceMatchIds={attendanceMatchIds}
           />
         )}
       </ScrollView>

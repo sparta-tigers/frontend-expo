@@ -3,7 +3,7 @@ import { Box } from "@/components/ui/box";
 import { Typography } from "@/components/ui/typography";
 import { LineupSection } from "@/src/features/home/components/LineupSection";
 import { theme } from "@/src/styles/theme";
-import { getTeamBgStyle } from "@/src/utils/team";
+import { findTeamMeta, getTeamBgStyle } from "@/src/utils/team";
 import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import { ActivityIndicator, ScrollView, TouchableOpacity } from "react-native";
@@ -145,7 +145,7 @@ export function LineupPanel({ match }: { match: MatchDetail }) {
         </TouchableOpacity>
       </Box>
 
-      <LineupSection lineup={currentLineup} teamName={currentTeamName} />
+      <LineupSection lineup={currentLineup} teamMeta={findTeamMeta(currentTeamName)} />
     </ScrollView>
   );
 }
