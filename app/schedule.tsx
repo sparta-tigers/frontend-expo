@@ -1,4 +1,7 @@
 import { Box, Typography } from "@/components/ui";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useTicketAlarms } from "@/src/features/ticket-alarm/hooks/useTicketAlarm";
+import { AlarmSettingSheet } from "@/src/features/ticket-alarm/components/AlarmSettingSheet";
 import { useAuth } from "@/context/AuthContext";
 import { ScheduleSkeleton } from "@/src/features/home/components/ScheduleSkeleton";
 import { useMatchSchedule } from "@/src/features/match/hooks/useMatchSchedule";
@@ -92,8 +95,8 @@ BrandingHeader.displayName = "BrandingHeader";
  * placeholderData와 isFetching 상태를 결합하여 부드러운 업데이트 경험 제공.
  */
 export default function ScheduleScreen() {
-  const { myTeam: myTeamId } = useAuth();
-  const activeTeamCode = (myTeamId as TeamCode) || "KIA";
+  const { myTeam, myTeamId } = useAuth();
+  const activeTeamCode = (myTeam as TeamCode) || "KIA";
 
   // 1. [SSOT] URL 파라미터 기반 상태 관리
   const params = useLocalSearchParams<{
@@ -137,6 +140,20 @@ export default function ScheduleScreen() {
   const attendanceMatchIds = useMemo(() => {
     return new Set(attendanceMap.keys());
   }, [attendanceMap]);
+
+  // 3. 예매 알림 데이터 로드 및 맵 생성
+  const { data: ticketAlarmsRes } = useTicketAlarms(1, 50);
+  const ticketAlarmMap = useMemo(() => {
+    const map = new Map<number, number>();
+    ticketAlarmsRes?.content.forEach((a) => map.set(a.matchId, a.alarmId));
+    return map;
+  }, [ticketAlarmsRes]);
+
+  const [selectedMatchForAlarm, setSelectedMatchForAlarm] = useState<{
+    id: number;
+    title: string;
+  } | null>(null);
+  const alarmSheetRef = React.useRef<BottomSheetModal>(null);
 
   const days = useCalendarGrid(year, month, schedule || [], today, undefined, attendanceMatchIds);
 
@@ -313,14 +330,24 @@ export default function ScheduleScreen() {
                     cell.isToday && { backgroundColor: theme.colors.brand.mintAlpha10 }
                   ]}
                   activeOpacity={0.7}
-                  disabled={isEmpty || !cell.hasGame || isFuture}
+                  disabled={isEmpty || !cell.hasGame}
                   onPress={() => {
-                    if (attendanceId) {
-                      // 🚨 이미 기록이 있는 경우 상세 페이지로 이동
-                      router.push(`/attendance/detail/${attendanceId}`);
-                    } else if (cell.matchId) {
-                      // 기록이 없는 경우에만 등록 폼으로 이동
-                      router.push(`/attendance/${cell.matchId}`);
+                    if (isFuture) {
+                      // 🔔 미래 경기: 예매 알림 설정
+                      if (cell.matchId) {
+                        setSelectedMatchForAlarm({
+                          id: cell.matchId,
+                          title: `${cell.location} 경기 (${cell.timeText})`,
+                        });
+                        alarmSheetRef.current?.present();
+                      }
+                    } else {
+                      // 📝 과거 경기: 직관 기록
+                      if (attendanceId) {
+                        router.push(`/attendance/detail/${attendanceId}`);
+                      } else if (cell.matchId) {
+                        router.push(`/attendance/${cell.matchId}`);
+                      }
                     }
                   }}
                 >
@@ -343,13 +370,23 @@ export default function ScheduleScreen() {
                           </Typography>
                         </Box>
                         {cell.location && (
-                          <Typography
-                            variant="caption"
-                            weight="bold"
-                            color="brand.mint"
-                          >
-                            {cell.location}
-                          </Typography>
+                          <Box flexDir="row" align="center">
+                            {isFuture && ticketAlarmMap.has(cell.matchId!) && (
+                              <MaterialIcons 
+                                name="notifications-active" 
+                                size={12} 
+                                color={theme.colors.brand.mint} 
+                                style={styles.alarmIcon}
+                              />
+                            )}
+                            <Typography
+                              variant="caption"
+                              weight="bold"
+                              color="brand.mint"
+                            >
+                              {cell.location}
+                            </Typography>
+                          </Box>
                         )}
                       </Box>
                       {cell.hasGame && (
@@ -416,6 +453,14 @@ export default function ScheduleScreen() {
           </TouchableOpacity>
         )}
       </Box>
+
+      {/* Ticket Alarm Setting Sheet */}
+      <AlarmSettingSheet
+        modalRef={alarmSheetRef}
+        matchId={selectedMatchForAlarm?.id || null}
+        teamId={myTeamId}
+        matchTitle={selectedMatchForAlarm?.title || ""}
+      />
     </Box>
   );
 }
@@ -505,5 +550,8 @@ const styles = StyleSheet.create({
     left: "15%",
     opacity: 0.8,
     zIndex: 1,
+  },
+  alarmIcon: {
+    marginRight: 2,
   },
 });
