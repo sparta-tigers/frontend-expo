@@ -1,18 +1,18 @@
 import { Box } from "@/components/ui/box";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { Typography } from "@/components/ui/typography";
-import { useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
-import { ActivityIndicator, TouchableOpacity } from "react-native";
 import { ChatPanel } from "@/src/features/liveboard/components/ChatPanel";
 import { LineupPanel } from "@/src/features/liveboard/components/LineupPanel";
 import { LiveSection } from "@/src/features/liveboard/components/LiveSection";
 import { WeatherPanel } from "@/src/features/liveboard/components/WeatherPanel";
 import { styles } from "@/src/features/liveboard/styles/matchId.styles";
 import { useMatchDetail } from "@/src/features/match/hooks/useMatchDetail";
-import { theme } from "@/src/styles/theme";
 import { useAuth } from "@/src/hooks/useAuth";
+import { theme } from "@/src/styles/theme";
 import { TeamCode } from "@/src/utils/team";
+import { useLocalSearchParams } from "expo-router";
+import React, { useState } from "react";
+import { ActivityIndicator, TouchableOpacity } from "react-native";
 
 // ... (TabKey type and TABS constant remain same)
 type TabKey = "chat" | "text" | "lineup" | "weather";
@@ -26,6 +26,9 @@ const TABS: { key: TabKey; label: string }[] = [
 
 /**
  * PlaceholderPanel
+ *
+ * Why: 아직 개발 중이거나 데이터가 없는 탭의 화면을 일관된 디자인으로 표시하기 위한 임시 패널.
+ * 탭 전환 시 사용자에게 빈 화면 대신 "준비 중" 상태를 명확히 인지시킴.
  */
 function PlaceholderPanel({ label }: { label: string }) {
   return (
@@ -48,13 +51,14 @@ export default function LiveboardDetailScreen() {
   const myTeamCode = (myTeam as TeamCode) ?? null;
 
   const { matchId } = useLocalSearchParams<{ matchId: string }>();
-  const idNum = parseInt(matchId || "0");
-  const isValidMatchId = !isNaN(idNum) && idNum > 0;
+  const isValidMatchId = typeof matchId === "string" && /^\d+$/.test(matchId);
+  const idNum = isValidMatchId ? parseInt(matchId) : 0;
 
-  const { data: match, isLoading, isError } = useMatchDetail(
-    isValidMatchId ? idNum : 0,
-    myTeamCode
-  );
+  const {
+    data: match,
+    isLoading,
+    isError,
+  } = useMatchDetail(isValidMatchId ? idNum : 0, myTeamCode);
   const [activeTab, setActiveTab] = useState<TabKey>("chat");
 
   // 🚨 Step 1: matchId 유효성 검사 (Fail-fast)
@@ -78,7 +82,9 @@ export default function LiveboardDetailScreen() {
       <SafeLayout style={styles.container} edges={["left", "right"]}>
         <Box flex={1} justify="center" align="center">
           <ActivityIndicator size="large" color={theme.colors.brand.mint} />
-          <Typography mt="md" color="text.secondary">경기 정보를 불러오는 중...</Typography>
+          <Typography mt="md" color="text.secondary">
+            경기 정보를 불러오는 중...
+          </Typography>
         </Box>
       </SafeLayout>
     );
@@ -88,7 +94,9 @@ export default function LiveboardDetailScreen() {
     return (
       <SafeLayout style={styles.container} edges={["left", "right"]}>
         <Box flex={1} justify="center" align="center">
-          <Typography color="error">경기 정보를 불러오지 못했습니다.</Typography>
+          <Typography color="error">
+            경기 정보를 불러오지 못했습니다.
+          </Typography>
         </Box>
       </SafeLayout>
     );
@@ -122,7 +130,12 @@ export default function LiveboardDetailScreen() {
 
       <Box flex={1}>
         {/* 🚨 앙드레 카파시: ChatPanel은 WebSocket 연결 유지를 위해 항상 마운트 상태를 유지함 (display: none 제어) */}
-        <Box style={[styles.tabPanel, activeTab === "chat" ? styles.visible : styles.hidden]}>
+        <Box
+          style={[
+            styles.tabPanel,
+            activeTab === "chat" ? styles.visible : styles.hidden,
+          ]}
+        >
           <ChatPanel matchId={matchId || ""} />
         </Box>
 
