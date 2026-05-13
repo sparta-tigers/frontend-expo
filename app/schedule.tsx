@@ -12,7 +12,8 @@ import {
   getCurrentDay,
   getRelativeMonth,
 } from "@/src/utils/date";
-import { TEAM_DATA, TeamCode, getTeamColorPath } from "@/src/utils/team";
+import { findTeamMeta, TeamCode } from "@/src/utils/team";
+import { ThemeColorPath } from "@/src/shared/types/theme";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import React, { useState, useMemo } from "react";
@@ -35,7 +36,7 @@ const LOCAL_LAYOUT = {
 // ========================================================
 const BrandingHeader: React.FC<{ teamCode: TeamCode }> = ({ teamCode }) => {
   const insets = useSafeAreaInsets();
-  const team = TEAM_DATA[teamCode] || TEAM_DATA["KIA"];
+  const team = findTeamMeta(teamCode);
 
   return (
     <Box
@@ -66,7 +67,7 @@ const BrandingHeader: React.FC<{ teamCode: TeamCode }> = ({ teamCode }) => {
           <Typography
             variant="h2"
             weight="bold"
-            color={getTeamColorPath(teamCode)}
+            color={`team.${team.colorToken}` as ThemeColorPath}
           >
             {team.subName.toUpperCase()}
           </Typography>
@@ -191,13 +192,13 @@ export default function ScheduleScreen() {
             style={[
               styles.leagueSelector,
               {
-                borderColor: theme.colors.team[activeTeamCode.toLowerCase() as keyof typeof theme.colors.team] || theme.colors.brand.mint,
+                borderColor: findTeamMeta(activeTeamCode).color,
               },
             ]}
           >
             <Typography
               variant="caption"
-              color={getTeamColorPath(activeTeamCode)}
+              color={`team.${findTeamMeta(activeTeamCode).colorToken}` as ThemeColorPath}
               weight="bold"
             >
               {leagueLabelMap[leagueType]} ∨
@@ -350,7 +351,7 @@ export default function ScheduleScreen() {
                           <Box
                             bg={
                               cell.opponentCode
-                                ? getTeamColorPath(cell.opponentCode)
+                                ? `team.${findTeamMeta(cell.opponentCode).colorToken}` as ThemeColorPath
                                 : "team.neutralLight"
                             }
                             rounded="full"
@@ -383,7 +384,7 @@ export default function ScheduleScreen() {
           <TouchableOpacity
             style={[
               styles.todayBtn,
-              { borderColor: theme.colors.team[activeTeamCode.toLowerCase() as keyof typeof theme.colors.team] || theme.colors.brand.mint },
+              { borderColor: findTeamMeta(activeTeamCode).color },
             ]}
             onPress={() =>
               router.setParams({
@@ -401,7 +402,7 @@ export default function ScheduleScreen() {
             <Typography
               variant="caption"
               weight="bold"
-              color={getTeamColorPath(activeTeamCode)}
+              color={`team.${findTeamMeta(activeTeamCode).colorToken}` as ThemeColorPath}
               ml="xs"
             >
               오늘로 돌아가기
