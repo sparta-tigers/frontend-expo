@@ -3,7 +3,6 @@ import { LineupSection } from "@/src/features/home/components/LineupSection";
 import { MyTeamSection } from "@/src/features/home/components/MyTeamSection";
 import { RankingSummarySection } from "@/src/features/home/components/RankingSummarySection";
 import { ScheduleSection } from "@/src/features/home/components/ScheduleSection";
-import { useFakeHomeData } from "@/src/features/home/mocks";
 import { commonStyles as styles } from "@/src/features/home/components/common.styles";
 import React, { useMemo } from "react";
 import { ScrollView } from "react-native";
@@ -27,7 +26,6 @@ import { useTicketAlarmCount } from "@/src/features/ticket-alarm/hooks/useTicket
  */
 export default function HomeScreen() {
   const { myTeam: myTeamId } = useAuth();
-  const mockData = useFakeHomeData(myTeamId);
 
   // 🚨 앙드레 카파시: 결정론적 기준 시점 설정
   const todayString = useMemo(() => getTodayString(), []);
@@ -94,14 +92,14 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeLayout style={styles.safeLayout} edges={["top", "left", "right"]}>
+    <SafeLayout style={styles.safeLayout} edges = {["top", "left", "right"]}>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         <MyTeamSection
-          userNickname={dashboardData?.nickname ?? mockData.userNickname}
+          userNickname={dashboardData?.nickname ?? "팬"}
           enrollmentDays={dashboardData?.enrollmentDays ?? 0}
           remainingMatches={dashboardData?.remainingMatches ?? 0}
           attendanceCount={annualAttendanceCount ?? 0}
