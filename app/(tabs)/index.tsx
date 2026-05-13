@@ -16,7 +16,7 @@ import { ScheduleSkeleton } from "@/src/features/home/components/ScheduleSkeleto
 import { RankingSkeleton } from "@/src/features/home/components/RankingSkeleton";
 import { getTodayString, getCurrentYear, getCurrentMonth, getCurrentDay } from "@/src/utils/date";
 import { useDashboardSummary } from "@/src/features/home/hooks/useDashboardSummary";
-import { useInfiniteMyAttendances } from "@/src/features/match-attendance/queries";
+import { useInfiniteMyAttendances, useAttendanceCount } from "@/src/features/match-attendance/queries";
 import { useTicketAlarmCount } from "@/src/features/ticket-alarm/hooks/useTicketAlarm";
 
 /**
@@ -59,14 +59,15 @@ export default function HomeScreen() {
   const { data: dashboardRes } = useDashboardSummary();
   const dashboardData = dashboardRes?.data;
 
-  // 🚨 [Phase 28] 직관 기록 데이터 연동 (무한 스크롤 첫 페이지 활용)
+  // 🚨 [Phase 28] 직관 기록 데이터 연동 (무한 스크롤 첫 페이지 활용 - 캘린더용)
   const { data: infiniteAttendances } = useInfiniteMyAttendances(100);
   const attendanceMatchIds = useMemo(() => {
     const firstPageContent = infiniteAttendances?.pages[0]?.data?.content ?? [];
     return new Set(firstPageContent.map((a) => a.matchId));
   }, [infiniteAttendances]);
 
-  const totalAttendanceCount = infiniteAttendances?.pages[0]?.data?.totalElements ?? 0;
+  // 🚨 [New] 올해 직관 횟수 전용 API 연동
+  const { data: annualAttendanceCount } = useAttendanceCount(currentYear);
 
   // 🚨 예매 알람 개수 실제 연동
   const { data: ticketAlarmCount } = useTicketAlarmCount();
@@ -103,7 +104,7 @@ export default function HomeScreen() {
           userNickname={dashboardData?.nickname ?? mockData.userNickname}
           enrollmentDays={dashboardData?.enrollmentDays ?? 0}
           remainingMatches={dashboardData?.remainingMatches ?? 0}
-          attendanceCount={totalAttendanceCount}
+          attendanceCount={annualAttendanceCount ?? 0}
           ticketAlarmCount={ticketAlarmCount ?? 0}
           teamMeta={myTeam}
           onPressChangeTeam={handlePressChangeTeam}
