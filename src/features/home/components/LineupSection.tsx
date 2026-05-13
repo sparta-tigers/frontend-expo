@@ -40,7 +40,7 @@ export const LineupSection = React.memo(function LineupSection({
   teamName,
 }: LineupSectionProps) {
   const myTeam = findTeamMeta(teamName ?? "");
-  const teamColorPath = `team.${myTeam.colorToken}` as ThemeColorPath;
+  const teamColorPath = `team.${myTeam?.colorToken || "fallback"}` as ThemeColorPath;
 
   // 🚨 Empty State: 라인업 데이터가 없는 경우 (경기 전)
   if (!lineup || lineup.length === 0) {

@@ -62,14 +62,14 @@ const BrandingHeader: React.FC<{ teamCode: TeamCode }> = ({ teamCode }) => {
 
         <Box flexDir="row" align="center">
           <Typography variant="h2" weight="bold" color="text.primary" mr="xs">
-            {team.shortName.toUpperCase()}
+            {team?.shortName?.toUpperCase() || "KBO"}
           </Typography>
           <Typography
             variant="h2"
             weight="bold"
-            color={`team.${team.colorToken}` as ThemeColorPath}
+            color={`team.${team?.colorToken || "fallback"}`}
           >
-            {team.subName.toUpperCase()}
+            {team?.subName?.toUpperCase() || "TEAM"}
           </Typography>
         </Box>
 
@@ -78,7 +78,7 @@ const BrandingHeader: React.FC<{ teamCode: TeamCode }> = ({ teamCode }) => {
 
       <Box align="center" pb="md">
         <Typography variant="h1" style={styles.mascotEmoji}>
-          {team.mascotEmoji}
+          {team?.mascotEmoji || "⚾"}
         </Typography>
       </Box>
     </Box>
@@ -192,13 +192,13 @@ export default function ScheduleScreen() {
             style={[
               styles.leagueSelector,
               {
-                borderColor: findTeamMeta(activeTeamCode).color,
+                borderColor: findTeamMeta(activeTeamCode)?.color || theme.colors.brand.mint,
               },
             ]}
           >
             <Typography
               variant="caption"
-              color={`team.${findTeamMeta(activeTeamCode).colorToken}` as ThemeColorPath}
+              color={`team.${findTeamMeta(activeTeamCode)?.colorToken || "fallback"}` as ThemeColorPath}
               weight="bold"
             >
               {leagueLabelMap[leagueType]} ∨
@@ -351,7 +351,7 @@ export default function ScheduleScreen() {
                           <Box
                             bg={
                               cell.opponentCode
-                                ? `team.${findTeamMeta(cell.opponentCode).colorToken}` as ThemeColorPath
+                                ? `team.${findTeamMeta(cell.opponentCode)?.colorToken || "fallback"}` as ThemeColorPath
                                 : "team.neutralLight"
                             }
                             rounded="full"
@@ -384,7 +384,7 @@ export default function ScheduleScreen() {
           <TouchableOpacity
             style={[
               styles.todayBtn,
-              { borderColor: findTeamMeta(activeTeamCode).color },
+              { borderColor: findTeamMeta(activeTeamCode)?.color || theme.colors.brand.mint },
             ]}
             onPress={() =>
               router.setParams({
@@ -402,7 +402,7 @@ export default function ScheduleScreen() {
             <Typography
               variant="caption"
               weight="bold"
-              color={`team.${findTeamMeta(activeTeamCode).colorToken}` as ThemeColorPath}
+              color={`team.${findTeamMeta(activeTeamCode)?.colorToken || "fallback"}` as ThemeColorPath}
               ml="xs"
             >
               오늘로 돌아가기
