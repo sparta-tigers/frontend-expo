@@ -6,7 +6,8 @@ import {
   attendanceUpdateAPI,
   attendanceDeleteAPI,
   attendanceGetDetailAPI,
-  attendanceGetMyByMatchIdAPI
+  attendanceGetMyByMatchIdAPI,
+  attendanceGetCountAPI
 } from "./api";
 
 /**
@@ -24,6 +25,7 @@ export const attendanceKeys = {
   details: () => [...attendanceKeys.all, "detail"] as const,
   detail: (id: number) => [...attendanceKeys.details(), id] as const,
   byMatch: (matchId: number) => [...attendanceKeys.all, "my", "match", matchId] as const,
+  count: (year?: number) => [...attendanceKeys.all, "count", { year }] as const,
 };
 
 /**
@@ -90,6 +92,17 @@ export const useAttendance = (id: number) => {
     queryFn: () => attendanceGetDetailAPI(id),
     select: (response) => response.data,
     enabled: !!id && !isNaN(id), // 🚨 NaN 체크 추가 (Fail-fast)
+  });
+};
+
+/**
+ * 🔢 연간 직관 횟수 조회 쿼리
+ */
+export const useAttendanceCount = (year?: number) => {
+  return useQuery({
+    queryKey: attendanceKeys.count(year),
+    queryFn: () => attendanceGetCountAPI(year),
+    select: (response) => response.data ?? 0,
   });
 };
 

@@ -98,3 +98,14 @@ export async function attendanceOcrAPI(
     transformRequest: (data) => data,
   });
 }
+
+/**
+ * 🔢 연간 직관 횟수 조회 API
+ * 
+ * @param year - 조회할 연도 (선택)
+ */
+export async function attendanceGetCountAPI(
+  year?: number,
+): Promise<ApiResponse<number>> {
+  return apiClient.get("/api/attendances/count", { year });
+}
