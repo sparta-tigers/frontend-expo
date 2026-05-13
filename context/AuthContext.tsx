@@ -41,6 +41,7 @@ interface SimpleToken {
   email?: string; // 이메일 정보 (선택적)
   userId?: number; // 사용자 ID (선택적)
   nickname?: string; // 사용자 닉네임 (선택적)
+  teamId?: number; // 사용자 팀 ID (선택적)
 }
 
 const decodeJwtPayload = (token: string): Record<string, unknown> | null => {
@@ -98,6 +99,7 @@ interface AuthContextType {
   isLoading: boolean;
   isLoggedIn: boolean;
   myTeam: string | null;
+  myTeamId: number | null;
   signin: (credentials: AuthSigninRequest) => Promise<boolean>;
   signup: (userData: AuthSignupRequest) => Promise<boolean>;
   signout: () => Promise<void>;
@@ -149,6 +151,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [user, setUser] = useState<SimpleToken | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [myTeam, setMyTeam] = useState<string | null>(null);
+  const [myTeamId, setMyTeamId] = useState<number | null>(null);
 
   /**
    * 로그인 여부 확인
@@ -197,6 +200,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
               
               if (frontendTeamCode) {
                 setMyTeam(frontendTeamCode);
+                setMyTeamId(teamRes.data.teamId);
                 await AsyncStorage.setItem(getMyTeamKey(tokenPayload.userId), frontendTeamCode);
               }
             } else {
@@ -390,6 +394,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       await clearTokens();
       setUser(null);
       setMyTeam(null);
+      setMyTeamId(null);
     }
   };
 
@@ -422,6 +427,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
             await favoriteTeamUpdateAPI({ teamCode: backendCode });
           } else {
             await favoriteTeamAddAPI({ teamCode: backendCode });
+          }
+          
+          // 🚨 [ID Sync] 다시 조회하여 최신 teamId 확보
+          const teamRes = await favoriteTeamGetAPI();
+          if (teamRes.resultType === "SUCCESS" && teamRes.data) {
+            setMyTeamId(teamRes.data.teamId);
           }
         }
       }
@@ -478,6 +489,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     isLoading,
     isLoggedIn,
     myTeam,
+    myTeamId,
     signin,
     signup,
     signout,
