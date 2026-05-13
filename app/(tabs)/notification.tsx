@@ -1,6 +1,7 @@
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
+import { formatToKoreanDateTime } from "@/src/utils/date";
 import React, { useMemo } from "react";
 import {
     Alert,
@@ -12,24 +13,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTicketAlarms, useTicketAlarmMutation } from "@/src/features/ticket-alarm/hooks/useTicketAlarm";
 import { TicketAlarm } from "@/src/features/ticket-alarm/types";
-
-/**
- * 📅 formatDate: 날짜와 요일을 한국어로 포맷팅합니다 (date-fns 대체)
- */
-const formatDate = (dateStr: string, includeYear = true) => {
-  const date = new Date(dateStr);
-  const days = ["일", "월", "화", "수", "목", "금", "토"];
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const dayOfWeek = days[date.getDay()];
-  const hours = date.getHours().toString().padStart(2, "0");
-  const minutes = date.getMinutes().toString().padStart(2, "0");
-
-  return includeYear 
-    ? `${year}년 ${month}월 ${day}일(${dayOfWeek}) ${hours}:${minutes}`
-    : `${month}월 ${day}일(${dayOfWeek}) ${hours}:${minutes}`;
-};
 
 /**
  * 🔔 NotificationScreen: 사용자가 설정한 모든 티켓 예매 알림을 관리하는 화면입니다.
@@ -48,7 +31,7 @@ export default function NotificationScreen() {
   const handleDeleteAlarm = (alarm: TicketAlarm) => {
     Alert.alert(
       "티켓 알림 삭제",
-      `${alarm.stadiumName} - ${formatDate(alarm.matchTime, false)} 알림을 삭제하시겠습니까?`,
+      `${alarm.stadiumName} - ${formatToKoreanDateTime(alarm.matchTime, false)} 알림을 삭제하시겠습니까?`,
       [
         { text: "취소", style: "cancel" },
         {
@@ -67,48 +50,6 @@ export default function NotificationScreen() {
     );
   };
 
-  const renderAlarmItem = ({ item }: { item: TicketAlarm }) => {
-    // 💡 [Logic] 알림 완료 여부를 현재 시간과 alarmTime 비교를 통해 동적으로 결정 (Zero Magic)
-    const isNotified = new Date(item.alarmTime) < new Date();
-
-    return (
-      <Box bg="card" p="SCREEN" rounded="md" mb="sm" flexDir="row" style={styles.alarmItem}>
-        <Box flex={1}>
-          <Typography variant="body1" weight="semibold" color="text.primary" mb="xs">
-            {item.stadiumName}
-          </Typography>
-          <Typography variant="caption" color="text.secondary" mb="xs">
-            {formatDate(item.matchTime)}
-          </Typography>
-          <Typography variant="body2" color="text.primary" mb="sm">
-            {item.homeTeam} vs {item.awayTeam}
-          </Typography>
-          <Box align="flex-start">
-            <Box 
-              bg={isNotified ? "team.neutralLight" : "brand.mint"} 
-              px="sm" 
-              py="xs" 
-              rounded="sm"
-            >
-              <Typography variant="caption" color="background" weight="bold">
-                {isNotified ? "알림 완료" : `${item.minusBefore}분 전 알림 대기`}
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => handleDeleteAlarm(item)}
-          disabled={isDeleting}
-        >
-          <Typography variant="caption" color="error" weight="bold">
-            삭제
-          </Typography>
-        </TouchableOpacity>
-      </Box>
-    );
-  };
-
   return (
     <SafeLayout style={styles.safeLayout}>
       <Box flex={1} p="SCREEN">
@@ -123,7 +64,13 @@ export default function NotificationScreen() {
 
         <List
           data={alarms}
-          renderItem={renderAlarmItem}
+          renderItem={({ item }) => (
+            <AlarmItem 
+              item={item} 
+              onDelete={handleDeleteAlarm} 
+              isDeleting={isDeleting} 
+            />
+          )}
           keyExtractor={(item) => item.alarmId.toString()}
           contentContainerStyle={styles.listContainer}
           refreshing={isLoading}
@@ -153,6 +100,62 @@ export default function NotificationScreen() {
   );
 }
 
+/**
+ * 🔔 AlarmItem: 개별 예매 알림 아이템 컴포넌트
+ * Why: 독립된 컴포넌트로 분리하여 useMemo 등 Hook을 안전하게 사용하고 리렌더링을 최적화함.
+ */
+const AlarmItem = React.memo(({ 
+  item, 
+  onDelete, 
+  isDeleting 
+}: { 
+  item: TicketAlarm; 
+  onDelete: (alarm: TicketAlarm) => void; 
+  isDeleting: boolean;
+}) => {
+  // 💡 [Logic] 알림 완료 여부를 현재 시간과 alarmTime 비교를 통해 동적으로 결정
+  const isNotified = useMemo(() => new Date(item.alarmTime) < new Date(), [item.alarmTime]);
+
+  return (
+    <Box bg="card" p="SCREEN" rounded="md" mb="sm" flexDir="row" style={styles.alarmItem}>
+      <Box flex={1}>
+        <Typography variant="body1" weight="semibold" color="text.primary" mb="xs">
+          {item.stadiumName}
+        </Typography>
+        <Typography variant="caption" color="text.secondary" mb="xs">
+          {formatToKoreanDateTime(item.matchTime)}
+        </Typography>
+        <Typography variant="body2" color="text.primary" mb="sm">
+          {item.homeTeam} vs {item.awayTeam}
+        </Typography>
+        <Box align="flex-start">
+          <Box 
+            bg={isNotified ? "team.neutralLight" : "brand.mint"} 
+            px="sm" 
+            py="xs" 
+            rounded="sm"
+          >
+            <Typography variant="caption" color="background" weight="bold">
+              {isNotified ? "알림 완료" : `${item.minusBefore}분 전 알림 대기`}
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+      <TouchableOpacity
+        style={styles.deleteButton}
+        onPress={() => onDelete(item)}
+        disabled={isDeleting}
+      >
+        <Typography variant="caption" color="error" weight="bold">
+          삭제
+        </Typography>
+      </TouchableOpacity>
+    </Box>
+  );
+});
+
+AlarmItem.displayName = "AlarmItem";
+
 const styles = StyleSheet.create({
   safeLayout: {
     backgroundColor: theme.colors.background,
@@ -176,11 +179,11 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: "absolute",
-    bottom: theme.spacing.SCREEN + 80, // 하단 탭 바 높이 고려
+    bottom: theme.spacing.SCREEN + theme.layout.tabBar.height,
     right: theme.spacing.SCREEN,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: theme.layout.fab.size,
+    height: theme.layout.fab.size,
+    borderRadius: theme.layout.fab.size / 2,
     backgroundColor: theme.colors.brand.mint,
     justifyContent: "center",
     alignItems: "center",
