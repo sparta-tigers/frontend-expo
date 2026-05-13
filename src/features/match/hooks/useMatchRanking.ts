@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
-import { fetchDailyRanking, fetchYearlyRanking } from "../api";
-import { LeagueType } from "../types";
-import { matchKeys } from "../queries";
+import { useQuery } from '@tanstack/react-query';
+import { fetchDailyRanking, fetchYearlyRanking } from '../api';
+import { LeagueType, RankingUIModel } from '../types';
+import { matchKeys } from '../queries';
+import { MatchMapper } from '../mapper';
 
 /**
  * 팀 순위 데이터 조회를 위한 커스텀 훅
@@ -10,27 +11,29 @@ import { matchKeys } from "../queries";
  * matchKeys 팩토리를 사용하여 캐시 식별자 일관성을 유지함.
  */
 export const useMatchRanking = (params: {
-  viewMode: "year" | "day";
+  viewMode: 'year' | 'day';
   year?: number;
   leagueType?: LeagueType;
   date?: string; // yyyyMMdd
 }) => {
   const { viewMode, year, leagueType, date } = params;
 
-  return useQuery({
-    queryKey: viewMode === "year" 
-      ? matchKeys.ranking.yearly(year || 0, leagueType || "REGULAR")
-      : matchKeys.ranking.daily(date || "", leagueType || "REGULAR"),
+  return useQuery<RankingUIModel[]>({
+    queryKey: viewMode === 'year' 
+      ? matchKeys.ranking.yearly(year || 0, leagueType || 'REGULAR')
+      : matchKeys.ranking.daily(date || '', leagueType || 'REGULAR'),
     queryFn: async () => {
-      if (viewMode === "year") {
-        if (!year || !leagueType) throw new Error("Year and LeagueType are required for yearly ranking");
-        return fetchYearlyRanking(year, leagueType);
+      let response;
+      if (viewMode === 'year') {
+        if (!year || !leagueType) throw new Error('Year and LeagueType are required for yearly ranking');
+        response = await fetchYearlyRanking(year, leagueType);
       } else {
-        if (!date || !leagueType) throw new Error("Date and LeagueType are required for daily ranking");
-        return fetchDailyRanking(date, leagueType);
+        if (!date || !leagueType) throw new Error('Date and LeagueType are required for daily ranking');
+        response = await fetchDailyRanking(date, leagueType);
       }
+      return (response.data || []).map(MatchMapper.toRanking);
     },
-    enabled: viewMode === "year" 
+    enabled: viewMode === 'year' 
       ? (!!year && !!leagueType) 
       : (!!date && !!leagueType),
     staleTime: 1000 * 60 * 5, // 5분 캐싱
