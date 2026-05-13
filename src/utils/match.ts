@@ -32,8 +32,8 @@ export const calculateMatchResult = (
   awayTeamCode: string,
   favoriteTeamCode: string | null | undefined,
 ): MatchResultInfo | null => {
-  // 🚨 앙드레 카파시: Zero-Magic. 명시적인 null/undefined 체크.
-  if (homeScore == null || awayScore == null || !favoriteTeamCode) {
+  // 🚨 앙드레 카파시: Zero-Magic. 명시적인 null/undefined/empty 체크.
+  if (homeScore == null || awayScore == null || !favoriteTeamCode || !homeTeamCode || !awayTeamCode) {
     return null;
   }
 
