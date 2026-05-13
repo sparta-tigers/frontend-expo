@@ -3,9 +3,9 @@ import React from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 
 import { Box, Typography } from "@/components/ui";
-import { RankingRowDto } from "@/src/features/match/types";
+import { RankingUIModel } from "@/src/features/match/types";
 import { theme } from "@/src/styles/theme";
-import { findTeamMeta, TeamCode } from "@/src/utils/team";
+import { TeamCode } from "@/src/utils/team";
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -30,8 +30,8 @@ const LOCAL_LAYOUT = {
  * 명확히 정의하여 잘못된 데이터 주입으로 인한 UI 깨짐을 방지하기 위함.
  */
 interface RankingSummarySectionProps {
-  /** 표시할 KBO 리그 순위 데이터 배열 */
-  ranking: RankingRowDto[];
+  /** 표시할 KBO 리그 순위 데이터 배열 (SSOT) */
+  ranking: RankingUIModel[];
   /** 현재 응원팀 코드 */
   myTeamCode: TeamCode | null;
 }
@@ -127,7 +127,7 @@ const RankingHeader = React.memo(function RankingHeader() {
  * 특정 행이 '내 응원팀'인지 여부를 명시적으로 전달받아 결정론적인 UI 상태를 유지하기 위함.
  */
 interface RankingRowProps {
-  row: RankingRowDto;
+  row: RankingUIModel;
   isMyTeam: boolean;
 }
 
@@ -140,14 +140,14 @@ const RankingRow = React.memo(function RankingRow({
   row,
   isMyTeam,
 }: RankingRowProps) {
-  const teamInfo = findTeamMeta(row.teamCode);
+  const { meta } = row;
 
   return (
     <Box
       flexDir="row"
       align="center"
       gap="sm"
-      accessibilityLabel={`${row.rank}위 ${row.teamName}`}
+      accessibilityLabel={`${row.rank}위 ${meta.name}`}
     >
       {/* Rank Column */}
       <Box width={LOCAL_LAYOUT.rankWidth} align="center">
@@ -194,7 +194,7 @@ const RankingRow = React.memo(function RankingRow({
             justify="center"
           >
             <Typography style={styles.teamEmoji}>
-              {teamInfo?.mascotEmoji || "⚾"}
+              {meta.mascotEmoji}
             </Typography>
           </Box>
           <Typography
@@ -205,7 +205,7 @@ const RankingRow = React.memo(function RankingRow({
             ellipsizeMode="tail"
             style={styles.teamName}
           >
-            {teamInfo?.name || row.teamName}
+            {meta.name}
           </Typography>
           {isMyTeam && (
             <Box bg="brand.mint" px="xxs" rounded="sm" style={styles.myBadge}>
