@@ -46,11 +46,13 @@ export default function HomeScreen() {
   );
 
   // 🚨 [Phase 7] 순위 데이터 실제 연동 (Mapped UI Model)
-  const { data: ranking = [], isLoading: isRankingLoading } = useMatchRanking({
+  const rankingQuery = useMatchRanking({
     viewMode: "day",
     date: todayString,
     leagueType: "REGULAR",
   });
+  const ranking = useMemo(() => rankingQuery.data ?? [], [rankingQuery.data]);
+  const isRankingLoading = rankingQuery.isLoading;
 
   // 🚨 [Phase 10] 대시보드 요약 데이터 연동
   const { data: dashboardRes } = useDashboardSummary();
