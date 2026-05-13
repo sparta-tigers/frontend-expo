@@ -11,6 +11,8 @@ import { WeatherPanel } from "@/src/features/liveboard/components/WeatherPanel";
 import { styles } from "@/src/features/liveboard/styles/matchId.styles";
 import { useMatchDetail } from "@/src/features/match/hooks/useMatchDetail";
 import { theme } from "@/src/styles/theme";
+import { useAuth } from "@/src/hooks/useAuth";
+import { TeamCode } from "@/src/utils/team";
 
 // ... (TabKey type and TABS constant remain same)
 type TabKey = "chat" | "text" | "lineup" | "weather";
@@ -42,11 +44,17 @@ function PlaceholderPanel({ label }: { label: string }) {
  * useMatchDetail을 단일 진입점(SSOT)으로 삼아 모든 하위 컴포넌트에 일관된 데이터를 배분함.
  */
 export default function LiveboardDetailScreen() {
+  const { myTeam } = useAuth();
+  const myTeamCode = (myTeam as TeamCode) ?? null;
+
   const { matchId } = useLocalSearchParams<{ matchId: string }>();
   const idNum = parseInt(matchId || "0");
   const isValidMatchId = !isNaN(idNum) && idNum > 0;
 
-  const { data: match, isLoading, isError } = useMatchDetail(isValidMatchId ? idNum : 0);
+  const { data: match, isLoading, isError } = useMatchDetail(
+    isValidMatchId ? idNum : 0,
+    myTeamCode
+  );
   const [activeTab, setActiveTab] = useState<TabKey>("chat");
 
   // 🚨 Step 1: matchId 유효성 검사 (Fail-fast)

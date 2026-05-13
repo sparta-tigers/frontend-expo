@@ -1,3 +1,5 @@
+import { TeamCode } from "@/src/utils/team";
+
 /**
  * 🔑 matchKeys: Match 도메인 전용 쿼리 키 팩토리
  * 
@@ -11,7 +13,7 @@ export const matchKeys = {
   lists: () => [...matchKeys.all, "list"] as const,
   list: (filters: object) => [...matchKeys.lists(), filters] as const,
   details: () => [...matchKeys.all, "detail"] as const,
-  detail: (matchId: number) => [...matchKeys.details(), matchId] as const,
+  detail: (matchId: number, myTeamCode: TeamCode | null) => [...matchKeys.details(), matchId, { myTeamCode }] as const,
   ranking: {
     all: () => [...matchKeys.all, "ranking"] as const,
     yearly: (year: number, type: string) => [...matchKeys.ranking.all(), "yearly", { year, type }] as const,
