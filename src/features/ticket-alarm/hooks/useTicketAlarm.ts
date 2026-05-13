@@ -40,7 +40,7 @@ export function useTicketAlarmCount() {
   return useQuery({
     queryKey: ticketAlarmKeys.count(),
     queryFn: ticketAlarmGetCountAPI,
-    select: (res) => res.data,
+    select: (res) => res.data ?? 0,
   });
 }
 
