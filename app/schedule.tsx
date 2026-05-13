@@ -20,7 +20,7 @@ import { ThemeColorPath } from "@/src/shared/types/theme";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import React, { useState, useMemo } from "react";
-import { Pressable, StyleSheet, TouchableOpacity } from "react-native";
+import { Alert, Pressable, StyleSheet, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // ========================================================
@@ -334,6 +334,10 @@ export default function ScheduleScreen() {
                   onPress={() => {
                     if (isFuture) {
                       // 🔔 미래 경기: 예매 알림 설정
+                      if (myTeamId == null) {
+                        Alert.alert("알림", "응원팀 정보를 먼저 설정해주세요.");
+                        return;
+                      }
                       if (cell.matchId) {
                         setSelectedMatchForAlarm({
                           id: cell.matchId,
@@ -552,6 +556,6 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   alarmIcon: {
-    marginRight: 2,
+    marginRight: theme.spacing.xxs,
   },
 });
