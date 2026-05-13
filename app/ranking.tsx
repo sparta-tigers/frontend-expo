@@ -274,7 +274,7 @@ const RankingRow = React.memo(({ row, isMyTeam }: { row: RankingRowDto, isMyTeam
     <Box flex={2} flexDir="row" align="center">
       <Box width={32} height={32} rounded="full" bg="team.neutralLight" align="center" justify="center" mr="sm">
         <Typography style={styles.teamIconText}>
-          {findTeamMeta(row.teamCode).mascotEmoji}
+          {findTeamMeta(row.teamCode)?.mascotEmoji || "⚾"}
         </Typography>
       </Box>
       <Typography variant="body2" weight={isMyTeam ? "bold" : "medium"} color={isMyTeam ? "brand.mint" : "text.primary"}>
