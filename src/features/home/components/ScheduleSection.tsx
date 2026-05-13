@@ -1,7 +1,7 @@
 import { Box, Typography } from "@/components/ui";
 import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
 import { theme } from "@/src/styles/theme";
-import { ThemeColorPath } from "@/src/shared/types/theme";
+import { getTeamColorPath } from "@/src/shared/types/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
@@ -161,11 +161,7 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                         height={theme.spacing.xl}
                         rounded="full"
                         // 🏛️ SSOT: findTeamMeta 호출을 제거하고 Mapper가 제공한 컬러 토큰을 직접 사용
-                        bg={
-                          cell.opponentColorToken
-                            ? `team.${cell.opponentColorToken}` as ThemeColorPath
-                            : "surface"
-                        }
+                        bg={getTeamColorPath(cell.opponentColorToken)}
                         align="center"
                         justify="center"
                         borderWidth={

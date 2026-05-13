@@ -1,5 +1,5 @@
 import { Box, Typography } from "@/components/ui";
-import { ThemeColorPath } from "@/src/shared/types/theme";
+import { ThemeColorPath, getTeamColorPath } from "@/src/shared/types/theme";
 import { theme } from "@/src/styles/theme";
 import { TeamMeta } from "@/src/utils/team";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -161,7 +161,7 @@ export const MyTeamSection = memo(
           bg="card"
           rounded="xl"
           p="lg"
-          borderColor={`team.${teamMeta?.colorToken || "fallback"}` as ThemeColorPath}
+          borderColor={getTeamColorPath(teamMeta?.colorToken)}
           style={styles.myTeamCard}
         >
           {/* 인사말 영역 */}
