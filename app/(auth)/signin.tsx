@@ -1,4 +1,3 @@
-import { SafeLayout } from "@/components/ui/safe-layout";
 import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
@@ -16,7 +15,7 @@ import {
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image } from "expo-image";
-import { Box, Typography } from "@/components/ui";
+import { Box, Typography, SafeLayout } from "@/components/ui";
 
 const loginLogo = require("@/assets/images/auth/yaguniv-logo.png");
 const kakaoIcon = require("@/assets/images/auth/kakao.png");

@@ -15,6 +15,7 @@ export { List, ListItem } from './list';
 export { Box } from './box';
 export { Typography } from './typography';
 export { Section } from './section';
+export { SafeLayout } from './safe-layout';
 
 // 기존 PWA 컴포넌트와 호환성을 위한 재내보트
 export { ThemedText } from '../themed-text';

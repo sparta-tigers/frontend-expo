@@ -1,9 +1,6 @@
 // app/profile.tsx
 // Why: Expo Router 프로필 라우트 파일. UI와 로직을 하위 모듈로 분리하여 500+ LoC Fat File 문제 해결.
-import { Box } from "@/components/ui/box";
-import { Button } from "@/components/ui/button";
-import { SafeLayout } from "@/components/ui/safe-layout";
-import { Typography } from "@/components/ui/typography";
+import { Box, Button, SafeLayout, Typography } from "@/components/ui";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
 import React, { useRef } from "react";

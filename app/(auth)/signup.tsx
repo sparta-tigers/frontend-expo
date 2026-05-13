@@ -1,4 +1,3 @@
-import { SafeLayout } from "@/components/ui/safe-layout";
 import { theme } from "@/src/styles/theme";
 import { useAuth } from "@/src/hooks/useAuth";
 import { Logger } from "@/src/utils/logger";
@@ -6,7 +5,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, StyleSheet } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { Box, Typography, Input, Button } from "@/components/ui";
+import { Box, Typography, Input, Button, SafeLayout } from "@/components/ui";
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)

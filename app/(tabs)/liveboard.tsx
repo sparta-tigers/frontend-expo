@@ -1,8 +1,6 @@
 // app/(tabs)/liveboard.tsx
 // Why: Expo Router 탭 라우트 파일. 로직은 liveboard/ 하위 모듈에 위임.
-import { Box } from "@/components/ui/box";
-import { SafeLayout } from "@/components/ui/safe-layout";
-import { Typography } from "@/components/ui/typography";
+import { Box, Typography, SafeLayout } from "@/components/ui";
 import { theme } from "@/src/styles/theme";
 import { getTeamBgStyle } from "@/src/utils/team";
 import { MaterialIcons } from "@expo/vector-icons";
