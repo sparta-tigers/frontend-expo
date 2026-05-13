@@ -370,9 +370,14 @@ export const theme = {
       standardHeight: 60,
     },
     tabBar: {
+      height: 80, // 하단 탭 바 높이 (Safe Area 및 여백 포함 관례적 높이)
       badgeSize: 8,
       badgeOffset: -2,
       badgeRadius: 4,
+    },
+    fab: {
+      size: 56,
+      iconSize: 32,
     },
   },
 } as const;

@@ -1,144 +1,48 @@
-import { Button } from "@/components/ui/button";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import {
-    ticketAlarmAddAPI,
-    ticketAlarmDeleteAPI,
-    ticketAlarmGetListAPI,
-} from "@/src/features/notification/api";
-import {
-    AddTicketAlarmRequest,
-    STADIUMS,
-    TicketAlarm,
-} from "@/src/features/notification/types";
-import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
-import React, { useCallback, useEffect, useState } from "react";
+import { formatToKoreanDateTime } from "@/src/utils/date";
+import React, { useMemo } from "react";
 import {
     Alert,
     StyleSheet,
     TouchableOpacity,
 } from "react-native";
 import { Box, Typography, List } from "@/components/ui";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useTicketAlarms, useTicketAlarmMutation } from "@/src/features/ticket-alarm/hooks/useTicketAlarm";
+import { TicketAlarm } from "@/src/features/ticket-alarm/types";
 
+/**
+ * 🔔 NotificationScreen: 사용자가 설정한 모든 티켓 예매 알림을 관리하는 화면입니다.
+ * 
+ * Why: 캘린더에서 개별적으로 설정한 알림들을 한곳에서 모아보고, 필요 시 삭제하거나 
+ * 상태(대기/완료)를 확인하여 티켓팅 일정을 효율적으로 관리하기 위함입니다.
+ */
 export default function NotificationScreen() {
-  const { user } = useAuth();
-  const [alarms, setAlarms] = useState<TicketAlarm[]>([]);
-  const [loading, setLoading] = useState(false);
+  
+  // 🎣 [Server State] TanStack Query를 이용한 선언적 데이터 관리
+  const { data: pageResponse, isLoading, refetch } = useTicketAlarms(1, 100);
+  const { deleteAlarm, isDeleting } = useTicketAlarmMutation();
 
-  // 티켓 알림 목록 로드
-  const loadAlarms = useCallback(async () => {
-    if (!user?.accessToken) return;
-
-    setLoading(true);
-    try {
-      const response = await ticketAlarmGetListAPI();
-      if (response.resultType === "SUCCESS") {
-        setAlarms(response.data || []);
-      } else {
-        Logger.error("티켓 알림 목록 조회 실패:", response.error);
-      }
-    } catch (error) {
-      Logger.error("티켓 알림 목록 조회 중 네트워크 에러 발생", error);
-      throw error; // 🚨 [Senior Architect] Critical 에러는 상위로 전파하여 Fail-fast 실현
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.accessToken]);
-
-  useEffect(() => {
-    loadAlarms();
-  }, [loadAlarms]);
-
-  // 티켓 알림 추가 핸들러
-  const handleAddAlarm = () => {
-    if (!user?.accessToken) {
-      Alert.alert("오류", "로그인이 필요합니다.");
-      return;
-    }
-
-    const today = new Date().toISOString().split("T")[0];
-    const stadium = STADIUMS[0];
-
-    Alert.alert(
-      "티켓 알림 추가",
-      `${stadium.name}에서 ${today} 경기 알림을 추가하시겠습니까?`,
-      [
-        {
-          text: "취소",
-          style: "cancel",
-        },
-        {
-          text: "추가",
-          onPress: async () => {
-            // 🚨 [Data Integrity] 2. 상대팀 데이터 누락 시 방어 로직 (Fail-fast)
-            // 고정 문자열 "상대팀" 대신 실제 데이터가 없을 경우 생성을 차단합니다.
-            const opponentTeamCandidate = undefined; // TODO: 실제 경기 일정 객체에서 상대팀 ID/명칭을 가져와야 함
-
-            if (!opponentTeamCandidate) {
-              Alert.alert(
-                "데이터 누락",
-                "상대팀 정보가 확인되지 않습니다. 경기 일정을 통해 다시 시도해주세요.",
-              );
-              return; // Early Return
-            }
-
-            setLoading(true);
-            try {
-              const request: AddTicketAlarmRequest = {
-                stadiumName: stadium.name,
-                gameDate: today,
-                opponentTeam: opponentTeamCandidate,
-              };
-
-              const response = await ticketAlarmAddAPI(request);
-
-              if (response.resultType === "SUCCESS") {
-                Alert.alert("성공", "티켓 알림이 추가되었습니다.");
-                await loadAlarms();
-              } else {
-                Alert.alert("오류", "티켓 알림 추가에 실패했습니다.");
-              }
-            } catch (error) {
-              Logger.error("티켓 알림 추가 중 네트워크 에러 발생", error);
-              Alert.alert("오류", "네트워크 에러가 발생했습니다.");
-            } finally {
-              setLoading(false);
-            }
-          },
-        },
-      ],
-    );
-  };
+  const alarms = useMemo(() => pageResponse?.content || [], [pageResponse]);
 
   const handleDeleteAlarm = (alarm: TicketAlarm) => {
     Alert.alert(
       "티켓 알림 삭제",
-      `${alarm.stadiumName} - ${alarm.gameDate} 알림을 삭제하시겠습니까?`,
+      `${alarm.stadiumName} - ${formatToKoreanDateTime(alarm.matchTime, false)} 알림을 삭제하시겠습니까?`,
       [
-        {
-          text: "취소",
-          style: "cancel",
-        },
+        { text: "취소", style: "cancel" },
         {
           text: "삭제",
           style: "destructive",
           onPress: async () => {
-            setLoading(true);
             try {
-              const response = await ticketAlarmDeleteAPI(alarm.id);
-
-              if (response.resultType === "SUCCESS") {
-                Alert.alert("성공", "티켓 알림이 삭제되었습니다.");
-                await loadAlarms();
-              } else {
-                Alert.alert("오류", "티켓 알림 삭제에 실패했습니다.");
-              }
+              await deleteAlarm(alarm.alarmId);
+              Alert.alert("성공", "티켓 알림이 삭제되었습니다.");
             } catch (error) {
-              Logger.error("티켓 알림 삭제 중 네트워크 에러 발생", error);
-              Alert.alert("오류", "네트워크 에러가 발생했습니다.");
-            } finally {
-              setLoading(false);
+              Logger.error("티켓 알림 삭제 실패", error);
             }
           },
         },
@@ -146,35 +50,101 @@ export default function NotificationScreen() {
     );
   };
 
-  const renderAlarmItem = ({ item }: { item: TicketAlarm }) => (
+  return (
+    <SafeLayout style={styles.safeLayout}>
+      <Box flex={1} p="SCREEN">
+        <Box mb="SCREEN">
+          <Typography variant="h2" weight="bold" color="text.primary">
+            예매 알림 관리
+          </Typography>
+          <Typography variant="body2" color="text.secondary" mt="xs">
+            설정한 예매 알림 내역입니다.
+          </Typography>
+        </Box>
+
+        <List
+          data={alarms}
+          renderItem={({ item }) => (
+            <AlarmItem 
+              item={item} 
+              onDelete={handleDeleteAlarm} 
+              isDeleting={isDeleting} 
+            />
+          )}
+          keyExtractor={(item) => item.alarmId.toString()}
+          contentContainerStyle={styles.listContainer}
+          refreshing={isLoading}
+          onRefresh={refetch}
+          ListEmptyComponent={
+            <Box flex={1} justify="center" align="center" py="xxl">
+              <Typography variant="body1" weight="semibold" color="text.secondary" mb="xs">
+                등록된 알림이 없습니다.
+              </Typography>
+              <Typography variant="body2" color="text.tertiary" center>
+                경기 일정에서 원하는 경기를 선택해 알림을 추가해보세요.
+              </Typography>
+            </Box>
+          }
+        />
+      </Box>
+
+      {/* ➕ 알림 추가 FAB: 직관 일기 탭과 동일한 플로우 제공 */}
+      <TouchableOpacity
+        style={styles.fab}
+        activeOpacity={0.8}
+        onPress={() => router.push("/schedule?from=notification")}
+      >
+        <Ionicons name="add" size={32} color={theme.colors.background} />
+      </TouchableOpacity>
+    </SafeLayout>
+  );
+}
+
+/**
+ * 🔔 AlarmItem: 개별 예매 알림 아이템 컴포넌트
+ * Why: 독립된 컴포넌트로 분리하여 useMemo 등 Hook을 안전하게 사용하고 리렌더링을 최적화함.
+ */
+const AlarmItem = React.memo(({ 
+  item, 
+  onDelete, 
+  isDeleting 
+}: { 
+  item: TicketAlarm; 
+  onDelete: (alarm: TicketAlarm) => void; 
+  isDeleting: boolean;
+}) => {
+  // 💡 [Logic] 알림 완료 여부를 현재 시간과 alarmTime 비교를 통해 동적으로 결정
+  const isNotified = useMemo(() => new Date(item.alarmTime) < new Date(), [item.alarmTime]);
+
+  return (
     <Box bg="card" p="SCREEN" rounded="md" mb="sm" flexDir="row" style={styles.alarmItem}>
       <Box flex={1}>
         <Typography variant="body1" weight="semibold" color="text.primary" mb="xs">
           {item.stadiumName}
         </Typography>
         <Typography variant="caption" color="text.secondary" mb="xs">
-          {item.gameDate}
+          {formatToKoreanDateTime(item.matchTime)}
         </Typography>
         <Typography variant="body2" color="text.primary" mb="sm">
-          vs {item.opponentTeam}
+          {item.homeTeam} vs {item.awayTeam}
         </Typography>
         <Box align="flex-start">
           <Box 
-            bg={item.isNotified ? "error" : "primary"} 
+            bg={isNotified ? "team.neutralLight" : "brand.mint"} 
             px="sm" 
             py="xs" 
             rounded="sm"
           >
             <Typography variant="caption" color="background" weight="bold">
-              {item.isNotified ? "알림 완료" : "대기 중"}
+              {isNotified ? "알림 완료" : `${item.minusBefore}분 전 알림 대기`}
             </Typography>
           </Box>
         </Box>
       </Box>
       <TouchableOpacity
         style={styles.deleteButton}
-        onPress={() => handleDeleteAlarm(item)}
-        disabled={loading}
+        onPress={() => onDelete(item)}
+        disabled={isDeleting}
       >
         <Typography variant="caption" color="error" weight="bold">
           삭제
@@ -182,41 +152,9 @@ export default function NotificationScreen() {
       </TouchableOpacity>
     </Box>
   );
+});
 
-  return (
-    <SafeLayout style={styles.safeLayout}>
-      <Box flex={1} p="SCREEN">
-        <Box flexDir="row" justify="space-between" align="center" mb="SCREEN">
-          <Typography variant="h2" weight="bold" color="text.primary">
-            예매알림
-          </Typography>
-          <Button onPress={handleAddAlarm} disabled={loading} size="sm">
-            알림 추가
-          </Button>
-        </Box>
-
-        <List
-          data={alarms}
-          renderItem={renderAlarmItem}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.listContainer}
-          refreshing={loading}
-          onRefresh={loadAlarms}
-          ListEmptyComponent={
-            <Box flex={1} justify="center" align="center" py="xxl">
-              <Typography variant="body1" weight="semibold" color="text.secondary" mb="xs">
-                등록된 알림이 없습니다.
-              </Typography>
-              <Typography variant="body2" color="text.tertiary" center>
-                알림 추가 버튼을 눌러 새로운 알림을 설정해보세요.
-              </Typography>
-            </Box>
-          }
-        />
-      </Box>
-    </SafeLayout>
-  );
-}
+AlarmItem.displayName = "AlarmItem";
 
 const styles = StyleSheet.create({
   safeLayout: {
@@ -238,5 +176,17 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.xs,
     marginLeft: theme.spacing.sm,
     alignSelf: "flex-start",
+  },
+  fab: {
+    position: "absolute",
+    bottom: theme.spacing.SCREEN + theme.layout.tabBar.height,
+    right: theme.spacing.SCREEN,
+    width: theme.layout.fab.size,
+    height: theme.layout.fab.size,
+    borderRadius: theme.layout.fab.size / 2,
+    backgroundColor: theme.colors.brand.mint,
+    justifyContent: "center",
+    alignItems: "center",
+    ...theme.shadow.card,
   },
 });
