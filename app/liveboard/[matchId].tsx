@@ -6,24 +6,12 @@ import { LineupPanel } from "@/src/features/liveboard/components/LineupPanel";
 import { LiveSection } from "@/src/features/liveboard/components/LiveSection";
 import { WeatherPanel } from "@/src/features/liveboard/components/WeatherPanel";
 import { styles } from "@/src/features/liveboard/styles/matchId.styles";
-import { useMatchDetail } from "@/src/features/match/hooks/useMatchDetail";
-import { useLiveboardData } from "@/src/features/liveboard/hooks/useLiveboardData";
-import { useAuth } from "@/src/hooks/useAuth";
+import { useLiveboardScreen, TABS } from "@/src/features/liveboard/hooks/useLiveboardScreen";
 import { theme } from "@/src/styles/theme";
-import { TeamCode } from "@/src/utils/team";
-import { useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
+import React from "react";
 import { ActivityIndicator, TouchableOpacity } from "react-native";
 
-// ... (TabKey type and TABS constant remain same)
-type TabKey = "chat" | "text" | "lineup" | "weather";
-
-const TABS: { key: TabKey; label: string }[] = [
-  { key: "chat", label: "라이브채팅" },
-  { key: "text", label: "텍스트 중계" },
-  { key: "lineup", label: "선수 라인업" },
-  { key: "weather", label: "구장날씨" },
-];
+// ... (PlaceholderPanel component remains same)
 
 /**
  * PlaceholderPanel
@@ -45,28 +33,20 @@ function PlaceholderPanel({ label }: { label: string }) {
  * 라이브보드 상세 화면
  *
  * Why: 매치 카드 클릭 시 이동하는 실시간 경기 중계 화면.
- * useMatchDetail을 단일 진입점(SSOT)으로 삼아 모든 하위 컴포넌트에 일관된 데이터를 배분함.
+ * useLiveboardScreen 파사드 훅을 단일 진입점(SSOT)으로 삼아 데이터를 수급받음.
+ * 뷰는 오직 렌더링에만 집중하며, 복잡한 로직이나 useEffect 체인을 포함하지 않음.
  */
 export default function LiveboardDetailScreen() {
-  const { myTeam } = useAuth();
-  const myTeamCode = (myTeam as TeamCode) ?? null;
-
-  const { matchId } = useLocalSearchParams<{ matchId: string }>();
-  const isValidMatchId = typeof matchId === "string" && /^\d+$/.test(matchId);
-  const idNum = isValidMatchId ? parseInt(matchId) : 0;
-
   const {
-    data: match,
-    isLoading: isMatchLoading,
-    isError: isMatchError,
-  } = useMatchDetail(isValidMatchId ? idNum : 0, myTeamCode);
-
-  const {
-    data: liveData,
-    isLoading: isLiveLoading,
-  } = useLiveboardData(isValidMatchId ? idNum : 0);
-
-  const [activeTab, setActiveTab] = useState<TabKey>("chat");
+    matchId,
+    match,
+    liveData,
+    activeTab,
+    setActiveTab,
+    isLoading,
+    isError,
+    isValidMatchId,
+  } = useLiveboardScreen();
 
   // 🚨 Step 1: matchId 유효성 검사 (Fail-fast)
   if (!isValidMatchId) {
@@ -84,7 +64,7 @@ export default function LiveboardDetailScreen() {
     );
   }
 
-  if (isMatchError || (!isMatchLoading && !match)) {
+  if (isError || (!isLoading.match && !match)) {
     return (
       <SafeLayout style={styles.container} edges={["left", "right"]}>
         <Box flex={1} justify="center" align="center">
@@ -96,16 +76,13 @@ export default function LiveboardDetailScreen() {
     );
   }
 
-  // 🚨 앙드레 카파시: 전체 화면 로딩을 제거하고, 데이터가 준비된 부분부터 렌더링함.
-  // match 데이터가 필수적인 섹션을 위해 최소한의 null 방어만 수행.
-
   return (
     <SafeLayout style={styles.container} edges={["left", "right"]}>
       {match ? (
         <LiveSection 
           match={match} 
           liveData={liveData ?? undefined} 
-          isLiveLoading={isLiveLoading} 
+          isLiveLoading={isLoading.live} 
         />
       ) : (
         <Box py="xxl" align="center">
@@ -136,17 +113,15 @@ export default function LiveboardDetailScreen() {
       </Box>
 
       <Box flex={1}>
-        {/* 🚨 앙드레 카파시: ChatPanel은 WebSocket 연결 유지를 위해 항상 마운트 상태를 유지함 (display: none 제어) */}
         <Box
           style={[
             styles.tabPanel,
             activeTab === "chat" ? styles.visible : styles.hidden,
           ]}
         >
-          <ChatPanel matchId={matchId || ""} />
+          <ChatPanel matchId={matchId} />
         </Box>
 
-        {/* 🚨 나머지 탭들은 불필요한 API 호출 및 렌더링 방지를 위해 조건부 렌더링(&&) 적용 */}
         {activeTab === "text" && (
           <Box style={[styles.tabPanel, styles.visible]}>
             <PlaceholderPanel label="텍스트 중계" />
@@ -159,7 +134,7 @@ export default function LiveboardDetailScreen() {
         )}
         {activeTab === "weather" && (
           <Box style={[styles.tabPanel, styles.visible]}>
-            <WeatherPanel matchId={matchId || ""} />
+            <WeatherPanel matchId={matchId} />
           </Box>
         )}
       </Box>
