@@ -39,7 +39,7 @@ export default function ProfileScreen() {
 
   const onSelectTeam = (team: (typeof KBO_TEAMS)[number]) => {
     bottomSheetModalRef.current?.dismiss();
-    handleSelectTeam(team);
+    void handleSelectTeam(team);
   };
 
   // 로그인되지 않은 상태 (게스트 모드)

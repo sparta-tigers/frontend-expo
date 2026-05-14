@@ -313,8 +313,8 @@ export default function ItemDetailScreen() {
     },
     onSuccess: () => {
       Alert.alert("성공", "상태가 변경되었습니다.");
-      queryClient.invalidateQueries({ queryKey: ["item", id] });
-      queryClient.invalidateQueries({ queryKey: ["items"] });
+      void queryClient.invalidateQueries({ queryKey: ["item", id] });
+      void queryClient.invalidateQueries({ queryKey: ["items"] });
     },
     onError: () => {
       Alert.alert("오류", "상태 변경에 실패했습니다.");
@@ -339,7 +339,7 @@ export default function ItemDetailScreen() {
   const { mutate: deleteItem } = useMutation({
     mutationFn: () => itemsDeleteAPI(Number(id)),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["items"] });
+      void queryClient.invalidateQueries({ queryKey: ["items"] });
       router.replace("/(tabs)/exchange");
     },
     onError: () => {

@@ -36,7 +36,7 @@ export default function HistoryScreen() {
   const attendances = data?.pages.flatMap((page) => page.data?.content || []) || [];
 
   useEffect(() => {
-    favoriteTeamGetAPI().then((res) => {
+    void favoriteTeamGetAPI().then((res) => {
       if (res.resultType === "SUCCESS") setFavoriteTeam(res.data);
     });
   }, []);
@@ -158,7 +158,7 @@ export default function HistoryScreen() {
             refreshing={isRefetching}
             onEndReached={() => {
               if (hasNextPage && !isFetchingNextPage) {
-                fetchNextPage();
+                void fetchNextPage();
               }
             }}
             onEndReachedThreshold={0.5}

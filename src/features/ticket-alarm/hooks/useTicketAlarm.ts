@@ -57,7 +57,7 @@ export function useTicketAlarmMutation() {
   const createMutation = useMutation({
     mutationFn: (request: CreateTicketAlarmRequest) => ticketAlarmCreateAPI(request),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ticketAlarmKeys.all });
+      void queryClient.invalidateQueries({ queryKey: ticketAlarmKeys.all });
       Logger.info("Ticket alarm created successfully");
     },
     onError: (error) => {
@@ -68,7 +68,7 @@ export function useTicketAlarmMutation() {
   const deleteMutation = useMutation({
     mutationFn: (alarmId: number) => ticketAlarmDeleteAPI(alarmId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ticketAlarmKeys.all });
+      void queryClient.invalidateQueries({ queryKey: ticketAlarmKeys.all });
       Logger.info("Ticket alarm deleted successfully");
     },
     onError: (error) => {
@@ -80,7 +80,7 @@ export function useTicketAlarmMutation() {
     mutationFn: ({ alarmId, request }: { alarmId: number; request: UpdateTicketAlarmRequest }) => 
       ticketAlarmUpdateAPI(alarmId, request),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ticketAlarmKeys.all });
+      void queryClient.invalidateQueries({ queryKey: ticketAlarmKeys.all });
       Logger.info("Ticket alarm updated successfully");
     },
     onError: (error) => {

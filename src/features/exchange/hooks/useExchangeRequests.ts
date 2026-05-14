@@ -40,7 +40,7 @@ export const useExchangeRequests = (role: "receiver" | "sender") => {
       return response;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["exchangeRequests"] });
+      void queryClient.invalidateQueries({ queryKey: ["exchangeRequests"] });
     },
   });
 
@@ -55,7 +55,7 @@ export const useExchangeRequests = (role: "receiver" | "sender") => {
       return response;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["exchangeRequests"] });
+      void queryClient.invalidateQueries({ queryKey: ["exchangeRequests"] });
     },
   });
 
