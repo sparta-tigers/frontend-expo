@@ -1,135 +1,70 @@
 import { SafeLayout } from "@/components/ui";
-import { LineupSection } from "@/src/features/home/components/LineupSection";
+import { LineupSection } from "@/src/shared/components/match/LineupSection";
 import { MyTeamSection } from "@/src/features/home/components/MyTeamSection";
 import { RankingSummarySection } from "@/src/features/home/components/RankingSummarySection";
 import { ScheduleSection } from "@/src/features/home/components/ScheduleSection";
 import { commonStyles as styles } from "@/src/features/home/components/common.styles";
-import React, { useMemo } from "react";
+import React from "react";
 import { ScrollView } from "react-native";
-import { useAuth } from "@/context/AuthContext";
-import { findTeamMeta, TeamCode } from "@/src/utils/team";
-import { router } from "expo-router";
-import { useMatchSchedule } from "@/src/features/match/hooks/useMatchSchedule";
-import { useMatchRanking } from "@/src/features/match/hooks/useMatchRanking";
 import { ScheduleSkeleton } from "@/src/features/home/components/ScheduleSkeleton";
 import { RankingSkeleton } from "@/src/features/home/components/RankingSkeleton";
-import { getTodayString, getCurrentYear, getCurrentMonth, getCurrentDay } from "@/src/utils/date";
-import { useDashboardSummary } from "@/src/features/home/hooks/useDashboardSummary";
-import { useInfiniteMyAttendances, useAttendanceCount } from "@/src/features/match-attendance/queries";
-import { useTicketAlarmCount } from "@/src/features/ticket-alarm/hooks/useTicketAlarm";
+import { useHomeDashboard } from "@/src/features/home/hooks/useHomeDashboard";
 
 /**
  * 홈 화면 (`main_0`)
  *
- * Why: 실제 API 연동 전에 UI 골격을 먼저 고정하고, 이후 데이터 연동을 단계적으로 진행한다.
- * 경기 일정은 실제 API 데이터를 사용하며, 나머지는 단계적으로 전환한다.
+ * Why: 비즈니스 로직은 useHomeDashboard로 완전히 위임하고,
+ * 여기서는 선언적인 섹션 렌더링과 레이아웃 구성에만 집중한다.
  */
 export default function HomeScreen() {
-  const { myTeam: myTeamId } = useAuth();
-
-  // 🚨 앙드레 카파시: 결정론적 기준 시점 설정
-  const todayString = useMemo(() => getTodayString(), []);
-  const currentYear = useMemo(() => getCurrentYear(), []);
-  const currentMonth = useMemo(() => getCurrentMonth(), []);
-  const today = useMemo(() => ({
-    year: getCurrentYear(),
-    month: getCurrentMonth(),
-    day: getCurrentDay()
-  }), []);
-
-  // 경기 일정 실제 데이터 패칭
-  const { data: schedule, isLoading: isScheduleLoading, isError: isScheduleError } = useMatchSchedule(
-    currentYear, 
-    currentMonth, 
-    myTeamId as TeamCode | null
-  );
-
-  // 🚨 [Phase 7] 순위 데이터 실제 연동 (Mapped UI Model)
-  const rankingQuery = useMatchRanking({
-    viewMode: "day",
-    date: todayString,
-    leagueType: "REGULAR",
-  });
-  const ranking = useMemo(() => rankingQuery.data ?? [], [rankingQuery.data]);
-  const isRankingLoading = rankingQuery.isLoading;
-
-  // 🚨 [Phase 10] 대시보드 요약 데이터 연동
-  const { data: dashboardRes } = useDashboardSummary();
-  const dashboardData = dashboardRes?.data;
-
-  // 🚨 [Phase 28] 직관 기록 데이터 연동 (무한 스크롤 첫 페이지 활용 - 캘린더용)
-  const { data: infiniteAttendances } = useInfiniteMyAttendances(100);
-  const attendanceMatchIds = useMemo(() => {
-    const firstPageContent = infiniteAttendances?.pages[0]?.data?.content ?? [];
-    return new Set(firstPageContent.map((a) => a.matchId));
-  }, [infiniteAttendances]);
-
-  // 🚨 [New] 올해 직관 횟수 전용 API 연동
-  const { data: annualAttendanceCount } = useAttendanceCount(currentYear);
-
-  // 🚨 예매 알람 개수 실제 연동
-  const { data: ticketAlarmCount } = useTicketAlarmCount();
-
-  const displayRankings = useMemo(() => {
-    // 🚨 앙드레 카파시: 데이터 타입 방어 (Array.isArray 미준수 시 TypeError 발생 위험)
-    if (!Array.isArray(ranking) || ranking.length === 0) return [];
-    
-    const top5 = ranking.slice(0, 5);
-    const myTeamRank = ranking.find(r => r.teamCode === myTeamId);
-    
-    // 내 팀이 상위 5위 안에 없으면 추가
-    if (myTeamRank && !top5.find(r => r.teamCode === myTeamId)) {
-      return [...top5, myTeamRank];
-    }
-    
-    return top5;
-  }, [ranking, myTeamId]);
-
-  const myTeam = useMemo(() => findTeamMeta(myTeamId), [myTeamId]);
-
-  const handlePressChangeTeam = () => {
-    router.push("/change-team");
-  };
+  const {
+    user,
+    stats,
+    content,
+    status,
+    today,
+    handlers,
+  } = useHomeDashboard();
 
   return (
-    <SafeLayout style={styles.safeLayout} edges = {["top", "left", "right"]}>
+    <SafeLayout style={styles.safeLayout} edges={["top", "left", "right"]}>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         <MyTeamSection
-          userNickname={dashboardData?.nickname ?? "팬"}
-          enrollmentDays={dashboardData?.enrollmentDays ?? 0}
-          remainingMatches={dashboardData?.remainingMatches ?? 0}
-          attendanceCount={annualAttendanceCount ?? 0}
-          ticketAlarmCount={ticketAlarmCount ?? 0}
-          teamMeta={myTeam}
-          onPressChangeTeam={handlePressChangeTeam}
+          userNickname={user.nickname}
+          enrollmentDays={stats.enrollmentDays}
+          remainingMatches={stats.remainingMatches}
+          attendanceCount={stats.attendanceCount}
+          ticketAlarmCount={stats.ticketAlarmCount}
+          teamMeta={user.myTeam}
+          onPressChangeTeam={handlers.handlePressChangeTeam}
         />
 
-        {isRankingLoading ? (
+        {status.isRankingLoading ? (
           <RankingSkeleton />
         ) : (
           <RankingSummarySection 
-            ranking={displayRankings} 
-            myTeamCode={myTeamId as TeamCode | null} 
+            ranking={content.ranking} 
+            myTeamCode={user.myTeamId} 
           />
         )}
 
-        <LineupSection lineup={dashboardData?.todayLineup ?? []} teamMeta={myTeam} />
+        <LineupSection lineup={content.lineup} teamMeta={user.myTeam} />
 
-        {isScheduleLoading ? (
+        {status.isScheduleLoading ? (
           <ScheduleSkeleton />
-        ) : isScheduleError ? (
-          <ScheduleSection schedule={[]} year={currentYear} month={currentMonth} />
+        ) : status.isScheduleError ? (
+          <ScheduleSection schedule={[]} year={today.year} month={today.month} />
         ) : (
           <ScheduleSection 
-            schedule={schedule ?? []} 
-            year={currentYear} 
-            month={currentMonth}
+            schedule={content.schedule} 
+            year={today.year} 
+            month={today.month}
             today={today}
-            attendanceMatchIds={attendanceMatchIds}
+            attendanceMatchIds={content.attendanceMatchIds}
           />
         )}
       </ScrollView>
