@@ -138,7 +138,11 @@ export default function ChatRoomScreen() {
                       style={[styles.statusButtonError, isProcessing && styles.processingButton]}
                       disabled={isProcessing}
                     >
-                      <Text style={styles.statusButtonText}>거절하기</Text>
+                      {isProcessing ? (
+                        <ActivityIndicator size="small" color="white" />
+                      ) : (
+                        <Text style={styles.statusButtonText}>거절하기</Text>
+                      )}
                     </TouchableOpacity>
                   </>
                 ) : (

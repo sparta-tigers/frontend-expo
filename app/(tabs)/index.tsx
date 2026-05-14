@@ -57,7 +57,7 @@ export default function HomeScreen() {
         {status.isScheduleLoading ? (
           <ScheduleSkeleton />
         ) : status.isScheduleError ? (
-          <ScheduleSection schedule={[]} year={today.year} month={today.month} />
+          <ScheduleSection schedule={[]} year={today.year} month={today.month} isError={true} />
         ) : (
           <ScheduleSection 
             schedule={content.schedule} 

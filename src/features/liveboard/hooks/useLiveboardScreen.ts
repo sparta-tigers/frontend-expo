@@ -46,6 +46,7 @@ export const useLiveboardScreen = () => {
   const {
     data: liveData,
     isLoading: isLiveLoading,
+    isError: isLiveError,
   } = useLiveboardData(isValidMatchId ? idNum : 0);
 
   // 3. UI 상태 관리 (Tabs)
@@ -65,7 +66,10 @@ export const useLiveboardScreen = () => {
       live: isLiveLoading,
       initial: isInitialLoading
     },
-    isError: isMatchError,
+    isError: {
+      match: isMatchError,
+      live: isLiveError,
+    },
     isValidMatchId,
     myTeamCode
   };
