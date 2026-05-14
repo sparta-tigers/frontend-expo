@@ -4,7 +4,6 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
-    "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
@@ -12,11 +11,13 @@
     "prepare": "husky",
     "dev": "REACT_NATIVE_PACKAGER_HOSTNAME=172.30.1.23 expo start --clear --host lan",
     "check:all": "npx eslint . && npx tsc --noEmit && npx expo-doctor",
+    "arch:reset-project": "node ./scripts/architecture-guard/utils/reset-project.js",
     "arch:all": "npm run arch:dep && npm run arch:fat",
     "arch:dep": "npx depcruise app components context hooks src styles --exclude '^node_modules' --output-type json > scripts/architecture-guard/dependency/reports/dependency-report.json && (cd scripts/architecture-guard/dependency && python3 analyze_deps.py > reports/analysis_results.txt)",
+    "arch:dep-validate": "depcruise --validate ./scripts/architecture-guard/dependency/.dependency-cruiser.js app components context hooks src styles",
     "arch:fat": "tsx scripts/architecture-guard/fat-file/index.ts",
-    "arch:baseline": "tsx scripts/architecture-guard/fat-file/verifier/capture-baseline.ts scripts/architecture-guard/fat-file/verifier/tsc-baseline.txt",
-    "fat-file:typecheck": "tsc -p scripts/architecture-guard/fat-file/tsconfig.json --noEmit"
+    "arch:fat-typecheck": "tsc -p scripts/architecture-guard/fat-file/tsconfig.json --noEmit",
+    "arch:fat-baseline": "tsx scripts/architecture-guard/fat-file/verifier/capture-baseline.ts scripts/architecture-guard/fat-file/verifier/tsc-baseline.txt"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
