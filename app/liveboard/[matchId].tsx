@@ -6,23 +6,12 @@ import { LineupPanel } from "@/src/features/liveboard/components/LineupPanel";
 import { LiveSection } from "@/src/features/liveboard/components/LiveSection";
 import { WeatherPanel } from "@/src/features/liveboard/components/WeatherPanel";
 import { styles } from "@/src/features/liveboard/styles/matchId.styles";
-import { useMatchDetail } from "@/src/features/match/hooks/useMatchDetail";
-import { useAuth } from "@/src/hooks/useAuth";
+import { useLiveboardScreen, TABS } from "@/src/features/liveboard/hooks/useLiveboardScreen";
 import { theme } from "@/src/styles/theme";
-import { TeamCode } from "@/src/utils/team";
-import { useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
+import React from "react";
 import { ActivityIndicator, TouchableOpacity } from "react-native";
 
-// ... (TabKey type and TABS constant remain same)
-type TabKey = "chat" | "text" | "lineup" | "weather";
-
-const TABS: { key: TabKey; label: string }[] = [
-  { key: "chat", label: "라이브채팅" },
-  { key: "text", label: "텍스트 중계" },
-  { key: "lineup", label: "선수 라인업" },
-  { key: "weather", label: "구장날씨" },
-];
+// ... (PlaceholderPanel component remains same)
 
 /**
  * PlaceholderPanel
@@ -44,22 +33,20 @@ function PlaceholderPanel({ label }: { label: string }) {
  * 라이브보드 상세 화면
  *
  * Why: 매치 카드 클릭 시 이동하는 실시간 경기 중계 화면.
- * useMatchDetail을 단일 진입점(SSOT)으로 삼아 모든 하위 컴포넌트에 일관된 데이터를 배분함.
+ * useLiveboardScreen 파사드 훅을 단일 진입점(SSOT)으로 삼아 데이터를 수급받음.
+ * 뷰는 오직 렌더링에만 집중하며, 복잡한 로직이나 useEffect 체인을 포함하지 않음.
  */
 export default function LiveboardDetailScreen() {
-  const { myTeam } = useAuth();
-  const myTeamCode = (myTeam as TeamCode) ?? null;
-
-  const { matchId } = useLocalSearchParams<{ matchId: string }>();
-  const isValidMatchId = typeof matchId === "string" && /^\d+$/.test(matchId);
-  const idNum = isValidMatchId ? parseInt(matchId) : 0;
-
   const {
-    data: match,
+    matchId,
+    match,
+    liveData,
+    activeTab,
+    setActiveTab,
     isLoading,
     isError,
-  } = useMatchDetail(isValidMatchId ? idNum : 0, myTeamCode);
-  const [activeTab, setActiveTab] = useState<TabKey>("chat");
+    isValidMatchId,
+  } = useLiveboardScreen();
 
   // 🚨 Step 1: matchId 유효성 검사 (Fail-fast)
   if (!isValidMatchId) {
@@ -77,20 +64,7 @@ export default function LiveboardDetailScreen() {
     );
   }
 
-  if (isLoading) {
-    return (
-      <SafeLayout style={styles.container} edges={["left", "right"]}>
-        <Box flex={1} justify="center" align="center">
-          <ActivityIndicator size="large" color={theme.colors.brand.mint} />
-          <Typography mt="md" color="text.secondary">
-            경기 정보를 불러오는 중...
-          </Typography>
-        </Box>
-      </SafeLayout>
-    );
-  }
-
-  if (isError || !match) {
+  if (isError || (!isLoading.match && !match)) {
     return (
       <SafeLayout style={styles.container} edges={["left", "right"]}>
         <Box flex={1} justify="center" align="center">
@@ -104,7 +78,17 @@ export default function LiveboardDetailScreen() {
 
   return (
     <SafeLayout style={styles.container} edges={["left", "right"]}>
-      <LiveSection match={match} />
+      {match ? (
+        <LiveSection 
+          match={match} 
+          liveData={liveData} 
+          isLiveLoading={isLoading.live} 
+        />
+      ) : (
+        <Box py="xxl" align="center">
+          <ActivityIndicator color={theme.colors.brand.mint} />
+        </Box>
+      )}
 
       <Box style={styles.tabBar} flexDir="row" justify="space-between">
         {TABS.map((tab) => {
@@ -129,30 +113,28 @@ export default function LiveboardDetailScreen() {
       </Box>
 
       <Box flex={1}>
-        {/* 🚨 앙드레 카파시: ChatPanel은 WebSocket 연결 유지를 위해 항상 마운트 상태를 유지함 (display: none 제어) */}
         <Box
           style={[
             styles.tabPanel,
             activeTab === "chat" ? styles.visible : styles.hidden,
           ]}
         >
-          <ChatPanel matchId={matchId || ""} />
+          <ChatPanel matchId={matchId} />
         </Box>
 
-        {/* 🚨 나머지 탭들은 불필요한 API 호출 및 렌더링 방지를 위해 조건부 렌더링(&&) 적용 */}
         {activeTab === "text" && (
           <Box style={[styles.tabPanel, styles.visible]}>
             <PlaceholderPanel label="텍스트 중계" />
           </Box>
         )}
-        {activeTab === "lineup" && (
+        {activeTab === "lineup" && match && (
           <Box style={[styles.tabPanel, styles.visible]}>
             <LineupPanel match={match} />
           </Box>
         )}
         {activeTab === "weather" && (
           <Box style={[styles.tabPanel, styles.visible]}>
-            <WeatherPanel matchId={matchId || ""} />
+            <WeatherPanel matchId={matchId} />
           </Box>
         )}
       </Box>

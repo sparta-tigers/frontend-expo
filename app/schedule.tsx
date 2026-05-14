@@ -1,23 +1,13 @@
 import { Box, Typography } from "@/components/ui";
-import { useTicketAlarms } from "@/src/features/ticket-alarm/hooks/useTicketAlarm";
-import { useAuth } from "@/context/AuthContext";
 import { ScheduleSkeleton } from "@/src/features/home/components/ScheduleSkeleton";
-import { useMatchSchedule } from "@/src/features/match/hooks/useMatchSchedule";
-import { LeagueType } from "@/src/features/match/types";
-import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
-import { theme } from "@/src/styles/theme";
-import { useInfiniteMyAttendances } from "@/src/features/match-attendance/queries";
-import { 
-  getCurrentMonth,
-  getCurrentYear,
-  getCurrentDay,
-  getRelativeMonth,
-} from "@/src/utils/date";
-import { findTeamMeta, TeamCode, TeamMeta } from "@/src/utils/team";
+import { LeagueType } from "@/src/shared/types/match";
 import { ThemeColorPath } from "@/src/shared/types/theme";
+import { theme } from "@/src/styles/theme";
+import { findTeamMeta, TeamMeta } from "@/src/utils/team";
+import { useScheduleScreen } from "@/src/features/schedule/hooks/useScheduleScreen";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
-import { Stack, router, useLocalSearchParams } from "expo-router";
-import React, { useState, useMemo } from "react";
+import { Stack, router } from "expo-router";
+import React from "react";
 import { Pressable, StyleSheet, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -86,98 +76,45 @@ const BrandingHeader = React.memo<{ team: TeamMeta }>(({ team }) => {
 });
 BrandingHeader.displayName = "BrandingHeader";
 
+const leagueLabelMap: Record<LeagueType, string> = {
+  PRESEASON: "시범경기",
+  REGULAR: "정규리그",
+  POST_SEASON: "포스트시즌",
+  DREAM: "드림리그",
+  NANUM: "나눔리그",
+};
+
 /**
  * 경기 일정 화면 (`main_1`)
  *
  * Why: 월간 경기 일정을 캘린더 형태로 제공.
+ * useScheduleScreen 파사드 훅을 통해 모든 비즈니스 로직을 격리하고 뷰의 순수성을 유지함.
  */
 export default function ScheduleScreen() {
-  const { myTeam } = useAuth();
-  const activeTeamCode = (myTeam as TeamCode) || "KIA";
-
-  // 1. [SSOT] URL 파라미터 기반 상태 관리
-  const params = useLocalSearchParams<{
-    year?: string;
-    month?: string;
-    leagueType?: string;
-    from?: string;
-  }>();
-  const year = params.year ? parseInt(params.year) : getCurrentYear();
-  const month = params.month ? parseInt(params.month) : getCurrentMonth();
-  const leagueType = (params.leagueType as LeagueType) || "REGULAR";
-  const from = params.from;
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-  // 2. [PERF] 구단 데이터 메모이제이션
-  const activeTeam = useMemo(() => findTeamMeta(activeTeamCode), [activeTeamCode]);
-  const activeTeamColorPath = useMemo(
-    () => `team.${activeTeam?.colorToken || "fallback"}` as ThemeColorPath,
-    [activeTeam?.colorToken]
-  );
-
-  const today = useMemo(() => ({
-    year: getCurrentYear(),
-    month: getCurrentMonth(),
-    day: getCurrentDay(),
-  }), []);
-
   const {
-    data: schedule,
+    currentDate: { year, month },
+    today,
+    activeTeam,
+    activeTeamColorPath,
+    league: { type: leagueType, isDropdownOpen },
+    calendar: { days, isFetching },
+    maps: { attendanceMap, ticketAlarmMap },
+    handlers: {
+      handleMoveMonth,
+      handleSelectLeague,
+      toggleDropdown,
+      closeDropdown,
+      goToday,
+    },
     isLoading,
-    isFetching,
-  } = useMatchSchedule(year, month, activeTeamCode, leagueType);
-
-  // 2. 직관 기록 데이터 로드 및 맵 생성
-  const { data: infiniteAttendances } = useInfiniteMyAttendances(100);
-  const attendanceMap = useMemo(() => {
-    const map = new Map<number, number>();
-    const firstPageContent = infiniteAttendances?.pages[0]?.data?.content ?? [];
-    firstPageContent.forEach((a) => map.set(a.matchId, a.id));
-    return map;
-  }, [infiniteAttendances]);
-
-  const attendanceMatchIds = useMemo(() => {
-    return new Set(attendanceMap.keys());
-  }, [attendanceMap]);
-
-  // 3. 예매 알림 데이터 로드 및 맵 생성
-  const { data: ticketAlarmsRes } = useTicketAlarms(1, 50);
-  const ticketAlarmMap = useMemo(() => {
-    const map = new Map<number, number>();
-    ticketAlarmsRes?.content.forEach((a) => map.set(a.matchId, a.alarmId));
-    return map;
-  }, [ticketAlarmsRes]);
-
-  const days = useCalendarGrid(year, month, schedule || [], today, undefined, attendanceMatchIds);
-
-  const handleMoveMonth = (offset: number) => {
-    const { year: nextYear, month: nextMonth } = getRelativeMonth(
-      year,
-      month,
-      offset,
-    );
-    router.setParams({
-      year: nextYear.toString(),
-      month: nextMonth.toString(),
-    });
-  };
-
-  const handleSelectLeague = (type: LeagueType) => {
-    router.setParams({ leagueType: type });
-    setIsDropdownOpen(false);
-  };
-
-  const leagueLabelMap: Record<LeagueType, string> = {
-    PRESEASON: "시범경기",
-    REGULAR: "정규리그",
-    POST_SEASON: "포스트시즌",
-  };
+    from,
+  } = useScheduleScreen();
 
   if (isLoading)
     return (
       <Box flex={1} bg="background">
         <Stack.Screen options={{ headerShown: false }} />
-        <BrandingHeader team={activeTeam} />
+        {activeTeam && <BrandingHeader team={activeTeam} />}
         <ScheduleSkeleton />
       </Box>
     );
@@ -186,19 +123,19 @@ export default function ScheduleScreen() {
     <Box flex={1} bg="background">
       <Stack.Screen options={{ headerShown: false }} />
 
-      <BrandingHeader team={activeTeam} />
+      {activeTeam && <BrandingHeader team={activeTeam} />}
 
       {isDropdownOpen && (
         <Pressable
           style={styles.overlay}
-          onPress={() => setIsDropdownOpen(false)}
+          onPress={closeDropdown}
         />
       )}
 
       <Box style={styles.contentContainer}>
         <Box style={styles.dropdownContainer}>
           <TouchableOpacity
-            onPress={() => setIsDropdownOpen(!isDropdownOpen)}
+            onPress={toggleDropdown}
             activeOpacity={0.7}
             style={[
               styles.leagueSelector,
@@ -316,7 +253,6 @@ export default function ScheduleScreen() {
                   disabled={isEmpty || !cell.hasGame}
                   onPress={() => {
                     if (isFuture) {
-                      // 🔔 미래 경기: 예매 알림 페이지로 이동
                       if (cell.matchId) {
                         router.push({
                           pathname: "/ticket-alarm/[matchId]",
@@ -324,7 +260,6 @@ export default function ScheduleScreen() {
                         });
                       }
                     } else {
-                      // 📝 과거 경기: 직관 기록 페이지로 이동
                       if (attendanceId) {
                         router.push(`/attendance/detail/${attendanceId}`);
                       } else if (cell.matchId) {
@@ -409,12 +344,7 @@ export default function ScheduleScreen() {
               styles.todayBtn,
               { borderColor: activeTeam?.color || theme.colors.brand.mint },
             ]}
-            onPress={() =>
-              router.setParams({
-                year: today.year.toString(),
-                month: today.month.toString(),
-              })
-            }
+            onPress={goToday}
             activeOpacity={0.7}
           >
             <MaterialIcons

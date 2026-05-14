@@ -4,16 +4,20 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
-    "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
     "prepare": "husky",
     "dev": "REACT_NATIVE_PACKAGER_HOSTNAME=172.30.1.23 expo start --clear --host lan",
-    "fat-file": "tsx scripts/fat-file/index.ts",
-    "fat-file:typecheck": "tsc -p scripts/fat-file/tsconfig.json --noEmit",
-    "check:all": "npx eslint . && npx tsc --noEmit && npx expo-doctor"
+    "check:all": "npx eslint . && npx tsc --noEmit && npx expo-doctor",
+    "arch:reset-project": "node ./scripts/architecture-guard/utils/reset-project.js",
+    "arch:all": "npm run arch:dep && npm run arch:fat",
+    "arch:dep": "npx depcruise app components context hooks src styles --exclude '^node_modules' --output-type json > scripts/architecture-guard/dependency/reports/dependency-report.json && (cd scripts/architecture-guard/dependency/reports && python3 ../analyze_deps.py > analysis_results.txt)",
+    "arch:dep-validate": "depcruise --validate app components context hooks src styles",
+    "arch:fat": "tsx scripts/architecture-guard/fat-file/index.ts",
+    "arch:fat-typecheck": "tsc -p scripts/architecture-guard/fat-file/tsconfig.json --noEmit",
+    "arch:fat-baseline": "tsx scripts/architecture-guard/fat-file/verifier/capture-baseline.ts scripts/architecture-guard/fat-file/verifier/tsc-baseline.txt"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -83,6 +87,7 @@
     "@types/node": "22.10.5",
     "@types/react": "~19.1.0",
     "@types/sockjs-client": "^1.5.4",
+    "dependency-cruiser": "^17.4.0",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
     "eslint-plugin-react-native": "^5.0.0",

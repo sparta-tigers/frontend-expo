@@ -39,7 +39,9 @@ export default function ProfileScreen() {
 
   const onSelectTeam = (team: (typeof KBO_TEAMS)[number]) => {
     bottomSheetModalRef.current?.dismiss();
-    void handleSelectTeam(team);
+    handleSelectTeam(team).catch(() => {
+      // Why: 에러 처리는 useProfile 내부에서 Alert 및 Logger를 통해 이미 완료됨.
+    });
   };
 
   // 로그인되지 않은 상태 (게스트 모드)

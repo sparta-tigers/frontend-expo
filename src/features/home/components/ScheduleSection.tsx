@@ -26,6 +26,7 @@ interface ScheduleSectionProps {
   month: number;
   today?: { year: number; month: number; day: number }; // 🚨 앙드레 카파시: 결정론적 렌더링을 위해 외부에서 주입받음
   attendanceMatchIds?: Set<number>; // 🚨 추가
+  isError?: boolean;
 }
 
 /**
@@ -40,6 +41,7 @@ export const ScheduleSection = React.memo(function ScheduleSection({
   month,
   today,
   attendanceMatchIds, // 🚨 추가
+  isError,
 }: ScheduleSectionProps) {
   const days = useCalendarGrid(year, month, schedule, today, undefined, attendanceMatchIds);
 
@@ -57,152 +59,170 @@ export const ScheduleSection = React.memo(function ScheduleSection({
       </Box>
 
       <Box width={LOCAL_LAYOUT.wrapWidth} alignSelf="center">
-        {/* Calendar Header */}
-        <Box
-          height={LOCAL_LAYOUT.headerHeight}
-          bg="team.neutralLight"
-          roundedTop="calendar"
-          flexDir="row"
-          overflow="hidden"
-        >
-          {["일", "월", "화", "수", "목", "금", "토"].map((d) => (
-            <Box key={d} flex={1} align="center" justify="center">
-              <Typography
-                variant="caption"
-                weight="bold"
-                color={
-                  d === "일" || d === "토" ? "brand.mint" : "brand.subtitle"
-                }
-              >
-                {d}
-              </Typography>
+        {isError ? (
+          <Box 
+            height={LOCAL_LAYOUT.headerHeight + (LOCAL_LAYOUT.cellHeight * 5)} 
+            bg="card" 
+            rounded="calendar" 
+            align="center" 
+            justify="center"
+            borderWidth={LOCAL_LAYOUT.borderWidth}
+            borderColor="team.neutralLight"
+            accessibilityRole="alert"
+            accessibilityLabel="일정 데이터를 불러오지 못했습니다"
+          >
+            <Typography variant="caption" color="brand.subtitle" mb="md">일정 데이터를 불러오지 못했습니다.</Typography>
+          </Box>
+        ) : (
+          <>
+            {/* Calendar Header */}
+            <Box
+              height={LOCAL_LAYOUT.headerHeight}
+              bg="team.neutralLight"
+              roundedTop="calendar"
+              flexDir="row"
+              overflow="hidden"
+            >
+              {["일", "월", "화", "수", "목", "금", "토"].map((d) => (
+                <Box key={d} flex={1} align="center" justify="center">
+                  <Typography
+                    variant="caption"
+                    weight="bold"
+                    color={
+                      d === "일" || d === "토" ? "brand.mint" : "brand.subtitle"
+                    }
+                  >
+                    {d}
+                  </Typography>
+                </Box>
+              ))}
             </Box>
-          ))}
-        </Box>
 
-        {/* Calendar Grid */}
-        <Box
-          bg="card"
-          roundedBottom="calendar"
-          flexDir="row"
-          flexWrap="wrap"
-          overflow="hidden"
-          borderWidth={LOCAL_LAYOUT.borderWidth}
-          borderColor="team.neutralLight"
-        >
-          {days.map((cell, idx) => {
-            const isEmpty = cell.day === 0;
+            {/* Calendar Grid */}
+            <Box
+              bg="card"
+              roundedBottom="calendar"
+              flexDir="row"
+              flexWrap="wrap"
+              overflow="hidden"
+              borderWidth={LOCAL_LAYOUT.borderWidth}
+              borderColor="team.neutralLight"
+            >
+              {days.map((cell, idx) => {
+                const isEmpty = cell.day === 0;
 
-            return (
-              <TouchableOpacity
-                key={`${cell.day}-${idx}`}
-                activeOpacity={theme.layout.dashboard.activeOpacity}
-                disabled={isEmpty || !cell.hasGame}
-                onPress={() =>
-                  router.push({
-                    pathname: "/schedule",
-                    params: {
-                      view: "day",
-                      day: cell.day.toString(),
-                      year: year.toString(),
-                      month: month.toString(),
-                    },
-                  })
-                }
-                style={[styles.cell, cell.isToday && styles.todayCell]}
-                accessibilityRole={isEmpty ? undefined : "button"}
-                accessibilityLabel={
-                  isEmpty
-                    ? undefined
-                    : cell.hasGame
-                      ? `${cell.day}일 ${cell.opponentShort}전`
-                      : `${cell.day}일 경기 없음`
-                }
-              >
-                {!isEmpty && (
-                  <>
-                    <Box
-                      flexDir="row"
-                      align="center"
-                      justify="space-between"
-                      width="100%"
-                    >
-                      {cell.hasAttendance && (
-                        <Box style={styles.attendanceStamp}>
-                          <Ionicons name="checkmark-done-circle" size={32} color={theme.colors.brand.mintAlpha10} />
-                        </Box>
-                      )}
-                      <Typography
-                        variant="caption"
-                        weight={cell.isToday ? "bold" : "medium"}
-                        color={cell.isToday ? "brand.mint" : "brand.subtitle"}
-                      >
-                        {cell.day}
-                      </Typography>
-                      {cell.location ? (
-                        <Typography
-                          variant="caption"
-                          weight="bold"
-                          color="brand.mint"
-                        >
-                          {cell.location}
-                        </Typography>
-                      ) : (
+                return (
+                  <TouchableOpacity
+                    key={`${cell.day}-${idx}`}
+                    activeOpacity={theme.layout.dashboard.activeOpacity}
+                    disabled={isEmpty || !cell.hasGame}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/schedule",
+                        params: {
+                          view: "day",
+                          day: cell.day.toString(),
+                          year: year.toString(),
+                          month: month.toString(),
+                        },
+                      })
+                    }
+                    style={[styles.cell, cell.isToday && styles.todayCell]}
+                    accessibilityRole={isEmpty ? undefined : "button"}
+                    accessibilityLabel={
+                      isEmpty
+                        ? undefined
+                        : cell.hasGame
+                          ? `${cell.day}일 ${cell.opponentShort}전`
+                          : `${cell.day}일 경기 없음`
+                    }
+                  >
+                    {!isEmpty && (
+                      <>
                         <Box
-                          width={theme.spacing.lg}
-                          height={theme.spacing.lg}
-                        />
-                      )}
-                    </Box>
-
-                    {cell.hasGame ? (
-                      <Box
-                        width={theme.spacing.xxl}
-                        height={theme.spacing.xl}
-                        rounded="full"
-                        // 🏛️ SSOT: findTeamMeta 호출을 제거하고 Mapper가 제공한 컬러 토큰을 직접 사용
-                        bg={getTeamColorPath(cell.opponentColorToken)}
-                        align="center"
-                        justify="center"
-                        borderWidth={
-                          cell.isSelected ? LOCAL_LAYOUT.borderWidth : 0
-                        }
-                        borderColor={
-                          cell.isSelected ? "brand.mint" : "transparent"
-                        }
-                      >
-                        <Typography
-                          variant="caption"
-                          weight="bold"
-                          color={
-                            cell.opponentCode ? "card" : "team.neutralDark"
-                          }
-                          style={styles.opponentText}
+                          flexDir="row"
+                          align="center"
+                          justify="space-between"
+                          width="100%"
                         >
-                          {cell.opponentShort}
-                        </Typography>
-                      </Box>
-                    ) : (
-                      <Box height={theme.spacing.xl} />
-                    )}
+                          {cell.hasAttendance && (
+                            <Box style={styles.attendanceStamp}>
+                              <Ionicons name="checkmark-done-circle" size={32} color={theme.colors.brand.mintAlpha10} />
+                            </Box>
+                          )}
+                          <Typography
+                            variant="caption"
+                            weight={cell.isToday ? "bold" : "medium"}
+                            color={cell.isToday ? "brand.mint" : "brand.subtitle"}
+                          >
+                            {cell.day}
+                          </Typography>
+                          {cell.location ? (
+                            <Typography
+                              variant="caption"
+                              weight="bold"
+                              color="brand.mint"
+                            >
+                              {cell.location}
+                            </Typography>
+                          ) : (
+                            <Box
+                              width={theme.spacing.lg}
+                              height={theme.spacing.lg}
+                            />
+                          )}
+                        </Box>
 
-                    {cell.timeText ? (
-                      <Typography
-                        variant="caption"
-                        color="brand.subtitle"
-                        style={styles.timeText}
-                      >
-                        {cell.timeText}
-                      </Typography>
-                    ) : (
-                      <Box height={theme.spacing.md} />
+                        {cell.hasGame ? (
+                          <Box
+                            width={theme.spacing.xxl}
+                            height={theme.spacing.xl}
+                            rounded="full"
+                            // 🏛️ SSOT: findTeamMeta 호출을 제거하고 Mapper가 제공한 컬러 토큰을 직접 사용
+                            bg={getTeamColorPath(cell.opponentColorToken)}
+                            align="center"
+                            justify="center"
+                            borderWidth={
+                              cell.isSelected ? LOCAL_LAYOUT.borderWidth : 0
+                            }
+                            borderColor={
+                              cell.isSelected ? "brand.mint" : "transparent"
+                            }
+                          >
+                            <Typography
+                              variant="caption"
+                              weight="bold"
+                              color={
+                                cell.opponentCode ? "card" : "team.neutralDark"
+                              }
+                              style={styles.opponentText}
+                            >
+                              {cell.opponentShort}
+                            </Typography>
+                          </Box>
+                        ) : (
+                          <Box height={theme.spacing.xl} />
+                        )}
+
+                        {cell.timeText ? (
+                          <Typography
+                            variant="caption"
+                            color="brand.subtitle"
+                            style={styles.timeText}
+                          >
+                            {cell.timeText}
+                          </Typography>
+                        ) : (
+                          <Box height={theme.spacing.md} />
+                        )}
+                      </>
                     )}
-                  </>
-                )}
-              </TouchableOpacity>
-            );
-          })}
-        </Box>
+                  </TouchableOpacity>
+                );
+              })}
+            </Box>
+          </>
+        )}
       </Box>
     </Box>
   );

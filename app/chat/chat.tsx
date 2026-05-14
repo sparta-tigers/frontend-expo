@@ -142,7 +142,7 @@ export default function ChatListScreen() {
   // 탭이 포커스될 때마다 캐시를 무효화하여 백그라운드에서 조용히 갱신 (로딩 스피너 방지)
   useFocusEffect(
     useCallback(() => {
-      void queryClient.invalidateQueries({ queryKey: ["chatRooms"] });
+      queryClient.invalidateQueries({ queryKey: ["chatRooms"] }).catch(() => {});
     }, [queryClient]),
   );
 

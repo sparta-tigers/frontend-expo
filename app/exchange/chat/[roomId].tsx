@@ -1,7 +1,6 @@
 // app/exchange/chat/[roomId].tsx
-// Why: Expo Router 라우트 파일. 실제 로직은 [roomId]/ 하위 모듈에 위임.
 import { useLocalSearchParams } from "expo-router";
-import React from "react";
+import React, { useCallback } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -11,14 +10,63 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Alert,
 } from "react-native";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useChatRoom } from "@/src/features/chat/useChatRoom";
 import { styles } from "@/src/features/chat/chatRoom.styles";
 import { useAuth } from "@/src/hooks/useAuth";
+import { itemsUpdateStatusAPI } from "@/src/features/exchange/api";
+import { theme } from "@/src/styles/theme";
 
+/**
+ * ChatRoomScreen (Orchestrator)
+ *
+ * Why: 채팅 도메인과 환전소 도메인을 연결하는 오케스트레이터 레이어.
+ * 비즈니스 액션(API 호출, 캐시 무효화)을 정의하여 하위 훅에 주입함.
+ */
 export default function ChatRoomScreen() {
   const { roomId } = useLocalSearchParams<{ roomId: string }>();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const roomIdNumber = Number(roomId);
+
+  // 🛠️ 거래 상태 변경 뮤테이션 (상위 레이어로 이동)
+  const { mutateAsync: updateStatus } = useMutation({
+    mutationFn: async ({ itemId, status }: { itemId: number; status: "COMPLETE" | "CANCEL" }) => {
+      const response = await itemsUpdateStatusAPI(itemId, status);
+      if (response.resultType !== "SUCCESS") {
+        throw new Error(response.error?.message || "Update failed");
+      }
+      return response;
+    },
+    onSuccess: async () => {
+      // 🔄 전역 캐시 동기화 (Zero Magic: 도메인 지식이 상위 레이어에 응집됨)
+      const invalidations = [
+        queryClient.invalidateQueries({ queryKey: ["exchangeItem", roomIdNumber], exact: true }),
+        queryClient.invalidateQueries({ queryKey: ["items"] }),
+        queryClient.invalidateQueries({ queryKey: ["myExchanges"] }),
+      ];
+
+      if (user?.userId) {
+        invalidations.push(
+          queryClient.invalidateQueries({ queryKey: ["myItems", user.userId] })
+        );
+      }
+
+      // 🛡️ Fail-safe: 개별 무효화 실패가 전체 UI 흐름(성공 알람)을 방해하지 않도록 보장
+      await Promise.allSettled(invalidations);
+      Alert.alert("성공", "거래 상태가 업데이트되었습니다.");
+    },
+  });
+
+  // 🔗 콜백 핸들러 정의
+  const handleUpdateStatus = useCallback(
+    async (status: "COMPLETE" | "CANCEL", itemId: number) => {
+      await updateStatus({ itemId, status });
+    },
+    [updateStatus]
+  );
 
   const {
     exchangeItem,
@@ -29,24 +77,21 @@ export default function ChatRoomScreen() {
     isFetchingNextPage,
     isConnected,
     isInputDisabled,
+    isProcessing, // 🛡️ 방어 플래그 수신
     handleSendMessage,
     handleStatusChange,
     isRoomIdInvalid,
     messageText,
     setMessageText,
-  } = useChatRoom(roomId);
+  } = useChatRoom(roomId, {
+    onStatusChange: handleUpdateStatus, // 💉 의존성 주입
+  });
 
   if (isRoomIdInvalid) {
     return (
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-      >
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>채팅방 연결 오류: ID 없음</Text>
-        </View>
-      </KeyboardAvoidingView>
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>채팅방 연결 오류: ID 없음</Text>
+      </View>
     );
   }
 
@@ -59,7 +104,7 @@ export default function ChatRoomScreen() {
       {/* 아이템 헤더 */}
       <View style={styles.itemHeader}>
         {itemLoading ? (
-          <Text style={styles.loadingText}>아이템 정보를 불러오는 중...</Text>
+          <ActivityIndicator size="small" color={theme.colors.brand.mint} />
         ) : exchangeItem ? (
           <View>
             <Text style={styles.itemTitle}>{exchangeItem.title}</Text>
@@ -79,15 +124,25 @@ export default function ChatRoomScreen() {
                   <>
                     <TouchableOpacity
                       onPress={() => handleStatusChange("COMPLETE")}
-                      style={styles.statusButton}
+                      style={[styles.statusButton, isProcessing && styles.processingButton]}
+                      disabled={isProcessing}
                     >
-                      <Text style={styles.statusButtonText}>교환 완료하기</Text>
+                      {isProcessing ? (
+                        <ActivityIndicator size="small" color="white" />
+                      ) : (
+                        <Text style={styles.statusButtonText}>교환 완료하기</Text>
+                      )}
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => handleStatusChange("CANCEL")}
-                      style={styles.statusButtonError}
+                      style={[styles.statusButtonError, isProcessing && styles.processingButton]}
+                      disabled={isProcessing}
                     >
-                      <Text style={styles.statusButtonText}>거절하기</Text>
+                      {isProcessing ? (
+                        <ActivityIndicator size="small" color="white" />
+                      ) : (
+                        <Text style={styles.statusButtonText}>거절하기</Text>
+                      )}
                     </TouchableOpacity>
                   </>
                 ) : (
@@ -148,17 +203,6 @@ export default function ChatRoomScreen() {
         }}
         onEndReachedThreshold={0.5}
         removeClippedSubviews={true}
-        initialNumToRender={15}
-        maxToRenderPerBatch={10}
-        windowSize={5}
-        ListFooterComponent={
-          isFetchingNextPage ? (
-            <View style={styles.paginationLoading}>
-              <ActivityIndicator size="small" />
-              <Text style={styles.loadingText}>이전 메시지 로딩 중...</Text>
-            </View>
-          ) : null
-        }
       />
 
       {/* 입력창 */}
@@ -175,7 +219,7 @@ export default function ChatRoomScreen() {
                   ? "종료된 교환입니다"
                   : "메시지를 입력하세요"
           }
-          placeholderTextColor={styles.loadingText.color}
+          placeholderTextColor={theme.colors.text.tertiary}
           editable={!isInputDisabled}
           style={styles.textInput}
         />
