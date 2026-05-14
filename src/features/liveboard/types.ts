@@ -7,7 +7,7 @@ import {
   NowCastDto, 
   ForeCastDto 
 } from "@/src/shared/types/weather";
-import { LiveBoardStatus, PlayerPosition, MatchRoomDto } from "@/src/shared/types/match";
+import { LiveBoardStatus, PlayerPosition } from "@/src/shared/types/match";
 
 /**
  * Liveboard 도메인 타입 정의
@@ -23,11 +23,6 @@ export type {
   LiveBoardStatus
 };
 
-/**
- * 🏟️ LiveBoardRoomDto
- * shared/types/match.ts의 MatchRoomDto를 상속/참조하여 도메인 간 호환성 유지
- */
-export type LiveBoardRoomDto = MatchRoomDto;
 
 /**
  * 🛰️ LiveboardData: 실시간 중계 화면에 표시될 동적 데이터 모델

@@ -1,5 +1,6 @@
 import { apiClient } from "@/src/core/client";
-import { LiveBoardRoomDto, MatchLineupDto, MatchWeatherDto } from "./types";
+import { MatchLineupDto, MatchWeatherDto } from "./types";
+import { MatchRoomDto } from "@/src/shared/types/match";
 
 /**
  * 특정 날짜의 라이브보드 방 목록 조회
@@ -7,8 +8,8 @@ import { LiveBoardRoomDto, MatchLineupDto, MatchWeatherDto } from "./types";
  */
 export const fetchLiveBoardRooms = async (
   anyday?: string,
-): Promise<LiveBoardRoomDto[]> => {
-  return await apiClient.get<LiveBoardRoomDto[]>("/api/liveboard/room", {
+): Promise<MatchRoomDto[]> => {
+  return await apiClient.get<MatchRoomDto[]>("/api/live-boards/rooms", {
     ...(anyday ? { anyday } : {}),
   });
 };

@@ -171,6 +171,8 @@ export default function ScheduleScreen() {
     PRESEASON: "시범경기",
     REGULAR: "정규리그",
     POST_SEASON: "포스트시즌",
+    DREAM: "드림리그",
+    NANUM: "나눔리그",
   };
 
   if (isLoading)

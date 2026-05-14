@@ -5,7 +5,7 @@ import { NowCastDto, ForeCastDto } from "@/src/shared/types/weather";
 
 export type MatchStatus = "READY" | "ONGOING" | "FINISHED" | "CANCELLED" | "POSTPONED";
 export type LiveBoardStatus = "PRE" | "TODAY" | "PAST";
-export type LeagueType = "DREAM" | "NANUM";
+export type LeagueType = "REGULAR" | "PRESEASON" | "POST_SEASON" | "DREAM" | "NANUM";
 export type TeamLocation = "H" | "A";
 
 export interface MatchTeamInfo {

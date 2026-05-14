@@ -1,9 +1,9 @@
 import { fetchLiveBoardRooms } from "@/src/features/liveboard/api";
 import {
-  LiveBoardRoomDto,
   RainType,
   SkyStatus,
 } from "@/src/features/liveboard/types";
+import { MatchRoomDto } from "@/src/shared/types/match";
 import { useQuery } from "@tanstack/react-query";
 import React, { useMemo, useState } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -101,7 +101,7 @@ function getWeekStartDate(baseDate: Date, weekOffset: number): Date {
  * Why: 7일간의 날짜 객체를 생성하고, 조회된 경기 정보와 대조하여 
  *      캘린더에 '경기 있음' 도트를 표시할지 결정함.
  */
-function buildWeekDays(weekStart: Date, rooms: LiveBoardRoomDto[]): WeekDayDto[] {
+function buildWeekDays(weekStart: Date, rooms: MatchRoomDto[]): WeekDayDto[] {
   const gameDays = new Set(
     rooms.map((r) => toAnydayKey(new Date(r.matchTime))),
   );
@@ -140,7 +140,7 @@ interface UseLiveboardReturn {
   weekDays: WeekDayDto[];
   weekLabel: string;
   selectedDay: WeekDayDto | undefined;
-  selectedDayRooms: LiveBoardRoomDto[];
+  selectedDayRooms: MatchRoomDto[];
   isLoading: boolean;
   isError: boolean;
   refetch: () => void;
