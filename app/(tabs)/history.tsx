@@ -2,13 +2,12 @@ import { Box, Typography } from "@/components/ui";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { useInfiniteMyAttendances } from "@/src/features/match-attendance/queries";
 import { MatchAttendance } from "@/src/features/match-attendance/types";
-import { FavoriteTeam } from "@/src/features/user/favorite-team";
-import { favoriteTeamGetAPI } from "@/src/features/user/favorite-team-api";
+import { useFavoriteTeam } from "@/src/features/user/queries";
 import { theme } from "@/src/styles/theme";
 import { calculateMatchResult } from "@/src/utils/match";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
     ActivityIndicator,
     FlatList,
@@ -31,15 +30,10 @@ export default function HistoryScreen() {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteMyAttendances(10);
-  const [favoriteTeam, setFavoriteTeam] = useState<FavoriteTeam | null>(null);
+  const { data: favoriteTeam, isLoading: isFavLoading } = useFavoriteTeam();
 
   const attendances = data?.pages.flatMap((page) => page.data?.content || []) || [];
 
-  useEffect(() => {
-    void favoriteTeamGetAPI().then((res) => {
-      if (res.resultType === "SUCCESS") setFavoriteTeam(res.data);
-    });
-  }, []);
 
   // 🚨 [Phase 2-3] Pull-to-refresh 상태 동기화
   const onRefresh = async () => {
@@ -130,7 +124,7 @@ export default function HistoryScreen() {
     );
   };
 
-  if (isLoading) {
+  if (isLoading || isFavLoading) {
     return (
       <SafeLayout style={styles.safeLayout}>
         <Box flex={1} justify="center" align="center">

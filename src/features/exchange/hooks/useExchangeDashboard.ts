@@ -57,16 +57,22 @@ export function useExchangeDashboard() {
 
   // --- 초기화 로직 ---
   useEffect(() => {
-    void initializeLocation();
+    initializeLocation().catch(() => {
+      // mapLogger.error는 initializeLocation 내부에서 이미 수행됨
+      Alert.alert("위치 정보 오류", "현재 위치를 가져올 수 없습니다. 기본 위치로 표시됩니다.");
+    });
   }, [initializeLocation]);
 
   useEffect(() => {
     if (!isInitialFetched && userLocation) {
-      void fetchInitialItems(
+      fetchInitialItems(
         userLocation.latitude,
         userLocation.longitude,
         mapRegion.latitudeDelta,
-      );
+      ).catch(() => {
+        // fetchInitialItems 내부에서 로깅 수행됨
+        Alert.alert("데이터 로딩 실패", "주변 아이템 목록을 불러오는데 실패했습니다.");
+      });
     }
   }, [userLocation, isInitialFetched, mapRegion.latitudeDelta, fetchInitialItems]);
 
@@ -133,7 +139,11 @@ export function useExchangeDashboard() {
   }, [isCheckingActive, hasActiveItem, router]);
 
   const handleManualRefresh = useCallback(async () => {
-    await handleRefresh(mapRegion.latitude, mapRegion.longitude, mapRegion.latitudeDelta);
+    try {
+      await handleRefresh(mapRegion.latitude, mapRegion.longitude, mapRegion.latitudeDelta);
+    } catch {
+      Alert.alert("새로고침 실패", "네트워크 상태를 확인하고 다시 시도해주세요.");
+    }
   }, [handleRefresh, mapRegion]);
 
   const navigateToItemDetail = useCallback((itemId: number) => {

@@ -4,15 +4,14 @@ import {
     useAttendance,
     useDeleteAttendance,
 } from "@/src/features/match-attendance/queries";
-import { FavoriteTeam } from "@/src/features/user/favorite-team";
-import { favoriteTeamGetAPI } from "@/src/features/user/favorite-team-api";
+import { useFavoriteTeam } from "@/src/features/user/queries";
 import { theme } from "@/src/styles/theme";
 import { calculateMatchResult } from "@/src/utils/match";
 import { findTeamMeta } from "@/src/utils/team";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -35,19 +34,8 @@ export default function AttendanceDetailScreen() {
   const router = useRouter();
   const { data: attendance, isLoading } = useAttendance(Number(id));
   const deleteMutation = useDeleteAttendance();
-  const [favoriteTeam, setFavoriteTeam] = useState<FavoriteTeam | null>(null);
+  const { data: favoriteTeam, isLoading: isFavLoading } = useFavoriteTeam();
 
-  useEffect(() => {
-    // [Phase 2-1] 라우트 파라미터 유효성 검사 (useEffect 내부)
-    const idNumber = Number(id);
-    if (!id || isNaN(idNumber)) {
-      return;
-    }
-
-    void favoriteTeamGetAPI().then((res) => {
-      if (res.resultType === "SUCCESS") setFavoriteTeam(res.data);
-    });
-  }, [id]);
 
   // [Phase 2-1] 라우트 파라미터 유효성 검사 (Fail-fast)
   const idNumber = Number(id);
@@ -106,7 +94,7 @@ export default function AttendanceDetailScreen() {
   // 🚨 [Phase 2-2] 무한 로딩 UI 방어
   // isLoading이 true일 때만 로딩 UI 표시
   // attendance가 null이고 isLoading이 false일 때는 에러 UI 표시
-  if (isLoading) {
+  if (isLoading || isFavLoading) {
     return (
       <SafeLayout style={styles.safeLayout}>
         <Box flex={1} justify="center" align="center">

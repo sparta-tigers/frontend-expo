@@ -1,5 +1,5 @@
 // app/profile/useProfile.ts
-import { useState, useCallback, useEffect } from "react";
+import { useState } from "react";
 import { Alert } from "react-native";
 import { router } from "expo-router";
 import { useAuth } from "@/src/hooks/useAuth";
@@ -13,9 +13,10 @@ import { FavoriteTeam } from "@/src/features/user/favorite-team";
 import {
   favoriteTeamAddAPI,
   favoriteTeamDeleteAPI,
-  favoriteTeamGetAPI,
   favoriteTeamUpdateAPI,
 } from "@/src/features/user/favorite-team-api";
+import { useFavoriteTeam, favoriteTeamKeys } from "@/src/features/user/queries";
+import { useQueryClient } from "@tanstack/react-query";
 import { KBO_TEAMS } from "@/src/features/user/types";
 
 
@@ -28,35 +29,10 @@ import { KBO_TEAMS } from "@/src/features/user/types";
 export function useProfile() {
   const { user, signout, updateUser } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [favoriteTeam, setFavoriteTeam] = useState<FavoriteTeam | null>(null);
+  const { data: favoriteTeam } = useFavoriteTeam();
+  const queryClient = useQueryClient();
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 
-  /**
-   * 즐겨찾기 팀 정보 로딩
-   * Why: 로그인된 사용자의 최초 팀 정보를 캐싱하여 UI 초기화 시 깜빡임을 방지하고
-   *      마이페이지 및 팀 선택 컴포넌트의 초기 상태를 결정함.
-   */
-  const loadFavoriteTeam = useCallback(async () => {
-    if (!user?.accessToken) {
-      setFavoriteTeam(null);
-      return;
-    }
-
-    try {
-      const response = await favoriteTeamGetAPI();
-      if (response.resultType === "SUCCESS" && response.data) {
-        setFavoriteTeam(response.data);
-      } else {
-        setFavoriteTeam(null);
-      }
-    } catch (error) {
-      Logger.error("즐겨찾기 팀 정보 로딩 실패:", error);
-    }
-  }, [user?.accessToken]);
-
-  useEffect(() => {
-    void loadFavoriteTeam();
-  }, [loadFavoriteTeam]);
 
   const handleEditProfile = () => {
     setIsEditModalVisible(true);
@@ -187,15 +163,14 @@ export function useProfile() {
    */
   const handleSelectTeam = async (team: (typeof KBO_TEAMS)[number]) => {
     try {
-      const checkRes = await favoriteTeamGetAPI();
-      const teamExists = checkRes.resultType === "SUCCESS" && !!checkRes.data;
+      const teamExists = !!favoriteTeam;
 
       const response = teamExists
         ? await favoriteTeamUpdateAPI({ teamCode: team.code })
         : await favoriteTeamAddAPI({ teamCode: team.code });
 
       if (response.resultType === "SUCCESS") {
-        await loadFavoriteTeam();
+        await queryClient.invalidateQueries({ queryKey: favoriteTeamKeys.mine() });
         Alert.alert("성공", `${team.name}을 즐겨찾기에 ${teamExists ? "변경" : "추가"}했습니다.`);
       } else {
         Alert.alert("오류", `즐겨찾기 ${teamExists ? "변경" : "추가"}에 실패했습니다.`);
@@ -224,7 +199,7 @@ export function useProfile() {
             try {
               const response = await favoriteTeamDeleteAPI();
               if (response.resultType === "SUCCESS") {
-                await loadFavoriteTeam();
+                await queryClient.invalidateQueries({ queryKey: favoriteTeamKeys.mine() });
                 Alert.alert("성공", `${team.teamName}을 즐겨찾기에서 삭제했습니다.`);
               } else {
                 Alert.alert("오류", "즐겨찾기 삭제에 실패했습니다.");
