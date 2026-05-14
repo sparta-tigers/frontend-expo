@@ -1,19 +1,34 @@
 // Fallback for using MaterialIcons on Android and web.
 
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { SymbolWeight, SymbolViewProps } from 'expo-symbols';
+import { SymbolWeight } from 'expo-symbols';
 import { ComponentProps } from 'react';
 import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 
-type IconMapping = Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>;
-export type IconSymbolName = keyof typeof MAPPING;
+export type IconSymbolName =
+  | 'house.fill'
+  | 'paperplane.fill'
+  | 'chevron.left.forwardslash.chevron.right'
+  | 'chevron.left'
+  | 'chevron.right'
+  | 'person.fill'
+  | 'chart.bar.fill'
+  | 'clock.fill'
+  | 'star.fill'
+  | 'arrow.left.arrow.right'
+  | 'bell.fill'
+  | 'list.bullet'
+  | 'person.3.fill'
+  | 'plus.circle';
+
+type IconMapping = Record<IconSymbolName, ComponentProps<typeof MaterialIcons>['name']>;
 
 /**
  * Add your SF Symbols to Material Icons mappings here.
  * - see Material Icons in the [Icons Directory](https://icons.expo.fyi).
  * - see SF Symbols in the [SF Symbols](https://developer.apple.com/sf-symbols/) app.
  */
-const MAPPING = {
+const MAPPING: IconMapping = {
   'house.fill': 'home',
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
@@ -27,7 +42,8 @@ const MAPPING = {
   'bell.fill': 'notifications',
   'list.bullet': 'list',
   'person.3.fill': 'groups',
-} as IconMapping;
+  'plus.circle': 'add-circle',
+};
 
 /**
  * An icon component that uses native SF Symbols on iOS, and Material Icons on Android and web.

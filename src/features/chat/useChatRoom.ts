@@ -286,12 +286,20 @@ export function useChatRoom(
             // Why: STOMP로 거래 상태 업데이트(ex. COMPLETE) 신호를 받으면,
             //      현재 방의 교환 아이템 캐시뿐 아니라 전역 아이템 목록들도 무효화하여
             //      다른 화면(대시보드, 교환 탭 등)에서 과거 상태가 보이지 않도록 동기화한다.
-            queryClient.invalidateQueries({ queryKey: ["exchangeItem", roomIdNumber], exact: true });
-            queryClient.invalidateQueries({ queryKey: ["items"] }); // 부분 일치 허용 (무한스크롤 등)
-            if (user?.userId) {
-              queryClient.invalidateQueries({ queryKey: ["myItems", user.userId], exact: true });
-            }
-            queryClient.invalidateQueries({ queryKey: ["myExchanges"] });
+            void (async () => {
+              try {
+                await Promise.all([
+                  queryClient.invalidateQueries({ queryKey: ["exchangeItem", roomIdNumber], exact: true }),
+                  queryClient.invalidateQueries({ queryKey: ["items"] }),
+                  user?.userId 
+                    ? queryClient.invalidateQueries({ queryKey: ["myItems", user.userId], exact: true })
+                    : Promise.resolve(),
+                  queryClient.invalidateQueries({ queryKey: ["myExchanges"] }),
+                ]);
+              } catch (error) {
+                Logger.error("[ChatRoom] cache invalidation failed:", error);
+              }
+            })();
             return;
           }
 
@@ -340,14 +348,16 @@ export function useChatRoom(
       if (response.resultType !== "SUCCESS") throw new Error("status update failed");
       return true;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       Alert.alert("성공", "상태가 변경되었습니다.");
-      queryClient.invalidateQueries({ queryKey: ["exchangeItem", roomIdNumber], exact: true });
-      queryClient.invalidateQueries({ queryKey: ["items"] }); // 부분 일치 허용
-      if (user?.userId) {
-        queryClient.invalidateQueries({ queryKey: ["myItems", user.userId], exact: true });
-      }
-      queryClient.invalidateQueries({ queryKey: ["myExchanges"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["exchangeItem", roomIdNumber], exact: true }),
+        queryClient.invalidateQueries({ queryKey: ["items"] }),
+        user?.userId 
+          ? queryClient.invalidateQueries({ queryKey: ["myItems", user.userId], exact: true })
+          : Promise.resolve(),
+        queryClient.invalidateQueries({ queryKey: ["myExchanges"] }),
+      ]);
     },
     onError: () => Alert.alert("오류", "상태 변경에 실패했습니다."),
   });

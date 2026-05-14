@@ -44,7 +44,7 @@ export default function AttendanceDetailScreen() {
       return;
     }
 
-    favoriteTeamGetAPI().then((res) => {
+    void favoriteTeamGetAPI().then((res) => {
       if (res.resultType === "SUCCESS") setFavoriteTeam(res.data);
     });
   }, [id]);

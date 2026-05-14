@@ -2,7 +2,7 @@
 // Why: Expo Router 탭 라우트 파일. 로직은 liveboard/ 하위 모듈에 위임.
 import { Box, Typography, SafeLayout } from "@/components/ui";
 import { theme } from "@/src/styles/theme";
-import { findTeamMeta, TEAM_STYLES } from "@/src/utils/team";
+import { getTeamBgStyle } from "@/src/utils/team";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -247,7 +247,7 @@ export default function LiveboardScreen() {
                       rounded="full"
                       align="center"
                       justify="center"
-                      style={[styles.teamLogo, TEAM_STYLES[findTeamMeta(room.awayTeamName)?.id || "KBO"]]}
+                      style={[styles.teamLogo, getTeamBgStyle(room.awayTeamName)]}
                     >
                       <Typography
                         variant="caption"
@@ -294,7 +294,7 @@ export default function LiveboardScreen() {
                       rounded="full"
                       align="center"
                       justify="center"
-                      style={[styles.teamLogo, TEAM_STYLES[findTeamMeta(room.homeTeamName)?.id || "KBO"]]}
+                      style={[styles.teamLogo, getTeamBgStyle(room.homeTeamName)]}
                     >
                       <Typography
                         variant="caption"

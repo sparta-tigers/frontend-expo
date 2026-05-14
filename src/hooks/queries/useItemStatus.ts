@@ -45,10 +45,13 @@ export const useUpdateItemStatus = (itemId: number) => {
       Alert.alert("오류", "상태 변경에 실패했습니다.");
     },
     onSettled: () => {
-      // 성공/실패 여부와 상관없이 최종적으로 서버 데이터 재동기화
-      queryClient.invalidateQueries({ queryKey: ["item", itemId] });
-      queryClient.invalidateQueries({ queryKey: ["items"] });
-      queryClient.invalidateQueries({ queryKey: ["myExchanges"] }); // 마이페이지 관리 내역 동기화
+      // [Zero Magic] 성공/실패 여부와 상관없이 최종적으로 서버 데이터와 캐시를 동기화함.
+      // 프로미스를 반환하여 무효화가 완료될 때까지 뮤테이션을 'settling' 상태로 유지.
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["item", itemId] }),
+        queryClient.invalidateQueries({ queryKey: ["items"] }),
+        queryClient.invalidateQueries({ queryKey: ["myExchanges"] }),
+      ]);
     },
   });
 };

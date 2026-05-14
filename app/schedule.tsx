@@ -352,7 +352,7 @@ export default function ScheduleScreen() {
                         </Box>
                         {cell.location && (
                           <Box flexDir="row" align="center">
-                            {isFuture && ticketAlarmMap.has(cell.matchId!) && (
+                            {isFuture && cell.matchId !== undefined && ticketAlarmMap.has(cell.matchId) && (
                               <MaterialIcons 
                                 name="notifications-active" 
                                 size={12} 

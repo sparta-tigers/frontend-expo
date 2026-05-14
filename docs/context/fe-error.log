@@ -1,0 +1,41 @@
+# Frontend Architectural & Quality Audit Report
+Generated: 2026-05-14
+
+## 1. Audit Summary
+- **Target**: `frontend-expo`
+- **Goal**: Reach zero-error state for `npm run check:all`
+- **Result**: **SUCCESS (0 errors, 0 warnings)**
+
+## 2. Key Remediations
+
+### A. Async Integrity (Floating Promises)
+- Systematically applied `void` operator to all unhandled asynchronous calls (React Query invalidations, Haptics, etc.).
+- Modules affected:
+  - `app/chat/chat.tsx`
+  - `app/exchange/[id].tsx`
+  - `app/exchange/apply/[id].tsx`
+  - `app/exchange/create.tsx`
+  - `app/exchange/history.tsx`
+  - `app/exchange/my-items.tsx`
+  - `app/attendance/detail/[id].tsx`
+  - `app/(tabs)/history.tsx`
+  - `src/features/exchange/hooks/useExchangeRequests.ts`
+  - `src/features/match-attendance/queries.ts`
+  - `src/features/ticket-alarm/hooks/useTicketAlarm.ts`
+
+### B. Type Safety & Styles
+- **Non-null assertions (`!`)**: Replaced with safe optional chaining or nullish coalescing in `app/schedule.tsx` and `src/core/client.ts`.
+- **Style Assertions**: Eliminated `as ViewStyle` assertions in `components/ui/icon-symbol.tsx` and corrected `TEAM_STYLES` usage.
+- **Style System**: Fixed `exactOptionalPropertyTypes` conflicts by centralizing style access through `getTeamBgStyle` helper.
+
+### C. Architectural Boundaries
+- Fixed `no-restricted-imports` violations by replacing relative paths with absolute `@/src/features/...` aliases.
+
+## 3. Final Verification Status
+- [x] ESLint: Passed (Flat config applied)
+- [x] TypeScript: Passed (No-emit check successful)
+- [x] Expo Doctor: Passed (All 17 checks successful)
+
+---
+**Status: COMPLIANT**
+*Verified by Antigravity AI*

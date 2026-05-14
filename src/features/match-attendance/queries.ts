@@ -116,7 +116,7 @@ export const useCreateAttendance = () => {
     mutationFn: (formData: FormData) => attendanceCreateAPI(formData),
     onSuccess: () => {
       // 🚨 목록 쿼리들 무효화
-      queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() });
+      return queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() });
     },
   });
 };
@@ -132,8 +132,10 @@ export const useUpdateAttendance = () => {
       attendanceUpdateAPI(id, formData),
     onSuccess: (_, variables) => {
       // 🚨 수정된 항목의 상세 캐시와 목록 캐시만 무효화
-      queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: attendanceKeys.detail(variables.id) });
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: attendanceKeys.detail(variables.id) }),
+      ]);
     },
   });
 };
@@ -147,7 +149,7 @@ export const useDeleteAttendance = () => {
   return useMutation({
     mutationFn: (id: number) => attendanceDeleteAPI(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
+      return queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
     },
   });
 };

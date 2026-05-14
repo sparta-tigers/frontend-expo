@@ -122,7 +122,7 @@ export const validateTokenFormat = (token: string): boolean => {
 const validateTokenFormatCached = (token: string): boolean => {
   // 캐시에서 결과 확인
   if (tokenValidationCache.has(token)) {
-    return tokenValidationCache.get(token)!;
+    return tokenValidationCache.get(token) ?? false;
   }
 
   // 캐시 크기 제한 (LRU 방식)

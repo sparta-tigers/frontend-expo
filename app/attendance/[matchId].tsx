@@ -14,6 +14,7 @@ import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
+import { Logger } from "@/src/utils/logger";
 import {
   ActivityIndicator,
   Alert,
@@ -45,6 +46,7 @@ const LOCAL_LAYOUT = {
 export default function AttendanceFormScreen() {
   const { matchId } = useLocalSearchParams<{ matchId: string }>();
   const matchIdNumber = Number(matchId);
+  const logger = Logger.category("APP");
   
   const { data: attendance, isLoading: isAttendanceLoading } = useMyAttendanceByMatchId(matchIdNumber);
   const createAttendanceMutation = useCreateAttendance();
@@ -205,16 +207,16 @@ export default function AttendanceFormScreen() {
       }
 
       // 🚨 [Phase 34] 쿼리 무효화 정상화
-      // 의미 없는 ["myAttendances"] 키를 제거하고, SSOT 팩토리 키를 사용하여 정확히 단건 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: attendanceKeys.byMatch(matchIdNumber) });
+      // 🚨 [Zero Magic UX] Alert 노출 전 백그라운드에서 캐시 갱신을 시작함.
+      // 사용자가 Alert을 확인하는 동안 갱신이 진행되도록 await 대신 void 사용.
+      void queryClient.invalidateQueries({ queryKey: attendanceKeys.byMatch(matchIdNumber) });
 
       Alert.alert("성공", "직관 기록이 저장되었습니다.", [
         { text: "확인", onPress: () => router.replace("/(tabs)/history") },
       ]);
     } catch (error) {
       // 🚨 [Phase 37] 관측성 확보: 운영 환경 디버깅을 위해 에러 로깅 추가 (UX용 Alert는 유지)
-      // eslint-disable-next-line no-console
-      console.error("[AttendanceFormScreen] save failed:", error);
+      logger.error("save failed", error);
       Alert.alert("오류", "기록 저장 중 문제가 발생했습니다.");
     } finally {
       setIsSubmitting(false);

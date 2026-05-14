@@ -32,7 +32,7 @@ export function CombinedProvider({ children }: { children: ReactNode }) {
 
   // 🚨 앱 시작 시 토큰 캐시 초기화 및 React Query 포커스 관리 설정
   useEffect(() => {
-    initializeTokenCache();
+    void initializeTokenCache();
 
     // 🚨 앙드레 카파시: 전역 포커스 매니저 설정 (AppState 연동)
     // Why: 앱이 포그라운드로 돌아올 때 stale 쿼리를 자동으로 refetch 하도록 함

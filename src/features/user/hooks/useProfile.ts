@@ -55,7 +55,7 @@ export function useProfile() {
   }, [user?.accessToken]);
 
   useEffect(() => {
-    loadFavoriteTeam();
+    void loadFavoriteTeam();
   }, [loadFavoriteTeam]);
 
   const handleEditProfile = () => {
@@ -195,8 +195,8 @@ export function useProfile() {
         : await favoriteTeamAddAPI({ teamCode: team.code });
 
       if (response.resultType === "SUCCESS") {
+        await loadFavoriteTeam();
         Alert.alert("성공", `${team.name}을 즐겨찾기에 ${teamExists ? "변경" : "추가"}했습니다.`);
-        loadFavoriteTeam();
       } else {
         Alert.alert("오류", `즐겨찾기 ${teamExists ? "변경" : "추가"}에 실패했습니다.`);
       }
@@ -224,8 +224,8 @@ export function useProfile() {
             try {
               const response = await favoriteTeamDeleteAPI();
               if (response.resultType === "SUCCESS") {
+                await loadFavoriteTeam();
                 Alert.alert("성공", `${team.teamName}을 즐겨찾기에서 삭제했습니다.`);
-                loadFavoriteTeam();
               } else {
                 Alert.alert("오류", "즐겨찾기 삭제에 실패했습니다.");
               }

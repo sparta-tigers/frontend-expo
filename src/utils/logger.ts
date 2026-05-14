@@ -11,9 +11,9 @@ export type LogDomain = 'AUTH' | 'API' | 'CHAT' | 'MAP' | 'PUSH' | 'SYSTEM' | 'A
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 export interface LogOptions {
-  domain?: LogDomain | undefined;
-  error?: unknown | undefined;
-  context?: Record<string, any> | undefined;
+  domain?: LogDomain;
+  error?: unknown;
+  context?: Record<string, unknown> | undefined;
 }
 
 // 🚨 시니어 아키텍트 지침: 환경 변수는 초기 로드 시 한 번만 파싱하여 캐싱
@@ -58,7 +58,7 @@ export const maskSensitive = (sensitive?: string | null): string => {
 };
 
 export const Logger = {
-  debug: (message: string, optionsOrArg?: LogOptions | any, ...args: any[]) => {
+  debug: (message: string, optionsOrArg?: LogOptions | unknown, ...args: unknown[]) => {
     let domain: LogDomain = 'APP';
     let extraArgs = [];
 
@@ -73,7 +73,7 @@ export const Logger = {
     console.debug(`🐛 [${domain}] ${message}`, ...extraArgs);
   },
 
-  info: (message: string, optionsOrArg?: LogOptions | any, ...args: any[]) => {
+  info: (message: string, optionsOrArg?: LogOptions | unknown, ...args: unknown[]) => {
     let domain: LogDomain = 'APP';
     let extraArgs = [];
 
@@ -88,7 +88,7 @@ export const Logger = {
     console.info(`💡 [${domain}] ${message}`, ...extraArgs);
   },
 
-  warn: (message: string, optionsOrArg?: LogOptions | any, ...args: any[]) => {
+  warn: (message: string, optionsOrArg?: LogOptions | unknown, ...args: unknown[]) => {
     let domain: LogDomain = 'APP';
     let extraArgs = [];
 
@@ -112,9 +112,14 @@ export const Logger = {
     const prefix = `🚨 [${options.domain || 'APP'}] ${message}`;
     
     // 🚨 [Senior Architect Constraint] AxiosError 전용 포맷팅 및 안전한 출력
-    let displayError: any = error;
-    if (error && typeof error === 'object' && 'isAxiosError' in error && (error as any).isAxiosError) {
-      const axiosError = error as any;
+    let displayError: unknown = error;
+    if (error && typeof error === 'object' && 'isAxiosError' in error && (error as { isAxiosError: boolean }).isAxiosError) {
+      const axiosError = error as unknown as { 
+        message: string; 
+        config?: { url?: string; method?: string }; 
+        response?: { status: number; data: unknown };
+        code?: string;
+      };
       displayError = {
         name: 'AxiosError',
         message: axiosError.message,
@@ -156,15 +161,20 @@ export const Logger = {
   /**
    * 네트워크 전용 에러 로깅
    */
-  networkError: (message: string, error?: any) => {
+  networkError: (message: string, error?: unknown) => {
     if (!shouldLog('error', 'API')) return;
     
-    const context: Record<string, any> = {};
+    const context: Record<string, unknown> = {};
     try {
-      if (error && typeof error === 'object') {
-        if ('code' in error) context.code = error.code;
-        if (error.response?.status) context.status = error.response.status;
-        if (error.config?.url) context.url = error.config.url;
+      if (error && typeof error === 'object' && error !== null) {
+        const errObj = error as Record<string, unknown>;
+        if ('code' in errObj) context.code = errObj.code;
+        
+        const response = errObj.response as Record<string, unknown> | undefined;
+        if (response?.status) context.status = response.status;
+        
+        const config = errObj.config as Record<string, unknown> | undefined;
+        if (config?.url) context.url = config.url;
       }
     } catch {
       // Probing 실패 시 무시
@@ -178,10 +188,10 @@ export const Logger = {
    * Why: 매번 { domain: 'AUTH' }를 넘기는 번거로움을 제거하고 가독성 확보
    */
   category: (domain: LogDomain) => ({
-    debug: (msg: string, ...args: any[]) => Logger.debug(msg, { domain }, ...args),
-    info: (msg: string, ...args: any[]) => Logger.info(msg, { domain }, ...args),
-    warn: (msg: string, ...args: any[]) => Logger.warn(msg, { domain }, ...args),
-    error: (msg: string, err?: unknown, ctx?: Record<string, any>) => 
+    debug: (msg: string, ...args: unknown[]) => Logger.debug(msg, { domain }, ...args),
+    info: (msg: string, ...args: unknown[]) => Logger.info(msg, { domain }, ...args),
+    warn: (msg: string, ...args: unknown[]) => Logger.warn(msg, { domain }, ...args),
+    error: (msg: string, err?: unknown, ctx?: Record<string, unknown>) => 
       Logger.error(msg, err, { domain, context: ctx }),
   }),
 };

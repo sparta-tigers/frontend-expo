@@ -7,7 +7,7 @@ import { useAuth } from "@/src/hooks/useAuth";
 import { theme, SPACING } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
 import { getImageUrl } from "@/src/utils/url";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
@@ -166,11 +166,18 @@ export default function EditItemScreen() {
     }
   }, [item]);
 
+  const queryClient = useQueryClient();
+
   // 아이템 수정 Mutation
   const updateItemMutation = useMutation({
     mutationFn: (request: UpdateItemRequest) =>
       itemsUpdateAPI(Number(id), request),
-    onSuccess: () => {
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["item", id] }),
+        queryClient.invalidateQueries({ queryKey: ["items"] }),
+      ]);
+
       Alert.alert("수정 완료", "아이템이 성공적으로 수정되었습니다.", [
         {
           text: "확인",

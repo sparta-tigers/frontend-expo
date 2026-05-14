@@ -76,7 +76,7 @@ export function usePushNotifications() {
     };
 
     // 비동기 함수 실행 및 토큰 설정 (로컬 토큰 발급만 담당)
-    registerForPushNotificationsAsync().then((token) => {
+    void registerForPushNotificationsAsync().then((token) => {
       if (!token) return;
 
       setExpoPushToken(token);
@@ -99,7 +99,7 @@ export function usePushNotifications() {
       }
     };
 
-    setupNotificationChannel();
+    void setupNotificationChannel();
 
     // 리스너 등록
     notificationListener = Notifications.addNotificationReceivedListener(

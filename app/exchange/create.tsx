@@ -82,9 +82,9 @@ export default function CreateItemScreen() {
 
       return createExchangeItem(requestFormData);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       Alert.alert("성공", "아이템이 등록되었습니다.");
-      queryClient.invalidateQueries({ queryKey: ["items"] });
+      await queryClient.invalidateQueries({ queryKey: ["items"] });
       router.replace("/(tabs)/exchange");
     },
     onError: (error: Error & { response?: { status?: number } }) => {
@@ -161,7 +161,7 @@ export default function CreateItemScreen() {
   const { data: hasActiveItem } = useCheckActiveItem();
 
   React.useEffect(() => {
-    getCurrentLocation();
+    void getCurrentLocation();
   }, []);
 
   React.useEffect(() => {
