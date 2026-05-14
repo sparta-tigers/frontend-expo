@@ -80,7 +80,7 @@ export async function createExchangeItem(
     headers: {
       "Content-Type": "multipart/form-data",
     },
-    transformRequest: (data) => {
+    transformRequest: (data: unknown) => {
       // Axios가 React Native의 FormData 객체를 문자열로 파괴하는 것을 방지
       return data;
     },

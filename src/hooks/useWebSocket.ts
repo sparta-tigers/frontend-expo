@@ -178,7 +178,7 @@ export function useWebSocket(
 
   const disconnect = useCallback(() => {
     if (clientRef.current?.connected) {
-      clientRef.current.deactivate();
+      void clientRef.current.deactivate();
     }
     connectingRef.current = false;
     setStatus("DISCONNECTED");
@@ -197,11 +197,11 @@ export function useWebSocket(
   }, []);
 
   useEffect(() => {
-    connect();
+    void connect();
 
     return () => {
       if (clientRef.current?.connected) {
-        clientRef.current.deactivate();
+        void clientRef.current.deactivate();
       }
       clientRef.current = null;
       connectingRef.current = false;

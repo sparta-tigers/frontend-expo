@@ -46,9 +46,9 @@ export const useUpdateItemStatus = (itemId: number) => {
     },
     onSettled: () => {
       // 성공/실패 여부와 상관없이 최종적으로 서버 데이터 재동기화
-      queryClient.invalidateQueries({ queryKey: ["item", itemId] });
-      queryClient.invalidateQueries({ queryKey: ["items"] });
-      queryClient.invalidateQueries({ queryKey: ["myExchanges"] }); // 마이페이지 관리 내역 동기화
+      void queryClient.invalidateQueries({ queryKey: ["item", itemId] });
+      void queryClient.invalidateQueries({ queryKey: ["items"] });
+      void queryClient.invalidateQueries({ queryKey: ["myExchanges"] }); // 마이페이지 관리 내역 동기화
     },
   });
 };

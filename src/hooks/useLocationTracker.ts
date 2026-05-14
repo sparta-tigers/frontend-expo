@@ -63,7 +63,7 @@ export const useLocationTracker = () => {
       }
     };
 
-    startTracking();
+    void startTracking();
 
     return () => {
       isCancelled = true;

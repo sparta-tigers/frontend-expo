@@ -195,13 +195,13 @@ export default function ExchangeScreen() {
 
   // 1. 마운트 시 위치 초기화 (1회)
   React.useEffect(() => {
-    initializeLocation();
+    void initializeLocation();
   }, [initializeLocation]);
 
   // 2. GPS 좌표 확보 시 초기 아이템 로딩 (1회)
   React.useEffect(() => {
     if (!isInitialFetched && userLocation) {
-      fetchInitialItems(
+      void fetchInitialItems(
         userLocation.latitude,
         userLocation.longitude,
         mapRegion.latitudeDelta,
@@ -342,13 +342,13 @@ export default function ExchangeScreen() {
                   onPress={() => {
                     // 🚨 앙드레 카파시: 초기 로딩 실패 시 결정론적 재시도 경로
                     if (userLocation) {
-                      fetchInitialItems(
+                      void fetchInitialItems(
                         userLocation.latitude,
                         userLocation.longitude,
                         mapRegion.latitudeDelta
                       );
                     } else {
-                      handleRefresh(mapRegion.latitude, mapRegion.longitude, mapRegion.latitudeDelta);
+                      void handleRefresh(mapRegion.latitude, mapRegion.longitude, mapRegion.latitudeDelta);
                     }
                   }}
                   style={styles.emptyButton}
