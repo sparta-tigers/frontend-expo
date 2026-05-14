@@ -1,4 +1,4 @@
-import { fetchLiveBoardRooms } from "@/src/features/liveboard/api";
+import { fetchMatchRooms } from "@/src/features/match/api";
 import {
   RainType,
   SkyStatus,
@@ -186,7 +186,7 @@ export function useLiveboard(): UseLiveboardReturn {
       const results = await Promise.allSettled(
         weekAnydayKeys.map(async (key) => ({
           key,
-          rooms: await fetchLiveBoardRooms(key),
+          rooms: await fetchMatchRooms(key),
         })),
       );
       return Object.fromEntries(
@@ -227,7 +227,7 @@ export function useLiveboard(): UseLiveboardReturn {
     refetch: refetchSelectedDay,
   } = useQuery({
     queryKey: matchKeys.liveboard.rooms(selectedAnyday),
-    queryFn: () => fetchLiveBoardRooms(selectedAnyday),
+    queryFn: () => fetchMatchRooms(selectedAnyday),
     staleTime: 60_000,
   });
 

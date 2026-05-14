@@ -4,7 +4,7 @@ import { TeamMeta } from "@/src/utils/team";
 import { NowCastDto, ForeCastDto } from "@/src/shared/types/weather";
 
 export type MatchStatus = "READY" | "ONGOING" | "FINISHED" | "CANCELLED" | "POSTPONED";
-export type LiveBoardStatus = "PRE" | "TODAY" | "PAST";
+export type LiveBoardStatus = "UPCOMING" | "TODAY" | "PAST";
 export type LeagueType = "REGULAR" | "PRESEASON" | "POST_SEASON" | "DREAM" | "NANUM";
 export type TeamLocation = "H" | "A";
 

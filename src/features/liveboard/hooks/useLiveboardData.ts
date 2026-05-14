@@ -1,6 +1,6 @@
 // src/features/liveboard/hooks/useLiveboardData.ts
 import { useQuery } from "@tanstack/react-query";
-import { fetchLiveBoardRoom } from "../api";
+import { fetchMatchRoom } from "@/src/features/match";
 import { LiveboardData } from "../types";
 import { LiveboardMapper } from "../mapper";
 
@@ -16,7 +16,7 @@ export const useLiveboardData = (matchId: number) => {
   return useQuery({
     queryKey: ["liveboard", "data", matchId],
     queryFn: async (): Promise<LiveboardData> => {
-      const room = await fetchLiveBoardRoom(matchId);
+      const room = await fetchMatchRoom(matchId);
       
       if (!room) {
         throw new Error("중계 정보를 찾을 수 없습니다.");

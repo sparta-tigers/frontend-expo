@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { matchKeys } from "../queries";
-import { fetchMatchRooms } from "../api";
+import { fetchMatchRoom } from "../api";
 import { MatchMapper } from "../mapper";
 import { TeamCode } from "@/src/utils/team";
 
@@ -18,9 +18,8 @@ export const useMatchDetail = (matchId: number, myTeamCode: TeamCode | null) => 
   return useQuery({
     queryKey: matchKeys.detail(matchId, myTeamCode),
     queryFn: async () => {
-      // NOTE: 현재 단일 경기 상세 조회 API가 없으므로 목록에서 필터링함.
-      const rooms = await fetchMatchRooms();
-      const room = rooms.find((r) => r.matchId === matchId);
+      // 🚀 O(1) 단일 조회 API 사용
+      const room = await fetchMatchRoom(matchId);
       
       if (!room) {
         throw new Error("경기 정보를 찾을 수 없습니다.");
