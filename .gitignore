@@ -75,3 +75,8 @@ repomix.config.json
 
 # fat files 보고서 스크립트 결과물
 docs/fat-file
+
+# dependency-cruiser
+.dependency-cruiser.js
+dependency-report.json
+scratch/
