@@ -1,7 +1,15 @@
+import sys
 import json
 
-with open('reports/dependency-report.json', 'r') as f:
-    data = json.load(f)
+try:
+    with open('reports/dependency-report.json', 'r') as f:
+        data = json.load(f)
+except FileNotFoundError:
+    print("Error: reports/dependency-report.json not found. Run 'npm run arch:dep' first.", file=sys.stderr)
+    sys.exit(1)
+except json.JSONDecodeError as e:
+    print(f"Error: Failed to parse JSON: {e}", file=sys.stderr)
+    sys.exit(1)
 
 modules = data.get('modules', [])
 
