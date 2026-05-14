@@ -152,7 +152,7 @@ export default function HistoryScreen() {
             refreshing={isRefetching}
             onEndReached={() => {
               if (hasNextPage && !isFetchingNextPage) {
-                void fetchNextPage();
+                fetchNextPage().catch(() => {});
               }
             }}
             onEndReachedThreshold={0.5}

@@ -34,7 +34,7 @@ export default function TabLayout() {
       "change",
       (nextAppState: AppStateStatus) => {
         if (nextAppState === "active") {
-          void refetch();
+          refetch().catch(() => {});
         }
       },
     );

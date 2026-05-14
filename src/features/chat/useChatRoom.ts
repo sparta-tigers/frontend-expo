@@ -232,11 +232,11 @@ export function useChatRoom(
         const parsed = JSON.parse(msg.body);
         if (parsed.type === "SYSTEM" && parsed.action === "STATUS_UPDATED") {
           // Why: 거래 상태 업데이트 시 관련 캐시 전역 무효화 (상대방 변경 시에도 내 목록 반영)
-          void queryClient.invalidateQueries({ queryKey: ["exchangeItem", roomIdNumber], exact: true });
-          void queryClient.invalidateQueries({ queryKey: ["items"] });
-          void queryClient.invalidateQueries({ queryKey: ["myExchanges"] });
+          queryClient.invalidateQueries({ queryKey: ["exchangeItem", roomIdNumber], exact: true }).catch(() => {});
+          queryClient.invalidateQueries({ queryKey: ["items"] }).catch(() => {});
+          queryClient.invalidateQueries({ queryKey: ["myExchanges"] }).catch(() => {});
           if (user?.userId) {
-            void queryClient.invalidateQueries({ queryKey: ["myItems", user.userId] });
+            queryClient.invalidateQueries({ queryKey: ["myItems", user.userId] }).catch(() => {});
           }
           return;
         }
@@ -258,7 +258,7 @@ export function useChatRoom(
 
   useEffect(() => {
     const sub = AppState.addEventListener("change", (s) => {
-      if (s === "active") void connect();
+      if (s === "active") connect().catch(() => {});
       else if (s === "background") {
         client?.deactivate().catch((err) => Logger.error("[ChatRoom] Deactivate failed", err));
       }

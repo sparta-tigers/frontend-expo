@@ -15,6 +15,7 @@ import { NicknameEditModal } from "@/src/features/user/components/NicknameEditMo
 import { LOCAL_LAYOUT, styles } from "@/src/features/user/styles/profile.styles";
 import { useProfile } from "@/src/features/user/hooks/useProfile";
 import { KBO_TEAMS } from "@/src/features/user/types";
+import { Logger } from "@/src/utils/logger";
 
 export default function ProfileScreen() {
   const {
@@ -39,7 +40,7 @@ export default function ProfileScreen() {
 
   const onSelectTeam = (team: (typeof KBO_TEAMS)[number]) => {
     bottomSheetModalRef.current?.dismiss();
-    void handleSelectTeam(team);
+    handleSelectTeam(team).catch((err) => Logger.error("[Profile] Team select failed", err));
   };
 
   // 로그인되지 않은 상태 (게스트 모드)

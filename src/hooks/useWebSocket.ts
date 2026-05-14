@@ -197,7 +197,7 @@ export function useWebSocket(
   }, []);
 
   useEffect(() => {
-    void connect();
+    connect().catch(() => {});
 
     return () => {
       if (clientRef.current?.connected) {

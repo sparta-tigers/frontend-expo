@@ -161,7 +161,7 @@ export default function CreateItemScreen() {
   const { data: hasActiveItem } = useCheckActiveItem();
 
   React.useEffect(() => {
-    void getCurrentLocation();
+    getCurrentLocation().catch((err) => Logger.error("[Create] Location init failed", err));
   }, []);
 
   React.useEffect(() => {

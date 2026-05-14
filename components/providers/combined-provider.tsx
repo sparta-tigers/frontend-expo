@@ -7,6 +7,7 @@ import { focusManager, QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import React, { ReactNode, useEffect, useState } from "react";
 import { AppState, AppStateStatus, Platform } from "react-native";
+import { Logger } from "@/src/utils/logger";
 
 /**
  * 결합된 Provider 컴포넌트
@@ -32,7 +33,7 @@ export function CombinedProvider({ children }: { children: ReactNode }) {
 
   // 🚨 앱 시작 시 토큰 캐시 초기화 및 React Query 포커스 관리 설정
   useEffect(() => {
-    void initializeTokenCache();
+    initializeTokenCache().catch((err) => Logger.error("[Provider] Token init failed", err));
 
     // 🚨 앙드레 카파시: 전역 포커스 매니저 설정 (AppState 연동)
     // Why: 앱이 포그라운드로 돌아올 때 stale 쿼리를 자동으로 refetch 하도록 함

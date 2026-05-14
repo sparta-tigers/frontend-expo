@@ -54,7 +54,7 @@ module.exports = defineConfig([
       "react-hooks/exhaustive-deps": "error",
 
       // 3. 비동기 안전장치
-      "@typescript-eslint/no-floating-promises": "error", // 비동기 호출 시 await/void 명시 필수
+      "@typescript-eslint/no-floating-promises": ["error", { ignoreVoid: false }], // 비동기 호출 시 await 명시 필수 (void 우회 차단)
 
       // 4. 아키텍처 경계 (절대 경로 사용 권장 및 상위 디렉토리 참조 제한)
       "no-restricted-imports": [

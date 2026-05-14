@@ -83,7 +83,7 @@ export function usePushNotifications() {
       pushLogger.debug("Expo Push Token 발급 완료", maskSensitive(token));
     };
 
-    void initToken();
+    initToken().catch(() => {});
 
     // 채널 설정 (Android)
     const setupNotificationChannel = async () => {
@@ -101,7 +101,7 @@ export function usePushNotifications() {
       }
     };
 
-    void setupNotificationChannel();
+    setupNotificationChannel().catch(() => {});
 
     // 리스너 등록
     notificationListener = Notifications.addNotificationReceivedListener(
@@ -151,7 +151,7 @@ export function usePushNotifications() {
       }
     };
 
-    void registerDeviceTokenToBackend();
+    registerDeviceTokenToBackend().catch(() => {});
   }, [expoPushToken, isLoggedIn]);
 
   return {
