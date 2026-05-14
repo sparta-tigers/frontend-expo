@@ -29,7 +29,7 @@ export default function MyItemsScreen() {
   }, []);
 
   React.useEffect(() => {
-    fetchMyItems();
+    void fetchMyItems();
   }, [fetchMyItems]);
 
   const handleRefresh = useCallback(async () => {

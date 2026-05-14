@@ -42,7 +42,7 @@ export default function ExchangeHistoryScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      loadHistory();
+      void loadHistory();
     }, [loadHistory])
   );
 
