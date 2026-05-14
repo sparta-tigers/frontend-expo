@@ -5,7 +5,7 @@ import { TeamMeta } from "@/src/utils/team";
 import { getTeamColorPath } from "@/src/shared/types/theme";
 import React from "react";
 import { StyleSheet } from "react-native";
-import { LineupRowDto } from "../types/dashboard";
+import { LineupRowDto } from "@/src/shared/types/lineup";
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -30,10 +30,10 @@ interface LineupSectionProps {
 }
 
 /**
- * 오늘의 라인업 섹션
+ * 🏟️ LineupSection (Shared)
  *
- * Why: 홈 화면에서 당일 선발 라인업을 시각적으로 구현.
- * 데이터가 없을 경우 프리미엄 Empty State를 표시하여 UX를 개선함.
+ * Why: 홈 화면과 라이브보드 상세 화면에서 당일 선발 라인업을 시각적으로 구현.
+ * 도메인 중복을 피하기 위해 shared 레이어로 승격함.
  */
 export const LineupSection = React.memo(function LineupSection({
   lineup,
