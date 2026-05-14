@@ -489,7 +489,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   // 컴포넌트 마운트 시 토큰 로드
   useEffect(() => {
-    loadToken();
+    void loadToken();
   }, []);
 
   const contextValue: AuthContextType = {

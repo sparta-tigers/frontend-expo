@@ -7,7 +7,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import React, { useMemo, useState } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
-import { matchKeys } from "../../match/queries";
+import { matchKeys } from "@/src/features/match/queries";
 
 // ── 날씨 아이콘/텍스트 매핑 ──────────────────────────────
 type WeatherIconName = keyof typeof MaterialIcons.glyphMap;

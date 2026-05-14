@@ -4,7 +4,7 @@ import { fetchMatchLineup } from "@/src/features/liveboard/api";
 import { LineupRowDto } from "@/src/features/liveboard/types";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { matchKeys } from "../../match/queries";
+import { matchKeys } from "@/src/features/match/queries";
 
 type FetchState = "LOADING" | "SUCCESS" | "ERROR";
 type ActiveTeam = "HOME" | "AWAY";
