@@ -1,13 +1,13 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
-import { 
-  attendanceGetMyAPI, 
-  attendanceCreateAPI, 
-  attendanceUpdateAPI,
-  attendanceDeleteAPI,
-  attendanceGetDetailAPI,
-  attendanceGetMyByMatchIdAPI,
-  attendanceGetCountAPI
+import {
+    attendanceCreateAPI,
+    attendanceDeleteAPI,
+    attendanceGetCountAPI,
+    attendanceGetDetailAPI,
+    attendanceGetMyAPI,
+    attendanceGetMyByMatchIdAPI,
+    attendanceUpdateAPI
 } from "./api";
 export type { RNFormDataFile, RNFormDataString } from "./types";
 
@@ -131,13 +131,9 @@ export const useUpdateAttendance = () => {
   return useMutation({
     mutationFn: ({ id, formData }: { id: number; formData: FormData }) => 
       attendanceUpdateAPI(id, formData),
-    onSuccess: (_, variables) => {
-      // 🚨 [Phase 42] 수정된 항목의 상세 캐시, 특정 경기 조회 캐시, 전체 목록 캐시 모두 무효화
-      return Promise.all([
-        queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() }),
-        queryClient.invalidateQueries({ queryKey: attendanceKeys.detail(variables.id) }),
-        queryClient.invalidateQueries({ queryKey: attendanceKeys.all }), // 🎯 폭넓은 무효화로 정합성 보장
-      ]);
+    onSuccess: () => {
+      // 🚨 [Phase 42] prefix 매칭으로 모든 직관 관련 캐시 한 번에 무효화
+      return queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
     },
   });
 };
