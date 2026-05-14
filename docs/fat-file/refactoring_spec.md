@@ -1,2 +1,0 @@
-# Fat File Refactoring Specification
-
