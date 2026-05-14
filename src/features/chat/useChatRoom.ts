@@ -164,8 +164,9 @@ export function useChatRoom(
             return { pages: [{ content: [newMessage], hasNext: false }], pageParams: [0] };
           }
           const prevContent = oldData.pages[0].content;
+          // 🛡️ 엣지 케이스 방어: 동일 내용 메시지 연타 시 조기 삭제 방지를 위해 ID 기반 필터링 강화
           const cleanList = prevContent.filter(
-            (msg) => !(msg.id < 0 && msg.senderId === newMessage.senderId && msg.content === newMessage.content)
+            (msg) => !(msg.id < 0 && msg.id === newMessage.id)
           );
           if (cleanList.some((msg) => msg.id === newMessage.id)) return oldData;
           const nextPages = [...oldData.pages];
@@ -230,9 +231,13 @@ export function useChatRoom(
       try {
         const parsed = JSON.parse(msg.body);
         if (parsed.type === "SYSTEM" && parsed.action === "STATUS_UPDATED") {
-          // Why: 거래 상태 업데이트 시 관련 캐시 무효화
-          void queryClient.invalidateQueries({ queryKey: ["exchangeItem", roomIdNumber] });
+          // Why: 거래 상태 업데이트 시 관련 캐시 전역 무효화 (상대방 변경 시에도 내 목록 반영)
+          void queryClient.invalidateQueries({ queryKey: ["exchangeItem", roomIdNumber], exact: true });
           void queryClient.invalidateQueries({ queryKey: ["items"] });
+          void queryClient.invalidateQueries({ queryKey: ["myExchanges"] });
+          if (user?.userId) {
+            void queryClient.invalidateQueries({ queryKey: ["myItems", user.userId] });
+          }
           return;
         }
         const normalized: ChatMessage = {

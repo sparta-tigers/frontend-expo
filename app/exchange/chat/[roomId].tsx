@@ -42,14 +42,20 @@ export default function ChatRoomScreen() {
     },
     onSuccess: async () => {
       // 🔄 전역 캐시 동기화 (Zero Magic: 도메인 지식이 상위 레이어에 응집됨)
-      await Promise.all([
+      const invalidations = [
         queryClient.invalidateQueries({ queryKey: ["exchangeItem", roomIdNumber], exact: true }),
         queryClient.invalidateQueries({ queryKey: ["items"] }),
         queryClient.invalidateQueries({ queryKey: ["myExchanges"] }),
-        user?.userId 
-          ? queryClient.invalidateQueries({ queryKey: ["myItems", user.userId] })
-          : Promise.resolve(),
-      ]);
+      ];
+
+      if (user?.userId) {
+        invalidations.push(
+          queryClient.invalidateQueries({ queryKey: ["myItems", user.userId] })
+        );
+      }
+
+      // 🛡️ Fail-safe: 개별 무효화 실패가 전체 UI 흐름(성공 알람)을 방해하지 않도록 보장
+      await Promise.allSettled(invalidations);
       Alert.alert("성공", "거래 상태가 업데이트되었습니다.");
     },
   });

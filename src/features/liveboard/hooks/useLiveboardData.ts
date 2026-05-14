@@ -31,8 +31,8 @@ export const useLiveboardData = (matchId: number) => {
         connectCount: room.connectCount,
       };
     },
-    staleTime: 1000 * 10, // 중계 데이터는 신선도가 중요하므로 10초로 설정
-    refetchInterval: 1000 * 30, // 30초마다 자동 폴링 (임시)
+    staleTime: 1000 * 30, // 🛰️ 30초 폴링 주기와 일치시켜 주기 내에서는 캐시 신선도 유지
+    refetchInterval: 1000 * 30, // 30초마다 자동 폴링
     enabled: !!matchId,
   });
 };
