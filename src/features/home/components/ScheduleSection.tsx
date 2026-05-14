@@ -68,6 +68,8 @@ export const ScheduleSection = React.memo(function ScheduleSection({
             justify="center"
             borderWidth={LOCAL_LAYOUT.borderWidth}
             borderColor="team.neutralLight"
+            accessibilityRole="alert"
+            accessibilityLabel="일정 데이터를 불러오지 못했습니다"
           >
             <Typography variant="caption" color="brand.subtitle" mb="md">일정 데이터를 불러오지 못했습니다.</Typography>
           </Box>
