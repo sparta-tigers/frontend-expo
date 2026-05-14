@@ -72,3 +72,6 @@ repomix.config.json
 
 # GSD Planning
 .planning/
+
+# fat files 보고서 스크립트 결과물
+docs/fat-file

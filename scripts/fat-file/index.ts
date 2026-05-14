@@ -18,7 +18,13 @@ async function runPipeline() {
     excludeDirs: ["node_modules", "dist", ".expo", ".kiro"]
   });
 
-  writeFileSync(".kiro/specs/fat-file-refactoring/scan-result.json", JSON.stringify(scanResults, null, 2), "utf-8");
+  const OUTPUT_DIR = "docs/fat-file";
+  const fs = await import("fs");
+  if (!fs.existsSync(OUTPUT_DIR)) {
+    fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+  }
+
+  writeFileSync(`${OUTPUT_DIR}/scan-result.json`, JSON.stringify(scanResults, null, 2), "utf-8");
 
   console.log(`Found ${scanResults.length} fat files (>= 500 LoC).`);
 
@@ -36,13 +42,13 @@ async function runPipeline() {
   }
 
   // Generate refactoring_spec.md
-  console.log(`Writing .kiro/specs/fat-file-refactoring/refactoring_spec.md...`);
+  console.log(`Writing ${OUTPUT_DIR}/refactoring_spec.md...`);
   const mdContent = renderMarkdown(specs);
-  writeFileSync(".kiro/specs/fat-file-refactoring/refactoring_spec.md", mdContent, "utf-8");
+  writeFileSync(`${OUTPUT_DIR}/refactoring_spec.md`, mdContent, "utf-8");
 
   // Plan Tasks
   const tasks = planTasks(specs);
-  writeFileSync(".kiro/specs/fat-file-refactoring/generated-tasks.json", JSON.stringify(tasks, null, 2), "utf-8");
+  writeFileSync(`${OUTPUT_DIR}/generated-tasks.json`, JSON.stringify(tasks, null, 2), "utf-8");
 
   // Output instructions to update tasks.md
   console.log("Done! Refactoring Spec generated.");
