@@ -1,37 +1,6 @@
 import { apiClient } from "@/src/core/client";
-import { ApiResponse } from "@/src/shared/types/common";
 import { MatchLineupDto, MatchWeatherDto } from "./types";
-import { MatchRoomDto } from "@/src/shared/types/match";
 
-/**
- * 특정 날짜의 라이브보드 방 목록 조회
- * @param anyday yyyyMMdd 형식의 날짜 문자열 (생략 시 오늘)
- */
-export const fetchLiveBoardRooms = async (
-  anyday?: string,
-): Promise<MatchRoomDto[]> => {
-  const response = await apiClient.get<ApiResponse<MatchRoomDto[]>>(
-    "/api/live-boards/rooms",
-    {
-      ...(anyday ? { anyday } : {}),
-    },
-  );
-  return response.data ?? [];
-};
-
-/**
- * 특정 경기의 라이브보드 방 정보 단일 조회
- * Why: 클라이언트 사이드 필터링 비효율성을 제거하기 위해 백엔드에 추가된 전용 API 호출.
- * @param matchId 경기 ID
- */
-export const fetchLiveBoardRoom = async (
-  matchId: number,
-): Promise<MatchRoomDto | null> => {
-  const response = await apiClient.get<ApiResponse<MatchRoomDto>>(
-    `/api/liveboard/room/${matchId}`,
-  );
-  return response.data ?? null;
-};
 
 /**
  * 특정 경기의 홈/어웨이 라인업 조회

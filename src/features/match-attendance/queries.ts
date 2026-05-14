@@ -1,14 +1,15 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
-import { 
-  attendanceGetMyAPI, 
-  attendanceCreateAPI, 
-  attendanceUpdateAPI,
-  attendanceDeleteAPI,
-  attendanceGetDetailAPI,
-  attendanceGetMyByMatchIdAPI,
-  attendanceGetCountAPI
+import {
+    attendanceCreateAPI,
+    attendanceDeleteAPI,
+    attendanceGetCountAPI,
+    attendanceGetDetailAPI,
+    attendanceGetMyAPI,
+    attendanceGetMyByMatchIdAPI,
+    attendanceUpdateAPI
 } from "./api";
+export type { RNFormDataFile, RNFormDataString } from "./types";
 
 /**
  * 🚨 앙드레 카파시: 직관 기록 관련 TanStack Query 훅 모음
@@ -115,8 +116,8 @@ export const useCreateAttendance = () => {
   return useMutation({
     mutationFn: (formData: FormData) => attendanceCreateAPI(formData),
     onSuccess: () => {
-      // 🚨 목록 쿼리들 무효화
-      return queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() });
+      // 🚨 [Phase 42] 생성 성공 시 모든 직관 관련 캐시 무효화 (결정론적 동기화)
+      return queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
     },
   });
 };
@@ -130,12 +131,9 @@ export const useUpdateAttendance = () => {
   return useMutation({
     mutationFn: ({ id, formData }: { id: number; formData: FormData }) => 
       attendanceUpdateAPI(id, formData),
-    onSuccess: (_, variables) => {
-      // 🚨 수정된 항목의 상세 캐시와 목록 캐시만 무효화
-      return Promise.all([
-        queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() }),
-        queryClient.invalidateQueries({ queryKey: attendanceKeys.detail(variables.id) }),
-      ]);
+    onSuccess: () => {
+      // 🚨 [Phase 42] prefix 매칭으로 모든 직관 관련 캐시 한 번에 무효화
+      return queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
     },
   });
 };

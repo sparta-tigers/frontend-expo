@@ -51,3 +51,16 @@ export interface TicketOcrResponseDto {
   imageUrl: string;
   seat: string;
 }
+
+/**
+ * 🚨 [Zero Magic] React Native FormData 전용 인터페이스
+ * Why: RN의 FormData.append()는 표준 브라우저와 달리 uri, name, type 필드를 가진 객체를 허용함.
+ * any 사용을 지양하고 타입 안정성을 확보하기 위해 명시적으로 정의.
+ */
+export interface RNFormDataFile {
+  uri: string;
+  name: string;
+  type: string;
+}
+
+export type RNFormDataString = string;
