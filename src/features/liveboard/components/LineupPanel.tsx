@@ -1,7 +1,7 @@
 // src/features/liveboard/components/LineupPanel.tsx
 import { Box } from "@/components/ui/box";
 import { Typography } from "@/components/ui/typography";
-import { LineupSection } from "@/src/features/home/components/LineupSection";
+import { LineupSection } from "@/src/shared/components/match/LineupSection";
 import { theme } from "@/src/styles/theme";
 import { findTeamMeta, getTeamBgStyle } from "@/src/utils/team";
 import { MaterialIcons } from "@expo/vector-icons";

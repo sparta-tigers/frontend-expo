@@ -1,23 +1,6 @@
 // src/features/home/types/dashboard.ts
 import { IconSymbolName } from "@/components/ui/icon-symbol";
-
-/**
- * 라인업 항목 데이터 모델
- *
- * Why: 홈 화면의 라인업 섹션에서 선수 개별 정보(이름, 포지션, 실시간 성적 등)를 표시하기 위함.
- */
-export interface LineupRowDto {
-  /** 타순 (예: "1", "2") */
-  battingOrder: string;
-  /** 선수 이름 */
-  name: string;
-  /** 수비 포지션 (예: "DH", "CF") */
-  position: string;
-  /** 안타 수 (실시간) */
-  hits?: number;
-  /** 타점 (실시간) */
-  rbis?: number;
-}
+import { LineupRowDto } from "@/src/shared/types/lineup";
 
 /**
  * 미니 통계(카드) 데이터 모델
