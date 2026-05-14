@@ -9,6 +9,7 @@ import {
   attendanceGetMyByMatchIdAPI,
   attendanceGetCountAPI
 } from "./api";
+export type { RNFormDataFile, RNFormDataString } from "./types";
 
 /**
  * 🚨 앙드레 카파시: 직관 기록 관련 TanStack Query 훅 모음

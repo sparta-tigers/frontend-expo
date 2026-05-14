@@ -5,16 +5,18 @@ import {
   useCreateAttendance,
   useMyAttendanceByMatchId,
   useUpdateAttendance,
+  RNFormDataFile,
+  RNFormDataString,
 } from "@/src/features/match-attendance/queries";
-import { useQueryClient } from "@tanstack/react-query";
 import { theme } from "@/src/styles/theme";
+import { Logger } from "@/src/utils/logger";
 import { Ionicons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Logger } from "@/src/utils/logger";
 import {
   ActivityIndicator,
   Alert,
@@ -47,8 +49,9 @@ export default function AttendanceFormScreen() {
   const { matchId } = useLocalSearchParams<{ matchId: string }>();
   const matchIdNumber = Number(matchId);
   const logger = Logger.category("APP");
-  
-  const { data: attendance, isLoading: isAttendanceLoading } = useMyAttendanceByMatchId(matchIdNumber);
+
+  const { data: attendance, isLoading: isAttendanceLoading } =
+    useMyAttendanceByMatchId(matchIdNumber);
   const createAttendanceMutation = useCreateAttendance();
   const updateAttendanceMutation = useUpdateAttendance();
   const queryClient = useQueryClient();
@@ -69,7 +72,7 @@ export default function AttendanceFormScreen() {
       setExistingId(attendance.id);
       setContents(attendance.contents);
       setSeat(attendance.seat);
-      setImages(attendance.images.map(img => img.imageUrl));
+      setImages(attendance.images.map((img) => img.imageUrl));
     } else {
       // 🎯 [Phase 36] 결정론적 상태 리셋: 데이터 부재 시(기록 없음 등) 폼 초기화
       setExistingId(null);
@@ -167,15 +170,29 @@ export default function AttendanceFormScreen() {
     try {
       const formData = new FormData();
 
-      const oldImageUrls = images.filter((img) => img.startsWith("http"));
-
-      // Request DTO (JSON Blob)
+      // 🎯 [Phase 41] 앙드레 카파시: 백엔드 DTO와 1:1 매핑 (Zero Magic)
+      // trim()을 통해 불필요한 공백 제거 후 전송
       const requestDto = existingId
-        ? { seat, contents, oldImageUrls }
-        : { matchId: matchIdNumber, seat, contents };
+        ? {
+            seat: seat.trim(),
+            contents: contents?.trim() || "",
+            oldImageUrls: images.filter((img) => img.startsWith("http")),
+          }
+        : {
+            matchId: matchIdNumber,
+            seat: seat.trim(),
+            contents: contents?.trim() || "",
+          };
 
-      // multipart/form-data의 JSON 파트는 문자열로 전송 (RN 표준 FormData append)
-      formData.append("request", JSON.stringify(requestDto));
+      /**
+       * 🎯 [Zero Magic] as any 대신 명시적 타입 선언 후 Blob으로 우회 캐스팅.
+       * 이렇게 하면 객체 생성 시점에 오타를 TS가 완벽히 잡아냅니다.
+       */
+      const requestPart: RNFormDataString = {
+        string: JSON.stringify(requestDto),
+        type: "application/json",
+      };
+      formData.append("request", requestPart as unknown as Blob);
 
       // New Image Processing
       const newImages = images.filter((img) => !img.startsWith("http"));
@@ -186,15 +203,16 @@ export default function AttendanceFormScreen() {
           { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG },
         );
 
-        // [Phase 33] 정규식 기반 MIME 추론 제거 및 타임스탬프 기반 안전한 파일명 생성
         const timestamp = Date.now();
         const filename = `attendance_${matchIdNumber}_${timestamp}.jpg`;
 
-        formData.append("images", {
+        const imagePart: RNFormDataFile = {
           uri: manipulatedImage.uri,
           name: filename,
           type: "image/jpeg",
-        });
+        };
+
+        formData.append("images", imagePart as unknown as Blob);
       }
 
       if (existingId) {
@@ -209,7 +227,9 @@ export default function AttendanceFormScreen() {
       // 🚨 [Phase 34] 쿼리 무효화 정상화
       // 🚨 [Zero Magic UX] Alert 노출 전 백그라운드에서 캐시 갱신을 시작함.
       // 사용자가 Alert을 확인하는 동안 갱신이 진행되도록 await 대신 void 사용.
-      queryClient.invalidateQueries({ queryKey: attendanceKeys.byMatch(matchIdNumber) }).catch((err) => logger.error("Invalidate failed", err));
+      queryClient
+        .invalidateQueries({ queryKey: attendanceKeys.byMatch(matchIdNumber) })
+        .catch((err) => logger.error("Invalidate failed", err));
 
       Alert.alert("성공", "직관 기록이 저장되었습니다.", [
         { text: "확인", onPress: () => router.replace("/(tabs)/history") },
