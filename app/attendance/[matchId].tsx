@@ -70,9 +70,11 @@ export default function AttendanceFormScreen() {
   useEffect(() => {
     if (attendance) {
       setExistingId(attendance.id);
-      setContents(attendance.contents);
-      setSeat(attendance.seat);
-      setImages(attendance.images.map((img) => img.imageUrl));
+      setContents(attendance.contents || "");
+      setSeat(attendance.seat || "");
+      // 🛡️ [Senior Architect] images 필드 유무 및 타입 체크 강화
+      const safeImages = Array.isArray(attendance.images) ? attendance.images : [];
+      setImages(safeImages.map((img) => img.imageUrl));
     } else {
       // 🎯 [Phase 36] 결정론적 상태 리셋: 데이터 부재 시(기록 없음 등) 폼 초기화
       setExistingId(null);

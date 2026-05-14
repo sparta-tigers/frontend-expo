@@ -116,8 +116,8 @@ export const useCreateAttendance = () => {
   return useMutation({
     mutationFn: (formData: FormData) => attendanceCreateAPI(formData),
     onSuccess: () => {
-      // 🚨 목록 쿼리들 무효화
-      return queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() });
+      // 🚨 [Phase 42] 생성 성공 시 모든 직관 관련 캐시 무효화 (결정론적 동기화)
+      return queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
     },
   });
 };
@@ -132,10 +132,11 @@ export const useUpdateAttendance = () => {
     mutationFn: ({ id, formData }: { id: number; formData: FormData }) => 
       attendanceUpdateAPI(id, formData),
     onSuccess: (_, variables) => {
-      // 🚨 수정된 항목의 상세 캐시와 목록 캐시만 무효화
+      // 🚨 [Phase 42] 수정된 항목의 상세 캐시, 특정 경기 조회 캐시, 전체 목록 캐시 모두 무효화
       return Promise.all([
         queryClient.invalidateQueries({ queryKey: attendanceKeys.lists() }),
         queryClient.invalidateQueries({ queryKey: attendanceKeys.detail(variables.id) }),
+        queryClient.invalidateQueries({ queryKey: attendanceKeys.all }), // 🎯 폭넓은 무효화로 정합성 보장
       ]);
     },
   });
