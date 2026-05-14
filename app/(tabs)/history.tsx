@@ -14,6 +14,7 @@ import {
     StyleSheet,
     TouchableOpacity,
 } from "react-native";
+import { Logger } from "@/src/utils/logger";
 
 /**
  * 🚨 [Phase 24] 직관 기록 목록 화면 (Match Diary)
@@ -152,7 +153,9 @@ export default function HistoryScreen() {
             refreshing={isRefetching}
             onEndReached={() => {
               if (hasNextPage && !isFetchingNextPage) {
-                fetchNextPage().catch(() => {});
+                fetchNextPage().catch((err) => {
+                  Logger.error("[History] Pagination failed:", err);
+                });
               }
             }}
             onEndReachedThreshold={0.5}
