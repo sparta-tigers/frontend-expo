@@ -12,7 +12,7 @@ import {
   getCurrentDay, 
   getRelativeMonth 
 } from "@/src/utils/date";
-import { findTeamMeta, TeamCode } from "@/src/utils/team";
+import { findTeamMeta, isValidTeamCode } from "@/src/utils/team";
 import { ThemeColorPath } from "@/src/shared/types/theme";
 
 /**
@@ -24,7 +24,7 @@ import { ThemeColorPath } from "@/src/shared/types/theme";
  */
 export const useScheduleScreen = () => {
   const { myTeam } = useAuth();
-  const activeTeamCode = (myTeam as TeamCode) || "KIA";
+  const activeTeamCode = (myTeam && isValidTeamCode(myTeam) ? myTeam : "KIA");
 
   // 1. [SSOT] URL 파라미터 기반 상태 관리
   const params = useLocalSearchParams<{

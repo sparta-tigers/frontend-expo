@@ -114,7 +114,7 @@ export default function ScheduleScreen() {
     return (
       <Box flex={1} bg="background">
         <Stack.Screen options={{ headerShown: false }} />
-        <BrandingHeader team={activeTeam as TeamMeta} />
+        {activeTeam && <BrandingHeader team={activeTeam} />}
         <ScheduleSkeleton />
       </Box>
     );
@@ -123,7 +123,7 @@ export default function ScheduleScreen() {
     <Box flex={1} bg="background">
       <Stack.Screen options={{ headerShown: false }} />
 
-      <BrandingHeader team={activeTeam as TeamMeta} />
+      {activeTeam && <BrandingHeader team={activeTeam} />}
 
       {isDropdownOpen && (
         <Pressable
