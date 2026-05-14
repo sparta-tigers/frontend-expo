@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 // Feature: fat-file-refactoring
-import { readFileSync, writeFileSync } from "fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
 import { diagnose } from "./diagnosis/index.ts";
 import { scan } from "./scanner/index.ts";
 import { buildSpec, renderMarkdown } from "./spec/index.ts";
@@ -19,9 +19,8 @@ async function runPipeline() {
   });
 
   const OUTPUT_DIR = "scripts/architecture-guard/fat-file/reports";
-  const fs = await import("fs");
-  if (!fs.existsSync(OUTPUT_DIR)) {
-    fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+  if (!existsSync(OUTPUT_DIR)) {
+    mkdirSync(OUTPUT_DIR, { recursive: true });
   }
 
   writeFileSync(
