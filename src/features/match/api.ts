@@ -1,12 +1,13 @@
 import { apiClient } from "@/src/core/client";
+import { ApiResponse } from "@/src/shared/types/common";
 import { MatchScheduleResponse, TeamRankingResponse, LeagueType, MatchRoomDto } from "./types";
 
 /**
  * 전구단 라이브보드 룸(경기 상세) 목록 조회
  */
 export const fetchMatchRooms = async (): Promise<MatchRoomDto[]> => {
-  const response = await apiClient.get<{ data: MatchRoomDto[] }>(`/api/live-boards/rooms`);
-  return response.data;
+  const response = await apiClient.get<ApiResponse<MatchRoomDto[]>>(`/api/live-boards/rooms`);
+  return response.data ?? [];
 };
 
 /**

@@ -1,4 +1,5 @@
 import { apiClient } from "@/src/core/client";
+import { ApiResponse } from "@/src/shared/types/common";
 import { MatchLineupDto, MatchWeatherDto } from "./types";
 import { MatchRoomDto } from "@/src/shared/types/match";
 
@@ -9,9 +10,13 @@ import { MatchRoomDto } from "@/src/shared/types/match";
 export const fetchLiveBoardRooms = async (
   anyday?: string,
 ): Promise<MatchRoomDto[]> => {
-  return await apiClient.get<MatchRoomDto[]>("/api/live-boards/rooms", {
-    ...(anyday ? { anyday } : {}),
-  });
+  const response = await apiClient.get<ApiResponse<MatchRoomDto[]>>(
+    "/api/live-boards/rooms",
+    {
+      ...(anyday ? { anyday } : {}),
+    },
+  );
+  return response.data ?? [];
 };
 
 /**
