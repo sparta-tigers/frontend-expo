@@ -1,9 +1,9 @@
 // src/features/liveboard/hooks/useLiveboardData.ts
-import { useQuery } from "@tanstack/react-query";
 import { fetchMatchRoom } from "@/src/features/match";
-import { LiveboardData } from "../types";
-import { LiveboardMapper } from "../mapper";
 import { Logger } from "@/src/utils/logger";
+import { useQuery } from "@tanstack/react-query";
+import { LiveboardMapper } from "../mapper";
+import { LiveboardData } from "../types";
 
 /**
  * 🛰️ useLiveboardData: 특정 경기의 실시간 중계 데이터를 조회하는 Hook
@@ -17,18 +17,16 @@ export const useLiveboardData = (matchId: number) => {
   return useQuery({
     queryKey: ["liveboard", "data", matchId],
     queryFn: async (): Promise<LiveboardData> => {
-      try {
-        const room = await fetchMatchRoom(matchId);
-        
-        if (!room) {
-          throw new Error(`[useLiveboardData] Room not found for ID: ${matchId}`);
-        }
-
-        return LiveboardMapper.toLiveboardData(room);
-      } catch (error) {
-        Logger.error(`[useLiveboardData] Failed to fetch live data (ID: ${matchId})`, error);
-        throw error;
+      const room = await fetchMatchRoom(matchId);
+      
+      if (!room) {
+        throw new Error(`[useLiveboardData] Room not found for ID: ${matchId}`);
       }
+
+      return LiveboardMapper.toLiveboardData(room);
+    },
+    onError: (error) => {
+      Logger.error(`[useLiveboardData] Failed to fetch live data (ID: ${matchId})`, error);
     },
     staleTime: 1000 * 30, // 🛰️ 30초 폴링 주기와 일치시켜 주기 내에서는 캐시 신선도 유지
     refetchInterval: 1000 * 30, // 30초마다 자동 폴링
