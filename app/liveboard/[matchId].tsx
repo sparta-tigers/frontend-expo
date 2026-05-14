@@ -64,12 +64,16 @@ export default function LiveboardDetailScreen() {
     );
   }
 
-  if (isError || (!isLoading.match && !match)) {
+  // 🚀 Step 2: 정적 경기 정보(match) 로드 실패 시에만 전체 에러 화면 표시
+  if (isError.match && !match) {
     return (
       <SafeLayout style={styles.container} edges={["left", "right"]}>
-        <Box flex={1} justify="center" align="center">
-          <Typography color="error">
-            경기 정보를 불러오지 못했습니다.
+        <Box flex={1} justify="center" align="center" px="xl">
+          <Typography color="error" variant="h3" weight="bold">
+            경기 정보 오류
+          </Typography>
+          <Typography color="text.secondary" mt="sm" center>
+            매치 데이터를 불러오는 중 에러가 발생했습니다.
           </Typography>
         </Box>
       </SafeLayout>
