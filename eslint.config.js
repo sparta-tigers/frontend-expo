@@ -9,7 +9,7 @@ const reactHooks = require("eslint-plugin-react-hooks");
 module.exports = defineConfig([
   expoConfig,
   {
-    ignores: ["dist/*", ".expo/**", "scripts/", "inject-tasks.ts"],
+    ignores: ["dist/*", ".expo/**", "scripts/", "inject-tasks.ts", "eslint.config.js"],
   },
   // 1. 전역(Global) 플러그인 및 룰 설정을 먼저 배치합니다.
   {

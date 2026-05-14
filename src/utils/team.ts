@@ -1,4 +1,4 @@
-import { StyleSheet, ImageSourcePropType, ViewStyle, TextStyle } from "react-native";
+import { StyleSheet, ImageSourcePropType, ViewStyle } from "react-native";
 import { theme } from "@/src/styles/theme";
 
 /**
@@ -227,7 +227,7 @@ export function findTeamMeta(identifier: string | null | undefined): TeamMeta {
  * 🎨 TEAM_STYLES: 전 구단 공통 스타일 맵 (StyleSheet 사전 정의)
  */
 export const TEAM_STYLES = StyleSheet.create(
-  Object.entries(TEAM_DATA).reduce<Record<string, ViewStyle | TextStyle>>((acc, [code, meta]) => {
+  Object.entries(TEAM_DATA).reduce<Record<string, unknown>>((acc, [code, meta]) => {
     const teamCode = code as TeamCode;
     acc[teamCode] = {
       backgroundColor: meta.color,
@@ -236,15 +236,16 @@ export const TEAM_STYLES = StyleSheet.create(
       color: meta.color,
     };
     return acc;
-  }, {})
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }, {} as any) as any,
 );
 
 /**
  * 💅 getTeamBgStyle: 구단 배경색 스타일 반환 (하위 호환성용)
  */
-export function getTeamBgStyle(identifier: string | null | undefined) {
+export function getTeamBgStyle(identifier: string | null | undefined): ViewStyle {
   const meta = findTeamMeta(identifier);
-  return TEAM_STYLES[meta.id] || TEAM_STYLES.DEFAULT;
+  return (TEAM_STYLES[meta.id] || TEAM_STYLES.DEFAULT) as ViewStyle;
 }
 
 /**
