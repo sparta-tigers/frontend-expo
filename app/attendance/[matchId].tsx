@@ -189,13 +189,10 @@ export default function AttendanceFormScreen() {
           };
 
       /**
-       * 🎯 [Zero Magic] as any 대신 명시적 타입 선언 후 Blob으로 우회 캐스팅.
-       * 이렇게 하면 객체 생성 시점에 오타를 TS가 완벽히 잡아냅니다.
+       * 🎯 [Zero Magic] RNFormDataString은 문자열 타입이므로 직접 JSON 문자열 전달
+       * FormData.append()가 자동으로 문자열을 Blob으로 변환함
        */
-      const requestPart: RNFormDataString = {
-        string: JSON.stringify(requestDto),
-        type: "application/json",
-      };
+      const requestPart: RNFormDataString = JSON.stringify(requestDto);
       formData.append("request", requestPart as unknown as Blob);
 
       // New Image Processing

@@ -14,19 +14,21 @@ import { LiveboardData } from "../types";
  * 3. 향후 WebSocket이나 폴링(Polling) 전략을 이 훅 내부에서만 교체할 수 있음.
  */
 export const useLiveboardData = (matchId: number) => {
-  return useQuery({
+  return useQuery<LiveboardData>({
     queryKey: ["liveboard", "data", matchId],
     queryFn: async (): Promise<LiveboardData> => {
-      const room = await fetchMatchRoom(matchId);
-      
-      if (!room) {
-        throw new Error(`[useLiveboardData] Room not found for ID: ${matchId}`);
-      }
+      try {
+        const room = await fetchMatchRoom(matchId);
+        
+        if (!room) {
+          throw new Error(`[useLiveboardData] Room not found for ID: ${matchId}`);
+        }
 
-      return LiveboardMapper.toLiveboardData(room);
-    },
-    onError: (error) => {
-      Logger.error(`[useLiveboardData] Failed to fetch live data (ID: ${matchId})`, error);
+        return LiveboardMapper.toLiveboardData(room);
+      } catch (error) {
+        Logger.error(`[useLiveboardData] Failed to fetch live data (ID: ${matchId})`, error);
+        throw error;
+      }
     },
     staleTime: 1000 * 30, // 🛰️ 30초 폴링 주기와 일치시켜 주기 내에서는 캐시 신선도 유지
     refetchInterval: 1000 * 30, // 30초마다 자동 폴링
