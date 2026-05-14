@@ -1,12 +1,14 @@
 import { Box, Typography } from "@/components/ui";
 import { SafeLayout } from "@/components/ui/safe-layout";
+import type {
+  RNFormDataFile,
+  RNFormDataString,
+} from "@/src/features/match-attendance/queries";
 import {
   attendanceKeys,
   useCreateAttendance,
   useMyAttendanceByMatchId,
   useUpdateAttendance,
-  RNFormDataFile,
-  RNFormDataString,
 } from "@/src/features/match-attendance/queries";
 import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
