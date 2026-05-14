@@ -178,7 +178,7 @@ export function useWebSocket(
 
   const disconnect = useCallback(() => {
     if (clientRef.current?.connected) {
-      void clientRef.current.deactivate();
+      clientRef.current.deactivate().catch((err) => chatLogger.warn("deactivate failed", err));
     }
     connectingRef.current = false;
     setStatus("DISCONNECTED");
@@ -201,7 +201,7 @@ export function useWebSocket(
 
     return () => {
       if (clientRef.current?.connected) {
-        void clientRef.current.deactivate();
+        clientRef.current.deactivate().catch((err) => chatLogger.warn("cleanup deactivate failed", err));
       }
       clientRef.current = null;
       connectingRef.current = false;

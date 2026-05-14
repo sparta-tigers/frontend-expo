@@ -75,13 +75,15 @@ export function usePushNotifications() {
       }
     };
 
-    // 비동기 함수 실행 및 토큰 설정 (로컬 토큰 발급만 담당)
-    void registerForPushNotificationsAsync().then((token) => {
+    const initToken = async () => {
+      const token = await registerForPushNotificationsAsync();
       if (!token) return;
 
       setExpoPushToken(token);
       pushLogger.debug("Expo Push Token 발급 완료", maskSensitive(token));
-    });
+    };
+
+    void initToken();
 
     // 채널 설정 (Android)
     const setupNotificationChannel = async () => {

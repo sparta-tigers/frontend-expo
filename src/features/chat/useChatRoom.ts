@@ -259,7 +259,9 @@ export function useChatRoom(
   useEffect(() => {
     const sub = AppState.addEventListener("change", (s) => {
       if (s === "active") void connect();
-      else if (s === "background") void client?.deactivate();
+      else if (s === "background") {
+        client?.deactivate().catch((err) => Logger.error("[ChatRoom] Deactivate failed", err));
+      }
     });
     return () => sub.remove();
   }, [client, connect]);
