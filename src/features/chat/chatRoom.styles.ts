@@ -162,4 +162,7 @@ export const styles = StyleSheet.create({
     fontWeight: "600",
     color: theme.colors.background,
   },
+  processingButton: {
+    opacity: 0.5,
+  },
 });
