@@ -340,8 +340,8 @@ export default function ItemDetailScreen() {
 
   const { mutate: deleteItem } = useMutation({
     mutationFn: () => itemsDeleteAPI(Number(id)),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["items"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["items"] });
       router.replace("/(tabs)/exchange");
     },
     onError: () => {

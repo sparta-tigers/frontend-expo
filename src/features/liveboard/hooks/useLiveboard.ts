@@ -243,8 +243,7 @@ export function useLiveboard(): UseLiveboardReturn {
     isLoading,
     isError: isWeekError || isSelectedDayError,
     refetch: () => {
-      void refetchWeek();
-      void refetchSelectedDay();
+      return Promise.all([refetchWeek(), refetchSelectedDay()]);
     },
   };
 }
