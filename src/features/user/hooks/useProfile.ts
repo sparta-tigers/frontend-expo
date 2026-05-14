@@ -170,7 +170,9 @@ export function useProfile() {
         : await favoriteTeamAddAPI({ teamCode: team.code });
 
       if (response.resultType === "SUCCESS") {
-        await queryClient.invalidateQueries({ queryKey: favoriteTeamKeys.mine() });
+        queryClient.invalidateQueries({ queryKey: favoriteTeamKeys.mine() }).catch((err) => {
+          Logger.error("즐겨찾기 캐시 무효화 실패 (서버 저장은 성공):", err);
+        });
         Alert.alert("성공", `${team.name}을 즐겨찾기에 ${teamExists ? "변경" : "추가"}했습니다.`);
       } else {
         Alert.alert("오류", `즐겨찾기 ${teamExists ? "변경" : "추가"}에 실패했습니다.`);
@@ -199,7 +201,9 @@ export function useProfile() {
             try {
               const response = await favoriteTeamDeleteAPI();
               if (response.resultType === "SUCCESS") {
-                await queryClient.invalidateQueries({ queryKey: favoriteTeamKeys.mine() });
+                queryClient.invalidateQueries({ queryKey: favoriteTeamKeys.mine() }).catch((err) => {
+                  Logger.error("즐겨찾기 삭제 캐시 무효화 실패 (서버 삭제는 성공):", err);
+                });
                 Alert.alert("성공", `${team.teamName}을 즐겨찾기에서 삭제했습니다.`);
               } else {
                 Alert.alert("오류", "즐겨찾기 삭제에 실패했습니다.");

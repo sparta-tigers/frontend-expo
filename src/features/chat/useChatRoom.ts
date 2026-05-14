@@ -164,10 +164,26 @@ export function useChatRoom(
             return { pages: [{ content: [newMessage], hasNext: false }], pageParams: [0] };
           }
           const prevContent = oldData.pages[0].content;
-          // 🛡️ 엣지 케이스 방어: 동일 내용 메시지 연타 시 조기 삭제 방지를 위해 ID 기반 필터링 강화
-          const cleanList = prevContent.filter(
-            (msg) => !(msg.id < 0 && msg.id === newMessage.id)
-          );
+          // 🛡️ 중복 제거 로직 강화: 
+          // 1. 낙관적 메시지(음수 ID)끼리의 중복 제거
+          // 2. 서버 에코 수신 시, 동일 내용/작성자의 낙관적 메시지 교체
+          const cleanList = prevContent.filter((msg) => {
+            // 동일한 낙관적 ID 제거
+            if (msg.id < 0 && msg.id === newMessage.id) return false;
+            
+            // 서버 확정 메시지(양수) 수신 시, 매칭되는 내 낙관적 메시지 제거
+            if (
+              msg.id < 0 && 
+              newMessage.id > 0 && 
+              msg.isMine && 
+              newMessage.isMine &&
+              msg.content === newMessage.content
+            ) {
+              return false;
+            }
+            return true;
+          });
+          
           if (cleanList.some((msg) => msg.id === newMessage.id)) return oldData;
           const nextPages = [...oldData.pages];
           nextPages[0] = { ...nextPages[0], content: [newMessage, ...cleanList] };
