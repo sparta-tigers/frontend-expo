@@ -197,11 +197,13 @@ export default function ApplyExchangeScreen() {
       }
       return response.data;
     },
-    onSuccess: (data: ExchangeRoomResponseDto | null) => {
+    onSuccess: async (data: ExchangeRoomResponseDto | null) => {
       const roomId = data?.directRoomId ?? data?.roomId;
 
-      void queryClient.invalidateQueries({ queryKey: ["item", id] });
-      void queryClient.invalidateQueries({ queryKey: ["exchangeRequests"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["item", id] }),
+        queryClient.invalidateQueries({ queryKey: ["exchangeRequests"] }),
+      ]);
 
       if (roomId) {
         Alert.alert("성공", "교환 제안이 전달되었습니다!");

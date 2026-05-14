@@ -311,10 +311,12 @@ export default function ItemDetailScreen() {
       if (response.resultType !== "SUCCESS") throw new Error("status update failed");
       return true;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       Alert.alert("성공", "상태가 변경되었습니다.");
-      void queryClient.invalidateQueries({ queryKey: ["item", id] });
-      void queryClient.invalidateQueries({ queryKey: ["items"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["item", id] }),
+        queryClient.invalidateQueries({ queryKey: ["items"] }),
+      ]);
     },
     onError: () => {
       Alert.alert("오류", "상태 변경에 실패했습니다.");

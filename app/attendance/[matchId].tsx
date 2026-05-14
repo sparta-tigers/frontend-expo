@@ -207,7 +207,7 @@ export default function AttendanceFormScreen() {
       }
 
       // 🚨 [Phase 34] 쿼리 무효화 정상화
-      void queryClient.invalidateQueries({ queryKey: attendanceKeys.byMatch(matchIdNumber) });
+      await queryClient.invalidateQueries({ queryKey: attendanceKeys.byMatch(matchIdNumber) });
 
       Alert.alert("성공", "직관 기록이 저장되었습니다.", [
         { text: "확인", onPress: () => router.replace("/(tabs)/history") },
