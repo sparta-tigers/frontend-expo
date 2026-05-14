@@ -14,6 +14,7 @@ module.exports = defineConfig([
       ".expo/**",
       "scripts/architecture-guard/**",
       "eslint.config.js",
+      ".dependency-cruiser.js",
     ],
   },
   // 1. 전역(Global) 플러그인 및 룰 설정을 먼저 배치합니다.

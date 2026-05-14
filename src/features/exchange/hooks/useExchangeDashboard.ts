@@ -86,7 +86,7 @@ export function useExchangeDashboard() {
     const item = filteredItems.find((i) => i.id === itemId);
     const index = filteredItems.findIndex((i) => i.id === itemId);
 
-    if (item && item.latitude && item.longitude) {
+    if (item && item.latitude != null && item.longitude != null) {
       // 1. 지도 이동
       mapRef.current?.animateToRegion({
         latitude: item.latitude,

@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchLiveBoardRooms } from "../api";
 import { LiveboardData } from "../types";
+import { LiveboardMapper } from "../mapper";
 
 /**
  * 🛰️ useLiveboardData: 특정 경기의 실시간 중계 데이터를 조회하는 Hook
@@ -22,14 +23,7 @@ export const useLiveboardData = (matchId: number) => {
         throw new Error("중계 정보를 찾을 수 없습니다.");
       }
 
-      // LiveboardData 모델로 변환
-      return {
-        matchId: room.matchId,
-        liveBoardStatus: room.liveBoardStatus,
-        nowCast: room.nowCast,
-        foreCast: room.foreCast,
-        connectCount: room.connectCount,
-      };
+      return LiveboardMapper.toLiveboardData(room);
     },
     staleTime: 1000 * 30, // 🛰️ 30초 폴링 주기와 일치시켜 주기 내에서는 캐시 신선도 유지
     refetchInterval: 1000 * 30, // 30초마다 자동 폴링
