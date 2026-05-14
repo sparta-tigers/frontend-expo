@@ -7,7 +7,8 @@ import {
   PlayerPosition, 
   MatchDetail, 
   MatchScheduleDto, 
-  RankingRowDto 
+  RankingRowDto,
+  MatchRoomDto
 } from "@/src/shared/types/match";
 
 /**
@@ -26,7 +27,8 @@ export type {
   PlayerPosition, 
   MatchDetail, 
   MatchScheduleDto, 
-  RankingRowDto 
+  RankingRowDto,
+  MatchRoomDto
 };
 
 export interface MatchScheduleResponse {

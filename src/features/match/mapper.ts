@@ -1,6 +1,5 @@
 import { findTeamMeta } from "@/src/utils/team";
-import { MatchScheduleDto, MatchSummary, MatchDetail, MatchTeamInfo, RankingRowDto, RankingUIModel } from "./types";
-import { LiveBoardRoomDto } from "@/src/features/liveboard/types";
+import { MatchScheduleDto, MatchSummary, MatchDetail, MatchTeamInfo, RankingRowDto, RankingUIModel, MatchRoomDto } from "./types";
 
 /**
  * 🏛️ MatchMapper: API DTO를 UI 친화적인 모델로 변환하는 중앙 로직
@@ -48,9 +47,9 @@ export class MatchMapper {
   }
 
   /**
-   * 🔬 라이브보드 룸 DTO를 상세 UI 모델로 변환
+   * 🔬 경기 상세 DTO를 상세 UI 모델로 변환
    */
-  static toDetail(dto: LiveBoardRoomDto, myTeamCode?: string): MatchDetail {
+  static toDetail(dto: MatchRoomDto, myTeamCode?: string): MatchDetail {
     const homeMeta = findTeamMeta(dto.homeTeamCode) || findTeamMeta("DEFAULT");
     const awayMeta = findTeamMeta(dto.awayTeamCode) || findTeamMeta("DEFAULT");
 

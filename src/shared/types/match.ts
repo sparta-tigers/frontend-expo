@@ -1,6 +1,7 @@
 // src/shared/types/match.ts
 
 import { TeamMeta } from "@/src/utils/team";
+import { NowCastDto, ForeCastDto } from "@/src/shared/types/weather";
 
 export type MatchStatus = "READY" | "ONGOING" | "FINISHED" | "CANCELLED" | "POSTPONED";
 export type LiveBoardStatus = "PRE" | "TODAY" | "PAST";
@@ -68,4 +69,27 @@ export interface PlayerPosition {
   name: string;
   x: number;
   y: number;
+}
+
+/**
+ * 🏟️ MatchRoomDto (구 LiveBoardRoomDto)
+ * 
+ * Why: 경기 상세 정보 조회를 위한 DTO. 
+ * Match 도메인과 Liveboard 도메인이 공동으로 참조하는 핵심 정보이므로 shared 레이어에 위치함.
+ */
+export interface MatchRoomDto {
+  roomId: string | null;
+  matchId: number;
+  title: string;
+  matchTime: string; // ISO 8601
+  liveBoardStatus: LiveBoardStatus;
+  awayTeamName: string;
+  awayTeamCode: string;
+  homeTeamName: string;
+  homeTeamCode: string;
+  matchResult: string | null;
+  stadium: string | null;
+  connectCount: number;
+  nowCast: NowCastDto | null;
+  foreCast: ForeCastDto[] | null;
 }
