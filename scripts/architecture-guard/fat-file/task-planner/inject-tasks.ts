@@ -1,16 +1,19 @@
 import { readFileSync, writeFileSync } from "fs";
 
-const tasksPath = ".kiro/specs/fat-file-refactoring/tasks.md";
+const tasksPath = "scripts/architecture-guard/fat-file/tasks.md";
 const tasksMd = readFileSync(tasksPath, "utf-8");
 
 const genTasks = JSON.parse(
   readFileSync(
-    ".kiro/specs/fat-file-refactoring/generated-tasks.json",
+    "scripts/architecture-guard/fat-file/reports/generated-tasks.json",
     "utf-8",
   ),
 );
 const scanResult = JSON.parse(
-  readFileSync(".kiro/specs/fat-file-refactoring/scan-result.json", "utf-8"),
+  readFileSync(
+    "scripts/architecture-guard/fat-file/reports/scan-result.json",
+    "utf-8",
+  ),
 );
 
 let injection = "";

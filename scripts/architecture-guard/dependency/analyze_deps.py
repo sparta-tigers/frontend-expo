@@ -1,6 +1,6 @@
 import json
 
-with open('dependency-report.json', 'r') as f:
+with open('reports/dependency-report.json', 'r') as f:
     data = json.load(f)
 
 modules = data.get('modules', [])
