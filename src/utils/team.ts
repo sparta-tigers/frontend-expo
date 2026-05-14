@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, ImageSourcePropType, ViewStyle, TextStyle } from "react-native";
 import { theme } from "@/src/styles/theme";
 
 /**
@@ -58,7 +58,7 @@ export interface TeamMeta {
   readonly colorToken: TeamColorToken; // 테마 토큰 키
   readonly backendCode: BackendCode; // DB 매핑 코드 (HT, SK, WO 등)
   readonly stadium: string; // 홈 구장명
-  readonly logo?: any; // 구단 로고 에셋 (require 구문 사용 예정)
+  readonly logo?: ImageSourcePropType; // 구단 로고 에셋 (require 구문 사용 예정)
 }
 
 /**
@@ -191,16 +191,16 @@ export const TEAM_DATA: Record<TeamCode, TeamMeta> = {
 /**
  * ⚡ O(1) 조회를 위한 내부 매핑 맵 (Internal Lookup Maps)
  */
-const BACKEND_CODE_MAP = Object.values(TEAM_DATA).reduce((acc, team) => {
+const BACKEND_CODE_MAP: Record<string, TeamMeta> = Object.values(TEAM_DATA).reduce((acc: Record<string, TeamMeta>, team) => {
   acc[team.backendCode] = team;
   return acc;
-}, {} as Record<string, TeamMeta>);
+}, {});
 
-const NAME_MAP = Object.values(TEAM_DATA).reduce((acc, team) => {
+const NAME_MAP: Record<string, TeamMeta> = Object.values(TEAM_DATA).reduce((acc: Record<string, TeamMeta>, team) => {
   acc[team.name.toUpperCase()] = team;
   acc[team.shortName.toUpperCase()] = team;
   return acc;
-}, {} as Record<string, TeamMeta>);
+}, {});
 
 /**
  * 🔍 findTeamMeta: 구단 식별자를 기반으로 결정론적 메타데이터 반환
@@ -227,7 +227,7 @@ export function findTeamMeta(identifier: string | null | undefined): TeamMeta {
  * 🎨 TEAM_STYLES: 전 구단 공통 스타일 맵 (StyleSheet 사전 정의)
  */
 export const TEAM_STYLES = StyleSheet.create(
-  Object.entries(TEAM_DATA).reduce((acc, [code, meta]) => {
+  Object.entries(TEAM_DATA).reduce((acc: Record<string, ViewStyle | TextStyle>, [code, meta]) => {
     const teamCode = code as TeamCode;
     acc[teamCode] = {
       backgroundColor: meta.color,
@@ -236,7 +236,7 @@ export const TEAM_STYLES = StyleSheet.create(
       color: meta.color,
     };
     return acc;
-  }, {} as any) // StyleSheet.create가 최종 타입을 결정함
+  }, {})
 );
 
 /**
