@@ -1,15 +1,11 @@
+// src/shared/types/match.ts
+
 import { TeamMeta } from "@/src/utils/team";
-import { NowCastDto, ForeCastDto } from "./weather";
 
-/**
- * 경기(Match) 도메인 핵심 데이터 타입
- * 
- * Why: Match는 프로젝트의 가장 중요한 엔티티로, 여러 피처에서 참조됨.
- * 피처 간 순환 참조를 방지하기 위해 shared 레이어에서 표준화된 타입을 제공함.
- */
-
-export type LiveBoardStatus = "TODAY" | "UPCOMING" | "PAST";
-export type LeagueType = "REGULAR" | "PRESEASON" | "POST_SEASON";
+export type MatchStatus = "READY" | "ONGOING" | "FINISHED" | "CANCELLED" | "POSTPONED";
+export type LiveBoardStatus = "PRE" | "TODAY" | "PAST";
+export type LeagueType = "DREAM" | "NANUM";
+export type TeamLocation = "H" | "A";
 
 export interface MatchTeamInfo {
   code: string;
@@ -18,63 +14,36 @@ export interface MatchTeamInfo {
 }
 
 /**
- * 🏆 RankingUIModel: 순위 목록 UI에 최적화된 모델
- */
-export interface RankingUIModel extends RankingRowDto {
-  /** 구단 메타데이터 (엠블럼, 컬러 등) */
-  meta: TeamMeta;
-}
-
-/**
- * 📋 MatchSummary: 목록형 UI(일정 등)에 최적화된 경기 요약 정보
+ * 🔬 MatchSummary: 목록이나 요약 UI에 필요한 핵심 경기 정보
  */
 export interface MatchSummary {
   matchId: number;
   day: number;
-  startTime: string; // HH:mm
+  startTime: string;
   homeTeam: MatchTeamInfo;
   awayTeam: MatchTeamInfo;
   stadium: string;
   isLive: boolean;
   displayStatus: string;
   displayResult?: string | null;
-  location: "H" | "A";
-}
-
-export interface PlayerPosition {
-  name: string;
-  x: number;
-  y: number;
+  location: TeamLocation;
 }
 
 /**
- * 🔬 MatchDetail: 상세 화면(라이브보드)에 필요한 전체 경기 정보
+ * 🔬 MatchDetail: 경기 상세 정보 (Liveboard 제외)
+ * Why: 중계 데이터는 독립적인 훅에서 관리하므로, 여기서는 경기 자체의 메타데이터만 유지함.
  */
 export interface MatchDetail extends MatchSummary {
-  liveBoardStatus: LiveBoardStatus;
-  nowCast: NowCastDto | null;
-  foreCast: ForeCastDto[] | null;
-  inning?: number;
-  inningHalf?: "초" | "말";
-  homeScore?: number;
-  awayScore?: number;
-  ballCount?: number;
-  strikeCount?: number;
-  outCount?: number;
-  bases?: { first: boolean; second: boolean; third: boolean };
-  pitcherName?: string;
-  pitchCount?: number;
-  lastEvent?: string;
-  defenders?: PlayerPosition[];
-  batter?: PlayerPosition;
-  runner?: PlayerPosition;
+  liveBoardStatus: "PRE" | "TODAY" | "PAST";
+  stadium: string;
+  // Liveboard 전용 필드(nowCast, inning 등)는 여기서 제거됨.
 }
 
 export interface MatchScheduleDto {
   matchId: number;
   day: number;
   opponentCode: string;
-  location: "H" | "A";
+  location: TeamLocation;
   timeText: string;
 }
 
@@ -89,4 +58,14 @@ export interface RankingRowDto {
   loseCount: number;
   drawCount: number;
   winRate: number;
+}
+
+export interface RankingUIModel extends RankingRowDto {
+  meta: TeamMeta;
+}
+
+export interface PlayerPosition {
+  name: string;
+  x: number;
+  y: number;
 }

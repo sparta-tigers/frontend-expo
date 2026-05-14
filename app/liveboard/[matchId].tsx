@@ -7,6 +7,7 @@ import { LiveSection } from "@/src/features/liveboard/components/LiveSection";
 import { WeatherPanel } from "@/src/features/liveboard/components/WeatherPanel";
 import { styles } from "@/src/features/liveboard/styles/matchId.styles";
 import { useMatchDetail } from "@/src/features/match/hooks/useMatchDetail";
+import { useLiveboardData } from "@/src/features/liveboard/hooks/useLiveboardData";
 import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
 import { TeamCode } from "@/src/utils/team";
@@ -56,9 +57,15 @@ export default function LiveboardDetailScreen() {
 
   const {
     data: match,
-    isLoading,
-    isError,
+    isLoading: isMatchLoading,
+    isError: isMatchError,
   } = useMatchDetail(isValidMatchId ? idNum : 0, myTeamCode);
+
+  const {
+    data: liveData,
+    isLoading: isLiveLoading,
+  } = useLiveboardData(isValidMatchId ? idNum : 0);
+
   const [activeTab, setActiveTab] = useState<TabKey>("chat");
 
   // 🚨 Step 1: matchId 유효성 검사 (Fail-fast)
@@ -77,20 +84,7 @@ export default function LiveboardDetailScreen() {
     );
   }
 
-  if (isLoading) {
-    return (
-      <SafeLayout style={styles.container} edges={["left", "right"]}>
-        <Box flex={1} justify="center" align="center">
-          <ActivityIndicator size="large" color={theme.colors.brand.mint} />
-          <Typography mt="md" color="text.secondary">
-            경기 정보를 불러오는 중...
-          </Typography>
-        </Box>
-      </SafeLayout>
-    );
-  }
-
-  if (isError || !match) {
+  if (isMatchError || (!isMatchLoading && !match)) {
     return (
       <SafeLayout style={styles.container} edges={["left", "right"]}>
         <Box flex={1} justify="center" align="center">
@@ -102,9 +96,22 @@ export default function LiveboardDetailScreen() {
     );
   }
 
+  // 🚨 앙드레 카파시: 전체 화면 로딩을 제거하고, 데이터가 준비된 부분부터 렌더링함.
+  // match 데이터가 필수적인 섹션을 위해 최소한의 null 방어만 수행.
+
   return (
     <SafeLayout style={styles.container} edges={["left", "right"]}>
-      <LiveSection match={match} />
+      {match ? (
+        <LiveSection 
+          match={match} 
+          liveData={liveData ?? undefined} 
+          isLiveLoading={isLiveLoading} 
+        />
+      ) : (
+        <Box py="xxl" align="center">
+          <ActivityIndicator color={theme.colors.brand.mint} />
+        </Box>
+      )}
 
       <Box style={styles.tabBar} flexDir="row" justify="space-between">
         {TABS.map((tab) => {
@@ -145,7 +152,7 @@ export default function LiveboardDetailScreen() {
             <PlaceholderPanel label="텍스트 중계" />
           </Box>
         )}
-        {activeTab === "lineup" && (
+        {activeTab === "lineup" && match && (
           <Box style={[styles.tabPanel, styles.visible]}>
             <LineupPanel match={match} />
           </Box>

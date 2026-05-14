@@ -96,13 +96,6 @@ export class MatchMapper {
       displayResult: dto.matchResult || null,
       location: myTeamCode === dto.homeTeamCode ? "H" : "A",
       liveBoardStatus: dto.liveBoardStatus,
-      nowCast: dto.nowCast,
-      foreCast: dto.foreCast,
-
-      // 🚨 실시간 경기 상태 필드 (추후 실시간 연동 시 확장 지점)
-      // exactOptionalPropertyTypes: true 설정으로 인해 
-      // 데이터가 없는 필드는 명시적 undefined 할당 대신 생략함.
-      defenders: [],
     };
   }
 

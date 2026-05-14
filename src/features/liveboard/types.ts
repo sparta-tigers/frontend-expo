@@ -1,3 +1,4 @@
+// src/features/liveboard/types.ts
 import { LineupRowDto } from "@/src/shared/types/lineup";
 import { 
   SkyStatus, 
@@ -6,13 +7,10 @@ import {
   NowCastDto, 
   ForeCastDto 
 } from "@/src/shared/types/weather";
-import { LiveBoardStatus } from "@/src/shared/types/match";
+import { LiveBoardStatus, PlayerPosition } from "@/src/shared/types/match";
 
 /**
  * Liveboard 도메인 타입 정의
- *
- * Why: 백엔드 LiveBoardRoomResponseDto와 구조를 동기화하여 타입 안정성 확보.
- * 공통 타입은 shared 레이어에서 관리함.
  */
 
 export type { 
@@ -25,9 +23,6 @@ export type {
   LiveBoardStatus
 };
 
-/**
- * 라이브보드 메인 목록 조회를 위한 룸 요약 데이터
- */
 export interface LiveBoardRoomDto {
   roomId: string | null;
   matchId: number;
@@ -46,8 +41,31 @@ export interface LiveBoardRoomDto {
 }
 
 /**
- * 라인업 조회 API 응답 DTO
+ * 🛰️ LiveboardData: 실시간 중계 화면에 표시될 동적 데이터 모델
+ * Why: MatchDetail(정적)과 분리하여 실시간 데이터만 독립적으로 패칭/갱신하기 위함.
  */
+export interface LiveboardData {
+  matchId: number;
+  liveBoardStatus: LiveBoardStatus;
+  nowCast: NowCastDto | null;
+  foreCast: ForeCastDto[] | null;
+  connectCount: number;
+  homeScore?: number;
+  awayScore?: number;
+  inning?: number;
+  inningHalf?: "초" | "말";
+  ballCount?: number;
+  strikeCount?: number;
+  outCount?: number;
+  bases?: { first: boolean; second: boolean; third: boolean };
+  pitcherName?: string;
+  pitchCount?: number;
+  lastEvent?: string;
+  defenders?: PlayerPosition[];
+  batter?: PlayerPosition;
+  runner?: PlayerPosition;
+}
+
 export interface MatchLineupDto {
   matchId: number;
   homeTeamName: string | null;
@@ -58,12 +76,8 @@ export interface MatchLineupDto {
   awayBatters: LineupRowDto[];
 }
 
-/**
- * 구장 날씨 조회 API 응답 DTO
- */
 export interface MatchWeatherDto {
   stadiumName: string | null;
-  /** 기상청 API 응답 상태 */
   status: WeatherApiStatus;
   nowCast: NowCastDto | null;
   foreCast: ForeCastDto[];

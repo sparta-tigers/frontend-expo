@@ -19,15 +19,13 @@ export const useMatchDetail = (matchId: number, myTeamCode: TeamCode | null) => 
     queryKey: matchKeys.detail(matchId, myTeamCode),
     queryFn: async () => {
       // NOTE: 현재 단일 경기 상세 조회 API가 없으므로 목록에서 필터링함.
-      // 백엔드 API 확충 시 해당 엔드포인트로 교체 권장.
-      const rooms = await fetchLiveBoardRooms();
+      const rooms = await fetchLiveBoardRooms(); // TODO: matchApi.fetchMatches로 교체 예정
       const room = rooms.find((r) => r.matchId === matchId);
       
       if (!room) {
         throw new Error("경기 정보를 찾을 수 없습니다.");
       }
       
-      // MatchDetail 모델로 변환 (TeamMeta 바인딩 및 사용자 컨텍스트 반영)
       return MatchMapper.toDetail(room, myTeamCode ?? undefined);
     },
     staleTime: 1000 * 30, // 상세 정보는 30초 정도의 신선도 유지
