@@ -35,8 +35,7 @@ export interface MatchSummary {
  * Why: 중계 데이터는 독립적인 훅에서 관리하므로, 여기서는 경기 자체의 메타데이터만 유지함.
  */
 export interface MatchDetail extends MatchSummary {
-  liveBoardStatus: "PRE" | "TODAY" | "PAST";
-  stadium: string;
+  liveBoardStatus: LiveBoardStatus;
   // Liveboard 전용 필드(nowCast, inning 등)는 여기서 제거됨.
 }
 
