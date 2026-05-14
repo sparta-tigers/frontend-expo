@@ -81,7 +81,7 @@ export default function LiveboardDetailScreen() {
       {match ? (
         <LiveSection 
           match={match} 
-          liveData={liveData ?? undefined} 
+          liveData={liveData} 
           isLiveLoading={isLoading.live} 
         />
       ) : (

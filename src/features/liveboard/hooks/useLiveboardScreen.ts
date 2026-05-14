@@ -3,7 +3,7 @@ import { useState, useMemo } from "react";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useMatchDetail } from "@/src/features/match/hooks/useMatchDetail";
 import { useLiveboardData } from "@/src/features/liveboard/hooks/useLiveboardData";
-import { TeamCode } from "@/src/utils/team";
+import { isValidTeamCode } from "@/src/utils/team";
 
 export type TabKey = "chat" | "text" | "lineup" | "weather";
 
@@ -23,7 +23,7 @@ export const TABS: { key: TabKey; label: string }[] = [
  */
 export const useLiveboardScreen = () => {
   const { myTeam } = useAuth();
-  const myTeamCode = (myTeam as TeamCode) ?? null;
+  const myTeamCode = (myTeam && isValidTeamCode(myTeam)) ? myTeam : null;
 
   // 1. [SSOT] URL 파라미터 추출 및 유효성 검사
   const { matchId } = useLocalSearchParams<{ matchId: string }>();
