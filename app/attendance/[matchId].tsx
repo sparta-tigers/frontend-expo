@@ -207,7 +207,9 @@ export default function AttendanceFormScreen() {
       }
 
       // 🚨 [Phase 34] 쿼리 무효화 정상화
-      await queryClient.invalidateQueries({ queryKey: attendanceKeys.byMatch(matchIdNumber) });
+      // 🚨 [Zero Magic UX] Alert 노출 전 백그라운드에서 캐시 갱신을 시작함.
+      // 사용자가 Alert을 확인하는 동안 갱신이 진행되도록 await 대신 void 사용.
+      void queryClient.invalidateQueries({ queryKey: attendanceKeys.byMatch(matchIdNumber) });
 
       Alert.alert("성공", "직관 기록이 저장되었습니다.", [
         { text: "확인", onPress: () => router.replace("/(tabs)/history") },
