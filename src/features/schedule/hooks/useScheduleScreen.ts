@@ -90,8 +90,9 @@ export const useScheduleScreen = () => {
   // 4. [Memoized Data Transformation] Map 변환 최적화
   const attendanceMap = useMemo(() => {
     const map = new Map<number, number>();
-    const firstPageContent = infiniteAttendances?.pages[0]?.data?.content ?? [];
-    firstPageContent.forEach((a) => map.set(a.matchId, a.id));
+    infiniteAttendances?.pages.forEach((page) => {
+      page?.data?.content?.forEach((a) => map.set(a.matchId, a.id));
+    });
     return map;
   }, [infiniteAttendances]);
 

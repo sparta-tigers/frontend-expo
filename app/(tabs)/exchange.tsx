@@ -38,7 +38,7 @@ const MapMarkers = React.memo(({ items, currentLocation, onMarkerPress }: {
       />
     )}
     {items.map((item) => (
-      item.latitude && item.longitude ? (
+      item.latitude != null && item.longitude != null && Number.isFinite(item.latitude) && Number.isFinite(item.longitude) ? (
         <Marker
           key={`item-${item.id}`}
           coordinate={{ latitude: item.latitude, longitude: item.longitude }}
