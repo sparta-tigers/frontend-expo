@@ -43,17 +43,11 @@ app-example
 /ios
 /android
 
-# 문서 파일 (Git 추적 제외)
-docs/context/*.md
-docs/qa-reports/*.md
-docs/reports/*.md
-docs/issues/*.md
+# 문서
+docs/context/*.*
 
-.windsurf/
-.kiro/
-
+# 기타
 *.log
-
 *.backup
 *.bk
 *.bak
@@ -67,16 +61,14 @@ docs/issues/*.md
 repomix.config.json
 **/frontend-context**.txt
 
-**/**cursor**/
+# AI Agents
 **/**agents**/
-
-# GSD Planning
 .planning/
 
-# fat files 보고서 스크립트 결과물
-docs/fat-file
-
-# dependency-cruiser
-.dependency-cruiser.js
+# Architecture Guard Reports
+scripts/architecture-guard/dependency/reports/
+scripts/architecture-guard/fat-file/reports/
+scripts/architecture-guard/fat-file/node_modules/
 dependency-report.json
-scratch/
+scan-result.json
+generated-tasks.json
