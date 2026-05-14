@@ -136,6 +136,14 @@ export function useExchangeDashboard() {
     await handleRefresh(mapRegion.latitude, mapRegion.longitude, mapRegion.latitudeDelta);
   }, [handleRefresh, mapRegion]);
 
+  const navigateToItemDetail = useCallback((itemId: number) => {
+    router.push(`/exchange/${itemId}`);
+  }, [router]);
+
+  const navigateToRequests = useCallback(() => {
+    router.push("/exchange/requests");
+  }, [router]);
+
   return {
     // Refs
     mapRef,
@@ -163,8 +171,7 @@ export function useExchangeDashboard() {
     handleSearchCurrentLocation,
     navigateToCreate,
     handleManualRefresh,
-    
-    // Router / Navigation
-    router,
+    navigateToItemDetail,
+    navigateToRequests,
   };
 }

@@ -82,15 +82,16 @@ export default function ExchangeScreen() {
     handleSearchCurrentLocation,
     navigateToCreate,
     handleManualRefresh,
-    router,
+    navigateToItemDetail,
+    navigateToRequests,
   } = useExchangeDashboard();
 
   const renderItem = useCallback(({ item }: { item: Item }) => (
     <ExchangeItemRow 
       item={item} 
-      onPress={(id) => router.push(`/exchange/${id}`)} 
+      onPress={navigateToItemDetail} 
     />
-  ), [router]);
+  ), [navigateToItemDetail]);
 
   return (
     <SafeLayout style={styles.container}>
@@ -169,7 +170,7 @@ export default function ExchangeScreen() {
         onMoveToLocation={moveToCurrentLocation}
         onOpenProfile={() => setProfileModalVisible(true)}
         onNavigateToCreate={navigateToCreate}
-        onNavigateToRequests={() => router.push("/exchange/requests")}
+        onNavigateToRequests={navigateToRequests}
         onSearchCurrentLocation={handleSearchCurrentLocation}
       />
 
