@@ -63,7 +63,4 @@ export interface RNFormDataFile {
   type: string;
 }
 
-export interface RNFormDataString {
-  string: string;
-  type: string;
-}
+export type RNFormDataString = string;
