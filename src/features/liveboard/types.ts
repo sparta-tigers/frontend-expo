@@ -7,7 +7,14 @@ import {
   NowCastDto, 
   ForeCastDto 
 } from "@/src/shared/types/weather";
-import { LiveBoardStatus, PlayerPosition } from "@/src/shared/types/match";
+import { 
+  LiveBoardStatus, 
+  PlayerPosition,
+  InningTextsDto,
+  PlayerDto,
+  MatchScoreDto,
+  LiveBoardDataDto
+} from "@/src/shared/types/match";
 
 /**
  * Liveboard 도메인 타입 정의
@@ -20,7 +27,11 @@ export type {
   WeatherApiStatus, 
   NowCastDto, 
   ForeCastDto,
-  LiveBoardStatus
+  LiveBoardStatus,
+  InningTextsDto,
+  PlayerDto,
+  MatchScoreDto,
+  LiveBoardDataDto
 };
 
 
@@ -36,21 +47,6 @@ export interface BroadcastItem {
   text: string;
 }
 
-/**
- * 🛰️ InningTexts: 이닝별 문자중계 원본 데이터 (백엔드 대응)
- */
-export interface InningTextsDto {
-  inningOneTexts?: string[];
-  inningTwoTexts?: string[];
-  inningThreeTexts?: string[];
-  inningFourTexts?: string[];
-  inningFiveTexts?: string[];
-  inningSixTexts?: string[];
-  inningSevenTexts?: string[];
-  inningEightTexts?: string[];
-  inningNineTexts?: string[];
-  inningExtraTexts?: string[];
-}
 
 /**
  * 🛰️ LiveboardData: 실시간 중계 화면에 표시될 동적 데이터 모델
@@ -97,27 +93,3 @@ export interface MatchWeatherDto {
   foreCast: ForeCastDto[];
 }
 
-/**
- * 🛰️ LiveBoardDataDto: 백엔드 실시간 데이터 DTO
- */
-export interface PlayerDto {
-  role: string;
-  name: string;
-}
-
-export interface MatchScoreDto {
-  strike: number;
-  ball: number;
-  out: number;
-  homeScore: string;
-  awayScore: string;
-  pitcherCount: string;
-}
-
-export interface LiveBoardDataDto {
-  matchId: number;
-  players: PlayerDto[];
-  matchScore: MatchScoreDto;
-  inningTexts: InningTextsDto;
-  currentInning: string;
-}

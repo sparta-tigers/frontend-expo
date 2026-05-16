@@ -19,18 +19,14 @@ export const useMatchDetail = (matchId: number, myTeamCode: TeamCode | null) => 
   return useQuery({
     queryKey: matchKeys.detail(matchId, myTeamCode),
     queryFn: async () => {
-      try {
-        // 🚀 O(1) 단일 조회 API 사용
-        const room = await fetchMatchRoom(matchId);
-        
-        if (!room) {
-          throw new Error(`[useMatchDetail] Match not found for ID: ${matchId}`);
-        }
-        
-        return MatchMapper.toDetail(room, myTeamCode ?? undefined);
-      } catch (error) {
-        throw error;
+      // 🚀 O(1) 단일 조회 API 사용
+      const room = await fetchMatchRoom(matchId);
+      
+      if (!room) {
+        throw new Error(`[useMatchDetail] Match not found for ID: ${matchId}`);
       }
+      
+      return MatchMapper.toDetail(room, myTeamCode ?? undefined);
     },
     staleTime: 1000 * 30, // 상세 정보는 30초 정도의 신선도 유지
     enabled: !!matchId,

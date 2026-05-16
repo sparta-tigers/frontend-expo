@@ -72,6 +72,53 @@ export interface PlayerPosition {
 }
 
 /**
+ * 🏟️ InningTextsDto: 이닝별 문자중계 원본 데이터
+ */
+export interface InningTextsDto {
+  inningOneTexts?: string[];
+  inningTwoTexts?: string[];
+  inningThreeTexts?: string[];
+  inningFourTexts?: string[];
+  inningFiveTexts?: string[];
+  inningSixTexts?: string[];
+  inningSevenTexts?: string[];
+  inningEightTexts?: string[];
+  inningNineTexts?: string[];
+  inningExtraTexts?: string[];
+}
+
+/**
+ * 🏟️ PlayerDto: 백엔드 선수 데이터 DTO
+ */
+export interface PlayerDto {
+  role: string;
+  name: string;
+}
+
+/**
+ * 🏟️ MatchScoreDto: 백엔드 경기 점수 데이터 DTO
+ */
+export interface MatchScoreDto {
+  strike: number;
+  ball: number;
+  out: number;
+  homeScore: string;
+  awayScore: string;
+  pitcherCount: string;
+}
+
+/**
+ * 🏟️ LiveBoardDataDto: 백엔드 실시간 데이터 DTO
+ */
+export interface LiveBoardDataDto {
+  matchId: number;
+  players: PlayerDto[];
+  matchScore: MatchScoreDto;
+  inningTexts: InningTextsDto;
+  currentInning: string;
+}
+
+/**
  * 🏟️ MatchRoomDto (구 LiveBoardRoomDto)
  * 
  * Why: 경기 상세 정보 조회를 위한 DTO. 
@@ -92,6 +139,7 @@ export interface MatchRoomDto {
   connectCount: number;
   nowCast: NowCastDto | null;
   foreCast: ForeCastDto[] | null;
-  inningTexts: import("@/src/features/liveboard/types").InningTextsDto | null;
-  liveBoardData: import("@/src/features/liveboard/types").LiveBoardDataDto | null;
+  inningTexts: InningTextsDto | null;
+  liveBoardData: LiveBoardDataDto | null;
 }
+
