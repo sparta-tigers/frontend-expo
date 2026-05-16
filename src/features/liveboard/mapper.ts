@@ -31,10 +31,13 @@ export const LiveboardMapper = {
     const runner2 = players.find((p) => p.role.includes("runner2") || p.role.includes("2루주자"));
     const runner3 = players.find((p) => p.role.includes("runner3") || p.role.includes("3루주자"));
 
-    const inningTexts = room.inningTexts ? this.parseInningTexts(room.inningTexts) : undefined;
+    const rawInningTexts = live?.inningTexts ?? room.inningTexts;
+    const inningTexts = rawInningTexts ? this.parseInningTexts(rawInningTexts) : undefined;
     
     // 가장 최근 이벤트 추출 (현재 이닝의 가장 마지막 유의미한 텍스트)
-    const currentInningNum = live?.currentInning ? parseInt(live.currentInning.replace(/[^0-9]/g, "")) : 1;
+    const inningDigits = live?.currentInning?.replace(/[^0-9]/g, "") ?? "";
+    const parsedInning = Number.parseInt(inningDigits, 10);
+    const currentInningNum = Number.isNaN(parsedInning) ? 1 : parsedInning;
     const currentInningTexts = inningTexts?.[currentInningNum] || [];
     
     // 🚨 [Phase 45] 무의미한 구분선(----) 및 빈 문자열 원천 차단
@@ -59,7 +62,9 @@ export const LiveboardMapper = {
       homeScore: score ? parseInt(score.homeScore || "0") : 0,
       awayScore: score ? parseInt(score.awayScore || "0") : 0,
       inning: currentInningNum,
-      inningHalf: live?.currentInning?.includes("초") ? "초" : "말",
+      inningHalf: live?.currentInning
+        ? (live.currentInning.includes("초") ? "초" : "말")
+        : undefined,
       ballCount: score?.ball || 0,
       strikeCount: score?.strike || 0,
       outCount: score?.out || 0,

@@ -14,7 +14,7 @@ export const FIELD_POSITIONS = {
   catcher: { top: "84%", left: "38%" },
 
   // 내야수
-  firBase: { top: "61%", left: "67%" },
+  firstBase: { top: "61%", left: "67%" },
   secondBase: { top: "46%", left: "58%" },
   thirdBase: { top: "61%", left: "10%" },
   shortstop: { top: "46%", left: "20%" },
@@ -39,5 +39,5 @@ export type FieldRole = keyof typeof FIELD_POSITIONS;
  * 🏟️ isValidFieldRole: 렌더링 가능한 포지션인지 검증하는 가드 함수
  */
 export const isValidFieldRole = (role: string): role is FieldRole => {
-  return role in FIELD_POSITIONS;
+  return Object.hasOwn(FIELD_POSITIONS, role);
 };

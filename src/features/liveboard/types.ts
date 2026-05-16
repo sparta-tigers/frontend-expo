@@ -64,7 +64,7 @@ export interface LiveboardData {
   homeScore?: number;
   awayScore?: number;
   inning?: number;
-  inningHalf?: "초" | "말";
+  inningHalf?: "초" | "말" | undefined;
   ballCount?: number;
   strikeCount?: number;
   outCount?: number;
