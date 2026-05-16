@@ -19,13 +19,17 @@ export const LiveboardMapper = {
 
     // 수비수/타자 분리 매핑
     const defenders = players
-      .filter((p) => !p.role.includes("batter") && !p.role.includes("runner") && p.role !== "supervision")
+      .filter((p) => {
+        const role = p.role.toLowerCase();
+        return !role.includes("batter") && !role.includes("runner") && role !== "supervision";
+      })
       .map((p) => ({ name: p.name, role: p.role, x: 0, y: 0 }));
 
-    const batter = players.find((p) => p.role === "batter");
-    const runner1 = players.find((p) => p.role === "runner1");
-    const runner2 = players.find((p) => p.role === "runner2");
-    const runner3 = players.find((p) => p.role === "runner3");
+    // 공격 팀 선수 추출 (Zero Magic: 다양한 role 명칭 대응)
+    const batter = players.find((p) => p.role.toLowerCase().includes("batter"));
+    const runner1 = players.find((p) => p.role.includes("runner1") || p.role.includes("1루주자"));
+    const runner2 = players.find((p) => p.role.includes("runner2") || p.role.includes("2루주자"));
+    const runner3 = players.find((p) => p.role.includes("runner3") || p.role.includes("3루주자"));
 
     const inningTexts = room.inningTexts ? this.parseInningTexts(room.inningTexts) : undefined;
     
