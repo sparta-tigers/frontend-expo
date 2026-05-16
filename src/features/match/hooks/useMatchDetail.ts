@@ -3,7 +3,7 @@ import { matchKeys } from "../queries";
 import { fetchMatchRoom } from "../api";
 import { MatchMapper } from "../mapper";
 import { TeamCode } from "@/src/utils/team";
-import { Logger } from "@/src/utils/logger";
+
 
 /**
  * 🛰️ useMatchDetail: 특정 경기의 상세 정보를 조회하는 통합 Hook
@@ -29,7 +29,6 @@ export const useMatchDetail = (matchId: number, myTeamCode: TeamCode | null) => 
         
         return MatchMapper.toDetail(room, myTeamCode ?? undefined);
       } catch (error) {
-        Logger.error(`[useMatchDetail] Failed to fetch match detail (ID: ${matchId})`, error);
         throw error;
       }
     },

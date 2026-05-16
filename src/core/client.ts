@@ -52,8 +52,8 @@ const getDynamicBaseURL = (): string => {
     return envBaseURL || "http://10.0.2.2:8080";
   }
 
-  // 그 외 환경 (iOS 실기기, 웹 등)에서는 환경 변수 또는 localhost 사용
-  return envBaseURL || "http://localhost:8080";
+  // 그 외 환경 (iOS 실기기, 웹 등)에서는 환경 변수 또는 127.0.0.1 사용
+  return envBaseURL || "http://127.0.0.1:8080";
 };
 
 /**
