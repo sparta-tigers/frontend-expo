@@ -55,6 +55,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     paddingLeft: LEFT_BAR_LEFT,
     paddingTop: 27,
+    paddingBottom: 20, // 하단 여백 확보
   },
   fieldArea: {
     flex: 5,
@@ -89,11 +90,12 @@ export const styles = StyleSheet.create({
   countBox: {
     marginTop: 10,
     width: LEFT_BAR_WIDTH - 4,
-    height: 165,
+    // height: 200, // 고정 높이 제거하여 크로스 플랫폼 대응
     borderRadius: 3,
     backgroundColor: theme.colors.liveboard.countBoxBg,
     padding: 6,
-    gap: 4,
+    paddingVertical: 12, // 내부 상하 여백으로 크기 조절
+    gap: 12, // 내부 요소 간 간격으로 밸런스 유지
   },
   inningRow: {
     gap: 4,
@@ -123,24 +125,33 @@ export const styles = StyleSheet.create({
     backgroundColor: theme.colors.liveboard.baseActive,
   },
   bsoRow: {
-    gap: 2,
-    marginTop: 2,
+    marginTop: 8,
+    paddingHorizontal: 1,
   },
   bsoLine: {
-    gap: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    height: 20,
   },
   bsoLabel: {
-    fontSize: 11,
+    fontSize: 12,
     color: theme.colors.background,
-    width: 10,
+    width: 14,
+    fontWeight: "bold",
   },
   bsoDots: {
-    gap: 2,
+    flexDirection: "row",
+    gap: 4,
+    flex: 1,
+    justifyContent: "flex-start",
+    marginLeft: 8,
   },
   bsoDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: theme.colors.liveboard.bsoDotIdle,
   },
   bsoDotBall: { backgroundColor: theme.colors.liveboard.bsoBall },

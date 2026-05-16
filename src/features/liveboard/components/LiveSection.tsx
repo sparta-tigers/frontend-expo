@@ -42,11 +42,11 @@ function BsoLine({
   max: number;
 }) {
   return (
-    <Box flexDir="row" align="center" style={styles.bsoLine}>
-      <Typography style={styles.bsoLabel} weight="regular">
+    <Box style={styles.bsoLine}>
+      <Typography style={styles.bsoLabel} weight="bold">
         {label}
       </Typography>
-      <Box flexDir="row" style={styles.bsoDots}>
+      <Box style={styles.bsoDots}>
         {Array.from({ length: max }).map((_, i) => (
           <Box
             key={i}
