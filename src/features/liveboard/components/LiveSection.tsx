@@ -8,39 +8,26 @@ import React from "react";
 import { styles } from "@/src/features/liveboard/styles/matchId.styles";
 import { LiveboardData } from "@/src/features/liveboard/types";
 import { ActivityIndicator } from "react-native";
-
+import { Image } from "expo-image";
+import { FIELD_POSITIONS, isValidFieldRole } from "../constants/fieldPositions";
 
 /**
- * PlayerTag — 선수 이름 태그 (수비/타자/주자 색상 구분)
+ * PlayerChip — 경기장 위 선수 이름 칩
  */
-function PlayerTag({
-  name,
-  x,
-  y,
-  kind,
-}: {
-  name: string;
-  x: number;
-  y: number;
-  kind: "defender" | "batter" | "runner";
-}) {
-  const tagStyle =
-    kind === "defender"
-      ? styles.playerTagDefender
-      : kind === "batter"
-        ? styles.playerTagBatter
-        : styles.playerTagRunner;
-  const textStyle =
-    kind === "runner" ? styles.playerNameRunner : styles.playerName;
-  const positionStyle = { left: x, top: y };
+const PlayerChip = ({ name, role, kind }: { name: string; role: string; kind: "defender" | "batter" }) => {
+  if (!isValidFieldRole(role)) return null;
+
+  const pos = FIELD_POSITIONS[role];
+  const tagStyle = kind === "defender" ? styles.playerTagDefender : styles.playerTagBatter;
+
   return (
-    <Box style={[styles.playerTag, tagStyle, positionStyle]}>
-      <Typography style={textStyle} weight="medium">
+    <Box style={[styles.playerTag, tagStyle, { top: pos.top, left: pos.left }]}>
+      <Typography style={styles.playerName} weight="medium">
         {name}
       </Typography>
     </Box>
   );
-}
+};
 
 /**
  * BsoLine — B/S/O 각 라인 (label + 점 표시)
@@ -55,11 +42,11 @@ function BsoLine({
   max: number;
 }) {
   return (
-    <Box flexDir="row" align="center" style={styles.bsoLine}>
-      <Typography style={styles.bsoLabel} weight="regular">
+    <Box style={styles.bsoLine}>
+      <Typography style={styles.bsoLabel} weight="bold">
         {label}
       </Typography>
-      <Box flexDir="row" style={styles.bsoDots}>
+      <Box style={styles.bsoDots}>
         {Array.from({ length: max }).map((_, i) => (
           <Box
             key={i}
@@ -96,136 +83,163 @@ export function LiveSection({
 
   return (
     <Box style={styles.liveSection}>
-      <Box style={styles.stadiumBg} />
+      <Image 
+        source={require("@/assets/stadium.png")} 
+        style={styles.stadiumBg}
+        contentFit="cover"
+      />
 
-      <Box style={styles.eventBanner}>
-        <Typography style={styles.eventBannerText} weight="bold">
-          {liveData?.lastEvent || "진행 중인 이벤트가 없습니다"}
-        </Typography>
-      </Box>
-
-      <Box style={styles.leftBar}>
-        <Box style={[styles.scoreRow, styles.scoreAway]}>
-          <Typography style={styles.scoreTeamLabel} weight="bold">
-            {awayTeam.name}
-          </Typography>
-          {isLiveLoading ? (
-            <ActivityIndicator size="small" color={theme.colors.background} />
-          ) : (
-            <Typography style={styles.scoreValue} weight="semibold">
-              {liveData?.awayScore ?? 0}
+      <Box flexDir="row" style={styles.flexWrapper}>
+        {/* 좌측 정보 바 (1) */}
+        <Box style={styles.leftBarContainer}>
+          <Box style={[styles.scoreRow, styles.scoreAway]}>
+            <Typography style={styles.scoreTeamLabel} weight="bold">
+              {awayTeam.name}
             </Typography>
+            {isLiveLoading ? (
+              <ActivityIndicator size="small" color={theme.colors.background} />
+            ) : (
+              <Typography style={styles.scoreValue} weight="semibold">
+                {liveData?.awayScore ?? 0}
+              </Typography>
+            )}
+          </Box>
+          <Box style={[styles.scoreRow, styles.scoreHome]}>
+            <Typography style={styles.scoreTeamLabel} weight="bold">
+              {homeTeam.name}
+            </Typography>
+            {isLiveLoading ? (
+              <ActivityIndicator size="small" color={theme.colors.background} />
+            ) : (
+              <Typography style={styles.scoreValue} weight="semibold">
+                {liveData?.homeScore ?? 0}
+              </Typography>
+            )}
+          </Box>
+
+          <Box style={styles.countBox}>
+            <Box style={styles.inningRow} flexDir="row" align="center">
+              <Box align="center">
+                <MaterialIcons
+                  name="arrow-drop-up"
+                  size={14}
+                  color={
+                    liveData?.inningHalf === "초"
+                      ? theme.colors.background
+                      : theme.colors.transparent
+                  }
+                />
+                <Typography style={styles.inningText} weight="semibold">
+                  {liveData?.inning || "-"}
+                </Typography>
+                <MaterialIcons
+                  name="arrow-drop-down"
+                  size={14}
+                  color={
+                    liveData?.inningHalf === "말"
+                      ? theme.colors.background
+                      : theme.colors.transparent
+                  }
+                />
+              </Box>
+              <Box style={styles.baseDiamond}>
+                <Box
+                  style={[
+                    styles.base,
+                    styles.baseSecond,
+                    !!liveData?.bases?.second && styles.baseActive,
+                  ]}
+                />
+                <Box
+                  style={[
+                    styles.base,
+                    styles.baseThird,
+                    !!liveData?.bases?.third && styles.baseActive,
+                  ]}
+                />
+                <Box
+                  style={[
+                    styles.base,
+                    styles.baseFirst,
+                    !!liveData?.bases?.first && styles.baseActive,
+                  ]}
+                />
+              </Box>
+            </Box>
+
+            <Box style={styles.bsoRow}>
+              <BsoLine label="B" count={liveData?.ballCount || 0} max={3} />
+              <BsoLine label="S" count={liveData?.strikeCount || 0} max={2} />
+              <BsoLine label="O" count={liveData?.outCount || 0} max={2} />
+            </Box>
+
+            <Box style={styles.pitcherBox} align="center">
+              <Typography style={styles.pitcherName} weight="medium">
+                {liveData?.pitcherName || "-"}
+              </Typography>
+              <Typography style={styles.pitcherPitchLabel}>
+                투구수{" "}
+                <Typography style={styles.pitcherPitchCount} weight="semibold">
+                  {liveData?.pitchCount || 0}
+                </Typography>
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+
+        {/* 선수 배치 필드 (5) */}
+        <Box style={styles.fieldArea} pointerEvents="none">
+          {/* 실시간 이벤트 배너 */}
+          {!!liveData?.lastEvent && (
+            <Box style={styles.eventBanner}>
+              <Typography style={styles.eventBannerText} weight="bold">
+                {liveData.lastEvent}
+              </Typography>
+            </Box>
+          )}
+
+          {/* 수비수 배치 */}
+          {liveData?.defenders?.map((p) => (
+            <PlayerChip
+              key={`${p.role}-${p.name}`}
+              name={p.name}
+              role={p.role}
+              kind="defender"
+            />
+          ))}
+
+          {/* 주자 배치 */}
+          {liveData?.runner1 && (
+            <PlayerChip
+              name={liveData.runner1.name}
+              role="runner1"
+              kind="batter"
+            />
+          )}
+          {liveData?.runner2 && (
+            <PlayerChip
+              name={liveData.runner2.name}
+              role="runner2"
+              kind="batter"
+            />
+          )}
+          {liveData?.runner3 && (
+            <PlayerChip
+              name={liveData.runner3.name}
+              role="runner3"
+              kind="batter"
+            />
+          )}
+
+          {/* 현재 타자 배치 */}
+          {liveData?.batter && (
+            <PlayerChip
+              name={liveData.batter.name}
+              role="batter"
+              kind="batter"
+            />
           )}
         </Box>
-        <Box style={[styles.scoreRow, styles.scoreHome]}>
-          <Typography style={styles.scoreTeamLabel} weight="bold">
-            {homeTeam.name}
-          </Typography>
-          {isLiveLoading ? (
-            <ActivityIndicator size="small" color={theme.colors.background} />
-          ) : (
-            <Typography style={styles.scoreValue} weight="semibold">
-              {liveData?.homeScore ?? 0}
-            </Typography>
-          )}
-        </Box>
-
-        <Box style={styles.countBox}>
-          <Box style={styles.inningRow} flexDir="row" align="center">
-            <Box align="center">
-              <MaterialIcons
-                name="arrow-drop-up"
-                size={14}
-                color={
-                  liveData?.inningHalf === "초"
-                    ? theme.colors.background
-                    : theme.colors.transparent
-                }
-              />
-              <Typography style={styles.inningText} weight="semibold">
-                {liveData?.inning || "-"}
-              </Typography>
-              <MaterialIcons
-                name="arrow-drop-down"
-                size={14}
-                color={
-                  liveData?.inningHalf === "말"
-                    ? theme.colors.background
-                    : theme.colors.transparent
-                }
-              />
-            </Box>
-            <Box style={styles.baseDiamond}>
-              <Box
-                style={[
-                  styles.base,
-                  styles.baseSecond,
-                  !!liveData?.bases?.second && styles.baseActive,
-                ]}
-              />
-              <Box
-                style={[
-                  styles.base,
-                  styles.baseThird,
-                  !!liveData?.bases?.third && styles.baseActive,
-                ]}
-              />
-              <Box
-                style={[
-                  styles.base,
-                  styles.baseFirst,
-                  !!liveData?.bases?.first && styles.baseActive,
-                ]}
-              />
-            </Box>
-          </Box>
-
-          <Box style={styles.bsoRow}>
-            <BsoLine label="B" count={liveData?.ballCount || 0} max={4} />
-            <BsoLine label="S" count={liveData?.strikeCount || 0} max={3} />
-            <BsoLine label="O" count={liveData?.outCount || 0} max={3} />
-          </Box>
-
-          <Box style={styles.pitcherBox} align="center">
-            <Typography style={styles.pitcherName} weight="medium">
-              {liveData?.pitcherName || "-"}
-            </Typography>
-            <Typography style={styles.pitcherPitchLabel}>
-              투구수{" "}
-              <Typography style={styles.pitcherPitchCount} weight="semibold">
-                {liveData?.pitchCount || 0}
-              </Typography>
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
-
-      <Box style={styles.playerArea}>
-        {liveData?.defenders?.map((p) => (
-          <PlayerTag
-            key={p.name}
-            name={p.name}
-            x={p.x}
-            y={p.y}
-            kind="defender"
-          />
-        ))}
-        {liveData?.batter && (
-          <PlayerTag
-            name={liveData.batter.name}
-            x={liveData.batter.x}
-            y={liveData.batter.y}
-            kind="batter"
-          />
-        )}
-        {liveData?.runner && (
-          <PlayerTag
-            name={liveData.runner.name}
-            x={liveData.runner.x}
-            y={liveData.runner.y}
-            kind="runner"
-          />
-        )}
       </Box>
     </Box>
   );

@@ -3,6 +3,7 @@ import { fetchDailyRanking, fetchYearlyRanking } from '../api';
 import { LeagueType, RankingUIModel } from '../types';
 import { matchKeys } from '../queries';
 import { MatchMapper } from '../mapper';
+import { useAuth } from "@/context/AuthContext";
 
 /**
  * 팀 순위 데이터 조회를 위한 커스텀 훅
@@ -17,6 +18,7 @@ export const useMatchRanking = (params: {
   date?: string; // yyyyMMdd
 }) => {
   const { viewMode, year, leagueType, date } = params;
+  const { isLoggedIn } = useAuth();
 
   return useQuery<RankingUIModel[]>({
     queryKey: viewMode === 'year' 
@@ -33,9 +35,9 @@ export const useMatchRanking = (params: {
       }
       return (response.data || []).map(MatchMapper.toRanking);
     },
-    enabled: viewMode === 'year' 
+    enabled: isLoggedIn && (viewMode === 'year' 
       ? (!!year && !!leagueType) 
-      : (!!date && !!leagueType),
+      : (!!date && !!leagueType)),
     staleTime: 1000 * 60 * 5, // 5분 캐싱
   });
 };

@@ -1,15 +1,11 @@
 // app/liveboard/[matchId]/matchId.styles.ts
-import { StyleSheet } from "react-native";
 import { theme } from "@/src/styles/theme";
+import { StyleSheet } from "react-native";
 
 // 디자인 기준 섹션 수치 (Figma)
 export const LIVE_SECTION_HEIGHT = 274;
 const LEFT_BAR_WIDTH = 74;
 const LEFT_BAR_LEFT = 13;
-const PLAYER_AREA_LEFT = 102;
-const PLAYER_AREA_TOP = 53;
-const PLAYER_AREA_WIDTH = 290;
-const PLAYER_AREA_HEIGHT = 223;
 
 export const styles = StyleSheet.create({
   container: {
@@ -19,7 +15,8 @@ export const styles = StyleSheet.create({
 
   // ── 라이브 섹션 (상단) ───────────────────────────────
   liveSection: {
-    height: LIVE_SECTION_HEIGHT,
+    width: "100%",
+    aspectRatio: 360 / 274,
     overflow: "hidden",
     position: "relative",
   },
@@ -29,18 +26,22 @@ export const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: theme.colors.liveboard.stadiumBg,
+    zIndex: -1,
+  },
+  flexWrapper: {
+    flex: 1,
   },
   eventBanner: {
     position: "absolute",
     top: 27,
-    left: 120,
+    alignSelf: "center",
     paddingHorizontal: 32,
     paddingVertical: 5,
     borderRadius: 9,
     backgroundColor: theme.colors.brand.mint,
     alignItems: "center",
     justifyContent: "center",
+    zIndex: 20,
   },
   eventBannerText: {
     fontSize: 11,
@@ -50,16 +51,17 @@ export const styles = StyleSheet.create({
   },
 
   // ── 좌측 바 ──────────────────────────────────────────
-  leftBar: {
-    position: "absolute",
-    top: 0,
-    left: LEFT_BAR_LEFT,
-    width: LEFT_BAR_WIDTH,
-    height: LIVE_SECTION_HEIGHT,
+  leftBarContainer: {
+    flex: 1,
+    paddingLeft: LEFT_BAR_LEFT,
+    paddingTop: 27,
+    paddingBottom: 20, // 하단 여백 확보
+  },
+  fieldArea: {
+    flex: 5,
+    position: "relative",
   },
   scoreRow: {
-    position: "absolute",
-    left: 0,
     width: LEFT_BAR_WIDTH,
     height: 30,
     borderRadius: 3,
@@ -69,12 +71,12 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   scoreAway: {
-    top: 27,
     backgroundColor: theme.colors.liveboard.scoreAway,
+    marginBottom: 0,
   },
   scoreHome: {
-    top: 57,
     backgroundColor: theme.colors.liveboard.scoreHome,
+    marginTop: 0,
   },
   scoreTeamLabel: {
     fontSize: 10,
@@ -86,15 +88,14 @@ export const styles = StyleSheet.create({
     letterSpacing: -1,
   },
   countBox: {
-    position: "absolute",
-    top: 97,
-    left: 4,
+    marginTop: 10,
     width: LEFT_BAR_WIDTH - 4,
-    height: 165,
+    // height: 200, // 고정 높이 제거하여 크로스 플랫폼 대응
     borderRadius: 3,
     backgroundColor: theme.colors.liveboard.countBoxBg,
     padding: 6,
-    gap: 4,
+    paddingVertical: 12, // 내부 상하 여백으로 크기 조절
+    gap: 12, // 내부 요소 간 간격으로 밸런스 유지
   },
   inningRow: {
     gap: 4,
@@ -124,24 +125,33 @@ export const styles = StyleSheet.create({
     backgroundColor: theme.colors.liveboard.baseActive,
   },
   bsoRow: {
-    gap: 2,
-    marginTop: 2,
+    marginTop: 8,
+    paddingHorizontal: 1,
   },
   bsoLine: {
-    gap: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    height: 20,
   },
   bsoLabel: {
-    fontSize: 11,
+    fontSize: 12,
     color: theme.colors.background,
-    width: 10,
+    width: 14,
+    fontWeight: "bold",
   },
   bsoDots: {
-    gap: 2,
+    flexDirection: "row",
+    gap: 4,
+    flex: 1,
+    justifyContent: "flex-start",
+    marginLeft: 8,
   },
   bsoDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: theme.colors.liveboard.bsoDotIdle,
   },
   bsoDotBall: { backgroundColor: theme.colors.liveboard.bsoBall },
@@ -169,18 +179,23 @@ export const styles = StyleSheet.create({
   // ── 선수 배치 영역 ────────────────────────────────────
   playerArea: {
     position: "absolute",
-    top: PLAYER_AREA_TOP,
-    left: PLAYER_AREA_LEFT,
-    width: PLAYER_AREA_WIDTH,
-    height: PLAYER_AREA_HEIGHT,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   playerTag: {
     position: "absolute",
-    width: 47,
-    height: 14,
+    width: 54, // 47 -> 54
+    height: 18, // 14 -> 18
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: theme.colors.text.primary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1,
+    elevation: 2,
   },
   playerTagDefender: {
     backgroundColor: theme.colors.liveboard.defender,
@@ -192,10 +207,10 @@ export const styles = StyleSheet.create({
     backgroundColor: theme.colors.liveboard.runner,
   },
   playerName: {
-    fontSize: 9,
+    fontSize: 10, // 9 -> 10
     color: theme.colors.background,
     textAlign: "center",
-    lineHeight: 13,
+    lineHeight: 16, // 13 -> 16
   },
   playerNameRunner: {
     fontSize: 9,
@@ -385,6 +400,89 @@ export const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
     lineHeight: 18,
   },
+  // ── 텍스트 중계 패널 ─────────────────────────────────
+  textBroadcastScroll: {
+    flex: 1,
+  },
+  textBroadcastContent: {
+    paddingBottom: 30,
+  },
+  inningChipList: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    gap: 8,
+  },
+  inningChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 15,
+    backgroundColor: theme.colors.card,
+    borderWidth: 1,
+    borderColor: theme.colors.border.medium,
+  },
+  inningChipActive: {
+    backgroundColor: theme.colors.brand.mint,
+    borderColor: theme.colors.brand.mint,
+  },
+  inningChipText: {
+    fontSize: 12,
+    color: theme.colors.brand.inactive,
+  },
+  inningChipTextActive: {
+    color: theme.colors.background,
+  },
+  broadcastList: {
+    paddingHorizontal: 14,
+  },
+  broadcastItem: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border.medium,
+    gap: 4,
+  },
+  broadcastItemBatter: {
+    backgroundColor: theme.colors.liveboard.countBoxBg,
+    paddingHorizontal: 10,
+    borderRadius: 4,
+    marginVertical: 4,
+    borderBottomWidth: 0,
+  },
+  broadcastItemInning: {
+    backgroundColor: theme.colors.brand.background,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderBottomWidth: 2,
+    borderBottomColor: theme.colors.border.medium,
+  },
+  broadcastText: {
+    fontSize: 14,
+    color: theme.colors.text.primary,
+    lineHeight: 20,
+  },
+  broadcastTextPitch: {
+    fontSize: 13,
+    color: theme.colors.text.secondary,
+    paddingLeft: 10,
+  },
+  broadcastTextBatter: {
+    fontSize: 14,
+    color: theme.colors.background,
+    fontWeight: "bold",
+  },
+  broadcastTextInning: {
+    fontSize: 15,
+    color: theme.colors.brand.mint,
+    fontWeight: "bold",
+  },
+  broadcastEmpty: {
+    padding: 40,
+    alignItems: "center",
+  },
+  broadcastEmptyText: {
+    color: theme.colors.text.tertiary,
+    fontSize: 14,
+  },
+
   // ── 공통 탭 패널 제어 ────────────────────────────────
   tabPanel: {
     flex: 1,

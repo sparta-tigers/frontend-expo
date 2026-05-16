@@ -7,7 +7,14 @@ import {
   NowCastDto, 
   ForeCastDto 
 } from "@/src/shared/types/weather";
-import { LiveBoardStatus, PlayerPosition } from "@/src/shared/types/match";
+import { 
+  LiveBoardStatus, 
+  PlayerPosition,
+  InningTextsDto,
+  PlayerDto,
+  MatchScoreDto,
+  LiveBoardDataDto
+} from "@/src/shared/types/match";
 
 /**
  * Liveboard 도메인 타입 정의
@@ -20,13 +27,29 @@ export type {
   WeatherApiStatus, 
   NowCastDto, 
   ForeCastDto,
-  LiveBoardStatus
+  LiveBoardStatus,
+  InningTextsDto,
+  PlayerDto,
+  MatchScoreDto,
+  LiveBoardDataDto
 };
 
 
 /**
+ * 🛰️ BroadcastItem: 구조화된 개별 중계 아이템
+ * Why: 매퍼 계층에서 문자열을 파싱하여 UI가 조건 없이 렌더링할 수 있게 함.
+ */
+export type BroadcastType = "BATTER_INFO" | "PITCH_LOG" | "PLAY_RESULT" | "INNING_INFO";
+
+export interface BroadcastItem {
+  id: string; // {inning}-{index}
+  type: BroadcastType;
+  text: string;
+}
+
+
+/**
  * 🛰️ LiveboardData: 실시간 중계 화면에 표시될 동적 데이터 모델
- * Why: MatchDetail(정적)과 분리하여 실시간 데이터만 독립적으로 패칭/갱신하기 위함.
  */
 export interface LiveboardData {
   matchId: number;
@@ -37,17 +60,20 @@ export interface LiveboardData {
   homeScore?: number;
   awayScore?: number;
   inning?: number;
-  inningHalf?: "초" | "말";
+  inningHalf?: "초" | "말" | undefined;
   ballCount?: number;
   strikeCount?: number;
   outCount?: number;
   bases?: { first: boolean; second: boolean; third: boolean };
   pitcherName?: string;
   pitchCount?: number;
-  lastEvent?: string;
+  lastEvent?: string | null;
   defenders?: PlayerPosition[];
-  batter?: PlayerPosition;
-  runner?: PlayerPosition;
+  batter?: PlayerPosition | null;
+  runner1?: PlayerPosition | null;
+  runner2?: PlayerPosition | null;
+  runner3?: PlayerPosition | null;
+  inningTexts?: { [inning: number]: BroadcastItem[] } | undefined;
 }
 
 export interface MatchLineupDto {
@@ -66,3 +92,4 @@ export interface MatchWeatherDto {
   nowCast: NowCastDto | null;
   foreCast: ForeCastDto[];
 }
+

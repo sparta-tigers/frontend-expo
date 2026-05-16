@@ -1,6 +1,6 @@
 // src/features/liveboard/hooks/useLiveboardData.ts
 import { fetchMatchRoom } from "@/src/features/match";
-import { Logger } from "@/src/utils/logger";
+
 import { useQuery } from "@tanstack/react-query";
 import { LiveboardMapper } from "../mapper";
 import { LiveboardData } from "../types";
@@ -26,7 +26,6 @@ export const useLiveboardData = (matchId: number) => {
 
         return LiveboardMapper.toLiveboardData(room);
       } catch (error) {
-        Logger.error(`[useLiveboardData] Failed to fetch live data (ID: ${matchId})`, error);
         throw error;
       }
     },

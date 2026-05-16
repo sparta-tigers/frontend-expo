@@ -4,6 +4,7 @@ import { Typography } from "@/components/ui/typography";
 import { ChatPanel } from "@/src/features/liveboard/components/ChatPanel";
 import { LineupPanel } from "@/src/features/liveboard/components/LineupPanel";
 import { LiveSection } from "@/src/features/liveboard/components/LiveSection";
+import { TextBroadcastPanel } from "@/src/features/liveboard/components/TextBroadcastPanel";
 import { WeatherPanel } from "@/src/features/liveboard/components/WeatherPanel";
 import { styles } from "@/src/features/liveboard/styles/matchId.styles";
 import { useLiveboardScreen, TABS } from "@/src/features/liveboard/hooks/useLiveboardScreen";
@@ -11,23 +12,6 @@ import { theme } from "@/src/styles/theme";
 import React from "react";
 import { ActivityIndicator, TouchableOpacity } from "react-native";
 
-// ... (PlaceholderPanel component remains same)
-
-/**
- * PlaceholderPanel
- *
- * Why: 아직 개발 중이거나 데이터가 없는 탭의 화면을 일관된 디자인으로 표시하기 위한 임시 패널.
- * 탭 전환 시 사용자에게 빈 화면 대신 "준비 중" 상태를 명확히 인지시킴.
- */
-function PlaceholderPanel({ label }: { label: string }) {
-  return (
-    <Box flex={1} align="center" justify="center" gap="sm">
-      <Typography variant="body1" color="text.secondary" weight="medium">
-        {label} 준비 중입니다
-      </Typography>
-    </Box>
-  );
-}
 
 /**
  * 라이브보드 상세 화면
@@ -117,25 +101,27 @@ export default function LiveboardDetailScreen() {
       </Box>
 
       <Box flex={1}>
-        <Box
-          style={[
-            styles.tabPanel,
-            activeTab === "chat" ? styles.visible : styles.hidden,
-          ]}
-        >
-          <ChatPanel matchId={matchId} />
-        </Box>
+        {activeTab === "chat" && (
+          <Box style={[styles.tabPanel, styles.visible]}>
+            <ChatPanel matchId={matchId} />
+          </Box>
+        )}
 
         {activeTab === "text" && (
           <Box style={[styles.tabPanel, styles.visible]}>
-            <PlaceholderPanel label="텍스트 중계" />
+            <TextBroadcastPanel 
+              inningTexts={liveData?.inningTexts} 
+              isVisible={true} 
+            />
           </Box>
         )}
+
         {activeTab === "lineup" && match && (
           <Box style={[styles.tabPanel, styles.visible]}>
             <LineupPanel match={match} />
           </Box>
         )}
+
         {activeTab === "weather" && (
           <Box style={[styles.tabPanel, styles.visible]}>
             <WeatherPanel matchId={matchId} />

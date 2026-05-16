@@ -84,7 +84,7 @@ export function useChatRoom(
   const [messageText, setMessageText] = useState("");
   const [isProcessing, setIsProcessing] = useState(false); // 🛡️ Race Condition 방어용 플래그
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, isLoggedIn } = useAuth();
 
   const roomIdNumber = Number(roomId);
   const isRoomIdInvalid =
@@ -103,7 +103,7 @@ export function useChatRoom(
       );
       return response.data as ExchangeItem;
     },
-    enabled: !isRoomIdInvalid,
+    enabled: isLoggedIn && !isRoomIdInvalid,
   });
 
   const isInputDisabled = useMemo(() => {
@@ -139,7 +139,7 @@ export function useChatRoom(
       return { content: mapped, hasNext: !(response.data?.last ?? true) };
     },
     getNextPageParam: (lastPage, allPages) => lastPage.hasNext ? allPages.length : undefined,
-    enabled: !isRoomIdInvalid,
+    enabled: isLoggedIn && !isRoomIdInvalid,
     initialPageParam: 0,
   });
 
