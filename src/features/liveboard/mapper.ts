@@ -27,9 +27,18 @@ export const LiveboardMapper = {
 
     // 공격 팀 선수 추출 (Zero Magic: 다양한 role 명칭 대응)
     const batter = players.find((p) => p.role.toLowerCase().includes("batter"));
-    const runner1 = players.find((p) => p.role.includes("runner1") || p.role.includes("1루주자"));
-    const runner2 = players.find((p) => p.role.includes("runner2") || p.role.includes("2루주자"));
-    const runner3 = players.find((p) => p.role.includes("runner3") || p.role.includes("3루주자"));
+    const runner1 = players.find((p) => {
+      const role = p.role.toLowerCase();
+      return role.includes("runner1") || role.includes("1루주자");
+    });
+    const runner2 = players.find((p) => {
+      const role = p.role.toLowerCase();
+      return role.includes("runner2") || role.includes("2루주자");
+    });
+    const runner3 = players.find((p) => {
+      const role = p.role.toLowerCase();
+      return role.includes("runner3") || role.includes("3루주자");
+    });
 
     const rawInningTexts = live?.inningTexts ?? room.inningTexts;
     const inningTexts = rawInningTexts ? this.parseInningTexts(rawInningTexts) : undefined;
@@ -68,7 +77,7 @@ export const LiveboardMapper = {
       ballCount: score?.ball || 0,
       strikeCount: score?.strike || 0,
       outCount: score?.out || 0,
-      pitcherName: players.find((p) => p.role === "pitcher")?.name || "-",
+      pitcherName: players.find((p) => p.role.toLowerCase() === "pitcher")?.name || "-",
       pitchCount: score ? parseInt(score.pitcherCount || "0") : 0,
       lastEvent,
       defenders,
@@ -112,7 +121,13 @@ export const LiveboardMapper = {
       
       // 🚨 Zero Magic: 매퍼 계층에서 모든 문자열 정제 및 타입 판별 완료
       result[inning] = rawTexts
-        .filter((text) => !text.startsWith("---")) // 구분선 데이터 필터링
+        .map((text) => text.trim())
+        .filter((text) => {
+          if (text.length === 0) return false;
+          if (text.startsWith("---")) return false;
+          // 대시(-), 등호(=), 언더바(_)로만 이루어진 노이즈 행 필터링
+          return text.replace(/[-=_]/g, "").length > 0;
+        })
         .map((text, index) => {
           const cleanedText = text.replace(/^-\s*/, "").trim();
           let type: BroadcastType = "PLAY_RESULT";
