@@ -1,5 +1,6 @@
 import { Logger } from "@/src/utils/logger";
 import { getAccessToken } from "@/src/utils/tokenStore";
+import { useAuth } from "@/context/AuthContext";
 import { Client } from "@stomp/stompjs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
@@ -90,6 +91,7 @@ export function useWebSocket(
   const [client, setClient] = useState<Client | null>(null);
   const clientRef = useRef<Client | null>(null);
   const connectingRef = useRef(false);
+  const { isLoggedIn } = useAuth();
 
   /**
    * WebSocket 연결 함수
@@ -112,7 +114,10 @@ export function useWebSocket(
     }
 
     // 중복 연결 방어
-    if (connectingRef.current || clientRef.current?.connected) {
+    if (connectingRef.current || clientRef.current?.connected || !isLoggedIn) {
+      if (!isLoggedIn && __DEV__) {
+        chatLogger.debug("미로그인 상태 - WebSocket 연결 시도를 스킵합니다.");
+      }
       return;
     }
 
@@ -174,7 +179,7 @@ export function useWebSocket(
       connectingRef.current = false;
       setStatus("ERROR");
     }
-  }, [chatDomain, roomId, url]);
+  }, [chatDomain, roomId, url, isLoggedIn]);
 
   const disconnect = useCallback(() => {
     if (clientRef.current?.connected) {
