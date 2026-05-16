@@ -1,7 +1,7 @@
 import { useAuth } from "@/context/AuthContext";
-import { useInfiniteMyAttendances } from "@/src/features/match-attendance/queries";
-import { useMatchSchedule } from "@/src/features/match/hooks/useMatchSchedule";
-import { useTicketAlarms } from "@/src/features/ticket-alarm/hooks/useTicketAlarm";
+import { useInfiniteMyAttendances } from "@/src/features/match-attendance";
+import { useMatchSchedule } from "@/src/features/match";
+import { useTicketAlarms } from "@/src/features/ticket-alarm";
 import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
 import { LeagueType } from "@/src/shared/types/match";
 import { ThemeColorPath } from "@/src/shared/types/theme";

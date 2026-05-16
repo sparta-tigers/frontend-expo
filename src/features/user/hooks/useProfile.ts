@@ -7,8 +7,8 @@ import { Logger } from "@/src/utils/logger";
 import {
   usersDeleteAccountAPI,
   usersUpdateProfileAPI,
-} from "@/src/features/auth/api";
-import { UserProfileUpdateRequest } from "@/src/features/auth/types";
+  UserProfileUpdateRequest,
+} from "@/src/features/auth";
 import { FavoriteTeam } from "@/src/features/user/favorite-team";
 import {
   favoriteTeamAddAPI,

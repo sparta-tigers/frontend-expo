@@ -2,11 +2,10 @@ import { useMemo, useCallback } from "react";
 import { router } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
 import { findTeamMeta, TeamCode } from "@/src/utils/team";
-import { useMatchSchedule } from "@/src/features/match/hooks/useMatchSchedule";
-import { useMatchRanking } from "@/src/features/match/hooks/useMatchRanking";
+import { useMatchSchedule, useMatchRanking } from "@/src/features/match";
 import { useDashboardSummary } from "@/src/features/home/hooks/useDashboardSummary";
-import { useInfiniteMyAttendances, useAttendanceCount } from "@/src/features/match-attendance/queries";
-import { useTicketAlarmCount } from "@/src/features/ticket-alarm/hooks/useTicketAlarm";
+import { useInfiniteMyAttendances, useAttendanceCount } from "@/src/features/match-attendance";
+import { useTicketAlarmCount } from "@/src/features/ticket-alarm";
 import { getTodayString, getCurrentYear, getCurrentMonth, getCurrentDay } from "@/src/utils/date";
 
 /**

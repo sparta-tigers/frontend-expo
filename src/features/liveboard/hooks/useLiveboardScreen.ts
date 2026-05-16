@@ -1,7 +1,7 @@
 import { useLocalSearchParams } from "expo-router";
 import { useState, useMemo } from "react";
 import { useAuth } from "@/src/hooks/useAuth";
-import { useMatchDetail } from "@/src/features/match/hooks/useMatchDetail";
+import { useMatchDetail } from "@/src/features/match";
 import { useLiveboardData } from "@/src/features/liveboard/hooks/useLiveboardData";
 import { isValidTeamCode } from "@/src/utils/team";
 
