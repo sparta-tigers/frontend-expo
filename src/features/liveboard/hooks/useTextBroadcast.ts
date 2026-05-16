@@ -1,5 +1,4 @@
-// src/features/liveboard/hooks/useTextBroadcast.ts
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { BroadcastItem } from "../types";
 
 /**
@@ -17,6 +16,11 @@ export const useTextBroadcast = (inningTexts?: { [inning: number]: BroadcastItem
   }, [inningTexts]);
 
   const [activeInning, setActiveInning] = useState<number>(initialInning);
+
+  // initialInning 변경 시 (비동기 데이터 로드 완료 등) 상태 동기화
+  useEffect(() => {
+    setActiveInning(initialInning);
+  }, [initialInning]);
 
   // 2. 가용한 이닝 리스트 (칩 표시용)
   const availableInnings = useMemo(() => {

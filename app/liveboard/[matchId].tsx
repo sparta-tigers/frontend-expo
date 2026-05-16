@@ -101,43 +101,32 @@ export default function LiveboardDetailScreen() {
       </Box>
 
       <Box flex={1}>
-        <Box
-          style={[
-            styles.tabPanel,
-            activeTab === "chat" ? styles.visible : styles.hidden,
-          ]}
-        >
-          <ChatPanel matchId={matchId} />
-        </Box>
+        {activeTab === "chat" && (
+          <Box style={[styles.tabPanel, styles.visible]}>
+            <ChatPanel matchId={matchId} />
+          </Box>
+        )}
 
-        <Box
-          style={[
-            styles.tabPanel,
-            activeTab === "text" ? styles.visible : styles.hidden,
-          ]}
-        >
-          <TextBroadcastPanel 
-            inningTexts={liveData?.inningTexts} 
-            isVisible={activeTab === "text"} 
-          />
-        </Box>
-        <Box
-          style={[
-            styles.tabPanel,
-            activeTab === "lineup" ? styles.visible : styles.hidden,
-          ]}
-        >
-          {match && <LineupPanel match={match} />}
-        </Box>
+        {activeTab === "text" && (
+          <Box style={[styles.tabPanel, styles.visible]}>
+            <TextBroadcastPanel 
+              inningTexts={liveData?.inningTexts} 
+              isVisible={true} 
+            />
+          </Box>
+        )}
 
-        <Box
-          style={[
-            styles.tabPanel,
-            activeTab === "weather" ? styles.visible : styles.hidden,
-          ]}
-        >
-          <WeatherPanel matchId={matchId} />
-        </Box>
+        {activeTab === "lineup" && match && (
+          <Box style={[styles.tabPanel, styles.visible]}>
+            <LineupPanel match={match} />
+          </Box>
+        )}
+
+        {activeTab === "weather" && (
+          <Box style={[styles.tabPanel, styles.visible]}>
+            <WeatherPanel matchId={matchId} />
+          </Box>
+        )}
       </Box>
     </SafeLayout>
   );
