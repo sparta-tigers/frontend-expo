@@ -1,12 +1,11 @@
 // app/liveboard/[matchId]/matchId.styles.ts
-import { StyleSheet } from "react-native";
 import { theme } from "@/src/styles/theme";
+import { StyleSheet } from "react-native";
 
 // 디자인 기준 섹션 수치 (Figma)
 export const LIVE_SECTION_HEIGHT = 274;
 const LEFT_BAR_WIDTH = 74;
 const LEFT_BAR_LEFT = 13;
-
 
 export const styles = StyleSheet.create({
   container: {
@@ -28,6 +27,10 @@ export const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: theme.colors.liveboard.stadiumBg,
+    zIndex: -1,
+  },
+  flexWrapper: {
+    flex: 1,
   },
   eventBanner: {
     position: "absolute",
@@ -48,16 +51,16 @@ export const styles = StyleSheet.create({
   },
 
   // ── 좌측 바 ──────────────────────────────────────────
-  leftBar: {
-    position: "absolute",
-    top: 0,
-    left: LEFT_BAR_LEFT,
-    width: LEFT_BAR_WIDTH,
-    height: "100%",
+  leftBarContainer: {
+    flex: 1,
+    paddingLeft: LEFT_BAR_LEFT,
+    paddingTop: 27,
+  },
+  fieldArea: {
+    flex: 5,
+    position: "relative",
   },
   scoreRow: {
-    position: "absolute",
-    left: 0,
     width: LEFT_BAR_WIDTH,
     height: 30,
     borderRadius: 3,
@@ -67,12 +70,12 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   scoreAway: {
-    top: 27,
     backgroundColor: theme.colors.liveboard.scoreAway,
+    marginBottom: 0,
   },
   scoreHome: {
-    top: 57,
     backgroundColor: theme.colors.liveboard.scoreHome,
+    marginTop: 0,
   },
   scoreTeamLabel: {
     fontSize: 10,
@@ -84,9 +87,7 @@ export const styles = StyleSheet.create({
     letterSpacing: -1,
   },
   countBox: {
-    position: "absolute",
-    top: 97,
-    left: 4,
+    marginTop: 10,
     width: LEFT_BAR_WIDTH - 4,
     height: 165,
     borderRadius: 3,
