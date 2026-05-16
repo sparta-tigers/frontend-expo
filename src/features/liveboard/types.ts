@@ -73,8 +73,8 @@ export interface LiveboardData {
   pitchCount?: number;
   lastEvent?: string;
   defenders?: PlayerPosition[];
-  batter?: PlayerPosition;
-  runner?: PlayerPosition;
+  batter?: PlayerPosition | null;
+  runner?: PlayerPosition | null;
   inningTexts?: { [inning: number]: BroadcastItem[] } | undefined;
 }
 
@@ -93,4 +93,29 @@ export interface MatchWeatherDto {
   status: WeatherApiStatus;
   nowCast: NowCastDto | null;
   foreCast: ForeCastDto[];
+}
+
+/**
+ * 🛰️ LiveBoardDataDto: 백엔드 실시간 데이터 DTO
+ */
+export interface PlayerDto {
+  role: string;
+  name: string;
+}
+
+export interface MatchScoreDto {
+  strike: number;
+  ball: number;
+  out: number;
+  homeScore: string;
+  awayScore: string;
+  pitcherCount: string;
+}
+
+export interface LiveBoardDataDto {
+  matchId: number;
+  players: PlayerDto[];
+  matchScore: MatchScoreDto;
+  inningTexts: InningTextsDto;
+  currentInning: string;
 }

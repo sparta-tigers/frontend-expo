@@ -13,17 +13,34 @@ export const LiveboardMapper = {
    * toLiveboardData: API 응답 객체를 UI 전용 모델로 변환
    */
   toLiveboardData(room: MatchRoomDto): LiveboardData {
+    const live = room.liveBoardData;
+    const score = live?.matchScore;
+    const players = live?.players || [];
+
+    // 수비수/타자 분리 매핑
+    const defenders = players
+      .filter((p) => p.role !== "batter" && p.role !== "supervision")
+      .map((p) => ({ name: p.name, role: p.role, x: 0, y: 0 }));
+
+    const batter = players.find((p) => p.role === "batter");
+
     return {
       matchId: room.matchId,
       liveBoardStatus: room.liveBoardStatus,
       nowCast: room.nowCast,
       foreCast: room.foreCast,
       connectCount: room.connectCount,
-      homeScore: 0, // 초기값
-      awayScore: 0,
-      inning: 1,
-      inningHalf: "초",
-      defenders: [], // 실시간 데이터 수신 시 업데이트
+      homeScore: score ? parseInt(score.homeScore || "0") : 0,
+      awayScore: score ? parseInt(score.awayScore || "0") : 0,
+      inning: live?.currentInning ? parseInt(live.currentInning.replace(/[^0-9]/g, "")) : 1,
+      inningHalf: live?.currentInning?.includes("초") ? "초" : "말",
+      ballCount: score?.ball || 0,
+      strikeCount: score?.strike || 0,
+      outCount: score?.out || 0,
+      pitcherName: players.find((p) => p.role === "pitcher")?.name || "-",
+      pitchCount: score ? parseInt(score.pitcherCount || "0") : 0,
+      defenders,
+      batter: batter ? { name: batter.name, role: "batter", x: 0, y: 0 } : null,
       inningTexts: room.inningTexts ? this.parseInningTexts(room.inningTexts) : undefined,
     };
   },

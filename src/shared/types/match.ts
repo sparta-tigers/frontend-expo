@@ -93,4 +93,5 @@ export interface MatchRoomDto {
   nowCast: NowCastDto | null;
   foreCast: ForeCastDto[] | null;
   inningTexts: import("@/src/features/liveboard/types").InningTextsDto | null;
+  liveBoardData: import("@/src/features/liveboard/types").LiveBoardDataDto | null;
 }
