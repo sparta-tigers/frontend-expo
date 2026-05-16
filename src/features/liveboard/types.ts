@@ -25,8 +25,35 @@ export type {
 
 
 /**
+ * 🛰️ BroadcastItem: 구조화된 개별 중계 아이템
+ * Why: 매퍼 계층에서 문자열을 파싱하여 UI가 조건 없이 렌더링할 수 있게 함.
+ */
+export type BroadcastType = "BATTER_INFO" | "PITCH_LOG" | "PLAY_RESULT" | "INNING_INFO";
+
+export interface BroadcastItem {
+  id: string; // {inning}-{index}
+  type: BroadcastType;
+  text: string;
+}
+
+/**
+ * 🛰️ InningTexts: 이닝별 문자중계 원본 데이터 (백엔드 대응)
+ */
+export interface InningTextsDto {
+  inningOneTexts?: string[];
+  inningTwoTexts?: string[];
+  inningThreeTexts?: string[];
+  inningFourTexts?: string[];
+  inningFiveTexts?: string[];
+  inningSixTexts?: string[];
+  inningSevenTexts?: string[];
+  inningEightTexts?: string[];
+  inningNineTexts?: string[];
+  inningExtraTexts?: string[];
+}
+
+/**
  * 🛰️ LiveboardData: 실시간 중계 화면에 표시될 동적 데이터 모델
- * Why: MatchDetail(정적)과 분리하여 실시간 데이터만 독립적으로 패칭/갱신하기 위함.
  */
 export interface LiveboardData {
   matchId: number;
@@ -48,6 +75,7 @@ export interface LiveboardData {
   defenders?: PlayerPosition[];
   batter?: PlayerPosition;
   runner?: PlayerPosition;
+  inningTexts?: { [inning: number]: BroadcastItem[] } | undefined;
 }
 
 export interface MatchLineupDto {

@@ -91,4 +91,5 @@ export interface MatchRoomDto {
   connectCount: number;
   nowCast: NowCastDto | null;
   foreCast: ForeCastDto[] | null;
+  inningTexts: import("@/src/features/liveboard/types").InningTextsDto | null;
 }
