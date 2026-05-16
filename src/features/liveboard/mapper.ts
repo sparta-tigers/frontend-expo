@@ -19,6 +19,11 @@ export const LiveboardMapper = {
       nowCast: room.nowCast,
       foreCast: room.foreCast,
       connectCount: room.connectCount,
+      homeScore: 0, // 초기값
+      awayScore: 0,
+      inning: 1,
+      inningHalf: "초",
+      defenders: [], // 실시간 데이터 수신 시 업데이트
       inningTexts: room.inningTexts ? this.parseInningTexts(room.inningTexts) : undefined,
     };
   },

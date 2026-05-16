@@ -6,10 +6,7 @@ import { theme } from "@/src/styles/theme";
 export const LIVE_SECTION_HEIGHT = 274;
 const LEFT_BAR_WIDTH = 74;
 const LEFT_BAR_LEFT = 13;
-const PLAYER_AREA_LEFT = 102;
-const PLAYER_AREA_TOP = 53;
-const PLAYER_AREA_WIDTH = 290;
-const PLAYER_AREA_HEIGHT = 223;
+
 
 export const styles = StyleSheet.create({
   container: {
@@ -19,7 +16,8 @@ export const styles = StyleSheet.create({
 
   // ── 라이브 섹션 (상단) ───────────────────────────────
   liveSection: {
-    height: LIVE_SECTION_HEIGHT,
+    width: "100%",
+    aspectRatio: 360 / 274,
     overflow: "hidden",
     position: "relative",
   },
@@ -55,7 +53,7 @@ export const styles = StyleSheet.create({
     top: 0,
     left: LEFT_BAR_LEFT,
     width: LEFT_BAR_WIDTH,
-    height: LIVE_SECTION_HEIGHT,
+    height: "100%",
   },
   scoreRow: {
     position: "absolute",
@@ -169,10 +167,10 @@ export const styles = StyleSheet.create({
   // ── 선수 배치 영역 ────────────────────────────────────
   playerArea: {
     position: "absolute",
-    top: PLAYER_AREA_TOP,
-    left: PLAYER_AREA_LEFT,
-    width: PLAYER_AREA_WIDTH,
-    height: PLAYER_AREA_HEIGHT,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   playerTag: {
     position: "absolute",

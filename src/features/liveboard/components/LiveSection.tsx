@@ -8,39 +8,25 @@ import React from "react";
 import { styles } from "@/src/features/liveboard/styles/matchId.styles";
 import { LiveboardData } from "@/src/features/liveboard/types";
 import { ActivityIndicator } from "react-native";
-
+import { FIELD_POSITIONS, isValidFieldRole } from "../constants/fieldPositions";
 
 /**
- * PlayerTag — 선수 이름 태그 (수비/타자/주자 색상 구분)
+ * PlayerChip — 경기장 위 선수 이름 칩
  */
-function PlayerTag({
-  name,
-  x,
-  y,
-  kind,
-}: {
-  name: string;
-  x: number;
-  y: number;
-  kind: "defender" | "batter" | "runner";
-}) {
-  const tagStyle =
-    kind === "defender"
-      ? styles.playerTagDefender
-      : kind === "batter"
-        ? styles.playerTagBatter
-        : styles.playerTagRunner;
-  const textStyle =
-    kind === "runner" ? styles.playerNameRunner : styles.playerName;
-  const positionStyle = { left: x, top: y };
+const PlayerChip = ({ name, role, kind }: { name: string; role: string; kind: "defender" | "batter" }) => {
+  if (!isValidFieldRole(role)) return null;
+
+  const pos = FIELD_POSITIONS[role];
+  const tagStyle = kind === "defender" ? styles.playerTagDefender : styles.playerTagBatter;
+
   return (
-    <Box style={[styles.playerTag, tagStyle, positionStyle]}>
-      <Typography style={textStyle} weight="medium">
+    <Box style={[styles.playerTag, tagStyle, { top: pos.top, left: pos.left }]}>
+      <Typography style={styles.playerName} weight="medium">
         {name}
       </Typography>
     </Box>
   );
-}
+};
 
 /**
  * BsoLine — B/S/O 각 라인 (label + 점 표시)
@@ -200,32 +186,27 @@ export function LiveSection({
         </Box>
       </Box>
 
-      <Box style={styles.playerArea}>
+      <Box style={styles.playerArea} pointerEvents="none">
+        {/* 수비수 배치 */}
         {liveData?.defenders?.map((p) => (
-          <PlayerTag
-            key={p.name}
+          <PlayerChip
+            key={`${p.role}-${p.name}`}
             name={p.name}
-            x={p.x}
-            y={p.y}
+            role={p.role}
             kind="defender"
           />
         ))}
+
+        {/* 현재 타자 배치 */}
         {liveData?.batter && (
-          <PlayerTag
+          <PlayerChip
             name={liveData.batter.name}
-            x={liveData.batter.x}
-            y={liveData.batter.y}
+            role="batter"
             kind="batter"
           />
         )}
-        {liveData?.runner && (
-          <PlayerTag
-            name={liveData.runner.name}
-            x={liveData.runner.x}
-            y={liveData.runner.y}
-            kind="runner"
-          />
-        )}
+
+        {/* 주자 표시 (주자는 별도 다이아몬드 UI가 있으므로 필드에는 생략하거나 필요시 추가) */}
       </Box>
     </Box>
   );

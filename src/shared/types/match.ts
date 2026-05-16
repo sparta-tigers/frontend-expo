@@ -66,6 +66,7 @@ export interface RankingUIModel extends RankingRowDto {
 
 export interface PlayerPosition {
   name: string;
+  role: string;
   x: number;
   y: number;
 }
