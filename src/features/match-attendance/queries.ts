@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
+import { useAuth } from "@/context/AuthContext";
 import {
     attendanceCreateAPI,
     attendanceDeleteAPI,
@@ -14,7 +15,7 @@ export type { RNFormDataFile, RNFormDataString } from "./types";
 /**
  * 🚨 앙드레 카파시: 직관 기록 관련 TanStack Query 훅 모음
  * 
- * Why: 서버 상태를 캐싱하고, 데이터 변경 시 관련 쿼리를 자동으로 무효화(Invalidation)하여 
+ * Why: 서버 상태를 캐싱하고, 데이터 변경 시 관련 쿼리를 자동으로 무효화(Invalidate)하여 
  * UI 정합성을 유지함. (Zero-Magic UI의 핵심)
  */
 
@@ -33,10 +34,12 @@ export const attendanceKeys = {
  * 내 직관 기록 목록 조회 쿼리
  */
 export const useMyAttendances = (page: number = 1, size: number = 100) => {
+  const { isLoggedIn } = useAuth();
   return useQuery({
     queryKey: attendanceKeys.my(page, size),
     queryFn: () => attendanceGetMyAPI(page, size),
     select: (response) => response.data?.content ?? [],
+    enabled: isLoggedIn,
   });
 };
 
@@ -45,6 +48,7 @@ export const useMyAttendances = (page: number = 1, size: number = 100) => {
  * Why: 100건 제한 목록 검색 안티패턴을 피하고, 결정론적으로 수정/생성 모드를 판별하기 위함.
  */
 export const useMyAttendanceByMatchId = (matchId: number) => {
+  const { isLoggedIn } = useAuth();
   return useQuery({
     queryKey: attendanceKeys.byMatch(matchId),
     queryFn: async () => {
@@ -62,7 +66,7 @@ export const useMyAttendanceByMatchId = (matchId: number) => {
         throw error;
       }
     },
-    enabled: !!matchId && !isNaN(matchId),
+    enabled: isLoggedIn && !!matchId && !isNaN(matchId),
     retry: false, // 생성 모드 유도 시 불필요한 재시도 방지
   });
 };
@@ -72,6 +76,7 @@ export const useMyAttendanceByMatchId = (matchId: number) => {
  * Why: 100건 하드코딩 제한을 철폐하고 대용량 데이터를 안전하게 로드함.
  */
 export const useInfiniteMyAttendances = (size: number = 10) => {
+  const { isLoggedIn } = useAuth();
   return useInfiniteQuery({
     queryKey: attendanceKeys.infinite(size),
     queryFn: ({ pageParam = 0 }) => attendanceGetMyAPI((pageParam as number) + 1, size),
@@ -81,6 +86,7 @@ export const useInfiniteMyAttendances = (size: number = 10) => {
       return data.number + 1; // number는 0-indexed (Spring Pageable)
     },
     initialPageParam: 0,
+    enabled: isLoggedIn,
   });
 };
 
@@ -88,11 +94,12 @@ export const useInfiniteMyAttendances = (size: number = 10) => {
  * 직관 기록 단건 조회 쿼리
  */
 export const useAttendance = (id: number) => {
+  const { isLoggedIn } = useAuth();
   return useQuery({
     queryKey: attendanceKeys.detail(id),
     queryFn: () => attendanceGetDetailAPI(id),
     select: (response) => response.data,
-    enabled: !!id && !isNaN(id), // 🚨 NaN 체크 추가 (Fail-fast)
+    enabled: isLoggedIn && !!id && !isNaN(id), // 🚨 NaN 체크 추가 (Fail-fast)
   });
 };
 
@@ -100,10 +107,12 @@ export const useAttendance = (id: number) => {
  * 🔢 연간 직관 횟수 조회 쿼리
  */
 export const useAttendanceCount = (year?: number) => {
+  const { isLoggedIn } = useAuth();
   return useQuery({
     queryKey: attendanceKeys.count(year),
     queryFn: () => attendanceGetCountAPI(year),
     select: (response) => response.data ?? 0,
+    enabled: isLoggedIn,
   });
 };
 

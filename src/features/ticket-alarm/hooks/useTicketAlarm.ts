@@ -9,6 +9,7 @@ import {
 import { ticketAlarmKeys } from "../queries";
 import { CreateTicketAlarmRequest, UpdateTicketAlarmRequest } from "../types";
 import { Logger } from "@/src/utils/logger";
+import { useAuth } from "@/context/AuthContext";
 
 /**
  * 🚨 앙드레 카파시: 티켓 알림 통합 훅
@@ -24,10 +25,12 @@ import { Logger } from "@/src/utils/logger";
  * select 가공을 통해 UI 컴포넌트가 API 응답 구조에 의존하지 않고 데이터 본체만 깔끔하게 참조하도록 설계했습니다.
  */
 export function useTicketAlarms(page: number = 1, size: number = 20) {
+  const { isLoggedIn } = useAuth();
   return useQuery({
     queryKey: ticketAlarmKeys.list(page, size),
     queryFn: () => ticketAlarmGetListAPI(page, size),
     select: (res) => res.data,
+    enabled: isLoggedIn,
   });
 }
 
@@ -37,10 +40,12 @@ export function useTicketAlarms(page: number = 1, size: number = 20) {
  * Why: 대시보드 상단 섹션 등 요약 UI에서 실제 데이터 기반의 카운트를 보여주기 위함입니다.
  */
 export function useTicketAlarmCount() {
+  const { isLoggedIn } = useAuth();
   return useQuery({
     queryKey: ticketAlarmKeys.count(),
     queryFn: ticketAlarmGetCountAPI,
     select: (res) => res.data ?? 0,
+    enabled: isLoggedIn,
   });
 }
 
