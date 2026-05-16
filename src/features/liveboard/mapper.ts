@@ -71,6 +71,11 @@ export const LiveboardMapper = {
       runner1: runner1 ? { name: runner1.name, role: "runner1", x: 0, y: 0 } : null,
       runner2: runner2 ? { name: runner2.name, role: "runner2", x: 0, y: 0 } : null,
       runner3: runner3 ? { name: runner3.name, role: "runner3", x: 0, y: 0 } : null,
+      bases: {
+        first: !!runner1,
+        second: !!runner2,
+        third: !!runner3,
+      },
       inningTexts,
     };
   },
