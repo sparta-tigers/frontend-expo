@@ -74,7 +74,9 @@ export interface LiveboardData {
   lastEvent?: string | null;
   defenders?: PlayerPosition[];
   batter?: PlayerPosition | null;
-  runner?: PlayerPosition | null;
+  runner1?: PlayerPosition | null;
+  runner2?: PlayerPosition | null;
+  runner3?: PlayerPosition | null;
   inningTexts?: { [inning: number]: BroadcastItem[] } | undefined;
 }
 

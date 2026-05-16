@@ -208,6 +208,29 @@ export function LiveSection({
             />
           ))}
 
+          {/* 주자 배치 */}
+          {liveData?.runner1 && (
+            <PlayerChip
+              name={liveData.runner1.name}
+              role="runner1"
+              kind="batter"
+            />
+          )}
+          {liveData?.runner2 && (
+            <PlayerChip
+              name={liveData.runner2.name}
+              role="runner2"
+              kind="batter"
+            />
+          )}
+          {liveData?.runner3 && (
+            <PlayerChip
+              name={liveData.runner3.name}
+              role="runner3"
+              kind="batter"
+            />
+          )}
+
           {/* 현재 타자 배치 */}
           {liveData?.batter && (
             <PlayerChip

@@ -19,10 +19,13 @@ export const LiveboardMapper = {
 
     // 수비수/타자 분리 매핑
     const defenders = players
-      .filter((p) => p.role !== "batter" && p.role !== "supervision")
+      .filter((p) => !p.role.includes("batter") && !p.role.includes("runner") && p.role !== "supervision")
       .map((p) => ({ name: p.name, role: p.role, x: 0, y: 0 }));
 
     const batter = players.find((p) => p.role === "batter");
+    const runner1 = players.find((p) => p.role === "runner1");
+    const runner2 = players.find((p) => p.role === "runner2");
+    const runner3 = players.find((p) => p.role === "runner3");
 
     const inningTexts = room.inningTexts ? this.parseInningTexts(room.inningTexts) : undefined;
     
@@ -61,6 +64,9 @@ export const LiveboardMapper = {
       lastEvent,
       defenders,
       batter: batter ? { name: batter.name, role: "batter", x: 0, y: 0 } : null,
+      runner1: runner1 ? { name: runner1.name, role: "runner1", x: 0, y: 0 } : null,
+      runner2: runner2 ? { name: runner2.name, role: "runner2", x: 0, y: 0 } : null,
+      runner3: runner3 ? { name: runner3.name, role: "runner3", x: 0, y: 0 } : null,
       inningTexts,
     };
   },

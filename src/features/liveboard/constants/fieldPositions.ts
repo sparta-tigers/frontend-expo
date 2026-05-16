@@ -26,6 +26,11 @@ export const FIELD_POSITIONS = {
 
   // 타자 (홈플레이트 근처)
   batter: { top: "82%", left: "55%" },
+
+  // 🏃 주자 위치 추가 (베이스 근처)
+  runner1: { top: "65%", left: "73%" },
+  runner2: { top: "41%", left: "53%" },
+  runner3: { top: "65%", left: "2%" },
 } as const;
 
 export type FieldRole = keyof typeof FIELD_POSITIONS;
