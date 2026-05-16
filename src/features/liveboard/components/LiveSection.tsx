@@ -8,6 +8,7 @@ import React from "react";
 import { styles } from "@/src/features/liveboard/styles/matchId.styles";
 import { LiveboardData } from "@/src/features/liveboard/types";
 import { ActivityIndicator } from "react-native";
+import { Image } from "expo-image";
 import { FIELD_POSITIONS, isValidFieldRole } from "../constants/fieldPositions";
 
 /**
@@ -82,13 +83,11 @@ export function LiveSection({
 
   return (
     <Box style={styles.liveSection}>
-      <Box style={styles.stadiumBg} />
-
-      <Box style={styles.eventBanner}>
-        <Typography style={styles.eventBannerText} weight="bold">
-          {liveData?.lastEvent || "진행 중인 이벤트가 없습니다"}
-        </Typography>
-      </Box>
+      <Image 
+        source={require("@/assets/stadium.png")} 
+        style={styles.stadiumBg}
+        contentFit="cover"
+      />
 
       <Box flexDir="row" style={styles.flexWrapper}>
         {/* 좌측 정보 바 (1) */}
@@ -190,6 +189,14 @@ export function LiveSection({
 
         {/* 선수 배치 필드 (5) */}
         <Box style={styles.fieldArea} pointerEvents="none">
+          {/* 
+          <Box style={styles.eventBanner}>
+            <Typography style={styles.eventBannerText} weight="bold">
+              {liveData?.lastEvent}
+            </Typography>
+          </Box>
+          */}
+
           {/* 수비수 배치 */}
           {liveData?.defenders?.map((p) => (
             <PlayerChip

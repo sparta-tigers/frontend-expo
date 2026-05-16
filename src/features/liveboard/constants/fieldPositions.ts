@@ -10,22 +10,22 @@
  */
 export const FIELD_POSITIONS = {
   // 투수/포수
-  pitcher: { top: "60%", left: "45%" },
-  catcher: { top: "85%", left: "45%" },
+  pitcher: { top: "58%", left: "38%" },
+  catcher: { top: "84%", left: "38%" },
 
   // 내야수
-  firBase: { top: "54%", left: "75%" },
-  secondBase: { top: "37%", left: "62%" },
-  thirdBase: { top: "54%", left: "15%" },
-  shortstop: { top: "37%", left: "28%" },
+  firBase: { top: "61%", left: "67%" },
+  secondBase: { top: "46%", left: "58%" },
+  thirdBase: { top: "61%", left: "10%" },
+  shortstop: { top: "46%", left: "20%" },
 
   // 외야수
-  leftFielder: { top: "25%", left: "15%" },
-  centerFielder: { top: "15%", left: "45%" },
-  rightFielder: { top: "25%", left: "75%" },
+  leftFielder: { top: "28%", left: "11%" },
+  centerFielder: { top: "18%", left: "38%" },
+  rightFielder: { top: "28%", left: "65%" },
 
   // 타자 (홈플레이트 근처)
-  batter: { top: "82%", left: "60%" },
+  batter: { top: "82%", left: "55%" },
 } as const;
 
 export type FieldRole = keyof typeof FIELD_POSITIONS;

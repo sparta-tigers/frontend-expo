@@ -24,6 +24,16 @@ export const LiveboardMapper = {
 
     const batter = players.find((p) => p.role === "batter");
 
+    const inningTexts = room.inningTexts ? this.parseInningTexts(room.inningTexts) : undefined;
+    
+    // 가장 최근 이벤트 추출 (현재 이닝의 가장 마지막 유의미한 텍스트)
+    const currentInningNum = live?.currentInning ? parseInt(live.currentInning.replace(/[^0-9]/g, "")) : 1;
+    const currentInningTexts = inningTexts?.[currentInningNum] || [];
+    const validInningTexts = currentInningTexts.filter(t => !t.text.startsWith("---"));
+    const lastEvent = validInningTexts.length > 0 
+      ? validInningTexts[validInningTexts.length - 1].text 
+      : "진행 중인 이벤트가 없습니다";
+
     return {
       matchId: room.matchId,
       liveBoardStatus: room.liveBoardStatus,
@@ -32,16 +42,17 @@ export const LiveboardMapper = {
       connectCount: room.connectCount,
       homeScore: score ? parseInt(score.homeScore || "0") : 0,
       awayScore: score ? parseInt(score.awayScore || "0") : 0,
-      inning: live?.currentInning ? parseInt(live.currentInning.replace(/[^0-9]/g, "")) : 1,
+      inning: currentInningNum,
       inningHalf: live?.currentInning?.includes("초") ? "초" : "말",
       ballCount: score?.ball || 0,
       strikeCount: score?.strike || 0,
       outCount: score?.out || 0,
       pitcherName: players.find((p) => p.role === "pitcher")?.name || "-",
       pitchCount: score ? parseInt(score.pitcherCount || "0") : 0,
+      lastEvent,
       defenders,
       batter: batter ? { name: batter.name, role: "batter", x: 0, y: 0 } : null,
-      inningTexts: room.inningTexts ? this.parseInningTexts(room.inningTexts) : undefined,
+      inningTexts,
     };
   },
 
@@ -71,24 +82,26 @@ export const LiveboardMapper = {
       const inning = mapping[key] as number;
       
       // 🚨 Zero Magic: 매퍼 계층에서 모든 문자열 정제 및 타입 판별 완료
-      result[inning] = rawTexts.map((text, index) => {
-        const cleanedText = text.replace(/^-\s*/, "").trim();
-        let type: BroadcastType = "PLAY_RESULT";
+      result[inning] = rawTexts
+        .filter((text) => !text.startsWith("---")) // 구분선 데이터 필터링
+        .map((text, index) => {
+          const cleanedText = text.replace(/^-\s*/, "").trim();
+          let type: BroadcastType = "PLAY_RESULT";
 
-        if (cleanedText.includes("타자")) {
-          type = "BATTER_INFO";
-        } else if (text.startsWith("-")) {
-          type = "PITCH_LOG";
-        } else if (cleanedText.includes("회") && (cleanedText.includes("초") || cleanedText.includes("말"))) {
-          type = "INNING_INFO";
-        }
+          if (cleanedText.includes("타자")) {
+            type = "BATTER_INFO";
+          } else if (text.startsWith("-")) {
+            type = "PITCH_LOG";
+          } else if (cleanedText.includes("회") && (cleanedText.includes("초") || cleanedText.includes("말"))) {
+            type = "INNING_INFO";
+          }
 
-        return {
-          id: `${inning}-${index}`,
-          type,
-          text: cleanedText,
-        };
-      });
+          return {
+            id: `${inning}-${index}`,
+            type,
+            text: cleanedText,
+          };
+        });
     });
 
     return result;

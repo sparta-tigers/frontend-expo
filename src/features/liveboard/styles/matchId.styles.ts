@@ -26,7 +26,6 @@ export const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: theme.colors.liveboard.stadiumBg,
     zIndex: -1,
   },
   flexWrapper: {
@@ -35,13 +34,14 @@ export const styles = StyleSheet.create({
   eventBanner: {
     position: "absolute",
     top: 27,
-    left: 120,
+    alignSelf: "center",
     paddingHorizontal: 32,
     paddingVertical: 5,
     borderRadius: 9,
     backgroundColor: theme.colors.brand.mint,
     alignItems: "center",
     justifyContent: "center",
+    zIndex: 20,
   },
   eventBannerText: {
     fontSize: 11,
