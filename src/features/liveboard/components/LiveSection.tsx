@@ -168,9 +168,9 @@ export function LiveSection({
             </Box>
 
             <Box style={styles.bsoRow}>
-              <BsoLine label="B" count={liveData?.ballCount || 0} max={4} />
-              <BsoLine label="S" count={liveData?.strikeCount || 0} max={3} />
-              <BsoLine label="O" count={liveData?.outCount || 0} max={3} />
+              <BsoLine label="B" count={liveData?.ballCount || 0} max={3} />
+              <BsoLine label="S" count={liveData?.strikeCount || 0} max={2} />
+              <BsoLine label="O" count={liveData?.outCount || 0} max={2} />
             </Box>
 
             <Box style={styles.pitcherBox} align="center">
@@ -189,13 +189,14 @@ export function LiveSection({
 
         {/* 선수 배치 필드 (5) */}
         <Box style={styles.fieldArea} pointerEvents="none">
-          {/* 
-          <Box style={styles.eventBanner}>
-            <Typography style={styles.eventBannerText} weight="bold">
-              {liveData?.lastEvent}
-            </Typography>
-          </Box>
-          */}
+          {/* 실시간 이벤트 배너 */}
+          {!!liveData?.lastEvent && (
+            <Box style={styles.eventBanner}>
+              <Typography style={styles.eventBannerText} weight="bold">
+                {liveData.lastEvent}
+              </Typography>
+            </Box>
+          )}
 
           {/* 수비수 배치 */}
           {liveData?.defenders?.map((p) => (

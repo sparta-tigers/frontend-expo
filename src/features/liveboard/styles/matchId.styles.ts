@@ -175,11 +175,16 @@ export const styles = StyleSheet.create({
   },
   playerTag: {
     position: "absolute",
-    width: 47,
-    height: 14,
+    width: 54, // 47 -> 54
+    height: 18, // 14 -> 18
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: theme.colors.text.primary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1,
+    elevation: 2,
   },
   playerTagDefender: {
     backgroundColor: theme.colors.liveboard.defender,
@@ -191,10 +196,10 @@ export const styles = StyleSheet.create({
     backgroundColor: theme.colors.liveboard.runner,
   },
   playerName: {
-    fontSize: 9,
+    fontSize: 10, // 9 -> 10
     color: theme.colors.background,
     textAlign: "center",
-    lineHeight: 13,
+    lineHeight: 16, // 13 -> 16
   },
   playerNameRunner: {
     fontSize: 9,

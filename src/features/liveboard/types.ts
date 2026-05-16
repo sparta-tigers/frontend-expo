@@ -71,7 +71,7 @@ export interface LiveboardData {
   bases?: { first: boolean; second: boolean; third: boolean };
   pitcherName?: string;
   pitchCount?: number;
-  lastEvent?: string;
+  lastEvent?: string | null;
   defenders?: PlayerPosition[];
   batter?: PlayerPosition | null;
   runner?: PlayerPosition | null;

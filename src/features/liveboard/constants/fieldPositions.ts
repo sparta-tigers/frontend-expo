@@ -20,9 +20,9 @@ export const FIELD_POSITIONS = {
   shortstop: { top: "46%", left: "20%" },
 
   // 외야수
-  leftFielder: { top: "28%", left: "11%" },
-  centerFielder: { top: "18%", left: "38%" },
-  rightFielder: { top: "28%", left: "65%" },
+  leftFielder: { top: "33%", left: "8%" },
+  centerFielder: { top: "25%", left: "38%" },
+  rightFielder: { top: "33%", left: "67%" },
 
   // 타자 (홈플레이트 근처)
   batter: { top: "82%", left: "55%" },

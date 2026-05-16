@@ -29,10 +29,19 @@ export const LiveboardMapper = {
     // 가장 최근 이벤트 추출 (현재 이닝의 가장 마지막 유의미한 텍스트)
     const currentInningNum = live?.currentInning ? parseInt(live.currentInning.replace(/[^0-9]/g, "")) : 1;
     const currentInningTexts = inningTexts?.[currentInningNum] || [];
-    const validInningTexts = currentInningTexts.filter(t => !t.text.startsWith("---"));
+    
+    // 🚨 [Phase 45] 무의미한 구분선(----) 및 빈 문자열 원천 차단
+    const validInningTexts = currentInningTexts.filter(t => {
+      const trimmed = t.text.trim();
+      if (trimmed.length === 0) return false;
+      // 대시(-), 등호(=), 언더바(_)로만 이루어진 문자열 제거
+      const onlySeparators = trimmed.replace(/[-=_]/g, "").length === 0;
+      return !onlySeparators;
+    });
+    
     const lastEvent = validInningTexts.length > 0 
       ? validInningTexts[validInningTexts.length - 1].text 
-      : "진행 중인 이벤트가 없습니다";
+      : null;
 
     return {
       matchId: room.matchId,
