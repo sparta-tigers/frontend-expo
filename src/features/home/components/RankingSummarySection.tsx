@@ -3,7 +3,7 @@ import React from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 
 import { Box, Typography } from "@/components/ui";
-import { RankingUIModel } from "@/src/features/match/types";
+import { RankingUIModel } from "@/src/shared/types/match";
 import { theme } from "@/src/styles/theme";
 import { TeamCode } from "@/src/utils/team";
 
