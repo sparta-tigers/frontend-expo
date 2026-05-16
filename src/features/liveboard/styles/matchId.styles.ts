@@ -385,6 +385,89 @@ export const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
     lineHeight: 18,
   },
+  // ── 텍스트 중계 패널 ─────────────────────────────────
+  textBroadcastScroll: {
+    flex: 1,
+  },
+  textBroadcastContent: {
+    paddingBottom: 30,
+  },
+  inningChipList: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    gap: 8,
+  },
+  inningChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 15,
+    backgroundColor: theme.colors.card,
+    borderWidth: 1,
+    borderColor: theme.colors.border.medium,
+  },
+  inningChipActive: {
+    backgroundColor: theme.colors.brand.mint,
+    borderColor: theme.colors.brand.mint,
+  },
+  inningChipText: {
+    fontSize: 12,
+    color: theme.colors.brand.inactive,
+  },
+  inningChipTextActive: {
+    color: theme.colors.background,
+  },
+  broadcastList: {
+    paddingHorizontal: 14,
+  },
+  broadcastItem: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border.medium,
+    gap: 4,
+  },
+  broadcastItemBatter: {
+    backgroundColor: theme.colors.liveboard.countBoxBg,
+    paddingHorizontal: 10,
+    borderRadius: 4,
+    marginVertical: 4,
+    borderBottomWidth: 0,
+  },
+  broadcastItemInning: {
+    backgroundColor: theme.colors.brand.background,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderBottomWidth: 2,
+    borderBottomColor: theme.colors.border.medium,
+  },
+  broadcastText: {
+    fontSize: 14,
+    color: theme.colors.text.primary,
+    lineHeight: 20,
+  },
+  broadcastTextPitch: {
+    fontSize: 13,
+    color: theme.colors.text.secondary,
+    paddingLeft: 10,
+  },
+  broadcastTextBatter: {
+    fontSize: 14,
+    color: theme.colors.background,
+    fontWeight: "bold",
+  },
+  broadcastTextInning: {
+    fontSize: 15,
+    color: theme.colors.brand.mint,
+    fontWeight: "bold",
+  },
+  broadcastEmpty: {
+    padding: 40,
+    alignItems: "center",
+  },
+  broadcastEmptyText: {
+    color: theme.colors.text.tertiary,
+    fontSize: 14,
+  },
+
   // ── 공통 탭 패널 제어 ────────────────────────────────
   tabPanel: {
     flex: 1,
