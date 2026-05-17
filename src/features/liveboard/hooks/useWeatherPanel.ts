@@ -8,7 +8,7 @@ import {
 } from "@/src/features/liveboard/types";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { matchKeys } from "@/src/features/match/queries";
+import { matchKeys } from "@/src/features/match";
 
 type FetchState = "LOADING" | "SUCCESS" | "ERROR";
 

@@ -2,7 +2,7 @@
 import { Box } from "@/components/ui/box";
 import { Typography } from "@/components/ui/typography";
 import { theme } from "@/src/styles/theme";
-import { MatchDetail } from "@/src/features/match/types";
+import { MatchDetail } from "@/src/shared/types/match";
 import { MaterialIcons } from "@expo/vector-icons";
 import React from "react";
 import { styles } from "@/src/features/liveboard/styles/matchId.styles";

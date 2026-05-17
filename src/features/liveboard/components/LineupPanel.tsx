@@ -15,7 +15,7 @@ import { styles } from "@/src/features/liveboard/styles/matchId.styles";
  *
  * Why: 라이브보드 룸의 "선수 라인업" 탭 콘텐츠. 로직은 useLineupPanel에 위임.
  */
-import { MatchDetail } from "@/src/features/match/types";
+import { MatchDetail } from "@/src/shared/types/match";
 
 /**
  * LineupPanel

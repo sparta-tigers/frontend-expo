@@ -1,14 +1,6 @@
 import type { 
-  LiveBoardStatus, 
-  LeagueType, 
-  MatchTeamInfo, 
-  RankingUIModel, 
-  MatchSummary, 
-  PlayerPosition, 
-  MatchDetail, 
   MatchScheduleDto, 
   RankingRowDto,
-  MatchRoomDto
 } from "@/src/shared/types/match";
 
 /**
@@ -17,19 +9,6 @@ import type {
  * Why: shared에서 정의된 핵심 타입을 기반으로 match 피처에서 필요한
  * 추가적인 API 응답 구조 등을 정의함.
  */
-
-export type { 
-  LiveBoardStatus, 
-  LeagueType, 
-  MatchTeamInfo, 
-  RankingUIModel, 
-  MatchSummary, 
-  PlayerPosition, 
-  MatchDetail, 
-  MatchScheduleDto, 
-  RankingRowDto,
-  MatchRoomDto
-};
 
 export interface MatchScheduleResponse {
   resultType: "SUCCESS" | "ERROR";
