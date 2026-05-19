@@ -18,6 +18,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Box, Typography } from "@/components/ui";
 
 import Constants, { AppOwnership } from "expo-constants";
+import {useNotificationListeners} from "@/src/hooks/useNotificationListeners";
 
 /**
  * 푸시 알림 핸들러 설정 (모듈 스코프)
@@ -43,6 +44,7 @@ if (Constants.appOwnership !== AppOwnership.Expo) {
  * 전체 앱의 진입점
  */
 export default function RootLayout() {
+    useNotificationListeners();
   return (
     <GestureHandlerRootView style={styles.gestureContainer}>
       <CombinedProvider>
