@@ -27,9 +27,9 @@ export const FIELD_POSITIONS = {
   // 타자 (홈플레이트 근처)
   batter: { top: "78%", left: "46%" },
 
-  // 🏃 주자 위치 추가 (베이스 근처)
-  runner1: { top: "65%", left: "73%" },
-  runner2: { top: "41%", left: "53%" },
+  // 주자 위치 추가 (베이스 근처)
+  runner1: { top: "55%", left: "73%" },
+  runner2: { top: "41%", left: "38%" },
   runner3: { top: "65%", left: "2%" },
 } as const;
 
