@@ -30,7 +30,8 @@ export const useTextBroadcast = (inningTexts?: { [inning: number]: BroadcastItem
   // 3. 선택된 이닝의 데이터 필터링 (최신 데이터가 상단으로 오도록 reverse 고려 가능)
   // 현재 데이터는 백엔드에서 역순으로 올 수 있으므로 그대로 사용하거나 필요시 가공
   const filteredBroadcast = useMemo(() => {
-    return inningTexts ? inningTexts[activeInning] || [] : [];
+    const list = inningTexts ? inningTexts[activeInning] || [] : [];
+    return [...list].reverse();
   }, [inningTexts, activeInning]);
 
   return {
