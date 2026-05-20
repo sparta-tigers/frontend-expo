@@ -1,9 +1,15 @@
 import { useLocalSearchParams } from "expo-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "@/src/hooks/useAuth";
 import { useMatchDetail } from "@/src/features/match";
 import { useLiveboardData } from "@/src/features/liveboard/hooks/useLiveboardData";
 import { isValidTeamCode } from "@/src/utils/team";
+import { useWebSocket } from "@/src/hooks/useWebSocket";
+import { useQueryClient } from "@tanstack/react-query";
+import { LiveboardMapper } from "@/src/features/liveboard/mapper";
+import { Logger } from "@/src/utils/logger";
+
+const liveboardLogger = Logger.category("LIVEBOARD");
 
 export type TabKey = "chat" | "text" | "lineup" | "weather";
 
@@ -49,10 +55,39 @@ export const useLiveboardScreen = () => {
     isError: isLiveError,
   } = useLiveboardData(isValidMatchId ? idNum : 0);
 
-  // 3. UI 상태 관리 (Tabs)
+  // 3. [Real-time WebSockets & Query Cache Injection]
+  const queryClient = useQueryClient();
+  const { status: wsStatus, client: wsClient } = useWebSocket(
+    isValidMatchId ? idNum : undefined,
+    "liveboard"
+  );
+
+  useEffect(() => {
+    if (wsStatus === "CONNECTED" && wsClient && isValidMatchId) {
+      const destination = `/server/liveboard/room/${idNum}/match`;
+      const subscription = wsClient.subscribe(destination, (message) => {
+        try {
+          const rawData = JSON.parse(message.body);
+          // Zero Magic: 백엔드 DTO를 프론트엔드 모델 규격으로 매퍼를 거쳐 파싱
+          const mappedData = LiveboardMapper.toLiveboardData(rawData);
+          
+          // 캐시 강제 주입으로 실시간 동기화 완료 (No HTTP Polling overhead)
+          queryClient.setQueryData(["liveboard", "data", idNum], mappedData);
+        } catch (err) {
+          liveboardLogger.error("Failed to parse liveboard STOMP message", err);
+        }
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
+  }, [wsStatus, wsClient, idNum, isValidMatchId, queryClient]);
+
+  // 4. UI 상태 관리 (Tabs)
   const [activeTab, setActiveTab] = useState<TabKey>("chat");
 
-  // 4. 통합 로딩/에러 상태
+  // 5. 통합 로딩/에러 상태
   const isInitialLoading = isMatchLoading && !match;
 
   return {
