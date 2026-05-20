@@ -44,7 +44,8 @@ export const LiveboardMapper = {
     const inningTexts = rawInningTexts ? this.parseInningTexts(rawInningTexts) : undefined;
     
     // 가장 최근 이벤트 추출 (현재 이닝의 가장 마지막 유의미한 텍스트)
-    const inningDigits = live?.currentInning?.replace(/[^0-9]/g, "") ?? "";
+    const match = live?.currentInning?.match(/([0-9]+)회/);
+    const inningDigits = match ? match[1] : "";
     const parsedInning = Number.parseInt(inningDigits, 10);
     const currentInningNum = Number.isNaN(parsedInning) ? 1 : parsedInning;
     const currentInningTexts = inningTexts?.[currentInningNum] || [];
