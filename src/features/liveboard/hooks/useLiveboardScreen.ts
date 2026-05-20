@@ -9,7 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { LiveboardMapper } from "@/src/features/liveboard/mapper";
 import { Logger } from "@/src/utils/logger";
 
-const liveboardLogger = Logger.category("LIVEBOARD");
+const liveboardLogger = Logger.category("CHAT");
 
 export type TabKey = "chat" | "text" | "lineup" | "weather";
 
@@ -63,9 +63,11 @@ export const useLiveboardScreen = () => {
   );
 
   useEffect(() => {
+    let subscription: { unsubscribe: () => void } | undefined;
+
     if (wsStatus === "CONNECTED" && wsClient && isValidMatchId) {
       const destination = `/server/liveboard/room/${idNum}/match`;
-      const subscription = wsClient.subscribe(destination, (message) => {
+      subscription = wsClient.subscribe(destination, (message) => {
         try {
           const rawData = JSON.parse(message.body);
           // Zero Magic: 백엔드 DTO를 프론트엔드 모델 규격으로 매퍼를 거쳐 파싱
@@ -77,11 +79,13 @@ export const useLiveboardScreen = () => {
           liveboardLogger.error("Failed to parse liveboard STOMP message", err);
         }
       });
-
-      return () => {
-        subscription.unsubscribe();
-      };
     }
+
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
   }, [wsStatus, wsClient, idNum, isValidMatchId, queryClient]);
 
   // 4. UI 상태 관리 (Tabs)
