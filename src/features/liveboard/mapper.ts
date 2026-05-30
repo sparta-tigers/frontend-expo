@@ -44,7 +44,8 @@ export const LiveboardMapper = {
     const inningTexts = rawInningTexts ? this.parseInningTexts(rawInningTexts) : undefined;
     
     // 가장 최근 이벤트 추출 (현재 이닝의 가장 마지막 유의미한 텍스트)
-    const inningDigits = live?.currentInning?.replace(/[^0-9]/g, "") ?? "";
+    const match = live?.currentInning?.match(/([0-9]+)회/);
+    const inningDigits = match ? match[1] : "";
     const parsedInning = Number.parseInt(inningDigits, 10);
     const currentInningNum = Number.isNaN(parsedInning) ? 1 : parsedInning;
     const currentInningTexts = inningTexts?.[currentInningNum] || [];
@@ -71,9 +72,12 @@ export const LiveboardMapper = {
       homeScore: score ? parseInt(score.homeScore || "0") : 0,
       awayScore: score ? parseInt(score.awayScore || "0") : 0,
       inning: currentInningNum,
-      inningHalf: live?.currentInning
-        ? (live.currentInning.includes("초") ? "초" : "말")
-        : undefined,
+      inningHalf: (() => {
+        if (!live?.currentInning) return undefined;
+        if (live.currentInning.includes("초")) return "초";
+        if (live.currentInning.includes("말")) return "말";
+        return undefined;
+      })(),
       ballCount: score?.ball || 0,
       strikeCount: score?.strike || 0,
       outCount: score?.out || 0,

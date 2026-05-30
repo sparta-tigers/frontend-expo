@@ -493,4 +493,7 @@ export const styles = StyleSheet.create({
   hidden: {
     display: "none",
   },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
 });
