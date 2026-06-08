@@ -3,16 +3,6 @@ import * as Device from "expo-device";
 import {Platform} from "react-native";
 import {Logger} from "@/src/utils/logger";
 
-Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: true,
-        shouldShowBanner: true,
-        shouldShowList: true
-    }),
-});
-
 export async function registerForPushNotificationsAsync() {
     if (Platform.OS === "android") {
         await Notifications.setNotificationChannelAsync("default", {
