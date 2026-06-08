@@ -72,3 +72,5 @@ scripts/architecture-guard/fat-file/node_modules/
 dependency-report.json
 scan-result.json
 generated-tasks.json
+
+google-services.json
