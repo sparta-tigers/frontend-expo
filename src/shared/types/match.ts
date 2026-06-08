@@ -115,6 +115,13 @@ export interface LiveBoardDataDto {
   players: PlayerDto[];
   matchScore: MatchScoreDto;
   inningTexts: InningTextsDto;
+  /** 
+   * 현재 이닝 정보 
+   * - 실시간 형식: "{숫자}회 {초|말} {기타 정보}" (예: "9회 말 0-2 3out", "3회초")
+   *   (※ 네이버 라이브 문자중계 HTML의 .base strong 구조 병합에 따라 공백 및 추가 정보가 포함될 수 있음)
+   * - 비실시간 형식: "경기전", "종료", "경기종료" 등
+   * - 데이터 유실 폴백: "1회"
+   */
   currentInning: string;
 }
 

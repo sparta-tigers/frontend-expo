@@ -520,6 +520,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
         const token = await Notifications.getDevicePushTokenAsync();
 
+        if (token.type !== "android") {
+            Logger.warn("FCM 토큰 등록은 Android 디바이스에서만 수행됩니다.");
+            return null;
+        }
+
         return token.data;
     };
 
