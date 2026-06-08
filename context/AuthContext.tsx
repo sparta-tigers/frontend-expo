@@ -2,11 +2,13 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { Alert } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Notifications from "expo-notifications";
+import * as Device from "expo-device";
 
 import {
-  authSigninAPI,
-  authSignoutAPI,
-  authSignupAPI,
+    authSigninAPI,
+    authSignoutAPI,
+    authSignupAPI, fcmTokenCreateAPI,
 } from "@/src/features/auth/api";
 import {
   AuthSigninRequest,
@@ -296,6 +298,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           return false;
         }
 
+        try {
+            const fcmToken = await getFcmToken();
+
+            if (fcmToken) {
+                await fcmTokenCreateAPI({fcmToken});
+            }
+        } catch (error) {
+            Logger.warn("FCM 토큰 저장 실패: ", error);
+        }
+
         // 디버깅 로그: 토큰 저장 상태 확인
         authLogger.debug(
           "✅ [AuthContext] 토큰 저장 성공",
@@ -486,6 +498,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       authLogger.debug("✅ [AuthContext] 사용자 정보 부분 업데이트 완료", partialUser);
     }
   };
+
+    const getFcmToken = async (): Promise<string | null> => {
+        if (!Device.isDevice) {
+            Logger.warn("FCM 토큰은 실제 기기에서만 발급됩니다.");
+            return null;
+        }
+
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
+
+        if (existingStatus !== "granted") {
+            const { status } = await Notifications.requestPermissionsAsync();
+            finalStatus = status;
+        }
+
+        if (finalStatus !== "granted") {
+            Logger.warn("푸시 알림 권한이 거부되었습니다.");
+            return null;
+        }
+
+        const token = await Notifications.getDevicePushTokenAsync();
+
+        if (token.type !== "android") {
+            Logger.warn("FCM 토큰 등록은 Android 디바이스에서만 수행됩니다.");
+            return null;
+        }
+
+        return token.data;
+    };
 
   // 컴포넌트 마운트 시 토큰 로드
   useEffect(() => {

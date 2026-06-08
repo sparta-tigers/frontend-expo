@@ -53,3 +53,7 @@ export interface UserRegisterRequest {
   nickname: string;
   password: string;
 }
+
+export interface FcmTokenRequest {
+    fcmToken: string;
+}
