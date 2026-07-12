@@ -10,8 +10,8 @@ import { LiveboardData } from "../types";
  *
  * Why:
  * 1. MatchDetail(정적 정보)과 분리하여 실시간 데이터만 독립적으로 관리함.
- * 2. 컴포넌트 마운트 즉시 병렬 패칭(No Waterfall)을 보장함.
- * 3. 향후 WebSocket이나 폴링(Polling) 전략을 이 훅 내부에서만 교체할 수 있음.
+ * 2. 컴포넌트 마운트 시 최초 데이터만 로드하며, 이후 업데이트는 WebSocket(STOMP)이 캐시를 갱신함.
+ * 3. 비동기 상태 관리를 정돈하여 불필요한 HTTP Polling 오버헤드를 제거함.
  */
 export const useLiveboardData = (matchId: number) => {
   return useQuery<LiveboardData>({
@@ -31,8 +31,7 @@ export const useLiveboardData = (matchId: number) => {
         throw error;
       }
     },
-    staleTime: 1000 * 30, // 🛰️ 30초 폴링 주기와 일치시켜 주기 내에서는 캐시 신선도 유지
-    refetchInterval: 1000 * 30, // 30초마다 자동 폴링
+    staleTime: 1000 * 30, // 🛰️ 30초 내에서는 캐시 신선도 유지
     enabled: !!matchId,
   });
 };
