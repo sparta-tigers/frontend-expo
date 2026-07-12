@@ -380,6 +380,29 @@ export const theme = {
       size: 56,
       iconSize: 32,
     },
+    touch: {
+      minTargetSize: 44,
+      minTargetSpacing: 8,
+    },
+  },
+  motion: {
+    duration: {
+      fast: 150, // Micro-interactions (hover, active)
+      normal: 300, // Standard transitions
+      slow: 500, // Complex entering animations
+    },
+    easing: {
+      // Spring physics (simulated via react-native-reanimated or similar)
+      springConfig: {
+        damping: 15,
+        stiffness: 150,
+        mass: 1,
+      },
+      // Standard bezier curves
+      standard: "cubic-bezier(0.4, 0.0, 0.2, 1)",
+      decelerate: "cubic-bezier(0.0, 0.0, 0.2, 1)", // Entering
+      accelerate: "cubic-bezier(0.4, 0.0, 1, 1)", // Exiting
+    },
   },
 } as const;
 
