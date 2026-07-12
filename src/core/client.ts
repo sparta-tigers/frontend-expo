@@ -283,14 +283,14 @@ axiosInstance.interceptors.response.use(
       return Promise.reject(new NetworkError(error));
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const responseData = error.response.data as any;
-    const body = responseData?.error || responseData;
+    const responseData = error.response.data as Record<string, unknown> | undefined;
+    const body = (responseData?.error as Record<string, unknown> | undefined) || responseData;
+    
     return Promise.reject(
       new ApiError(
-        body?.message ?? error.message,
+        (body?.message as string) ?? error.message,
         error.response.status,
-        body?.code ?? "UNKNOWN_ERROR",
+        (body?.code as string) ?? "UNKNOWN_ERROR",
         body?.details
       )
     );

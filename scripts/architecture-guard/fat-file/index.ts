@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 // Feature: fat-file-refactoring
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
 import { diagnose } from "./diagnosis/index.ts";

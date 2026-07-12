@@ -51,4 +51,4 @@ const newContent =
   tasksMd.substring(endIndex);
 
 writeFileSync(tasksPath, newContent, "utf-8");
-console.log("Injected tasks into tasks.md"); // eslint-disable-line no-console
+console.log("Injected tasks into tasks.md");
