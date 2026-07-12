@@ -170,7 +170,7 @@ export const List = <T,>({
         removeClippedSubviews={true}
         getItemLayout={
           itemHeight
-            ? (data, index) => ({
+            ? (_, index) => ({
                 length: itemHeight,
                 offset: itemHeight * index,
                 index,

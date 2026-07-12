@@ -21,6 +21,19 @@ import { useNotificationListeners } from "@/src/hooks/useNotificationListeners";
 import Constants, { AppOwnership } from "expo-constants";
 
 /**
+ * 전역 에러 핸들링 (React Native 환경)
+ */
+if (typeof ErrorUtils !== "undefined") {
+  const defaultHandler = ErrorUtils.getGlobalHandler();
+  ErrorUtils.setGlobalHandler((error, isFatal) => {
+    Logger.error("Unhandled Global Error", error, { context: { isFatal } });
+    if (defaultHandler) {
+      defaultHandler(error, isFatal);
+    }
+  });
+}
+
+/**
  * 푸시 알림 핸들러 설정 (모듈 스코프)
  * 🚨 앙드레 카파시: Expo Go (SDK 53+)에서는 알림 기능이 제한되므로 에러 방지 처리.
  */

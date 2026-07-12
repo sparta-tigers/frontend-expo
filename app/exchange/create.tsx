@@ -429,11 +429,11 @@ export default function CreateItemScreen() {
             }}
             placeholderTextColor={theme.colors.text.tertiary}
           />
-          {errors.title ? (
-            <Typography variant="caption" color="error" mt="-md" mb="md">
+          {errors.title && (
+            <Typography variant="caption" color="error" style={styles.errorText} mb="md">
               {errors.title}
             </Typography>
-          ) : null}
+          )}
 
           <TextInput
             placeholder="희망 아이템 (선택)"
@@ -557,5 +557,8 @@ const styles = StyleSheet.create({
   },
   inputError: {
     borderColor: theme.colors.error,
+  },
+  errorText: {
+    marginTop: -8,
   },
 });

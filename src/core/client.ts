@@ -8,6 +8,7 @@ import {
 import { AxiosError, AxiosInstance, AxiosRequestConfig, create as createAxios } from "axios";
 import { Platform } from "react-native";
 import { z } from "zod";
+import { ApiError, NetworkError } from "./errors";
 
 const apiLogger = Logger.category("API");
 
@@ -278,7 +279,21 @@ axiosInstance.interceptors.response.use(
       }
     }
 
-    return Promise.reject(error);
+    if (!error.response) {
+      return Promise.reject(new NetworkError(error));
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const responseData = error.response.data as any;
+    const body = responseData?.error || responseData;
+    return Promise.reject(
+      new ApiError(
+        body?.message ?? error.message,
+        error.response.status,
+        body?.code ?? "UNKNOWN_ERROR",
+        body?.details
+      )
+    );
   },
 );
 

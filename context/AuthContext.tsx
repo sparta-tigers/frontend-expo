@@ -394,11 +394,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         return true;
       } else {
         Logger.error("로그인 실패:", response.error?.message);
-        return false;
+        throw new Error(response.error?.message || "로그인 실패");
       }
     } catch (error) {
       Logger.error("로그인 에러:", error);
-      return false;
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -439,11 +439,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         }
       } else {
         Logger.error("회원가입 실패:", response.error?.message);
-        return false;
+        throw new Error(response.error?.message || "회원가입 실패");
       }
     } catch (error) {
       Logger.error("회원가입 에러:", error);
-      return false;
+      throw error;
     } finally {
       setIsLoading(false);
     }
