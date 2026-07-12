@@ -81,10 +81,11 @@ export function useChatRoom(
   roomId: string,
   options?: ChatRoomOptions,
 ): UseChatRoomReturn {
+  const { isLoggedIn, user } = useAuth();
+  const queryClient = useQueryClient();
+  const onStatusChange = options?.onStatusChange;
   const [messageText, setMessageText] = useState("");
   const [isProcessing, setIsProcessing] = useState(false); // 🛡️ Race Condition 방어용 플래그
-  const queryClient = useQueryClient();
-  const { user, isLoggedIn } = useAuth();
 
   const roomIdNumber = Number(roomId);
   const isRoomIdInvalid =
@@ -302,8 +303,8 @@ export function useChatRoom(
               setIsProcessing(true); // 🚀 로딩 시작
               try {
                 // 🔗 외부 주입 콜백 실행 (Zero Magic: 훅은 내부 로직을 모름)
-                if (options?.onStatusChange) {
-                  await options.onStatusChange(newStatus, exchangeItem.itemId);
+                if (onStatusChange) {
+                  await onStatusChange(newStatus, exchangeItem.itemId);
                 }
               } catch (error) {
                 Logger.error("[ChatRoom] Status change failed:", error);
@@ -317,7 +318,7 @@ export function useChatRoom(
         ],
       );
     },
-    [exchangeItem?.itemId, isProcessing, options],
+    [exchangeItem, isProcessing, onStatusChange],
   );
 
   return {

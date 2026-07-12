@@ -213,11 +213,13 @@ export function useLiveboard(): UseLiveboardReturn {
   const selectedDay = weekDays.find((d) => d.anydayKey === selectedAnyday);
 
   // 주 이동 시 선택 날짜 자동 보정
-  React.useEffect(() => {
+  const [prevWeekKeys, setPrevWeekKeys] = React.useState(weekAnydayKeys);
+  if (weekAnydayKeys !== prevWeekKeys) {
+    setPrevWeekKeys(weekAnydayKeys);
     if (!weekAnydayKeys.includes(selectedAnyday)) {
       setSelectedAnyday(weekAnydayKeys[0]);
     }
-  }, [weekAnydayKeys, selectedAnyday]);
+  }
 
   const {
     data: selectedDayRooms = [],

@@ -1,5 +1,5 @@
 // app/profile/NicknameEditModal.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Modal,
   View,
@@ -45,11 +45,13 @@ export function NicknameEditModal({
 }: NicknameEditModalProps) {
   const [nickname, setNickname] = useState(initialNickname);
 
-  useEffect(() => {
+  const [prevVisible, setPrevVisible] = useState(visible);
+  if (visible !== prevVisible) {
+    setPrevVisible(visible);
     if (visible) {
       setNickname(initialNickname);
     }
-  }, [visible, initialNickname]);
+  }
 
   /**
    * 닉네임 저장 시 공백 검증 및 상위 컴포넌트 전달

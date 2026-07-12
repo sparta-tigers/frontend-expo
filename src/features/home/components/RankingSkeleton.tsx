@@ -10,7 +10,7 @@ import { theme } from "@/src/styles/theme";
  * 레이아웃 시프트(Layout Shift)를 방지하고 시각적 연속성을 제공함.
  */
 export const RankingSkeleton = () => {
-  const animatedValue = React.useRef(new Animated.Value(0.3)).current;
+  const [animatedValue] = React.useState(() => new Animated.Value(0.3));
 
   React.useEffect(() => {
     const animation = Animated.loop(

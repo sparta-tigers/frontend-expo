@@ -530,7 +530,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   // 컴포넌트 마운트 시 토큰 로드
   useEffect(() => {
-    loadToken().catch((err) => authLogger.error("[Auth] loadToken failed", err));
+    const timerId = setTimeout(() => {
+      loadToken().catch((err) => authLogger.error("[Auth] loadToken failed", err));
+    }, 0);
+    return () => clearTimeout(timerId);
   }, []);
 
   const contextValue: AuthContextType = {

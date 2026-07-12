@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { View, StyleSheet, Animated } from "react-native";
 import { Box } from "@/components/ui";
 import { theme } from "@/src/styles/theme";
@@ -22,7 +22,7 @@ const LOCAL_LAYOUT = {
  * 사용자에게 데이터 로딩 중임을 시각적으로 부드럽게 전달함.
  */
 export const ScheduleSkeleton = () => {
-  const opacity = useRef(new Animated.Value(0.3)).current;
+  const [opacity] = React.useState(() => new Animated.Value(0.3));
 
   useEffect(() => {
     // 부드러운 펄스 애니메이션 적용

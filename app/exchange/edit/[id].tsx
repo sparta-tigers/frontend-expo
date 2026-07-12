@@ -158,13 +158,15 @@ export default function EditItemScreen() {
   );
 
   // 아이템 데이터가 로드된 후 폼 초기화
-  React.useEffect(() => {
+  const [prevItem, setPrevItem] = useState(item);
+  if (item !== prevItem) {
+    setPrevItem(item);
     if (item) {
       setTitle(item.title);
       setDescription(item.description);
       setCategory(item.category);
     }
-  }, [item]);
+  }
 
   const queryClient = useQueryClient();
 

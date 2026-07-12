@@ -29,7 +29,10 @@ export default function MyItemsScreen() {
   }, []);
 
   React.useEffect(() => {
-    fetchMyItems().catch(() => {});
+    const timerId = setTimeout(() => {
+      fetchMyItems().catch(() => {});
+    }, 0);
+    return () => clearTimeout(timerId);
   }, [fetchMyItems]);
 
   const handleRefresh = useCallback(async () => {

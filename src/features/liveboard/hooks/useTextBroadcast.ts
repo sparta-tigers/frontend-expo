@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { BroadcastItem } from "../types";
 
 /**
@@ -18,9 +18,11 @@ export const useTextBroadcast = (inningTexts?: { [inning: number]: BroadcastItem
   const [activeInning, setActiveInning] = useState<number>(initialInning);
 
   // initialInning 변경 시 (비동기 데이터 로드 완료 등) 상태 동기화
-  useEffect(() => {
+  const [prevInitialInning, setPrevInitialInning] = useState(initialInning);
+  if (initialInning !== prevInitialInning) {
+    setPrevInitialInning(initialInning);
     setActiveInning(initialInning);
-  }, [initialInning]);
+  }
 
   // 2. 가용한 이닝 리스트 (칩 표시용)
   const availableInnings = useMemo(() => {
