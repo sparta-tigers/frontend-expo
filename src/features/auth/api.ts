@@ -4,7 +4,8 @@ import {
     AuthSigninRequest,
     AuthSigninResponse,
     AuthSignupRequest,
-    AuthSignupResponse, FcmTokenRequest,
+    AuthSignupResponse,
+    FcmTokenRequest,
     User,
     UserProfileUpdateRequest,
 } from "./types";
@@ -91,6 +92,8 @@ export async function usersDeleteAccountAPI(): Promise<ApiResponse<void>> {
   return apiClient.delete("/api/users/account");
 }
 
-export async function fcmTokenCreateAPI(request: FcmTokenRequest): Promise<ApiResponse<null>> {
-    return apiClient.post("/api/users/fcm-token", request);
+export async function fcmTokenCreateAPI(
+  request: FcmTokenRequest,
+): Promise<ApiResponse<null>> {
+  return apiClient.post("/api/users/fcm-token", request);
 }

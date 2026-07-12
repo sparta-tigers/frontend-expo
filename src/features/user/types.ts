@@ -1,4 +1,4 @@
-import { TEAM_LIST, BackendCode } from "@/src/utils/team";
+import { BackendCode, TEAM_LIST } from "@/src/utils/team";
 
 /**
  * 즐겨찾기 팀 관련 타입 정의
@@ -40,9 +40,9 @@ export interface UpdateFavoriteTeamRequest {
  * KBO 팀 목록 상수 (TEAM_LIST 기반 SSOT)
  * Why: 백엔드 코드(HT, OB 등)와 구단명을 매핑하는 유일한 출처.
  */
-export const KBO_TEAMS = TEAM_LIST.map(team => ({
+export const KBO_TEAMS = TEAM_LIST.map((team) => ({
   name: team.name,
-  code: team.backendCode
+  code: team.backendCode,
 }));
 
 export type KboTeamCode = BackendCode;

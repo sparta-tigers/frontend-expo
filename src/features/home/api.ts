@@ -10,6 +10,10 @@ import { HomeDashboardSummaryDto } from "./types/dashboard";
  * 홈 대시보드 요약 데이터 조회 API
  * GET /api/dashboard/summary
  */
-export async function fetchDashboardSummary(): Promise<ApiResponse<HomeDashboardSummaryDto>> {
-  return apiClient.get<ApiResponse<HomeDashboardSummaryDto>>("/api/dashboard/summary");
+export async function fetchDashboardSummary(): Promise<
+  ApiResponse<HomeDashboardSummaryDto>
+> {
+  return apiClient.get<ApiResponse<HomeDashboardSummaryDto>>(
+    "/api/dashboard/summary",
+  );
 }

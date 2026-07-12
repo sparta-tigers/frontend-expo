@@ -15,13 +15,13 @@ export interface MatchAttendance {
   matchId: number;
   seat: string;
   contents: string;
-  images: AttendanceImage[]; // 🚨 imageUrls → images (객체 배열)로 변경
+  images: AttendanceImage[];
   createdAt: string;
-  matchTime: string; // 🚨 추가
-  homeTeamName: string; // 🚨 추가
-  awayTeamName: string; // 🚨 추가
-  homeTeamCode: string; // 🚨 추가
-  awayTeamCode: string; // 🚨 추가
+  matchTime: string;
+  homeTeamName: string;
+  awayTeamName: string;
+  homeTeamCode: string;
+  awayTeamCode: string;
   homeScore?: number;
   awayScore?: number;
   stadiumName: string;

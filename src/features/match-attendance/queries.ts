@@ -1,6 +1,11 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { isAxiosError } from "axios";
 import { useAuth } from "@/context/AuthContext";
+import {
+    useInfiniteQuery,
+    useMutation,
+    useQuery,
+    useQueryClient,
+} from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 import {
     attendanceCreateAPI,
     attendanceDeleteAPI,
@@ -8,25 +13,28 @@ import {
     attendanceGetDetailAPI,
     attendanceGetMyAPI,
     attendanceGetMyByMatchIdAPI,
-    attendanceUpdateAPI
+    attendanceUpdateAPI,
 } from "./api";
 export type { RNFormDataFile, RNFormDataString } from "./types";
 
 /**
  * 🚨 앙드레 카파시: 직관 기록 관련 TanStack Query 훅 모음
- * 
- * Why: 서버 상태를 캐싱하고, 데이터 변경 시 관련 쿼리를 자동으로 무효화(Invalidate)하여 
+ *
+ * Why: 서버 상태를 캐싱하고, 데이터 변경 시 관련 쿼리를 자동으로 무효화(Invalidate)하여
  * UI 정합성을 유지함. (Zero-Magic UI의 핵심)
  */
 
 export const attendanceKeys = {
   all: ["attendances"] as const,
   lists: () => [...attendanceKeys.all, "list"] as const,
-  my: (page?: number, size?: number) => [...attendanceKeys.lists(), "my", { page, size }] as const,
-  infinite: (size: number) => [...attendanceKeys.lists(), "infinite", { size }] as const,
+  my: (page?: number, size?: number) =>
+    [...attendanceKeys.lists(), "my", { page, size }] as const,
+  infinite: (size: number) =>
+    [...attendanceKeys.lists(), "infinite", { size }] as const,
   details: () => [...attendanceKeys.all, "detail"] as const,
   detail: (id: number) => [...attendanceKeys.details(), id] as const,
-  byMatch: (matchId: number) => [...attendanceKeys.all, "my", "match", matchId] as const,
+  byMatch: (matchId: number) =>
+    [...attendanceKeys.all, "my", "match", matchId] as const,
   count: (year?: number) => [...attendanceKeys.all, "count", { year }] as const,
 };
 
@@ -54,7 +62,7 @@ export const useMyAttendanceByMatchId = (matchId: number) => {
     queryFn: async () => {
       try {
         const response = await attendanceGetMyByMatchIdAPI(matchId);
-        // 🚨 [Phase 40] 앙드레 카파시: 백엔드 ApiResponse의 NON_NULL 정책으로 인해 
+        // 🚨 [Phase 40] 앙드레 카파시: 백엔드 ApiResponse의 NON_NULL 정책으로 인해
         // data가 null인 경우 필드 자체가 유실되어 undefined가 반환될 수 있음.
         // TanStack Query v5는 undefined 반환을 허용하지 않으므로 명시적 null 처리 필수.
         return response.data ?? null;
@@ -79,7 +87,8 @@ export const useInfiniteMyAttendances = (size: number = 10) => {
   const { isLoggedIn } = useAuth();
   return useInfiniteQuery({
     queryKey: attendanceKeys.infinite(size),
-    queryFn: ({ pageParam = 0 }) => attendanceGetMyAPI((pageParam as number) + 1, size),
+    queryFn: ({ pageParam = 0 }) =>
+      attendanceGetMyAPI((pageParam as number) + 1, size),
     getNextPageParam: (lastPage) => {
       const data = lastPage.data;
       if (!data || data.last) return undefined;
@@ -138,7 +147,7 @@ export const useUpdateAttendance = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, formData }: { id: number; formData: FormData }) => 
+    mutationFn: ({ id, formData }: { id: number; formData: FormData }) =>
       attendanceUpdateAPI(id, formData),
     onSuccess: () => {
       // 🚨 [Phase 42] prefix 매칭으로 모든 직관 관련 캐시 한 번에 무효화

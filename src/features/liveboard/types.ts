@@ -1,52 +1,54 @@
 // src/features/liveboard/types.ts
 import { LineupRowDto } from "@/src/shared/types/lineup";
-import { 
-  SkyStatus, 
-  RainType, 
-  WeatherApiStatus, 
-  NowCastDto, 
-  ForeCastDto 
-} from "@/src/shared/types/weather";
-import { 
-  LiveBoardStatus, 
-  PlayerPosition,
+import {
   InningTextsDto,
-  PlayerDto,
+  LiveBoardDataDto,
+  LiveBoardStatus,
   MatchScoreDto,
-  LiveBoardDataDto
+  PlayerDto,
+  PlayerPosition,
 } from "@/src/shared/types/match";
+import {
+  ForeCastDto,
+  NowCastDto,
+  RainType,
+  SkyStatus,
+  WeatherApiStatus,
+} from "@/src/shared/types/weather";
 
 /**
  * Liveboard 도메인 타입 정의
  */
 
-export type { 
-  LineupRowDto, 
-  SkyStatus, 
-  RainType, 
-  WeatherApiStatus, 
-  NowCastDto, 
+export type {
   ForeCastDto,
-  LiveBoardStatus,
   InningTextsDto,
-  PlayerDto,
+  LineupRowDto,
+  LiveBoardDataDto,
+  LiveBoardStatus,
   MatchScoreDto,
-  LiveBoardDataDto
+  NowCastDto,
+  PlayerDto,
+  RainType,
+  SkyStatus,
+  WeatherApiStatus,
 };
-
 
 /**
  * 🛰️ BroadcastItem: 구조화된 개별 중계 아이템
  * Why: 매퍼 계층에서 문자열을 파싱하여 UI가 조건 없이 렌더링할 수 있게 함.
  */
-export type BroadcastType = "BATTER_INFO" | "PITCH_LOG" | "PLAY_RESULT" | "INNING_INFO";
+export type BroadcastType =
+  | "BATTER_INFO"
+  | "PITCH_LOG"
+  | "PLAY_RESULT"
+  | "INNING_INFO";
 
 export interface BroadcastItem {
   id: string; // {inning}-{index}
   type: BroadcastType;
   text: string;
 }
-
 
 /**
  * 🛰️ LiveboardData: 실시간 중계 화면에 표시될 동적 데이터 모델
@@ -92,4 +94,3 @@ export interface MatchWeatherDto {
   nowCast: NowCastDto | null;
   foreCast: ForeCastDto[];
 }
-

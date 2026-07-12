@@ -1,13 +1,8 @@
 // app/profile/useProfile.ts
-import { useState } from "react";
-import { Alert } from "react-native";
-import { router } from "expo-router";
-import { useAuth } from "@/src/hooks/useAuth";
-import { Logger } from "@/src/utils/logger";
 import {
+  UserProfileUpdateRequest,
   usersDeleteAccountAPI,
   usersUpdateProfileAPI,
-  UserProfileUpdateRequest,
 } from "@/src/features/auth";
 import { FavoriteTeam } from "@/src/features/user/favorite-team";
 import {
@@ -15,15 +10,18 @@ import {
   favoriteTeamDeleteAPI,
   favoriteTeamUpdateAPI,
 } from "@/src/features/user/favorite-team-api";
-import { useFavoriteTeam, favoriteTeamKeys } from "@/src/features/user/queries";
-import { useQueryClient } from "@tanstack/react-query";
+import { favoriteTeamKeys, useFavoriteTeam } from "@/src/features/user/queries";
 import { KBO_TEAMS } from "@/src/features/user/types";
-
-
+import { useAuth } from "@/src/hooks/useAuth";
+import { Logger } from "@/src/utils/logger";
+import { useQueryClient } from "@tanstack/react-query";
+import { router } from "expo-router";
+import { useState } from "react";
+import { Alert } from "react-native";
 
 /**
  * useProfile
- * 
+ *
  * Why: 프로필 화면의 회원 관리, 즐겨찾기 팀 관리 비즈니스 로직을 UI와 분리.
  */
 export function useProfile() {
@@ -32,7 +30,6 @@ export function useProfile() {
   const { data: favoriteTeam } = useFavoriteTeam();
   const queryClient = useQueryClient();
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-
 
   const handleEditProfile = () => {
     setIsEditModalVisible(true);
@@ -104,15 +101,19 @@ export function useProfile() {
                     try {
                       const response = await usersDeleteAccountAPI();
                       if (response.resultType === "SUCCESS") {
-                        Alert.alert("탈퇴 완료", "회원 탈퇴가 완료되었습니다.", [
-                          {
-                            text: "확인",
-                            onPress: async () => {
-                              await signout();
-                              router.replace("/(auth)/signin");
+                        Alert.alert(
+                          "탈퇴 완료",
+                          "회원 탈퇴가 완료되었습니다.",
+                          [
+                            {
+                              text: "확인",
+                              onPress: async () => {
+                                await signout();
+                                router.replace("/(auth)/signin");
+                              },
                             },
-                          },
-                        ]);
+                          ],
+                        );
                       } else {
                         Alert.alert("오류", "회원 탈퇴에 실패했습니다.");
                       }
@@ -170,12 +171,20 @@ export function useProfile() {
         : await favoriteTeamAddAPI({ teamCode: team.code });
 
       if (response.resultType === "SUCCESS") {
-        queryClient.invalidateQueries({ queryKey: favoriteTeamKeys.mine() }).catch((err) => {
-          Logger.error("즐겨찾기 캐시 무효화 실패 (서버 저장은 성공):", err);
-        });
-        Alert.alert("성공", `${team.name}을 즐겨찾기에 ${teamExists ? "변경" : "추가"}했습니다.`);
+        queryClient
+          .invalidateQueries({ queryKey: favoriteTeamKeys.mine() })
+          .catch((err) => {
+            Logger.error("즐겨찾기 캐시 무효화 실패 (서버 저장은 성공):", err);
+          });
+        Alert.alert(
+          "성공",
+          `${team.name}을 즐겨찾기에 ${teamExists ? "변경" : "추가"}했습니다.`,
+        );
       } else {
-        Alert.alert("오류", `즐겨찾기 ${teamExists ? "변경" : "추가"}에 실패했습니다.`);
+        Alert.alert(
+          "오류",
+          `즐겨찾기 ${teamExists ? "변경" : "추가"}에 실패했습니다.`,
+        );
       }
     } catch (error) {
       Logger.error("즐겨찾기 팀 처리 실패:", error);
@@ -201,10 +210,18 @@ export function useProfile() {
             try {
               const response = await favoriteTeamDeleteAPI();
               if (response.resultType === "SUCCESS") {
-                queryClient.invalidateQueries({ queryKey: favoriteTeamKeys.mine() }).catch((err) => {
-                  Logger.error("즐겨찾기 삭제 캐시 무효화 실패 (서버 삭제는 성공):", err);
-                });
-                Alert.alert("성공", `${team.teamName}을 즐겨찾기에서 삭제했습니다.`);
+                queryClient
+                  .invalidateQueries({ queryKey: favoriteTeamKeys.mine() })
+                  .catch((err) => {
+                    Logger.error(
+                      "즐겨찾기 삭제 캐시 무효화 실패 (서버 삭제는 성공):",
+                      err,
+                    );
+                  });
+                Alert.alert(
+                  "성공",
+                  `${team.teamName}을 즐겨찾기에서 삭제했습니다.`,
+                );
               } else {
                 Alert.alert("오류", "즐겨찾기 삭제에 실패했습니다.");
               }

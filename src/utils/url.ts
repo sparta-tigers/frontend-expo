@@ -7,15 +7,15 @@ import { axiosInstance } from "../core/client";
  */
 export const getImageUrl = (path: string | undefined | null): string => {
   if (!path) return "";
-  
+
   // 이미 절대 경로인 경우 (http로 시작) 그대로 반환
   if (path.startsWith("http")) return path;
-  
+
   // BaseURL 가져오기
   const baseURL = axiosInstance.defaults.baseURL || "http://localhost:8080";
-  
+
   // 경로 정규화 (중복 슬래시 제거)
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  
+
   return `${baseURL}${normalizedPath}`;
 };

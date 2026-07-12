@@ -1,12 +1,9 @@
+import { RainType, SkyStatus } from "@/src/features/liveboard/types";
 import { fetchMatchRooms, matchKeys } from "@/src/features/match";
-import {
-  RainType,
-  SkyStatus,
-} from "@/src/features/liveboard/types";
 import { MatchRoomDto } from "@/src/shared/types/match";
+import { MaterialIcons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import React, { useMemo, useState } from "react";
-import { MaterialIcons } from "@expo/vector-icons";
 
 // ── 날씨 아이콘/텍스트 매핑 ──────────────────────────────
 type WeatherIconName = keyof typeof MaterialIcons.glyphMap;
@@ -22,7 +19,7 @@ export interface WeatherDisplay {
 
 /**
  * 날씨 상태 코드 기반 UI 데이터 변환
- * Why: 기상청 기반의 복잡한 하늘상태(Sky)와 강수형태(Rain) 조합을 
+ * Why: 기상청 기반의 복잡한 하늘상태(Sky)와 강수형태(Rain) 조합을
  *      사용자 친화적인 '비/눈/맑음' 등의 단어와 Material 아이콘으로 매핑하기 위함.
  */
 export function getWeatherDisplay(
@@ -97,7 +94,7 @@ function getWeekStartDate(baseDate: Date, weekOffset: number): Date {
 
 /**
  * 주간 날짜 목록(WeekDayDto[]) 생성
- * Why: 7일간의 날짜 객체를 생성하고, 조회된 경기 정보와 대조하여 
+ * Why: 7일간의 날짜 객체를 생성하고, 조회된 경기 정보와 대조하여
  *      캘린더에 '경기 있음' 도트를 표시할지 결정함.
  */
 function buildWeekDays(weekStart: Date, rooms: MatchRoomDto[]): WeekDayDto[] {
@@ -180,7 +177,7 @@ export function useLiveboard(): UseLiveboardReturn {
   } = useQuery({
     queryKey: matchKeys.liveboard.week(weekAnydayKeys[0]),
     queryFn: async () => {
-      // Promise.allSettled를 사용하여 일부 날짜 조회 실패가 
+      // Promise.allSettled를 사용하여 일부 날짜 조회 실패가
       // 전체 주간 달력 로드 실패로 이어지지 않도록 격리(Isolate).
       const results = await Promise.allSettled(
         weekAnydayKeys.map(async (key) => ({

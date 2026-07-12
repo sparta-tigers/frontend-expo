@@ -55,5 +55,5 @@ export interface UserRegisterRequest {
 }
 
 export interface FcmTokenRequest {
-    fcmToken: string;
+  fcmToken: string;
 }

@@ -1,7 +1,7 @@
 import { Logger } from "@/src/utils/logger";
 import * as SecureStore from "expo-secure-store";
 
-const authLogger = Logger.category('AUTH');
+const authLogger = Logger.category("AUTH");
 
 /**
  * 중앙 토큰 저장소

@@ -1,5 +1,5 @@
-import { StyleSheet } from "react-native";
 import { theme } from "@/src/styles/theme";
+import { StyleSheet } from "react-native";
 
 /**
  * 홈 화면 전체 레이아웃 및 공통 스타일

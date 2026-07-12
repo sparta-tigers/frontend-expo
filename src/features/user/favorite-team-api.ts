@@ -5,10 +5,7 @@
 
 import { apiClient } from "@/src/core/client";
 import type { ApiResponse } from "@/src/shared/types/common";
-import {
-  FavoriteTeam,
-  FavoriteTeamRequest,
-} from "./favorite-team";
+import { FavoriteTeam, FavoriteTeamRequest } from "./favorite-team";
 
 /**
  * 즐겨찾기 팀 추가 API

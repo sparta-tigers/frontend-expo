@@ -1,16 +1,18 @@
 import { apiClient } from "@/src/core/client";
 import { ApiResponse } from "@/src/shared/types/common";
 import {
-    LeagueType,
-    MatchRoomDto,
-    MatchScheduleResponse,
-    TeamRankingResponse,
+  LeagueType,
+  MatchRoomDto,
+  MatchScheduleResponse,
+  TeamRankingResponse,
 } from "./types";
 
 /**
  * 전구단 라이브보드 룸(경기 상세) 목록 조회
  */
-export const fetchMatchRooms = async (anyday?: string): Promise<MatchRoomDto[]> => {
+export const fetchMatchRooms = async (
+  anyday?: string,
+): Promise<MatchRoomDto[]> => {
   const response = await apiClient.get<MatchRoomDto[]>(
     `/api/liveboard/room`,
     anyday ? { anyday } : {},
@@ -21,8 +23,12 @@ export const fetchMatchRooms = async (anyday?: string): Promise<MatchRoomDto[]> 
 /**
  * 특정 경기의 라이브보드 방 정보 단일 조회
  */
-export const fetchMatchRoom = async (matchId: number): Promise<MatchRoomDto | null> => {
-  const response = await apiClient.get<ApiResponse<MatchRoomDto>>(`/api/liveboard/room/${matchId}`);
+export const fetchMatchRoom = async (
+  matchId: number,
+): Promise<MatchRoomDto | null> => {
+  const response = await apiClient.get<ApiResponse<MatchRoomDto>>(
+    `/api/liveboard/room/${matchId}`,
+  );
   return response.data ?? null;
 };
 

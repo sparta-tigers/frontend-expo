@@ -4,15 +4,15 @@
  * Why: exchange.tsx(918줄)에서 지도/위치 관련 상태와 핸들러를 분리하여
  * 지도 UI 변경이 아이템 목록/모달 렌더링에 영향을 미치지 않도록 한다.
  */
-import { useLocationStore } from "@/src/store/useLocationStore";
 import { useLocationTracker } from "@/src/hooks/useLocationTracker";
+import { useLocationStore } from "@/src/store/useLocationStore";
 import { Logger } from "@/src/utils/logger";
 import * as Location from "expo-location";
 import React, { useCallback, useRef, useState } from "react";
 import { Alert } from "react-native";
 import MapView from "react-native-maps";
 
-const mapLogger = Logger.category('MAP');
+const mapLogger = Logger.category("MAP");
 
 /** 지도 영역 정보 */
 interface MapRegion {
@@ -62,7 +62,9 @@ export interface UseExchangeMapReturn {
  *
  * @param isInitialFetched - 초기 데이터 로딩 완료 여부 (지도 이동 감지 조건)
  */
-export function useExchangeMap(isInitialFetched: boolean): UseExchangeMapReturn {
+export function useExchangeMap(
+  isInitialFetched: boolean,
+): UseExchangeMapReturn {
   const mapRef = useRef<MapView>(null);
 
   // 전역 위치 스토어 연동
@@ -70,7 +72,9 @@ export function useExchangeMap(isInitialFetched: boolean): UseExchangeMapReturn 
   const { errorMsg: locationError } = useLocationTracker();
 
   // 로컬 위치 상태 (초기 마운트 시 설정)
-  const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null);
+  const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(
+    null,
+  );
 
   // 지도 상태
   const [isMapMoved, setIsMapMoved] = useState(false);
@@ -83,12 +87,15 @@ export function useExchangeMap(isInitialFetched: boolean): UseExchangeMapReturn 
    * 초기 데이터 로딩 이후의 유저 이동만 "지도 이동"으로 간주하여
    * 재검색 버튼 표시를 트리거한다.
    */
-  const handleRegionChangeComplete = useCallback((region: MapRegion) => {
-    setMapRegion(region);
-    if (isMapReady && isInitialFetched) {
-      setIsMapMoved(true);
-    }
-  }, [isMapReady, isInitialFetched]);
+  const handleRegionChangeComplete = useCallback(
+    (region: MapRegion) => {
+      setMapRegion(region);
+      if (isMapReady && isInitialFetched) {
+        setIsMapMoved(true);
+      }
+    },
+    [isMapReady, isInitialFetched],
+  );
 
   /**
    * 현재 위치로 즉시 이동

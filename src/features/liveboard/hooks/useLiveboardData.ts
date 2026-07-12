@@ -7,8 +7,8 @@ import { LiveboardData } from "../types";
 
 /**
  * 🛰️ useLiveboardData: 특정 경기의 실시간 중계 데이터를 조회하는 Hook
- * 
- * Why: 
+ *
+ * Why:
  * 1. MatchDetail(정적 정보)과 분리하여 실시간 데이터만 독립적으로 관리함.
  * 2. 컴포넌트 마운트 즉시 병렬 패칭(No Waterfall)을 보장함.
  * 3. 향후 WebSocket이나 폴링(Polling) 전략을 이 훅 내부에서만 교체할 수 있음.
@@ -19,9 +19,11 @@ export const useLiveboardData = (matchId: number) => {
     queryFn: async (): Promise<LiveboardData> => {
       try {
         const room = await fetchMatchRoom(matchId);
-        
+
         if (!room) {
-          throw new Error(`[useLiveboardData] Room not found for ID: ${matchId}`);
+          throw new Error(
+            `[useLiveboardData] Room not found for ID: ${matchId}`,
+          );
         }
 
         return LiveboardMapper.toLiveboardData(room);

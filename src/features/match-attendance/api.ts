@@ -1,20 +1,17 @@
 import { apiClient } from "@/src/core/client";
 import type { ApiResponse, PaginatedResponse } from "@/src/shared/types/common";
-import {
-  MatchAttendance,
-  TicketOcrResponseDto,
-} from "./types";
+import { MatchAttendance, TicketOcrResponseDto } from "./types";
 
 /**
  * 🚨 앙드레 카파시: 직관 기록(Match Attendance) API 정의
- * 
- * Why: 백엔드 MatchAttendanceController와 통신하며, 
+ *
+ * Why: 백엔드 MatchAttendanceController와 통신하며,
  * Multipart/form-data 처리를 위해 Axios 설정을 명시적으로 제어함.
  */
 
 /**
  * 내 직관 기록 목록 조회 API
- * 
+ *
  * @param page - 페이지 번호 (1-indexed)
  * @param size - 페이지 크기
  */
@@ -27,7 +24,7 @@ export async function attendanceGetMyAPI(
 
 /**
  * 특정 경기에 대한 내 직관 기록 조회 API
- * 
+ *
  * @param matchId - 경기 ID
  */
 export async function attendanceGetMyByMatchIdAPI(
@@ -47,7 +44,7 @@ export async function attendanceGetDetailAPI(
 
 /**
  * 직관 기록 생성 API (Multipart)
- * 
+ *
  * @param formData - request(JSON Blob)와 images(Files)를 포함한 FormData
  */
 export async function attendanceCreateAPI(
@@ -101,7 +98,7 @@ export async function attendanceOcrAPI(
 
 /**
  * 🔢 연간 직관 횟수 조회 API
- * 
+ *
  * @param year - 조회할 연도 (선택)
  */
 export async function attendanceGetCountAPI(

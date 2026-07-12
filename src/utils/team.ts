@@ -1,5 +1,5 @@
-import { StyleSheet, ImageSourcePropType, ViewStyle } from "react-native";
 import { theme } from "@/src/styles/theme";
+import { ImageSourcePropType, StyleSheet, TextStyle, ViewStyle } from "react-native";
 
 /**
  * 🛡️ TeamCode: KBO 구단 식별자 유니온 타입
@@ -191,12 +191,16 @@ export const TEAM_DATA: Record<TeamCode, TeamMeta> = {
 /**
  * ⚡ O(1) 조회를 위한 내부 매핑 맵 (Internal Lookup Maps)
  */
-const BACKEND_CODE_MAP: Record<string, TeamMeta> = Object.values(TEAM_DATA).reduce<Record<string, TeamMeta>>((acc, team) => {
+const BACKEND_CODE_MAP: Record<string, TeamMeta> = Object.values(
+  TEAM_DATA,
+).reduce<Record<string, TeamMeta>>((acc, team) => {
   acc[team.backendCode] = team;
   return acc;
 }, {});
 
-const NAME_MAP: Record<string, TeamMeta> = Object.values(TEAM_DATA).reduce<Record<string, TeamMeta>>((acc, team) => {
+const NAME_MAP: Record<string, TeamMeta> = Object.values(TEAM_DATA).reduce<
+  Record<string, TeamMeta>
+>((acc, team) => {
   acc[team.name.toUpperCase()] = team;
   acc[team.shortName.toUpperCase()] = team;
   return acc;
@@ -209,7 +213,7 @@ export function findTeamMeta(identifier: string | null | undefined): TeamMeta {
   if (!identifier) return TEAM_DATA[DEFAULT_TEAM_ID];
 
   const id = identifier.toUpperCase();
-  
+
   // 1. TeamCode ID 직접 매칭 (KIA, LG, SSG 등)
   if (id in TEAM_DATA) return TEAM_DATA[id as TeamCode];
 
@@ -226,24 +230,30 @@ export function findTeamMeta(identifier: string | null | undefined): TeamMeta {
 /**
  * 🎨 TEAM_STYLES: 전 구단 공통 스타일 맵 (StyleSheet 사전 정의)
  */
+const initialTeamStyles: Record<string, ViewStyle | TextStyle> = {};
+
 export const TEAM_STYLES = StyleSheet.create(
-  Object.entries(TEAM_DATA).reduce<Record<string, unknown>>((acc, [code, meta]) => {
-    const teamCode = code as TeamCode;
-    acc[teamCode] = {
-      backgroundColor: meta.color,
-    };
-    acc[`${teamCode}_TEXT`] = {
-      color: meta.color,
-    };
-    return acc;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  }, {} as any) as any,
+  Object.entries(TEAM_DATA).reduce<Record<string, ViewStyle | TextStyle>>(
+    (acc, [code, meta]) => {
+      const teamCode = code as TeamCode;
+      acc[teamCode] = {
+        backgroundColor: meta.color,
+      };
+      acc[`${teamCode}_TEXT`] = {
+        color: meta.color,
+      };
+      return acc;
+    },
+    initialTeamStyles,
+  ),
 );
 
 /**
  * 💅 getTeamBgStyle: 구단 배경색 스타일 반환 (하위 호환성용)
  */
-export function getTeamBgStyle(identifier: string | null | undefined): ViewStyle {
+export function getTeamBgStyle(
+  identifier: string | null | undefined,
+): ViewStyle {
   const meta = findTeamMeta(identifier);
   return (TEAM_STYLES[meta.id] || TEAM_STYLES.DEFAULT) as ViewStyle;
 }
@@ -251,7 +261,9 @@ export function getTeamBgStyle(identifier: string | null | undefined): ViewStyle
 /**
  * 📦 TEAM_LIST: 전체 구단 목록 (마스코트 포함)
  */
-export const TEAM_LIST = Object.values(TEAM_DATA).filter(t => t.id !== DEFAULT_TEAM_ID);
+export const TEAM_LIST = Object.values(TEAM_DATA).filter(
+  (t) => t.id !== DEFAULT_TEAM_ID,
+);
 
 /**
  * ✅ isValidTeamCode: 유효한 팀 코드인지 확인 (Type Guard)

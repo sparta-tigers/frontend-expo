@@ -51,7 +51,10 @@ export interface ExchangeItem {
  */
 export interface ChatRoomOptions {
   /** 거래 상태 변경(완료/취소) 시 호출될 콜백 */
-  onStatusChange?: (status: "COMPLETE" | "CANCEL", itemId: number) => Promise<void>;
+  onStatusChange?: (
+    status: "COMPLETE" | "CANCEL",
+    itemId: number,
+  ) => Promise<void>;
 }
 
 interface UseChatRoomReturn {
@@ -73,7 +76,7 @@ interface UseChatRoomReturn {
 
 /**
  * useChatRoom
- * 
+ *
  * Why: 특정 피처(Exchange)에 종속되지 않는 순수 채팅 비즈니스 로직.
  * 비동기 액션은 콜백 주입을 통해 처리하며, 내부에서 Race Condition을 방어함.
  */
@@ -125,7 +128,10 @@ export function useChatRoom(
   } = useInfiniteQuery<ChatMessagesPage>({
     queryKey: ["chatMessages", roomIdNumber],
     queryFn: async ({ pageParam = 0 }) => {
-      const response = await chatroomsGetMessagesAPI(roomIdNumber, pageParam as number);
+      const response = await chatroomsGetMessagesAPI(
+        roomIdNumber,
+        pageParam as number,
+      );
       const messages = response.data?.content ?? [];
       const mapped: ChatMessage[] = messages.map((message) => ({
         id: message.messageId,
@@ -139,7 +145,8 @@ export function useChatRoom(
       }));
       return { content: mapped, hasNext: !(response.data?.last ?? true) };
     },
-    getNextPageParam: (lastPage, allPages) => lastPage.hasNext ? allPages.length : undefined,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.hasNext ? allPages.length : undefined,
     enabled: isLoggedIn && !isRoomIdInvalid,
     initialPageParam: 0,
   });
@@ -150,10 +157,11 @@ export function useChatRoom(
   }, [messagesData]);
 
   // WebSocket / STOMP 로직 (기존 로직 유지)
-  const { client, connect, status: wsStatus } = useWebSocket(
-    isRoomIdInvalid ? "" : roomId,
-    "directroom",
-  );
+  const {
+    client,
+    connect,
+    status: wsStatus,
+  } = useWebSocket(isRoomIdInvalid ? "" : roomId, "directroom");
   const isConnected = wsStatus === "CONNECTED";
 
   const handleMessageReceived = useCallback(
@@ -162,21 +170,24 @@ export function useChatRoom(
         ["chatMessages", roomIdNumber],
         (oldData: InfiniteData<ChatMessagesPage, number> | undefined) => {
           if (!oldData || oldData.pages.length === 0) {
-            return { pages: [{ content: [newMessage], hasNext: false }], pageParams: [0] };
+            return {
+              pages: [{ content: [newMessage], hasNext: false }],
+              pageParams: [0],
+            };
           }
           const prevContent = oldData.pages[0].content;
-          // 🛡️ 중복 제거 로직 강화: 
+          // 🛡️ 중복 제거 로직 강화:
           // 1. 낙관적 메시지(음수 ID)끼리의 중복 제거
           // 2. 서버 에코 수신 시, 동일 내용/작성자의 낙관적 메시지 교체
           const cleanList = prevContent.filter((msg) => {
             // 동일한 낙관적 ID 제거
             if (msg.id < 0 && msg.id === newMessage.id) return false;
-            
+
             // 서버 확정 메시지(양수) 수신 시, 매칭되는 내 낙관적 메시지 제거
             if (
-              msg.id < 0 && 
-              newMessage.id > 0 && 
-              msg.isMine && 
+              msg.id < 0 &&
+              newMessage.id > 0 &&
+              msg.isMine &&
               newMessage.isMine &&
               msg.content === newMessage.content
             ) {
@@ -184,10 +195,13 @@ export function useChatRoom(
             }
             return true;
           });
-          
+
           if (cleanList.some((msg) => msg.id === newMessage.id)) return oldData;
           const nextPages = [...oldData.pages];
-          nextPages[0] = { ...nextPages[0], content: [newMessage, ...cleanList] };
+          nextPages[0] = {
+            ...nextPages[0],
+            content: [newMessage, ...cleanList],
+          };
           return { ...oldData, pages: nextPages };
         },
       );
@@ -220,7 +234,10 @@ export function useChatRoom(
     try {
       client.publish({
         destination: "/client/directRoom/send",
-        body: JSON.stringify({ roomId: roomIdNumber, message: optimistic.content }),
+        body: JSON.stringify({
+          roomId: roomIdNumber,
+          message: optimistic.content,
+        }),
       });
     } catch {
       queryClient.setQueryData(
@@ -239,45 +256,83 @@ export function useChatRoom(
       setMessageText(prevText);
       Alert.alert("전송 실패", "메시지 전송에 실패했습니다.");
     }
-  }, [client, handleMessageReceived, isConnected, messageText, queryClient, roomIdNumber, user]);
+  }, [
+    client,
+    handleMessageReceived,
+    isConnected,
+    messageText,
+    queryClient,
+    roomIdNumber,
+    user,
+  ]);
 
   // STOMP 구독 및 AppState 관리 (기존 로직 유지)
   useEffect(() => {
     if (!client || !isConnected || isRoomIdInvalid) return;
-    const subscription = client.subscribe(`/server/directRoom/${roomIdNumber}`, (msg) => {
-      try {
-        const parsed = JSON.parse(msg.body);
-        if (parsed.type === "SYSTEM" && parsed.action === "STATUS_UPDATED") {
-          // Why: 거래 상태 업데이트 시 관련 캐시 전역 무효화 (상대방 변경 시에도 내 목록 반영)
-          queryClient.invalidateQueries({ queryKey: ["exchangeItem", roomIdNumber], exact: true }).catch(() => {});
-          queryClient.invalidateQueries({ queryKey: ["items"] }).catch(() => {});
-          queryClient.invalidateQueries({ queryKey: ["myExchanges"] }).catch(() => {});
-          if (user?.userId) {
-            queryClient.invalidateQueries({ queryKey: ["myItems", user.userId] }).catch(() => {});
+    const subscription = client.subscribe(
+      `/server/directRoom/${roomIdNumber}`,
+      (msg) => {
+        try {
+          const parsed = JSON.parse(msg.body);
+          if (parsed.type === "SYSTEM" && parsed.action === "STATUS_UPDATED") {
+            // Why: 거래 상태 업데이트 시 관련 캐시 전역 무효화 (상대방 변경 시에도 내 목록 반영)
+            queryClient
+              .invalidateQueries({
+                queryKey: ["exchangeItem", roomIdNumber],
+                exact: true,
+              })
+              .catch(() => {});
+            queryClient
+              .invalidateQueries({ queryKey: ["items"] })
+              .catch(() => {});
+            queryClient
+              .invalidateQueries({ queryKey: ["myExchanges"] })
+              .catch(() => {});
+            if (user?.userId) {
+              queryClient
+                .invalidateQueries({ queryKey: ["myItems", user.userId] })
+                .catch(() => {});
+            }
+            return;
           }
-          return;
+          const normalized: ChatMessage = {
+            id: parsed.messageId ?? parsed.id ?? Date.now(),
+            roomId: roomIdNumber,
+            senderId: parsed.senderId,
+            senderName: parsed.senderNickname ?? parsed.senderName ?? "",
+            content: parsed.message ?? parsed.content ?? "",
+            timestamp:
+              parsed.sentAt ??
+              parsed.timestamp ??
+              parsed.createdAt ??
+              new Date().toISOString(),
+            isMine: parsed.senderId === (user?.userId ?? -1),
+            type: parsed.type ?? "CHAT",
+          };
+          handleMessageReceived(normalized);
+        } catch (e) {
+          Logger.error("[ChatRoom] parse error", e);
         }
-        const normalized: ChatMessage = {
-          id: parsed.messageId ?? parsed.id ?? Date.now(),
-          roomId: roomIdNumber,
-          senderId: parsed.senderId,
-          senderName: parsed.senderNickname ?? parsed.senderName ?? "",
-          content: parsed.message ?? parsed.content ?? "",
-          timestamp: parsed.sentAt ?? parsed.timestamp ?? parsed.createdAt ?? new Date().toISOString(),
-          isMine: parsed.senderId === (user?.userId ?? -1),
-          type: parsed.type ?? "CHAT",
-        };
-        handleMessageReceived(normalized);
-      } catch (e) { Logger.error("[ChatRoom] parse error", e); }
-    });
+      },
+    );
     return () => subscription.unsubscribe();
-  }, [client, handleMessageReceived, isConnected, queryClient, roomIdNumber, user?.userId, isRoomIdInvalid]);
+  }, [
+    client,
+    handleMessageReceived,
+    isConnected,
+    queryClient,
+    roomIdNumber,
+    user?.userId,
+    isRoomIdInvalid,
+  ]);
 
   useEffect(() => {
     const sub = AppState.addEventListener("change", (s) => {
       if (s === "active") connect().catch(() => {});
       else if (s === "background") {
-        client?.deactivate().catch((err) => Logger.error("[ChatRoom] Deactivate failed", err));
+        client
+          ?.deactivate()
+          .catch((err) => Logger.error("[ChatRoom] Deactivate failed", err));
       }
     });
     return () => sub.remove();
@@ -294,7 +349,9 @@ export function useChatRoom(
 
       Alert.alert(
         "확인",
-        newStatus === "COMPLETE" ? "교환을 확정하시겠습니까?" : "교환을 취소하시겠습니까?",
+        newStatus === "COMPLETE"
+          ? "교환을 확정하시겠습니까?"
+          : "교환을 취소하시겠습니까?",
         [
           { text: "취소", style: "cancel" },
           {

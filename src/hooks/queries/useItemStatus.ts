@@ -1,5 +1,5 @@
-import { Item } from "@/src/features/exchange/items";
 import { itemsUpdateStatusAPI } from "@/src/features/exchange/api";
+import { Item } from "@/src/features/exchange/items";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Alert } from "react-native";
 
@@ -8,7 +8,7 @@ import { Alert } from "react-native";
  *
  * Why: 중고 거래/교환 프로세스에서 아이템의 상태(판매중, 예약중, 완료)를 변경할 때,
  * 사용자에게 즉각적인 피드백을 제공하기 위해 '낙관적 업데이트' 전략을 사용한다.
- * 
+ *
  * [Zero Magic & Deterministic State]
  * 1. onMutate: 서버 응답 전 캐시를 즉시 수정하여 UI 반응 속도 극대화.
  * 2. onError: 실패 시 이전 데이터로 롤백하여 데이터 정합성 유지.

@@ -1,6 +1,6 @@
 // app/profile/profile.styles.ts
-import { StyleSheet } from "react-native";
 import { theme } from "@/src/styles/theme";
+import { StyleSheet } from "react-native";
 
 export const LOCAL_LAYOUT = {
   profileAvatarSize: 80,

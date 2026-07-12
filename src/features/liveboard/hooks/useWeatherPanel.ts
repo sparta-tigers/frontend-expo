@@ -6,9 +6,9 @@ import {
   NowCastDto,
   WeatherApiStatus,
 } from "@/src/features/liveboard/types";
+import { matchKeys } from "@/src/features/match";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { matchKeys } from "@/src/features/match";
 
 type FetchState = "LOADING" | "SUCCESS" | "ERROR";
 
@@ -32,11 +32,7 @@ export function useWeatherPanel(matchId: string): UseWeatherPanelReturn {
   const { user } = useAuth();
   const isLoggedIn = !!user?.userId;
 
-  const {
-    data,
-    status,
-    refetch,
-  } = useQuery({
+  const { data, status, refetch } = useQuery({
     queryKey: matchKeys.liveboard.weather(matchId),
     queryFn: () => fetchMatchWeather(matchId),
     enabled: isLoggedIn && !!matchId,

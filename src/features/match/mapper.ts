@@ -1,10 +1,18 @@
 import { findTeamMeta } from "@/src/utils/team";
-import { MatchScheduleDto, MatchSummary, MatchDetail, MatchTeamInfo, RankingRowDto, RankingUIModel, MatchRoomDto } from "./types";
+import {
+  MatchDetail,
+  MatchRoomDto,
+  MatchScheduleDto,
+  MatchSummary,
+  MatchTeamInfo,
+  RankingRowDto,
+  RankingUIModel,
+} from "./types";
 
 /**
  * 🏛️ MatchMapper: API DTO를 UI 친화적인 모델로 변환하는 중앙 로직
- * 
- * Why: 
+ *
+ * Why:
  * 1. 백엔드 DTO 구조가 변경되어도 UI 모델은 유지하여 영향 범위를 최소화함.
  * 2. findTeamMeta를 통해 모든 경기 데이터에 구단 메타데이터(TeamMeta)를 강제 바인딩함.
  * 3. Fail-safe 처리를 통해 데이터 부재 시에도 UI가 깨지지 않도록 방어함.
@@ -66,24 +74,34 @@ export class MatchMapper {
     };
 
     const isLive = dto.liveBoardStatus === "TODAY";
-    const displayStatus = isLive ? "경기중" : (dto.liveBoardStatus === "PAST" ? "종료" : "예정");
+    const displayStatus = isLive
+      ? "경기중"
+      : dto.liveBoardStatus === "PAST"
+        ? "종료"
+        : "예정";
 
     return {
       matchId: dto.matchId,
       day: (() => {
         if (!dto.matchTime.includes("T")) {
-          throw new Error(`[MatchMapper] Invalid matchTime format: ${dto.matchTime}. Expected ISO format (YYYY-MM-DDTHH:mm:ss)`);
+          throw new Error(
+            `[MatchMapper] Invalid matchTime format: ${dto.matchTime}. Expected ISO format (YYYY-MM-DDTHH:mm:ss)`,
+          );
         }
         const datePart = dto.matchTime.split("T")[0];
         const dateSegments = datePart.split("-");
         if (dateSegments.length < 3) {
-          throw new Error(`[MatchMapper] Invalid date format in matchTime: ${dto.matchTime}`);
+          throw new Error(
+            `[MatchMapper] Invalid date format in matchTime: ${dto.matchTime}`,
+          );
         }
         return parseInt(dateSegments[2]);
       })(),
       startTime: (() => {
         if (!dto.matchTime.includes("T")) {
-          throw new Error(`[MatchMapper] Invalid matchTime format: ${dto.matchTime}. Expected ISO format (YYYY-MM-DDTHH:mm:ss)`);
+          throw new Error(
+            `[MatchMapper] Invalid matchTime format: ${dto.matchTime}. Expected ISO format (YYYY-MM-DDTHH:mm:ss)`,
+          );
         }
         return dto.matchTime.split("T")[1].substring(0, 5);
       })(),

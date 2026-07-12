@@ -5,7 +5,7 @@ import { ExchangeRequestStatus } from "../types";
 
 /**
  * 🚨 앙드레 카파시: React Query를 이용한 교환 요청 목록 관리 및 상태 업데이트 훅
- * 
+ *
  * Why: 수동 useState/useEffect 관리로 인한 중복 호출 및 캐시 불일치 문제 해결.
  * 캐싱, 자동 로딩 상태 관리, 윈도우 포커스 시 자동 갱신 기능을 활용함.
  *
@@ -14,12 +14,7 @@ import { ExchangeRequestStatus } from "../types";
 export const useExchangeRequests = (role: "receiver" | "sender") => {
   const queryClient = useQueryClient();
 
-  const {
-    data,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["exchangeRequests", role],
     queryFn: () => exchangeGetMyRequestsAPI(role, 0, 50),
     staleTime: 1000 * 30, // 30초 동안은 캐시된 데이터 사용

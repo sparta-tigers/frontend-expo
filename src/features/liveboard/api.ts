@@ -1,7 +1,6 @@
 import { apiClient } from "@/src/core/client";
 import { MatchLineupDto, MatchWeatherDto } from "./types";
 
-
 /**
  * 특정 경기의 홈/어웨이 라인업 조회
  *

@@ -1,18 +1,18 @@
 // app/profile/NicknameEditModal.tsx
-import React, { useState } from "react";
+import { theme } from "@/src/styles/theme";
+import { useState } from "react";
 import {
+  Keyboard,
+  KeyboardAvoidingView,
   Modal,
-  View,
+  Platform,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
   TouchableWithoutFeedback,
-  Keyboard,
+  View,
 } from "react-native";
-import { theme } from "@/src/styles/theme";
 
 /**
  * NicknameEditModal Props

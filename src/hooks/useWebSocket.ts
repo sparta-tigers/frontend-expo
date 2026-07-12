@@ -1,12 +1,12 @@
+import { useAuth } from "@/context/AuthContext";
 import { Logger } from "@/src/utils/logger";
 import { getAccessToken } from "@/src/utils/tokenStore";
-import { useAuth } from "@/context/AuthContext";
 import { Client } from "@stomp/stompjs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
 import SockJS from "sockjs-client";
 
-const chatLogger = Logger.category('CHAT');
+const chatLogger = Logger.category("CHAT");
 
 /**
  * WebSocket 연결 상태 (State-Driven)
@@ -67,7 +67,11 @@ const getWebSocketURL = (url?: string): string => {
   // 개발 환경 + 안드로이드 에뮬레이터 + (환경변수가 없거나 localhost인 경우) → 10.0.2.2로 치환
   if (__DEV__ && Platform.OS === "android") {
     // 환경 변수조차 설정되지 않았을 때만 에뮬레이터 전용 IP로 폴백
-    if (!envUrl || envUrl.includes("localhost") || envUrl.includes("127.0.0.1")) {
+    if (
+      !envUrl ||
+      envUrl.includes("localhost") ||
+      envUrl.includes("127.0.0.1")
+    ) {
       return resolved.replace(/localhost|127\.0\.0\.1/, "10.0.2.2");
     }
   }
@@ -183,7 +187,9 @@ export function useWebSocket(
 
   const disconnect = useCallback(() => {
     if (clientRef.current?.connected) {
-      clientRef.current.deactivate().catch((err) => chatLogger.warn("deactivate failed", err));
+      clientRef.current
+        .deactivate()
+        .catch((err) => chatLogger.warn("deactivate failed", err));
     }
     connectingRef.current = false;
     setStatus("DISCONNECTED");
@@ -210,7 +216,9 @@ export function useWebSocket(
     return () => {
       clearTimeout(timerId);
       if (clientRef.current?.connected) {
-        clientRef.current.deactivate().catch((err) => chatLogger.warn("cleanup deactivate failed", err));
+        clientRef.current
+          .deactivate()
+          .catch((err) => chatLogger.warn("cleanup deactivate failed", err));
       }
       clientRef.current = null;
       connectingRef.current = false;

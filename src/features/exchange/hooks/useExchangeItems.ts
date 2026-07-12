@@ -11,7 +11,7 @@ import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import { Logger } from "@/src/utils/logger";
 import { useCallback, useMemo, useState } from "react";
 
-const mapLogger = Logger.category('MAP');
+const mapLogger = Logger.category("MAP");
 
 /** 카테고리 필터 타입 */
 type CategoryFilter = "ALL" | "TICKET" | "GOODS";
@@ -35,7 +35,11 @@ export interface UseExchangeItemsReturn {
   /** 지도 영역 기반 아이템 검색 */
   searchByRegion: (lat: number, lng: number, latDelta: number) => Promise<void>;
   /** 초기 GPS 기반 아이템 로딩 */
-  fetchInitialItems: (lat: number, lng: number, latDelta: number) => Promise<void>;
+  fetchInitialItems: (
+    lat: number,
+    lng: number,
+    latDelta: number,
+  ) => Promise<void>;
 }
 
 /** 지도 영역의 latDelta → km 반경 변환 (1도 ≒ 111km) */
@@ -49,7 +53,8 @@ const deltaToRadius = (latDelta: number): number => latDelta * 111;
  */
 export function useExchangeItems(): UseExchangeItemsReturn {
   const [itemsState, fetchItems] = useAsyncState<Item[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>("ALL");
+  const [selectedCategory, setSelectedCategory] =
+    useState<CategoryFilter>("ALL");
   const [refreshing, setRefreshing] = useState(false);
   const [isInitialFetched, setIsInitialFetched] = useState(false);
 
@@ -61,13 +66,9 @@ export function useExchangeItems(): UseExchangeItemsReturn {
    * 새 구현에서는 API 결과만 반환하고, 병합은 호출자가 처리한다.
    */
   const loadItems = useCallback(
-    async (
-      lat: number,
-      lng: number,
-      radiusKm: number,
-    ): Promise<Item[]> => {
+    async (lat: number, lng: number, radiusKm: number): Promise<Item[]> => {
       const response = await itemsGetListAPI(
-        0,     // pageNum — 현재 0페이지만 사용
+        0, // pageNum — 현재 0페이지만 사용
         10,
         undefined,
         undefined,
@@ -82,11 +83,12 @@ export function useExchangeItems(): UseExchangeItemsReturn {
         return content.filter((item: Item) => item.status !== "COMPLETED");
       }
 
-      throw new Error(response.error?.message || "아이템 목록을 불러오는데 실패했습니다.");
+      throw new Error(
+        response.error?.message || "아이템 목록을 불러오는데 실패했습니다.",
+      );
     },
     [], // ← deps 없음! API 호출 파라미터만으로 결과가 결정됨
   );
-
 
   /** 새로고침 핸들러 */
   const handleRefresh = useCallback(

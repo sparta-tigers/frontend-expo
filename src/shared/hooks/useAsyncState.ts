@@ -55,16 +55,21 @@ export function useAsyncState<T>(
 
       const errorMessage =
         error instanceof Error ? error.message : "알 수 없는 오류";
-      setState({ status: "error", data: null, error: errorMessage, rawError: error });
+      setState({
+        status: "error",
+        data: null,
+        error: errorMessage,
+        rawError: error,
+      });
     }
-  // [EB-2] deps: [] — 함수 참조를 고정하여 연쇄 리렌더 방지
+    // [EB-2] deps: [] — 함수 참조를 고정하여 연쇄 리렌더 방지
   }, []);
 
   const reset = useCallback(() => {
     // reset 시 토큰도 증가 → 진행 중이던 요청 결과를 버림 (탭 전환 방어)
     executionIdRef.current += 1;
     setState({ status: "idle", data: initialData, error: null });
-  // initialData는 훅 선언 시 1회만 평가되므로 deps 유지
+    // initialData는 훅 선언 시 1회만 평가되므로 deps 유지
   }, [initialData]);
 
   return [state, execute, reset];

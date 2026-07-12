@@ -1,7 +1,7 @@
-import React, { useEffect } from "react";
-import { View, StyleSheet, Animated } from "react-native";
 import { Box } from "@/components/ui";
 import { theme } from "@/src/styles/theme";
+import React, { useEffect } from "react";
+import { Animated, StyleSheet, View } from "react-native";
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -17,7 +17,7 @@ const LOCAL_LAYOUT = {
 
 /**
  * 경기 일정 섹션용 스켈레톤 UI
- * 
+ *
  * Why: 팀 변경 시 queryKey 교체로 인한 로딩 상태에서 레이아웃 깜빡임을 방지하고
  * 사용자에게 데이터 로딩 중임을 시각적으로 부드럽게 전달함.
  */
@@ -38,17 +38,17 @@ export const ScheduleSkeleton = () => {
           duration: 800,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
   }, [opacity]);
 
   return (
     <Box mt="xxxxl" pb="xxl" px="SCREEN_DASHBOARD">
       {/* Title Skeleton */}
-      <Box 
-        height={theme.layout.dashboard.sectionTitleHeight} 
-        align="center" 
-        justify="center" 
+      <Box
+        height={theme.layout.dashboard.sectionTitleHeight}
+        align="center"
+        justify="center"
         mb="md"
       >
         <Animated.View style={[styles.titleSkeleton, { opacity }]} />
@@ -56,11 +56,11 @@ export const ScheduleSkeleton = () => {
 
       <Box width={LOCAL_LAYOUT.wrapWidth} alignSelf="center">
         {/* Calendar Header Skeleton */}
-        <Box 
-          height={LOCAL_LAYOUT.headerHeight} 
-          bg="team.neutralLight" 
-          roundedTop="calendar" 
-          flexDir="row" 
+        <Box
+          height={LOCAL_LAYOUT.headerHeight}
+          bg="team.neutralLight"
+          roundedTop="calendar"
+          flexDir="row"
           overflow="hidden"
         >
           {Array.from({ length: 7 }).map((_, i) => (
@@ -71,13 +71,13 @@ export const ScheduleSkeleton = () => {
         </Box>
 
         {/* Calendar Grid Skeleton (5주 가정) */}
-        <Box 
-          bg="card" 
-          roundedBottom="calendar" 
-          flexDir="row" 
-          flexWrap="wrap" 
-          overflow="hidden" 
-          borderWidth={StyleSheet.hairlineWidth} 
+        <Box
+          bg="card"
+          roundedBottom="calendar"
+          flexDir="row"
+          flexWrap="wrap"
+          overflow="hidden"
+          borderWidth={StyleSheet.hairlineWidth}
           borderColor="team.neutralLight"
         >
           {Array.from({ length: 35 }).map((_, i) => (
@@ -85,10 +85,10 @@ export const ScheduleSkeleton = () => {
               <Box flexDir="row" justify="space-between" width="100%">
                 <Animated.View style={[styles.dayNumSkeleton, { opacity }]} />
               </Box>
-              
+
               {/* 경기 있을 자리에 배포되는 배지 스켈레톤 */}
               <Animated.View style={[styles.badgeSkeleton, { opacity }]} />
-              
+
               {/* 시간 정보 스켈레톤 */}
               <Animated.View style={[styles.timeSkeleton, { opacity }]} />
             </View>

@@ -1,17 +1,25 @@
-import { useMemo, useCallback } from "react";
-import { router } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
-import { findTeamMeta, TeamCode } from "@/src/utils/team";
-import { useMatchSchedule, useMatchRanking } from "@/src/features/match";
 import { useDashboardSummary } from "@/src/features/home/hooks/useDashboardSummary";
-import { useInfiniteMyAttendances, useAttendanceCount } from "@/src/features/match-attendance";
+import { useMatchRanking, useMatchSchedule } from "@/src/features/match";
+import {
+  useAttendanceCount,
+  useInfiniteMyAttendances,
+} from "@/src/features/match-attendance";
 import { useTicketAlarmCount } from "@/src/features/ticket-alarm";
-import { getTodayString, getCurrentYear, getCurrentMonth, getCurrentDay } from "@/src/utils/date";
+import {
+  getCurrentDay,
+  getCurrentMonth,
+  getCurrentYear,
+  getTodayString,
+} from "@/src/utils/date";
+import { findTeamMeta, TeamCode } from "@/src/utils/team";
+import { router } from "expo-router";
+import { useCallback, useMemo } from "react";
 
 /**
  * 🏠 useHomeDashboard
- * 
- * Why: 홈 화면의 비대해진 로직을 통합 관리하고, 
+ *
+ * Why: 홈 화면의 비대해진 로직을 통합 관리하고,
  * 데이터 패칭의 병목(Waterfall)을 방지하며 선언적으로 의존성을 제어함.
  */
 export function useHomeDashboard() {
@@ -33,9 +41,9 @@ export function useHomeDashboard() {
 
   // 1. 경기 일정 (팀 코드가 있을 때만 실행되지만, 전체 흐름은 병렬)
   const scheduleQuery = useMatchSchedule(
-    todayInfo.year, 
-    todayInfo.month, 
-    myTeamId as TeamCode | null
+    todayInfo.year,
+    todayInfo.month,
+    myTeamId as TeamCode | null,
   );
 
   // 2. 순위 데이터 (오늘 날짜 기준)
@@ -67,18 +75,19 @@ export function useHomeDashboard() {
   const displayRankings = useMemo(() => {
     const ranking = rankingQuery.data ?? [];
     if (!Array.isArray(ranking) || ranking.length === 0) return [];
-    
+
     const top5 = ranking.slice(0, 5);
-    const myTeamRank = ranking.find(r => r.teamCode === myTeamId);
-    
-    if (myTeamRank && !top5.find(r => r.teamCode === myTeamId)) {
+    const myTeamRank = ranking.find((r) => r.teamCode === myTeamId);
+
+    if (myTeamRank && !top5.find((r) => r.teamCode === myTeamId)) {
       return [...top5, myTeamRank];
     }
     return top5;
   }, [rankingQuery.data, myTeamId]);
 
   const attendanceMatchIds = useMemo(() => {
-    const firstPageContent = attendanceInfiniteQuery.data?.pages[0]?.data?.content ?? [];
+    const firstPageContent =
+      attendanceInfiniteQuery.data?.pages[0]?.data?.content ?? [];
     return new Set(firstPageContent.map((a) => a.matchId));
   }, [attendanceInfiniteQuery.data]);
 

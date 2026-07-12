@@ -12,8 +12,8 @@ export interface MatchResultInfo {
 
 /**
  * 🧮 calculateMatchResult: 경기 스코어와 응원 팀 정보를 바탕으로 승/무/패 결과를 계산 (Deterministic)
- * 
- * Why: 
+ *
+ * Why:
  * 1. UI 컴포넌트에서 직접적인 승패 계산 로직을 분리하여 '멍청한 View'를 유지함.
  * 2. findTeamMeta를 통해 구단 코드가 HT, KIA 등으로 들어오더라도 표준화된 TeamCode로 변환 후 비교함 (레거시 호환성).
  * 3. 응원 팀이 참여하지 않은 경기는 'MATCH' 상태로 처리하여 시각적 정합성을 보장함.
@@ -33,7 +33,13 @@ export const calculateMatchResult = (
   favoriteTeamCode: string | null | undefined,
 ): MatchResultInfo | null => {
   // 🚨 앙드레 카파시: Zero-Magic. 명시적인 null/undefined/empty 체크.
-  if (homeScore == null || awayScore == null || !favoriteTeamCode || !homeTeamCode || !awayTeamCode) {
+  if (
+    homeScore == null ||
+    awayScore == null ||
+    !favoriteTeamCode ||
+    !homeTeamCode ||
+    !awayTeamCode
+  ) {
     return null;
   }
 

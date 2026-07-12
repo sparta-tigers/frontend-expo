@@ -1,7 +1,7 @@
 /**
  * 날씨 도메인 공통 규격
- * 
- * Why: 기상청 API 응답 기반의 날씨 정보는 여러 도메인(Match, Liveboard)에서 
+ *
+ * Why: 기상청 API 응답 기반의 날씨 정보는 여러 도메인(Match, Liveboard)에서
  * 공통으로 소비되므로 shared에서 통합 관리함.
  */
 

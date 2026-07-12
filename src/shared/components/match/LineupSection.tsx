@@ -1,11 +1,11 @@
 import { Box, Typography } from "@/components/ui";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { LineupRowDto } from "@/src/shared/types/lineup";
+import { getTeamColorPath } from "@/src/shared/types/theme";
 import { theme } from "@/src/styles/theme";
 import { TeamMeta } from "@/src/utils/team";
-import { getTeamColorPath } from "@/src/shared/types/theme";
 import React from "react";
 import { StyleSheet } from "react-native";
-import { LineupRowDto } from "@/src/shared/types/lineup";
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
