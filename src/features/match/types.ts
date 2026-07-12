@@ -1,7 +1,24 @@
 import type { 
   MatchScheduleDto, 
   RankingRowDto,
+  LeagueType,
+  MatchSummary,
+  MatchDetail,
+  MatchTeamInfo,
+  RankingUIModel,
+  MatchRoomDto
 } from "@/src/shared/types/match";
+
+export type {
+  MatchScheduleDto, 
+  RankingRowDto,
+  LeagueType,
+  MatchSummary,
+  MatchDetail,
+  MatchTeamInfo,
+  RankingUIModel,
+  MatchRoomDto
+};
 
 /**
  * Match 도메인 전용 타입 확장
