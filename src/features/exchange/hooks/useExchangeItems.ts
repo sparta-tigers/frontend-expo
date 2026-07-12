@@ -88,7 +88,7 @@ export function useExchangeItems(): UseExchangeItemsReturn {
       }
 
       throw new Error(
-        response.error?.message || "아이템 목록을 불러오는데 실패했습니다.",
+        response.error?.message || "아이템 목록을 불러오지 못했어요.",
       );
     },
     [],

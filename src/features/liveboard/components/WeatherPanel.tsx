@@ -22,7 +22,7 @@ function WeatherStatusBanner({ status }: { status: WeatherApiStatus }) {
       ? "기상청 데이터 준비 중이에요 (발표 전 또는 점검 중)"
       : status === "UPSTREAM_ERROR"
         ? "기상청 서버 점검 중이에요. 잠시 후 다시 확인해주세요"
-        : "날씨 데이터를 불러오는 중 오류가 발생했어요";
+        : "날씨 데이터를 불러오는 중 문제가 생겼어요";
 
   return (
     <Box
@@ -72,7 +72,7 @@ export function WeatherPanel({ matchId }: { matchId: string }) {
 
   if (fetchState === "ERROR") {
     const errorMessage = !isLoggedIn
-      ? "로그인이 필요합니다"
+      ? "로그인이 필요해요"
       : "날씨를 불러오지 못했어요";
 
     return (

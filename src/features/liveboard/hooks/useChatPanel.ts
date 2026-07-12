@@ -139,14 +139,14 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
 
     if (!client || !isConnected) {
       Alert.alert(
-        "연결 오류",
-        "서버와 연결이 불안정합니다. 잠시 후 다시 시도해주세요.",
+        "알림",
+        "서버 연결이 불안정해요. 잠시 후 다시 시도해주세요.",
       );
       return;
     }
 
     if (!user?.userId) {
-      Alert.alert("로그인 필요", "메시지를 전송하려면 로그인이 필요합니다.");
+      Alert.alert("알림", "메시지를 보내려면 로그인이 필요해요.");
       return;
     }
 
@@ -172,7 +172,7 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
       });
     } catch {
       setMessages((prev) => prev.filter((m) => m.key !== localKey));
-      Alert.alert("전송 실패", "메시지 전송에 실패했습니다.");
+      Alert.alert("알림", "메시지를 보내지 못했어요.");
     }
   }, [client, draft, isConnected, roomId, user]);
 

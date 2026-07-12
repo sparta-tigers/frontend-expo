@@ -134,7 +134,7 @@ export default function ChatListScreen() {
         return response.data.rooms || [];
       }
       throw new Error(
-        response.error?.message || "채팅방 목록을 불러오는데 실패했습니다.",
+        response.error?.message || "채팅방 목록을 불러오지 못했어요.",
       );
     },
     staleTime: 1000 * 60 * 1, // 1분간 캐시 유지
@@ -221,7 +221,7 @@ export default function ChatListScreen() {
         style={[chatStyles.errorContainer, { backgroundColor: colors.surface }]}
       >
         <Text style={[chatStyles.errorText, { color: colors.destructive }]}>
-          {error?.message || "오류가 발생했습니다."}
+          {error?.message || "문제가 생겼어요."}
         </Text>
         <Button onPress={() => refetch()} style={chatStyles.retryButton}>
           다시 시도
@@ -237,7 +237,7 @@ export default function ChatListScreen() {
         style={[chatStyles.emptyContainer, { backgroundColor: colors.surface }]}
       >
         <Text style={[chatStyles.emptyText, { color: colors.text }]}>
-          채팅방이 없습니다
+          아직 채팅방이 없어요
         </Text>
         <Text style={[chatStyles.emptySubText, { color: colors.muted }]}>
           아이템 교환을 시작해보세요

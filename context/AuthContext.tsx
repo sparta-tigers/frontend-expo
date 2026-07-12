@@ -338,7 +338,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       // 🚨 방어 로직 추가: 통신 실패나 네트워크 에러로 undefined가 들어왔을 때 크래시 방지
       if (!response) {
         Logger.error(
-          "로그인 실패: 서버로부터 응답을 받지 못했습니다 (API 에러 로그 확인).",
+          "로그인 실패: 서버로부터 응답을 받지 못했어요 (API 에러 로그 확인).",
         );
         return false;
       }
@@ -419,7 +419,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       // 🚨 방어 로직 추가: 통신 실패나 네트워크 에러로 undefined가 들어왔을 때 크래시 방지
       if (!response) {
         Logger.error(
-          "API 통신 실패: response가 반환되지 않았습니다. 네트워크 연결을 확인하세요.",
+          "API 통신 실패: 응답이 없어요. 네트워크 연결을 확인해주세요.",
         );
         return false;
       }
@@ -509,14 +509,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
             if (updateRes.resultType !== "SUCCESS") {
               throw new Error(
                 updateRes.error?.message ??
-                  "응원팀 정보를 업데이트하지 못했습니다.",
+                  "응원팀 정보를 업데이트하지 못했어요.",
               );
             }
           } else {
             const addRes = await favoriteTeamAddAPI({ teamCode: backendCode });
             if (addRes.resultType !== "SUCCESS") {
               throw new Error(
-                addRes.error?.message ?? "응원팀을 등록하지 못했습니다.",
+                addRes.error?.message ?? "응원팀을 등록하지 못했어요.",
               );
             }
           }
@@ -528,7 +528,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           } else {
             throw new Error(
               teamRes.error?.message ??
-                "최신 팀 정보를 불러오는데 실패했습니다.",
+                "최신 팀 정보를 불러오지 못했어요.",
             );
           }
         }
@@ -558,7 +558,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setMyTeam(previousTeam);
       Alert.alert(
         "알림",
-        "팀 정보를 저장하는 중 오류가 발생했습니다. 다시 시도해주세요.",
+        "팀 정보를 저장하는 중 문제가 생겼어요. 다시 시도해주세요.",
       );
     }
   }, [isLoggedIn, myTeam, queryClient, user]);

@@ -27,11 +27,11 @@ export function ErrorBoundaryFallback({
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.content}>
         <Text style={[styles.title, { color: colors.destructive }]}>
-          치명적인 오류가 발생했습니다
+          치명적인 문제가 생겼어요
         </Text>
 
         <Text style={[styles.message, { color: colors.text }]}>
-          앱 실행 중 예기치 않은 문제가 발생했습니다. 아래 버튼을 눌러 앱을 다시
+          앱 실행 중 문제가 생겼어요. 아래 버튼을 눌러 앱을 다시
           시작해주세요.
         </Text>
 

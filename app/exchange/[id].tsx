@@ -313,7 +313,7 @@ export default function ItemDetailScreen() {
 
   const handleExchangeRequest = useCallback(() => {
     if (!user?.accessToken) {
-      Alert.alert("로그인 필요", "교환 신청을 위해 로그인이 필요합니다.");
+      Alert.alert("로그인이 필요해요", "교환을 신청하려면 먼저 로그인해주세요.");
       return;
     }
     router.push(`/exchange/apply/${id}` as Href);
@@ -323,21 +323,21 @@ export default function ItemDetailScreen() {
     {
       mutationFn: async (newStatus: "COMPLETED" | "FAILED") => {
         const targetId = item?.data?.id;
-        if (!targetId) throw new Error("itemId가 없습니다.");
+        if (!targetId) throw new Error("itemId가 없어요.");
         const response = await itemsUpdateStatusAPI(targetId, newStatus);
         if (response.resultType !== "SUCCESS")
           throw new Error("status update failed");
         return true;
       },
       onSuccess: async () => {
-        Alert.alert("성공", "상태가 변경되었습니다.");
+        Alert.alert("성공", "상태를 변경했어요.");
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: exchangeKeys.item(id) }),
           queryClient.invalidateQueries({ queryKey: exchangeKeys.items() }),
         ]);
       },
       onError: () => {
-        Alert.alert("오류", "상태 변경에 실패했습니다.");
+        Alert.alert("알림", "상태를 변경하지 못했어요.");
       },
     },
   );
@@ -348,10 +348,10 @@ export default function ItemDetailScreen() {
       Alert.alert(
         "상태 변경",
         newStatus === "COMPLETED"
-          ? "교환을 완료 상태로 변경하시겠습니까?"
-          : "교환을 취소 상태로 변경하시겠습니까?",
+          ? "교환을 완료 상태로 변경할까요?"
+          : "교환을 취소 상태로 변경할까요?",
         [
-          { text: "취소", style: "cancel" },
+          { text: "닫기", style: "cancel" },
           { text: "확인", onPress: () => updateItemStatus(newStatus) },
         ],
       );
@@ -370,13 +370,13 @@ export default function ItemDetailScreen() {
       }
     },
     onError: () => {
-      Alert.alert("삭제 실패", "아이템 삭제에 실패했습니다.");
+      Alert.alert("알림", "아이템을 삭제하지 못했어요.");
     },
   });
 
   const handleDelete = useCallback(() => {
-    Alert.alert("게시글 삭제", "정말 삭제하시겠습니까?", [
-      { text: "취소", style: "cancel" },
+    Alert.alert("게시글 삭제", "정말 삭제할까요?", [
+      { text: "닫기", style: "cancel" },
       { text: "삭제", style: "destructive", onPress: () => deleteItem() },
     ]);
   }, [deleteItem]);
@@ -386,7 +386,7 @@ export default function ItemDetailScreen() {
       <SafeLayout style={styles.container}>
         <Box style={styles.errorContainer}>
           <Typography variant="body1" center mb="md">
-            로그인이 필요합니다.
+            로그인이 필요해요.
           </Typography>
           <Button onPress={() => router.back()} variant="outline">
             돌아가기
@@ -414,7 +414,7 @@ export default function ItemDetailScreen() {
       <SafeLayout style={styles.container}>
         <Box style={styles.errorContainer}>
           <Typography variant="body1" center mb="md">
-            정보를 불러올 수 없습니다.
+            정보를 불러오지 못했어요. 다시 시도해주세요.
           </Typography>
           <Button onPress={() => refetch()}>다시 시도</Button>
         </Box>

@@ -77,7 +77,7 @@ export const List = <T,>({
   refreshing = false,
   onRefresh,
   onEndReached,
-  emptyMessage = "데이터가 없습니다.",
+  emptyMessage = "데이터가 없어요.",
   style,
   contentContainerStyle,
   showSeparator = true,

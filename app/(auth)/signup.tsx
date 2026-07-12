@@ -33,22 +33,22 @@ export default function SignupScreen() {
 
   const validateInputs = () => {
     if (!email.trim() || !password.trim() || !nickname.trim()) {
-      Alert.alert("오류", "모든 필드를 입력해주세요");
+      Alert.alert("알림", "모든 필드를 입력해주세요");
       return false;
     }
 
     if (!email.includes("@")) {
-      Alert.alert("오류", "올바른 이메일 형식을 입력해주세요");
+      Alert.alert("알림", "올바른 이메일 형식을 입력해주세요");
       return false;
     }
 
     if (password.length < 6) {
-      Alert.alert("오류", "비밀번호는 최소 6자 이상이어야 합니다");
+      Alert.alert("알림", "비밀번호는 최소 6자 이상이어야 해요");
       return false;
     }
 
-    if (nickname.length < 2) {
-      Alert.alert("오류", "닉네임은 최소 2자 이상이어야 합니다");
+    if (nickname.trim().length < 2) {
+      Alert.alert("알림", "닉네임은 최소 2자 이상이어야 해요");
       return false;
     }
 
@@ -63,14 +63,14 @@ export default function SignupScreen() {
     try {
       const success = await signup({ email, password, nickname });
       if (success) {
-        Alert.alert("성공", "회원가입이 완료되었습니다");
+        Alert.alert("성공", "회원가입을 완료했어요");
         router.replace("/(tabs)");
       } else {
-        Alert.alert("실패", "회원가입에 실패했습니다");
+        Alert.alert("알림", "회원가입하지 못했어요");
       }
     } catch (error) {
       Logger.error("회원가입 에러:", error);
-      Alert.alert("회원가입 실패", getUserMessage(error));
+      Alert.alert("알림", getUserMessage(error));
     }
   };
 

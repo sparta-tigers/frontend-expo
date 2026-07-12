@@ -116,7 +116,7 @@ export default function ExchangeHistoryScreen() {
       <SafeLayout style={styles.safeLayout}>
         <Box flex={1} justify="center" align="center">
           <Typography color="text.secondary" mb="md">
-            교환 내역을 불러올 수 없습니다.
+            교환 내역을 불러오지 못했어요. 다시 시도해주세요.
           </Typography>
           <Button onPress={() => loadHistory()}>다시 시도</Button>
         </Box>
@@ -165,7 +165,7 @@ export default function ExchangeHistoryScreen() {
           ListEmptyComponent={
             <Box flex={1} justify="center" align="center" pt="SECTION">
               <Typography variant="body1" color="text.secondary">
-                교환 내역이 없습니다.
+                아직 교환 내역이 없어요.
               </Typography>
             </Box>
           }

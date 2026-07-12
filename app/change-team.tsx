@@ -69,7 +69,7 @@ export default function ChangeTeamScreen() {
             응원하는 팀을 선택해주세요
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            선택한 팀에 맞춰 앱의 테마 색상이 변경됩니다.
+            선택한 팀에 맞춰 앱의 테마 색상이 변경돼요.
           </Typography>
         </Box>
 

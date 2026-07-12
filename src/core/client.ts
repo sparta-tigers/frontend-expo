@@ -175,7 +175,7 @@ axiosInstance.interceptors.request.use(
       } else {
         // 🚨 토큰 없음 경고 (중요 API 호출 시만)
         if (__DEV__ && shouldLogTokenValidation(config.url)) {
-          apiLogger.warn("액세스 토큰이 없습니다 (Token Missing)");
+          apiLogger.warn("액세스 토큰이 없어요 (Token Missing)");
         }
       }
     } catch (error) {

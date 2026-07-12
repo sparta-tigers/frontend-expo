@@ -89,21 +89,21 @@ export default function SigninScreen() {
 
   const handleSignin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert("오류", "이메일과 비밀번호를 입력해주세요");
+      Alert.alert("알림", "이메일과 비밀번호를 입력해주세요");
       return;
     }
 
     try {
       const success = await signin({ email, password });
       if (success) {
-        Alert.alert("성공", "로그인되었습니다");
+        Alert.alert("성공", "로그인했어요");
         safeRedirect("/(tabs)");
       } else {
-        Alert.alert("실패", "로그인에 실패했습니다");
+        Alert.alert("알림", "로그인하지 못했어요");
       }
     } catch (error) {
       Logger.error("로그인 에러:", error);
-      Alert.alert("로그인 실패", getUserMessage(error));
+      Alert.alert("알림", getUserMessage(error));
     }
   };
 
@@ -245,7 +245,7 @@ export default function SigninScreen() {
                   style={styles.socialButton}
                   disabled={isLoading}
                   onPress={() =>
-                    Alert.alert("준비중", "카카오 로그인은 준비중입니다")
+                    Alert.alert("준비 중", "카카오 로그인은 아직 준비하고 있어요.")
                   }
                   accessibilityRole="button"
                   accessibilityLabel="카카오 로그인"
@@ -262,7 +262,7 @@ export default function SigninScreen() {
                   style={styles.socialButton}
                   disabled={isLoading}
                   onPress={() =>
-                    Alert.alert("준비중", "Apple 로그인은 준비중입니다")
+                    Alert.alert("준비 중", "Apple 로그인은 아직 준비하고 있어요.")
                   }
                   accessibilityRole="button"
                   accessibilityLabel="애플 로그인"

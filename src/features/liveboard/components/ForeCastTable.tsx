@@ -38,7 +38,7 @@ export const ForeCastTable = React.memo(function ForeCastTable({
           weight="medium"
           center
         >
-          남은 예보가 없습니다
+          남은 예보가 없어요
         </Typography>
       </View>
     );

@@ -42,13 +42,13 @@ export function useProfile() {
    */
   const handleSaveNickname = async (newNickname: string) => {
     if (!newNickname || newNickname.trim().length === 0) {
-      Alert.alert("오류", "닉네임을 입력해주세요.");
+      Alert.alert("알림", "닉네임을 입력해주세요.");
       return;
     }
 
     const currentNickname = user?.nickname ?? "";
     if (currentNickname.length > 0 && newNickname.trim() === currentNickname) {
-      Alert.alert("알림", "동일한 닉네임입니다.");
+      Alert.alert("알림", "같은 닉네임이에요.");
       return;
     }
 
@@ -60,14 +60,14 @@ export function useProfile() {
       const response = await usersUpdateProfileAPI(request);
       if (response.resultType === "SUCCESS" && response.data) {
         updateUser({ nickname: response.data.nickname });
-        Alert.alert("성공", "프로필이 성공적으로 수정되었습니다.");
+        Alert.alert("성공", "프로필을 수정했어요.");
         setIsEditModalVisible(false);
       } else {
-        Alert.alert("오류", "프로필 수정에 실패했습니다.");
+        Alert.alert("알림", "프로필을 수정하지 못했어요.");
       }
     } catch (error) {
       Logger.error("프로필 수정 실패:", error);
-      Alert.alert("오류", "네트워크 에러가 발생했습니다.");
+      Alert.alert("알림", "네트워크에 문제가 생겼어요.");
     } finally {
       setLoading(false);
     }
@@ -81,18 +81,18 @@ export function useProfile() {
   const handleDeleteAccount = () => {
     Alert.alert(
       "회원 탈퇴",
-      "⚠️ 경고: 회원 탈퇴 시 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.\n\n정말 탈퇴하시겠습니까?",
+      "회원 탈퇴 시 모든 데이터가 영구적으로 삭제되며 복구할 수 없어요.\n\n정말 탈퇴할까요?",
       [
-        { text: "취소", style: "cancel" },
+        { text: "닫기", style: "cancel" },
         {
           text: "탈퇴",
           style: "destructive",
           onPress: async () => {
             Alert.alert(
               "최종 확인",
-              "정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+              "정말 탈퇴할까요? 탈퇴하면 이전으로 되돌릴 수 없어요.",
               [
-                { text: "취소", style: "cancel" },
+                { text: "닫기", style: "cancel" },
                 {
                   text: "영구 탈퇴",
                   style: "destructive",
@@ -103,7 +103,7 @@ export function useProfile() {
                       if (response.resultType === "SUCCESS") {
                         Alert.alert(
                           "탈퇴 완료",
-                          "회원 탈퇴가 완료되었습니다.",
+                          "회원 탈퇴를 완료했어요.",
                           [
                             {
                               text: "확인",
@@ -115,11 +115,11 @@ export function useProfile() {
                           ],
                         );
                       } else {
-                        Alert.alert("오류", "회원 탈퇴에 실패했습니다.");
+                        Alert.alert("알림", "탈퇴 처리 중 문제가 생겼어요.");
                       }
                     } catch (error) {
                       Logger.error("회원 탈퇴 실패:", error);
-                      Alert.alert("오류", "네트워크 에러가 발생했습니다.");
+                      Alert.alert("알림", "네트워크에 문제가 생겼어요.");
                     } finally {
                       setLoading(false);
                     }
@@ -139,8 +139,8 @@ export function useProfile() {
    *      어떤 상황에서도(네트워크 에러 포함) 로그인 화면으로 fallback되도록 finally 블록에서 라우팅함.
    */
   const handleLogout = () => {
-    Alert.alert("로그아웃", "정말 로그아웃하시겠습니까?", [
-      { text: "취소", style: "cancel" },
+    Alert.alert("로그아웃", "정말 로그아웃할까요?", [
+      { text: "닫기", style: "cancel" },
       {
         text: "로그아웃",
         style: "destructive",
@@ -178,17 +178,17 @@ export function useProfile() {
           });
         Alert.alert(
           "성공",
-          `${team.name}을 즐겨찾기에 ${teamExists ? "변경" : "추가"}했습니다.`,
+          `${team.name}을 즐겨찾기에 ${teamExists ? "변경" : "추가"}했어요.`,
         );
       } else {
         Alert.alert(
-          "오류",
-          `즐겨찾기 ${teamExists ? "변경" : "추가"}에 실패했습니다.`,
+          "알림",
+          `즐겨찾기 ${teamExists ? "변경" : "추가"}하지 못했어요.`,
         );
       }
     } catch (error) {
       Logger.error("즐겨찾기 팀 처리 실패:", error);
-      Alert.alert("오류", "네트워크 에러가 발생했습니다.");
+      Alert.alert("알림", "네트워크에 문제가 생겼어요.");
     }
   };
 
@@ -200,9 +200,9 @@ export function useProfile() {
   const handleDeleteFavoriteTeam = (team: FavoriteTeam) => {
     Alert.alert(
       "즐겨찾기 팀 삭제",
-      `${team.teamName}을 즐겨찾기에서 삭제하시겠습니까?`,
+      `${team.teamName}을 즐겨찾기에서 삭제할까요?`,
       [
-        { text: "취소", style: "cancel" },
+        { text: "닫기", style: "cancel" },
         {
           text: "삭제",
           style: "destructive",
@@ -220,14 +220,14 @@ export function useProfile() {
                   });
                 Alert.alert(
                   "성공",
-                  `${team.teamName}을 즐겨찾기에서 삭제했습니다.`,
+                  `${team.teamName}을 즐겨찾기에서 삭제했어요.`,
                 );
               } else {
-                Alert.alert("오류", "즐겨찾기 삭제에 실패했습니다.");
+                Alert.alert("알림", "즐겨찾기에서 삭제하지 못했어요.");
               }
             } catch (error) {
               Logger.error("즐겨찾기 팀 삭제 실패:", error);
-              Alert.alert("오류", "네트워크 에러가 발생했습니다.");
+              Alert.alert("알림", "네트워크에 문제가 생겼어요.");
             }
           },
         },

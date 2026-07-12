@@ -17,7 +17,7 @@ export const useLocationTracker = () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
-          setErrorMsg("위치 권한이 거부되었습니다.");
+          setErrorMsg("위치 권한이 거부되었어요.");
           setPermissionGranted(false);
           return;
         }
@@ -58,7 +58,7 @@ export const useLocationTracker = () => {
         }
       } catch (error) {
         mapLogger.error("위치 추적 초기화 실패", error);
-        setErrorMsg("위치 추적을 시작할 수 없습니다.");
+        setErrorMsg("위치 추적을 시작할 수 없어요.");
         setPermissionGranted(false);
       }
     };

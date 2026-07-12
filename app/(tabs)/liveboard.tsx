@@ -199,8 +199,8 @@ export default function LiveboardScreen() {
           />
           <Typography variant="body1" color="text.secondary" weight="medium">
             {selectedDay
-              ? `${selectedDay.date}일에는 경기가 없습니다`
-              : "경기 정보가 없습니다"}
+              ? `${selectedDay.date}일에는 경기가 없어요. 다른 날짜를 확인해보세요.`
+              : "경기 정보를 찾지 못했어요. 다른 날짜를 확인해보세요."}
           </Typography>
         </Box>
       ) : (

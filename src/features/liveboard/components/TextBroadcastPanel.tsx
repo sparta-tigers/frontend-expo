@@ -105,7 +105,7 @@ export const TextBroadcastPanel = memo(
           ListEmptyComponent={
             <View style={styles.broadcastEmpty}>
               <Text style={styles.broadcastEmptyText}>
-                해당 이닝의 중계 데이터가 없습니다.
+                해당 이닝의 중계 데이터가 없어요.
               </Text>
             </View>
           }

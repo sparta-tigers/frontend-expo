@@ -48,7 +48,7 @@ export default function TicketAlarmFormScreen() {
         matchIdNumber,
         myTeamId,
       });
-      Alert.alert("오류", "필수 정보가 누락되었거나 유효하지 않습니다.");
+      Alert.alert("알림", "필수 정보가 누락되었거나 유효하지 않아요.");
       return;
     }
 
@@ -66,7 +66,7 @@ export default function TicketAlarmFormScreen() {
         ...(membership.trim() ? { membership: membership.trim() } : {}),
       });
 
-      Alert.alert("성공", "예매 알림이 설정되었습니다.", [
+      Alert.alert("성공", "예매 알림을 설정했어요.", [
         {
           text: "확인",
           onPress: () => {

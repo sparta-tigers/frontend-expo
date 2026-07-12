@@ -115,14 +115,14 @@ export default function MyItemsScreen() {
       ) : isError ? (
         <Box flex={1} justify="center" align="center">
           <Typography color="text.secondary" mb="md">
-            정보를 불러올 수 없습니다.
+            정보를 불러오지 못했어요. 다시 시도해주세요.
           </Typography>
           <Button onPress={() => refetch()}>다시 시도</Button>
         </Box>
       ) : myItems.length === 0 ? (
         <Box flex={1} justify="center" align="center">
           <Typography color="text.secondary">
-            현재 활성화된 등록 물건이 없습니다.
+            지금 등록해 둔 물건이 없어요. 새로운 물건을 등록해보세요.
           </Typography>
         </Box>
       ) : (
