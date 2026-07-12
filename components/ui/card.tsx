@@ -1,5 +1,10 @@
 import React from "react";
-import { GestureResponderEvent, StyleProp, StyleSheet, ViewStyle } from "react-native";
+import {
+  GestureResponderEvent,
+  StyleProp,
+  StyleSheet,
+  ViewStyle,
+} from "react-native";
 import { Card as PaperCard } from "react-native-paper";
 
 /**
@@ -47,7 +52,9 @@ export const Card: React.FC<CardProps> = ({
   return (
     <PaperCard
       mode={getCardMode()}
-      style={[fullWidth ? styles.fullWidth : null, style] as StyleProp<ViewStyle>}
+      style={
+        [fullWidth ? styles.fullWidth : null, style] as StyleProp<ViewStyle>
+      }
       {...(onPress ? { onPress } : {})}
     >
       {children}

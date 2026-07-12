@@ -2,13 +2,13 @@ import { theme } from "@/src/styles/theme";
 import React from "react";
 import {
   GestureResponderEvent,
+  StyleProp,
   StyleSheet,
   Text,
+  TextStyle,
   TouchableOpacity,
   View,
   ViewStyle,
-  TextStyle,
-  StyleProp,
 } from "react-native";
 
 /**
