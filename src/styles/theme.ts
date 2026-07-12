@@ -173,6 +173,7 @@ export const theme = {
       statIconPink: "#EA0029",
       statIconYellow: "#F59E0B",
       statIconGreen: "#10B981",
+      mascotShadow: "rgba(0, 0, 0, 0.15)",
     },
     /**
      * 라이브보드(`match_detail`) 전용 시각화 컬러

@@ -181,6 +181,9 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   emptySlot: {
-    opacity: 0.5,
+    borderWidth: 1,
+    borderColor: theme.colors.border.medium,
+    borderStyle: "dashed",
+    opacity: 0.6,
   },
 });
