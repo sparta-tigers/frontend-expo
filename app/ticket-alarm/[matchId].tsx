@@ -7,7 +7,7 @@ import { Logger } from "@/src/utils/logger";
 import Slider from "@react-native-community/slider";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Alert, ScrollView, StyleSheet } from "react-native";
+import { Alert, ScrollView, StyleSheet, LayoutAnimation } from "react-native";
 
 /**
  * 🔔 TicketAlarmFormScreen: 티켓 예매 알림 설정 화면
@@ -25,7 +25,16 @@ export default function TicketAlarmFormScreen() {
 
   const [preAlarmTime, setPreAlarmTime] = useState(30); // 기본 30분 전
   const [membership, setMembership] = useState("");
+  const [errorText, setErrorText] = useState("");
   const { createAlarm, isCreating } = useTicketAlarmMutation();
+
+  const onChangeMembership = (text: string) => {
+    setMembership(text);
+    if (errorText) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setErrorText("");
+    }
+  };
 
   /**
    * 알림 저장 핸들러
@@ -39,6 +48,12 @@ export default function TicketAlarmFormScreen() {
         myTeamId,
       });
       Alert.alert("오류", "필수 정보가 누락되었거나 유효하지 않습니다.");
+      return;
+    }
+
+    if (membership.trim().length > 20) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setErrorText("멤버십 정보는 20자 이내로 입력해주세요.");
       return;
     }
 
@@ -125,14 +140,21 @@ export default function TicketAlarmFormScreen() {
             멤버십 정보 (선택)
           </Typography>
           <Input
-            placeholder="예: 씰 멤버십, 골드 회원 등"
+            placeholder="예: 씰 멤버십, 골드 회원 등 (최대 20자)"
             value={membership}
-            onChangeText={setMembership}
+            onChangeText={onChangeMembership}
+            error={!!errorText}
             style={styles.input}
           />
-          <Typography variant="caption" color="text.secondary" mt="xs">
-            선예매 멤버십이 있다면 기록해두세요.
-          </Typography>
+          {!!errorText ? (
+            <Typography variant="caption" color="error" mt="xs" ml="xs">
+              {errorText}
+            </Typography>
+          ) : (
+            <Typography variant="caption" color="text.secondary" mt="xs" ml="xs">
+              선예매 멤버십이 있다면 기록해두세요.
+            </Typography>
+          )}
         </Box>
 
         <Box mt="xl" pt="xl">
@@ -164,6 +186,6 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border.medium,
   },
 });
+
