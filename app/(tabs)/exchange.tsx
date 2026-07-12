@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   map: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   bottomSheetBackground: {
     backgroundColor: theme.colors.background,

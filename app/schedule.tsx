@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     zIndex: 5,
   },
   contentContainer: {
