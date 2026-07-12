@@ -5,6 +5,7 @@ import { itemsUpdateStatusAPI } from "@/src/features/exchange/api";
 import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { exchangeKeys } from "@/src/features/exchange/keys";
 import { useLocalSearchParams } from "expo-router";
 import { useCallback } from "react";
 import {
@@ -53,7 +54,7 @@ export default function ChatRoomScreen() {
           queryKey: ["exchangeItem", roomIdNumber],
           exact: true,
         }),
-        queryClient.invalidateQueries({ queryKey: ["items"] }),
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.items() }),
         queryClient.invalidateQueries({ queryKey: ["myExchanges"] }),
       ];
 

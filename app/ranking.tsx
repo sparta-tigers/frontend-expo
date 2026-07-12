@@ -95,6 +95,12 @@ export default function RankingScreen() {
     [router, selectedDate],
   );
 
+  const handleSwitchToDay = React.useCallback(() => switchMode("day"), [switchMode]);
+  const handleSwitchToYear = React.useCallback(() => switchMode("year"), [switchMode]);
+  const handleShiftPrev = React.useCallback(() => shiftDate(-1), [shiftDate]);
+  const handleShiftNext = React.useCallback(() => shiftDate(1), [shiftDate]);
+  const handleGoBack = React.useCallback(() => router.back(), [router]);
+
   return (
     <Box flex={1} bg="background">
       <Stack.Screen options={{ headerShown: false }} />
@@ -114,7 +120,7 @@ export default function RankingScreen() {
           justify="space-between"
         >
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={handleGoBack}
             activeOpacity={theme.layout.dashboard.activeOpacity}
           >
             <MaterialIcons
@@ -127,7 +133,7 @@ export default function RankingScreen() {
           {/* View Mode Toggle (URL-driven) */}
           <Box flexDir="row" bg="team.neutralLight" rounded="full" p="xs">
             <TouchableOpacity
-              onPress={() => switchMode("day")}
+              onPress={handleSwitchToDay}
               style={[
                 styles.toggleBtn,
                 viewMode === "day"
@@ -144,7 +150,7 @@ export default function RankingScreen() {
               </Typography>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => switchMode("year")}
+              onPress={handleSwitchToYear}
               style={[
                 styles.toggleBtn,
                 viewMode === "year"
@@ -173,7 +179,7 @@ export default function RankingScreen() {
           <Box flexDir="row" align="center" mt="xs">
             {viewMode === "day" && (
               <TouchableOpacity
-                onPress={() => shiftDate(-1)}
+                onPress={handleShiftPrev}
                 style={styles.navArrow}
               >
                 <MaterialIcons
@@ -192,7 +198,7 @@ export default function RankingScreen() {
 
             {viewMode === "day" && (
               <TouchableOpacity
-                onPress={() => shiftDate(1)}
+                onPress={handleShiftNext}
                 style={styles.navArrow}
               >
                 <MaterialIcons
@@ -217,23 +223,13 @@ export default function RankingScreen() {
         {viewMode === "year" ? (
           <Box flexDir="row" gap="xs">
             {[2024, 2025, 2026].map((y) => (
-              <TouchableOpacity
+              <YearChip
                 key={y}
-                onPress={() => updateYear(y)}
-                style={[
-                  styles.yearChip,
-                  selectedYear === y && styles.yearChipActive,
-                  selectedYear === y && { borderColor: brandColor },
-                ]}
-              >
-                <Typography
-                  variant="caption"
-                  weight="bold"
-                  color={selectedYear === y ? "text.primary" : "brand.subtitle"}
-                >
-                  {y}
-                </Typography>
-              </TouchableOpacity>
+                year={y}
+                selectedYear={selectedYear}
+                brandColor={brandColor}
+                onPress={updateYear}
+              />
             ))}
           </Box>
         ) : (
@@ -242,22 +238,12 @@ export default function RankingScreen() {
 
         <Box flexDir="row" bg="team.neutralLight" rounded="full" p="xxs">
           {(["REGULAR", "PRESEASON"] as LeagueType[]).map((type) => (
-            <TouchableOpacity
+            <LeagueChip
               key={type}
-              onPress={() => updateLeague(type)}
-              style={[
-                styles.leagueBtn,
-                leagueType === type && { backgroundColor: theme.colors.card },
-              ]}
-            >
-              <Typography
-                variant="caption"
-                weight="bold"
-                color={leagueType === type ? "text.primary" : "brand.subtitle"}
-              >
-                {type === "REGULAR" ? "정규리그" : "시범경기"}
-              </Typography>
-            </TouchableOpacity>
+              type={type}
+              currentType={leagueType}
+              onPress={updateLeague}
+            />
           ))}
         </Box>
       </Box>
@@ -333,6 +319,73 @@ export default function RankingScreen() {
     </Box>
   );
 }
+
+const YearChip = React.memo(
+  ({
+    year,
+    selectedYear,
+    brandColor,
+    onPress,
+  }: {
+    year: number;
+    selectedYear: number;
+    brandColor: string;
+    onPress: (y: number) => void;
+  }) => {
+    const handlePress = React.useCallback(() => onPress(year), [onPress, year]);
+    return (
+      <TouchableOpacity
+        onPress={handlePress}
+        style={[
+          styles.yearChip,
+          selectedYear === year && styles.yearChipActive,
+          selectedYear === year && { borderColor: brandColor },
+        ]}
+      >
+        <Typography
+          variant="caption"
+          weight="bold"
+          color={selectedYear === year ? "text.primary" : "brand.subtitle"}
+        >
+          {year}
+        </Typography>
+      </TouchableOpacity>
+    );
+  },
+);
+YearChip.displayName = "YearChip";
+
+const LeagueChip = React.memo(
+  ({
+    type,
+    currentType,
+    onPress,
+  }: {
+    type: LeagueType;
+    currentType: LeagueType;
+    onPress: (t: LeagueType) => void;
+  }) => {
+    const handlePress = React.useCallback(() => onPress(type), [onPress, type]);
+    return (
+      <TouchableOpacity
+        onPress={handlePress}
+        style={[
+          styles.leagueBtn,
+          currentType === type && { backgroundColor: theme.colors.card },
+        ]}
+      >
+        <Typography
+          variant="caption"
+          weight="bold"
+          color={currentType === type ? "text.primary" : "brand.subtitle"}
+        >
+          {type === "REGULAR" ? "정규리그" : "시범경기"}
+        </Typography>
+      </TouchableOpacity>
+    );
+  },
+);
+LeagueChip.displayName = "LeagueChip";
 
 const RankingRow = React.memo(
   ({ row, isMyTeam }: { row: RankingUIModel; isMyTeam: boolean }) => {

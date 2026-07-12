@@ -5,6 +5,7 @@ import {
   itemsUpdateStatusAPI,
 } from "@/src/features/exchange/api";
 import { useAuth } from "@/src/hooks/useAuth";
+import { exchangeKeys } from "@/src/features/exchange/keys";
 import { theme } from "@/src/styles/theme";
 
 import { getImageUrl } from "@/src/utils/url";
@@ -213,7 +214,7 @@ export default function ItemDetailScreen() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["item", id],
+    queryKey: exchangeKeys.item(id),
     queryFn: () => itemsGetDetailAPI(itemIdNumber),
     staleTime: 0,
     enabled: !!id && !isAuthLoading && user !== null,
@@ -243,7 +244,7 @@ export default function ItemDetailScreen() {
     }
 
     const formattedImages = images.map((url: string) => ({
-      uri: url,
+      uri: getImageUrl(url),
     }));
 
     return (
@@ -323,8 +324,8 @@ export default function ItemDetailScreen() {
       onSuccess: async () => {
         Alert.alert("성공", "상태가 변경되었습니다.");
         await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ["item", id] }),
-          queryClient.invalidateQueries({ queryKey: ["items"] }),
+          queryClient.invalidateQueries({ queryKey: exchangeKeys.item(id) }),
+          queryClient.invalidateQueries({ queryKey: exchangeKeys.items() }),
         ]);
       },
       onError: () => {
@@ -353,7 +354,7 @@ export default function ItemDetailScreen() {
   const { mutate: deleteItem } = useMutation({
     mutationFn: () => itemsDeleteAPI(Number(id)),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["items"] });
+      await queryClient.invalidateQueries({ queryKey: exchangeKeys.items() });
       router.replace("/(tabs)/exchange");
     },
     onError: () => {

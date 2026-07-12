@@ -6,11 +6,13 @@ import {
   ReceiveExchangeRequest,
 } from "@/src/features/exchange/types";
 import { theme } from "@/src/styles/theme";
-import { Logger } from "@/src/utils/logger";
+import { exchangeKeys } from "@/src/features/exchange/keys";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useRouter } from "expo-router";
+import { useState, useCallback } from "react";
 import { ActivityIndicator, StyleSheet, TouchableOpacity } from "react-native";
+import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
 
 /**
  * 교환 완료 내역 화면
@@ -19,35 +21,32 @@ import { ActivityIndicator, StyleSheet, TouchableOpacity } from "react-native";
 export default function ExchangeHistoryScreen() {
   const router = useRouter();
 
-  const [history, setHistory] = useState<ReceiveExchangeRequest[]>([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const loadHistory = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-
-    try {
+  const {
+    data: history = [],
+    isLoading: loading,
+    isError,
+    refetch: loadHistory,
+  } = useQuery({
+    queryKey: exchangeKeys.requests("receiver"),
+    queryFn: async () => {
       const response = await exchangeGetMyRequestsAPI("receiver", 0, 50);
       if (response.resultType === "SUCCESS" && response.data) {
-        const completedItems = response.data.content.filter(
+        return response.data.content.filter(
           (item) => item.exchangeStatus !== ExchangeRequestStatus.PENDING,
         );
-        setHistory(completedItems);
       }
-    } catch (error) {
-      Logger.error("교환 내역 로드 실패:", error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+      return [];
+    },
+    staleTime: 60_000,
+  });
 
-  useFocusEffect(
-    useCallback(() => {
-      loadHistory().catch(() => {});
-    }, [loadHistory]),
-  );
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadHistory();
+    setRefreshing(false);
+  }, [loadHistory]);
 
   const renderHistoryItem = useCallback(
     ({ item }: { item: ReceiveExchangeRequest }) => (
@@ -112,6 +111,19 @@ export default function ExchangeHistoryScreen() {
     );
   }
 
+  if (isError) {
+    return (
+      <SafeLayout style={styles.safeLayout}>
+        <Box flex={1} justify="center" align="center">
+          <Typography color="text.secondary" mb="md">
+            교환 내역을 불러올 수 없습니다.
+          </Typography>
+          <Button onPress={() => loadHistory()}>다시 시도</Button>
+        </Box>
+      </SafeLayout>
+    );
+  }
+
   return (
     <SafeLayout style={styles.safeLayout}>
       <Box flex={1}>
@@ -148,7 +160,7 @@ export default function ExchangeHistoryScreen() {
           renderItem={renderHistoryItem}
           keyExtractor={(item) => item.exchangeRequestId.toString()}
           contentContainerStyle={styles.listContainer}
-          onRefresh={() => loadHistory(true)}
+          onRefresh={handleRefresh}
           refreshing={refreshing}
           ListEmptyComponent={
             <Box flex={1} justify="center" align="center" pt="SECTION">

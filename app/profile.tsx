@@ -16,7 +16,7 @@ import {
 import { KBO_TEAMS } from "@/src/features/user/types";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
-import { useRef } from "react";
+import React, { useRef } from "react";
 import { ScrollView, TouchableOpacity } from "react-native";
 
 export default function ProfileScreen() {
@@ -33,6 +33,13 @@ export default function ProfileScreen() {
     handleSelectTeam,
     handleDeleteFavoriteTeam,
   } = useProfile();
+
+  const handleNavSignIn = React.useCallback(() => router.push("/(auth)/signin"), []);
+  const handleNavSignUp = React.useCallback(() => router.push("/(auth)/signup"), []);
+  const handleNavExchange = React.useCallback(() => router.push("/(tabs)/exchange"), []);
+  const handleNavCreate = React.useCallback(() => router.push("/exchange/create"), []);
+  const handleNavChat = React.useCallback(() => router.push("/chat/chat"), []);
+  const handleNoOp = React.useCallback(() => {}, []);
 
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
 
@@ -89,12 +96,12 @@ export default function ProfileScreen() {
             </Box>
 
             <Box gap="md">
-              <Button onPress={() => router.push("/(auth)/signin")}>
+              <Button onPress={handleNavSignIn}>
                 로그인
               </Button>
               <Button
                 variant="outline"
-                onPress={() => router.push("/(auth)/signup")}
+                onPress={handleNavSignUp}
               >
                 회원가입
               </Button>
@@ -154,17 +161,17 @@ export default function ProfileScreen() {
           <MenuSection title="교환 관리">
             <MenuItem
               label="내 티켓 목록"
-              onPress={() => router.push("/(tabs)/exchange")}
+              onPress={handleNavExchange}
             />
             <MenuDivider />
             <MenuItem
               label="티켓 등록하기"
-              onPress={() => router.push("/exchange/create")}
+              onPress={handleNavCreate}
             />
             <MenuDivider />
             <MenuItem
               label="채팅방 목록"
-              onPress={() => router.push("/chat/chat")}
+              onPress={handleNavChat}
             />
           </MenuSection>
 
@@ -213,9 +220,9 @@ export default function ProfileScreen() {
 
           {/* 설정 */}
           <MenuSection title="설정">
-            <MenuItem label="알림 설정" onPress={() => {}} />
+            <MenuItem label="알림 설정" onPress={handleNoOp} />
             <MenuDivider />
-            <MenuItem label="테마 설정" onPress={() => {}} />
+            <MenuItem label="테마 설정" onPress={handleNoOp} />
           </MenuSection>
 
           {/* 로그아웃 버튼 */}

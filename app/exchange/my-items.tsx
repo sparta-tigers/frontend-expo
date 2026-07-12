@@ -1,45 +1,32 @@
-import { Box, List, Typography } from "@/components/ui";
+import { Box, List, Typography, Button } from "@/components/ui";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { itemsGetMyItemsAPI } from "@/src/features/exchange/api";
 import { Item } from "@/src/features/exchange/types";
+import { exchangeKeys } from "@/src/features/exchange/keys";
 import { theme } from "@/src/styles/theme";
-import { Logger } from "@/src/utils/logger";
 import { Href, useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
+import { useQuery } from "@tanstack/react-query";
 
 export default function MyItemsScreen() {
   const router = useRouter();
-
-  const [myItems, setMyItems] = useState<Item[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchMyItems = useCallback(async () => {
-    try {
+  const { data: myItems = [], isLoading, isError, refetch } = useQuery({
+    queryKey: exchangeKeys.myItems(),
+    queryFn: async () => {
       const response = await itemsGetMyItemsAPI(0, 50);
-      if (response && response.data && response.data.content) {
-        setMyItems(response.data.content);
-      }
-    } catch (error) {
-      Logger.error("내 등록 물건 로드 실패:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  React.useEffect(() => {
-    const timerId = setTimeout(() => {
-      fetchMyItems().catch(() => {});
-    }, 0);
-    return () => clearTimeout(timerId);
-  }, [fetchMyItems]);
+      return response?.data?.content ?? [];
+    },
+    staleTime: 60_000,
+  });
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchMyItems();
+    await refetch();
     setRefreshing(false);
-  }, [fetchMyItems]);
+  }, [refetch]);
 
   const renderItem = useCallback(
     ({ item }: { item: Item }) => (
@@ -116,9 +103,16 @@ export default function MyItemsScreen() {
       </Box>
 
       {/* 목록 본문 */}
-      {isLoading ? (
+      {isLoading && !refreshing ? (
         <Box flex={1} justify="center" align="center">
           <Typography color="text.secondary">불러오는 중...</Typography>
+        </Box>
+      ) : isError ? (
+        <Box flex={1} justify="center" align="center">
+          <Typography color="text.secondary" mb="md">
+            정보를 불러올 수 없습니다.
+          </Typography>
+          <Button onPress={() => refetch()}>다시 시도</Button>
         </Box>
       ) : myItems.length === 0 ? (
         <Box flex={1} justify="center" align="center">
