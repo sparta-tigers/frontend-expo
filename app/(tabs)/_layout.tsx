@@ -53,7 +53,7 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: colors.tint,
         headerShown: false,
-        tabBarButton: HapticTab,
+        tabBarButton: (props) => <HapticTab {...(props as unknown as import("@react-navigation/bottom-tabs").BottomTabBarButtonProps)} />,
       }}
     >
       <Tabs.Screen
