@@ -1,4 +1,4 @@
-import { Logger } from "@/src/utils/logger";
+import { Logger, maskSensitive } from "@/src/utils/logger";
 import { getItemAsync, setItemAsync, deleteItemAsync } from "expo-secure-store";
 
 const authLogger = Logger.category("AUTH");
@@ -163,9 +163,13 @@ export function getDebugTokenState(): {
   accessToken: string | null;
   refreshToken: string | null;
 } {
+  if (!__DEV__) {
+    // 프로덕션에서는 토큰을 절대 노출하지 않음
+    return { accessToken: null, refreshToken: null };
+  }
   return {
-    accessToken: _accessToken,
-    refreshToken: _refreshToken,
+    accessToken: _accessToken ? maskSensitive(_accessToken) : null,
+    refreshToken: _refreshToken ? maskSensitive(_refreshToken) : null,
   };
 }
 
