@@ -1,10 +1,15 @@
 // src/features/liveboard/mapper.ts
 import { MatchRoomDto } from "@/src/shared/types/match";
-import { LiveboardData, BroadcastItem, BroadcastType, InningTextsDto } from "./types";
+import {
+  BroadcastItem,
+  BroadcastType,
+  InningTextsDto,
+  LiveboardData,
+} from "./types";
 
 /**
  * LiveboardMapper
- * 
+ *
  * Why: API DTO와 UI 모델을 분리하여 'Zero Magic'을 실현함.
  * 백엔드 문자열 배열을 구조화된 객체 배열로 정제하여 UI가 조건 없이 렌더링하도록 보장.
  */
@@ -21,7 +26,11 @@ export const LiveboardMapper = {
     const defenders = players
       .filter((p) => {
         const role = p.role.toLowerCase();
-        return !role.includes("batter") && !role.includes("runner") && role !== "supervision";
+        return (
+          !role.includes("batter") &&
+          !role.includes("runner") &&
+          role !== "supervision"
+        );
       })
       .map((p) => ({ name: p.name, role: p.role, x: 0, y: 0 }));
 
@@ -41,27 +50,30 @@ export const LiveboardMapper = {
     });
 
     const rawInningTexts = live?.inningTexts ?? room.inningTexts;
-    const inningTexts = rawInningTexts ? this.parseInningTexts(rawInningTexts) : undefined;
-    
+    const inningTexts = rawInningTexts
+      ? this.parseInningTexts(rawInningTexts)
+      : undefined;
+
     // 가장 최근 이벤트 추출 (현재 이닝의 가장 마지막 유의미한 텍스트)
     const match = live?.currentInning?.match(/([0-9]+)회/);
     const inningDigits = match ? match[1] : "";
     const parsedInning = Number.parseInt(inningDigits, 10);
     const currentInningNum = Number.isNaN(parsedInning) ? 1 : parsedInning;
     const currentInningTexts = inningTexts?.[currentInningNum] || [];
-    
+
     // 🚨 [Phase 45] 무의미한 구분선(----) 및 빈 문자열 원천 차단
-    const validInningTexts = currentInningTexts.filter(t => {
+    const validInningTexts = currentInningTexts.filter((t) => {
       const trimmed = t.text.trim();
       if (trimmed.length === 0) return false;
       // 대시(-), 등호(=), 언더바(_)로만 이루어진 문자열 제거
       const onlySeparators = trimmed.replace(/[-=_]/g, "").length === 0;
       return !onlySeparators;
     });
-    
-    const lastEvent = validInningTexts.length > 0 
-      ? validInningTexts[validInningTexts.length - 1].text 
-      : null;
+
+    const lastEvent =
+      validInningTexts.length > 0
+        ? validInningTexts[validInningTexts.length - 1].text
+        : null;
 
     return {
       matchId: room.matchId,
@@ -81,14 +93,21 @@ export const LiveboardMapper = {
       ballCount: score?.ball || 0,
       strikeCount: score?.strike || 0,
       outCount: score?.out || 0,
-      pitcherName: players.find((p) => p.role.toLowerCase() === "pitcher")?.name || "-",
+      pitcherName:
+        players.find((p) => p.role.toLowerCase() === "pitcher")?.name || "-",
       pitchCount: score ? parseInt(score.pitcherCount || "0") : 0,
       lastEvent,
       defenders,
       batter: batter ? { name: batter.name, role: "batter", x: 0, y: 0 } : null,
-      runner1: runner1 ? { name: runner1.name, role: "runner1", x: 0, y: 0 } : null,
-      runner2: runner2 ? { name: runner2.name, role: "runner2", x: 0, y: 0 } : null,
-      runner3: runner3 ? { name: runner3.name, role: "runner3", x: 0, y: 0 } : null,
+      runner1: runner1
+        ? { name: runner1.name, role: "runner1", x: 0, y: 0 }
+        : null,
+      runner2: runner2
+        ? { name: runner2.name, role: "runner2", x: 0, y: 0 }
+        : null,
+      runner3: runner3
+        ? { name: runner3.name, role: "runner3", x: 0, y: 0 }
+        : null,
       bases: {
         first: !!runner1,
         second: !!runner2,
@@ -122,7 +141,7 @@ export const LiveboardMapper = {
       if (!rawTexts) return;
 
       const inning = mapping[key] as number;
-      
+
       // 🚨 Zero Magic: 매퍼 계층에서 모든 문자열 정제 및 타입 판별 완료
       result[inning] = rawTexts
         .map((text) => text.trim())
@@ -140,7 +159,10 @@ export const LiveboardMapper = {
             type = "BATTER_INFO";
           } else if (text.startsWith("-")) {
             type = "PITCH_LOG";
-          } else if (cleanedText.includes("회") && (cleanedText.includes("초") || cleanedText.includes("말"))) {
+          } else if (
+            cleanedText.includes("회") &&
+            (cleanedText.includes("초") || cleanedText.includes("말"))
+          ) {
             type = "INNING_INFO";
           }
 

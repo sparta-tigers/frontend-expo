@@ -1,6 +1,6 @@
 // app/(tabs)/liveboard/liveboard.styles.ts
-import { StyleSheet } from "react-native";
 import { theme } from "@/src/styles/theme";
+import { StyleSheet } from "react-native";
 
 /**
  * 라이브보드 전용 레이아웃 상수

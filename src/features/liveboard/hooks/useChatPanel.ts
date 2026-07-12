@@ -97,14 +97,16 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
               ? prev.filter(
                   (m) =>
                     !(
-                      m.key.startsWith("local-") &&
-                      (m.tempId === bubble.tempId ||
-                        (m.senderId === bubble.senderId &&
-                          m.text === bubble.text &&
-                          Math.abs(
-                            new Date(parsed.sentAt).getTime() -
-                              (m.localTimestamp ?? 0),
-                          ) < 10000)) // 30초 -> 10초로 단축
+                      (
+                        m.key.startsWith("local-") &&
+                        (m.tempId === bubble.tempId ||
+                          (m.senderId === bubble.senderId &&
+                            m.text === bubble.text &&
+                            Math.abs(
+                              new Date(parsed.sentAt).getTime() -
+                                (m.localTimestamp ?? 0),
+                            ) < 10000))
+                      ) // 30초 -> 10초로 단축
                     ),
                 )
               : prev;

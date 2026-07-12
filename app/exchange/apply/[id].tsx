@@ -13,7 +13,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Box, Typography } from "@/components/ui";
 import { Input } from "@/components/ui/input";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { ExchangeRoomResponseDto, exchangeCreateAPI, itemsGetDetailAPI } from "@/src/features/exchange/api";
+import {
+  ExchangeRoomResponseDto,
+  exchangeCreateAPI,
+  itemsGetDetailAPI,
+} from "@/src/features/exchange/api";
 import { CreateExchangeDto } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
@@ -133,7 +137,8 @@ export default function ApplyExchangeScreen() {
   const { user, isLoading: isAuthLoading } = useAuth();
 
   const targetItemId = Number(id);
-  const isTargetItemIdValid = !!id && Number.isFinite(targetItemId) && targetItemId > 0;
+  const isTargetItemIdValid =
+    !!id && Number.isFinite(targetItemId) && targetItemId > 0;
 
   /** 내가 제안하는 교환 물건 설명 (필수, 백엔드 have 필드) */
   const [have, setHave] = useState("");
@@ -146,7 +151,7 @@ export default function ApplyExchangeScreen() {
     // 1. 로그인 상태 체크
     if (user === null) {
       Alert.alert("인증 오류", "로그인 후 이용해주세요.", [
-        { text: "확인", onPress: () => router.back() }
+        { text: "확인", onPress: () => router.back() },
       ]);
       return;
     }
@@ -155,7 +160,7 @@ export default function ApplyExchangeScreen() {
     if (!isTargetItemIdValid) {
       Logger.error("[ExchangeApply] 유효하지 않은 아이템 ID:", id);
       Alert.alert("오류", "유효하지 않은 요청입니다.", [
-        { text: "확인", onPress: () => router.back() }
+        { text: "확인", onPress: () => router.back() },
       ]);
     }
   }, [user, isAuthLoading, router, isTargetItemIdValid, id]);
@@ -169,7 +174,8 @@ export default function ApplyExchangeScreen() {
 
   const { mutate: requestExchange, isPending } = useMutation({
     mutationFn: async () => {
-      const receiverId = targetItem?.data?.user?.userId ?? targetItem?.data?.userId;
+      const receiverId =
+        targetItem?.data?.user?.userId ?? targetItem?.data?.userId;
 
       if (!receiverId) {
         throw new Error("상대방 정보를 가져올 수 없습니다.");
@@ -209,12 +215,16 @@ export default function ApplyExchangeScreen() {
         Alert.alert("성공", "교환 제안이 전달되었습니다!");
         router.replace(`/exchange/chat/${roomId}`);
       } else {
-        Alert.alert("성공", "교환 제안이 전달되었습니다. 상대가 수락하면 채팅이 시작됩니다.");
+        Alert.alert(
+          "성공",
+          "교환 제안이 전달되었습니다. 상대가 수락하면 채팅이 시작됩니다.",
+        );
         router.back();
       }
     },
     onError: (error) => {
-      const msg = error instanceof Error ? error.message : "교환 신청에 실패했습니다.";
+      const msg =
+        error instanceof Error ? error.message : "교환 신청에 실패했습니다.";
       Alert.alert("오류", msg);
       Logger.error("교환 신청 실패:", error);
     },
@@ -270,7 +280,9 @@ export default function ApplyExchangeScreen() {
           {/* 교환 대상 아이템 표시 */}
           {targetItem?.data && (
             <Box style={styles.targetItemBox}>
-              <Typography variant="body2" style={styles.targetItemLabel}>교환 요청 대상 아이템</Typography>
+              <Typography variant="body2" style={styles.targetItemLabel}>
+                교환 요청 대상 아이템
+              </Typography>
               <Typography variant="h3" style={styles.targetItemTitle}>
                 {targetItem.data.title}
               </Typography>
@@ -279,7 +291,9 @@ export default function ApplyExchangeScreen() {
 
           {/* 헤더 안내 */}
           <Box style={styles.header}>
-            <Typography variant="h2" style={styles.title}>내가 제안하는 물건</Typography>
+            <Typography variant="h2" style={styles.title}>
+              내가 제안하는 물건
+            </Typography>
             <Typography variant="body2" style={styles.subtitle}>
               교환하고 싶은 내 물건을 설명해주세요. 상대방에게 전달됩니다.
             </Typography>
@@ -288,7 +302,8 @@ export default function ApplyExchangeScreen() {
           {/* have 입력 폼 (필수) */}
           <Box style={styles.inputContainer}>
             <Typography variant="body1" style={styles.inputLabel}>
-              교환 물건 설명 <Typography style={styles.requiredMark}>*</Typography>
+              교환 물건 설명{" "}
+              <Typography style={styles.requiredMark}>*</Typography>
             </Typography>
             <Input
               placeholder="예: BTS 콘서트 포토카드 세트, 상태 최상 / 스타필드 팝업 굿즈"
@@ -313,7 +328,7 @@ export default function ApplyExchangeScreen() {
           <TouchableOpacity
             style={[
               styles.applyButton,
-              (!have.trim() || isPending) && styles.applyButtonDisabled
+              (!have.trim() || isPending) && styles.applyButtonDisabled,
             ]}
             onPress={handleSubmit}
             disabled={!have.trim() || isPending}

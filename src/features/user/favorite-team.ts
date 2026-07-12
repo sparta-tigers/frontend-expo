@@ -24,4 +24,7 @@ export interface FavoriteTeamRequestBase {
   teamCode?: string;
 }
 
-export type FavoriteTeamRequest = RequireAtLeastOne<FavoriteTeamRequestBase, "teamId" | "teamCode">;
+export type FavoriteTeamRequest = RequireAtLeastOne<
+  FavoriteTeamRequestBase,
+  "teamId" | "teamCode"
+>;

@@ -1,6 +1,6 @@
 import { SPACING } from "@/src/styles/theme";
 import React from "react";
-import { Platform, StyleSheet, View, ViewStyle, StyleProp } from "react-native";
+import { Platform, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import { SafeAreaView, type Edge } from "react-native-safe-area-context";
 
 /**

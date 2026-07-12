@@ -1,11 +1,21 @@
 // src/shared/types/match.ts
 
+import { ForeCastDto, NowCastDto } from "@/src/shared/types/weather";
 import { TeamMeta } from "@/src/utils/team";
-import { NowCastDto, ForeCastDto } from "@/src/shared/types/weather";
 
-export type MatchStatus = "READY" | "ONGOING" | "FINISHED" | "CANCELLED" | "POSTPONED";
+export type MatchStatus =
+  | "READY"
+  | "ONGOING"
+  | "FINISHED"
+  | "CANCELLED"
+  | "POSTPONED";
 export type LiveBoardStatus = "UPCOMING" | "TODAY" | "PAST";
-export type LeagueType = "REGULAR" | "PRESEASON" | "POST_SEASON" | "DREAM" | "NANUM";
+export type LeagueType =
+  | "REGULAR"
+  | "PRESEASON"
+  | "POST_SEASON"
+  | "DREAM"
+  | "NANUM";
 export type TeamLocation = "H" | "A";
 
 export interface MatchTeamInfo {
@@ -115,8 +125,8 @@ export interface LiveBoardDataDto {
   players: PlayerDto[];
   matchScore: MatchScoreDto;
   inningTexts: InningTextsDto;
-  /** 
-   * 현재 이닝 정보 
+  /**
+   * 현재 이닝 정보
    * - 실시간 형식: "{숫자}회 {초|말} {기타 정보}" (예: "9회 말 0-2 3out", "3회초")
    *   (※ 네이버 라이브 문자중계 HTML의 .base strong 구조 병합에 따라 공백 및 추가 정보가 포함될 수 있음)
    * - 비실시간 형식: "경기전", "종료", "경기종료" 등
@@ -127,8 +137,8 @@ export interface LiveBoardDataDto {
 
 /**
  * 🏟️ MatchRoomDto (구 LiveBoardRoomDto)
- * 
- * Why: 경기 상세 정보 조회를 위한 DTO. 
+ *
+ * Why: 경기 상세 정보 조회를 위한 DTO.
  * Match 도메인과 Liveboard 도메인이 공동으로 참조하는 핵심 정보이므로 shared 레이어에 위치함.
  */
 export interface MatchRoomDto {
@@ -149,4 +159,3 @@ export interface MatchRoomDto {
   inningTexts: InningTextsDto | null;
   liveBoardData: LiveBoardDataDto | null;
 }
-

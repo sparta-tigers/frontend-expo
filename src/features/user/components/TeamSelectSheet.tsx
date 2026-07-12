@@ -1,18 +1,21 @@
 // src/features/user/components/TeamSelectSheet.tsx
+import { Box } from "@/components/ui/box";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { Typography } from "@/components/ui/typography";
+import {
+  LOCAL_LAYOUT,
+  styles,
+} from "@/src/features/user/styles/profile.styles";
+import { KBO_TEAMS } from "@/src/features/user/types";
+import { theme } from "@/src/styles/theme";
+import {
+  BottomSheetBackdrop,
+  BottomSheetBackdropProps,
+  BottomSheetModal,
+  BottomSheetScrollView,
+} from "@gorhom/bottom-sheet";
 import React from "react";
 import { TouchableOpacity } from "react-native";
-import {
-  BottomSheetModal,
-  BottomSheetBackdrop,
-  BottomSheetScrollView,
-  BottomSheetBackdropProps,
-} from "@gorhom/bottom-sheet";
-import { Box } from "@/components/ui/box";
-import { Typography } from "@/components/ui/typography";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import { theme } from "@/src/styles/theme";
-import { styles, LOCAL_LAYOUT } from "@/src/features/user/styles/profile.styles";
-import { KBO_TEAMS } from "@/src/features/user/types";
 
 interface TeamSelectSheetProps {
   modalRef: React.RefObject<BottomSheetModal | null>;
@@ -21,15 +24,25 @@ interface TeamSelectSheetProps {
 
 /**
  * TeamSelectSheet
- * 
+ *
  * Why: 사용자가 즐겨찾는 KBO 구단을 선택할 수 있는 바텀 시트 인터페이스 제공.
  */
-export function TeamSelectSheet({ modalRef, onSelectTeam }: TeamSelectSheetProps) {
-  const snapPoints = LOCAL_LAYOUT.bottomSheetSnapPoints as unknown as (string | number)[];
+export function TeamSelectSheet({
+  modalRef,
+  onSelectTeam,
+}: TeamSelectSheetProps) {
+  const snapPoints = LOCAL_LAYOUT.bottomSheetSnapPoints as unknown as (
+    | string
+    | number
+  )[];
 
   const renderBackdrop = React.useCallback(
     (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+      />
     ),
     [],
   );

@@ -1,9 +1,15 @@
 // src/features/liveboard/components/TextBroadcastPanel.tsx
-import React, { memo } from "react";
-import { View, Text, FlatList, TouchableOpacity, ScrollView } from "react-native";
-import { BroadcastItem } from "../types";
+import { memo } from "react";
+import {
+  FlatList,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useTextBroadcast } from "../hooks/useTextBroadcast";
 import { styles } from "../styles/matchId.styles";
+import { BroadcastItem } from "../types";
 
 interface TextBroadcastPanelProps {
   inningTexts?: { [inning: number]: BroadcastItem[] } | undefined;
@@ -41,57 +47,68 @@ TextBroadcastItem.displayName = "TextBroadcastItem";
  * TextBroadcastPanel Component
  * Why: 텍스트 중계 탭의 메인 컨테이너. 이닝 선택 칩과 중계 리스트를 관리.
  */
-export const TextBroadcastPanel = memo(({ inningTexts, isVisible }: TextBroadcastPanelProps) => {
-  const { activeInning, setActiveInning, availableInnings, filteredBroadcast } = useTextBroadcast(inningTexts);
+export const TextBroadcastPanel = memo(
+  ({ inningTexts, isVisible }: TextBroadcastPanelProps) => {
+    const {
+      activeInning,
+      setActiveInning,
+      availableInnings,
+      filteredBroadcast,
+    } = useTextBroadcast(inningTexts);
 
-  if (!isVisible) return null;
+    if (!isVisible) return null;
 
-  return (
-    <View style={styles.tabPanel}>
-      {/* 이닝 선택 칩 (Horizontal Scroll) */}
-      <View>
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.inningChipList}
-        >
-          {availableInnings.map((inning) => (
-            <TouchableOpacity
-              key={inning}
-              style={[
-                styles.inningChip,
-                activeInning === inning && styles.inningChipActive
-              ]}
-              onPress={() => setActiveInning(inning)}
-            >
-              <Text style={[
-                styles.inningChipText,
-                activeInning === inning && styles.inningChipTextActive
-              ]}>
-                {inning === 10 ? "연장" : `${inning}회`}
+    return (
+      <View style={styles.tabPanel}>
+        {/* 이닝 선택 칩 (Horizontal Scroll) */}
+        <View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.inningChipList}
+          >
+            {availableInnings.map((inning) => (
+              <TouchableOpacity
+                key={inning}
+                style={[
+                  styles.inningChip,
+                  activeInning === inning && styles.inningChipActive,
+                ]}
+                onPress={() => setActiveInning(inning)}
+              >
+                <Text
+                  style={[
+                    styles.inningChipText,
+                    activeInning === inning && styles.inningChipTextActive,
+                  ]}
+                >
+                  {inning === 10 ? "연장" : `${inning}회`}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* 중계 리스트 (FlatList optimized) */}
+        <FlatList
+          data={filteredBroadcast}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <TextBroadcastItem item={item} />}
+          contentContainerStyle={styles.broadcastList}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          ListEmptyComponent={
+            <View style={styles.broadcastEmpty}>
+              <Text style={styles.broadcastEmptyText}>
+                해당 이닝의 중계 데이터가 없습니다.
               </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+            </View>
+          }
+        />
       </View>
-
-      {/* 중계 리스트 (FlatList optimized) */}
-      <FlatList
-        data={filteredBroadcast}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <TextBroadcastItem item={item} />}
-        contentContainerStyle={styles.broadcastList}
-        initialNumToRender={10}
-        maxToRenderPerBatch={10}
-        windowSize={5}
-        ListEmptyComponent={
-          <View style={styles.broadcastEmpty}>
-            <Text style={styles.broadcastEmptyText}>해당 이닝의 중계 데이터가 없습니다.</Text>
-          </View>
-        }
-      />
-    </View>
-  );
-});
+    );
+  },
+);
 
 TextBroadcastPanel.displayName = "TextBroadcastPanel";

@@ -5,11 +5,11 @@ import { Typography } from "@/components/ui/typography";
 import { WeatherIcon } from "@/src/features/liveboard/components/WeatherIcon";
 import { ForeCastDto } from "@/src/features/liveboard/types";
 import {
-    formatHour,
-    formatPercent,
-    formatRainAmountCell,
-    formatRainType,
-    formatTemperatureCelsius,
+  formatHour,
+  formatPercent,
+  formatRainAmountCell,
+  formatRainType,
+  formatTemperatureCelsius,
 } from "@/src/features/liveboard/utils/weatherFormat";
 import { theme } from "@/src/styles/theme";
 
@@ -78,7 +78,9 @@ function LabelCell({
   isIconRow?: boolean;
 }) {
   return (
-    <View style={[styles.labelCell, isIconRow ? styles.rowIcon : styles.rowDefault]}>
+    <View
+      style={[styles.labelCell, isIconRow ? styles.rowIcon : styles.rowDefault]}
+    >
       <Typography style={styles.labelText} weight="regular">
         {text}
       </Typography>

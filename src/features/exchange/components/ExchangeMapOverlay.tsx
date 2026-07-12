@@ -59,17 +59,19 @@ export const ExchangeMapOverlay = React.memo(
               <Text style={styles.fabText}>📍</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.fabButton}
-              onPress={onOpenProfile}
-            >
+            <TouchableOpacity style={styles.fabButton} onPress={onOpenProfile}>
               <Text style={styles.fabText}>👤</Text>
             </TouchableOpacity>
           </View>
         )}
 
         {/* 상단 오버레이 버튼 (등록하기 + 교환현황) */}
-        <View style={[styles.topOverlayContainer, { top: topInset + theme.spacing.sm }]}>
+        <View
+          style={[
+            styles.topOverlayContainer,
+            { top: topInset + theme.spacing.sm },
+          ]}
+        >
           <TouchableOpacity
             style={styles.topOverlayButton}
             onPress={onNavigateToCreate}

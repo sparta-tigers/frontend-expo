@@ -64,8 +64,8 @@ export interface Item {
   updatedAt: string;
   userId?: number; // 체인을 위한 호환 필드
   user: {
-    userId: number;       // UserResponseDto.userId (백엔드 스펙)
-    userNickname: string;  // UserResponseDto.userNickname (백엔드 스펙)
+    userId: number; // UserResponseDto.userId (백엔드 스펙)
+    userNickname: string; // UserResponseDto.userNickname (백엔드 스펙)
     profileImage?: string;
   };
 
@@ -185,4 +185,5 @@ export interface ReceiveExchangeRequest {
  * 교환 요청 목록 페이징 응답
  * content 항목은 ReceiveExchangeRequest 구조임
  */
-export type ExchangeRequestListResponse = PaginatedResponse<ReceiveExchangeRequest>;
+export type ExchangeRequestListResponse =
+  PaginatedResponse<ReceiveExchangeRequest>;

@@ -1,14 +1,13 @@
 // src/features/liveboard/components/LineupPanel.tsx
 import { Box } from "@/components/ui/box";
 import { Typography } from "@/components/ui/typography";
+import { useLineupPanel } from "@/src/features/liveboard/hooks/useLineupPanel";
+import { styles } from "@/src/features/liveboard/styles/matchId.styles";
 import { LineupSection } from "@/src/shared/components/match/LineupSection";
 import { theme } from "@/src/styles/theme";
 import { findTeamMeta, getTeamBgStyle } from "@/src/utils/team";
 import { MaterialIcons } from "@expo/vector-icons";
-import React from "react";
 import { ActivityIndicator, ScrollView, TouchableOpacity } from "react-native";
-import { useLineupPanel } from "@/src/features/liveboard/hooks/useLineupPanel";
-import { styles } from "@/src/features/liveboard/styles/matchId.styles";
 
 /**
  * LineupPanel
@@ -145,7 +144,10 @@ export function LineupPanel({ match }: { match: MatchDetail }) {
         </TouchableOpacity>
       </Box>
 
-      <LineupSection lineup={currentLineup} teamMeta={findTeamMeta(currentTeamName)} />
+      <LineupSection
+        lineup={currentLineup}
+        teamMeta={findTeamMeta(currentTeamName)}
+      />
     </ScrollView>
   );
 }

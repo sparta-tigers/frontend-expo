@@ -7,10 +7,10 @@ import { Typography } from "@/components/ui/typography";
 import { WeatherIcon } from "@/src/features/liveboard/components/WeatherIcon";
 import { NowCastDto } from "@/src/features/liveboard/types";
 import {
-    formatPercent,
-    formatRainAmount,
-    formatTemperature,
-    formatWind,
+  formatPercent,
+  formatRainAmount,
+  formatTemperature,
+  formatWind,
 } from "@/src/features/liveboard/utils/weatherFormat";
 import { theme } from "@/src/styles/theme";
 

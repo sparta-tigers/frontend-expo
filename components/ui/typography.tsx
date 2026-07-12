@@ -1,19 +1,17 @@
-import { theme } from "@/src/styles/theme";
-import React from "react";
-import { Text, TextProps, TextStyle } from "react-native";
 import { ThemeColorPath, getThemeColorByPath } from "@/src/shared/types/theme";
+import { theme } from "@/src/styles/theme";
+import { Text, TextProps, TextStyle } from "react-native";
 
-export type TypographyVariant = 
-  | "h1" 
-  | "h2" 
-  | "h3" 
+export type TypographyVariant =
+  | "h1"
+  | "h2"
+  | "h3"
   | "h4"
   | "h5"
-  | "body1" 
-  | "body2" 
-  | "caption" 
+  | "body1"
+  | "body2"
+  | "caption"
   | "label";
-
 
 /**
  * Typography 컴포넌트의 커스텀 Props
@@ -49,7 +47,7 @@ export interface TypographyProps extends TextProps, TypographyCustomProps {}
 
 /**
  * 디자인 시스템의 표준 텍스트 컴포넌트
- * 
+ *
  * Why: 폰트 크기, 두께, 색상의 파편화를 방지하고 선언적인 UI를 작성하기 위해 사용함.
  * TextProps를 상속받아 numberOfLines, onLayout 등을 그대로 사용할 수 있음.
  */
@@ -75,13 +73,15 @@ export const Typography = ({
   const getSpacing = (val: keyof typeof theme.spacing | undefined) => {
     return val ? theme.spacing[val] : undefined;
   };
-  
-  const resolvedColor = color 
-    ? (getThemeColorByPath(color) || theme.colors.text.primary)
+
+  const resolvedColor = color
+    ? getThemeColorByPath(color) || theme.colors.text.primary
     : theme.colors.text.primary;
 
   const customStyle: TextStyle = {
-    fontWeight: weight ? theme.typography.weight[weight] : variantStyle.fontWeight,
+    fontWeight: weight
+      ? theme.typography.weight[weight]
+      : variantStyle.fontWeight,
     color: resolvedColor,
     textAlign: center ? "center" : undefined,
     marginTop: getSpacing(mt),

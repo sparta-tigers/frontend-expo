@@ -1,6 +1,6 @@
 import { useAuth } from "@/context/AuthContext";
-import { useInfiniteMyAttendances } from "@/src/features/match-attendance";
 import { useMatchSchedule } from "@/src/features/match";
+import { useInfiniteMyAttendances } from "@/src/features/match-attendance";
 import { useTicketAlarms } from "@/src/features/ticket-alarm";
 import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
 import { LeagueType } from "@/src/shared/types/match";

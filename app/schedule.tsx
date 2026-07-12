@@ -1,12 +1,12 @@
 import { Box, Typography } from "@/components/ui";
 import { ScheduleSkeleton } from "@/src/features/home/components/ScheduleSkeleton";
+import { useScheduleScreen } from "@/src/features/schedule/hooks/useScheduleScreen";
 import { LeagueType } from "@/src/shared/types/match";
 import { ThemeColorPath } from "@/src/shared/types/theme";
 import { theme } from "@/src/styles/theme";
 import { findTeamMeta, TeamMeta } from "@/src/utils/team";
-import { useScheduleScreen } from "@/src/features/schedule/hooks/useScheduleScreen";
-import { MaterialIcons, Ionicons } from "@expo/vector-icons";
-import { Stack, router } from "expo-router";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { router, Stack } from "expo-router";
 import React from "react";
 import { Pressable, StyleSheet, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -126,10 +126,7 @@ export default function ScheduleScreen() {
       {activeTeam && <BrandingHeader team={activeTeam} />}
 
       {isDropdownOpen && (
-        <Pressable
-          style={styles.overlay}
-          onPress={closeDropdown}
-        />
+        <Pressable style={styles.overlay} onPress={closeDropdown} />
       )}
 
       <Box style={styles.contentContainer}>
@@ -240,14 +237,18 @@ export default function ScheduleScreen() {
               const todayDate = new Date();
               todayDate.setHours(0, 0, 0, 0);
               const isFuture = cellDate > todayDate;
-              const attendanceId = cell.matchId ? attendanceMap.get(cell.matchId) : null;
+              const attendanceId = cell.matchId
+                ? attendanceMap.get(cell.matchId)
+                : null;
 
               return (
                 <TouchableOpacity
                   key={`${cell.day}-${idx}`}
                   style={[
                     styles.calendarCell,
-                    cell.isToday && { backgroundColor: theme.colors.brand.mintAlpha10 }
+                    cell.isToday && {
+                      backgroundColor: theme.colors.brand.mintAlpha10,
+                    },
                   ]}
                   activeOpacity={0.7}
                   disabled={isEmpty || !cell.hasGame}
@@ -256,7 +257,10 @@ export default function ScheduleScreen() {
                       if (cell.matchId) {
                         router.push({
                           pathname: "/ticket-alarm/[matchId]",
-                          params: { matchId: cell.matchId, ...(from ? { from } : {}) },
+                          params: {
+                            matchId: cell.matchId,
+                            ...(from ? { from } : {}),
+                          },
                         });
                       }
                     } else {
@@ -272,7 +276,11 @@ export default function ScheduleScreen() {
                     <>
                       {cell.hasAttendance && (
                         <Box style={styles.attendanceStamp}>
-                          <Ionicons name="checkmark-done-circle" size={40} color={theme.colors.brand.mintAlpha10} />
+                          <Ionicons
+                            name="checkmark-done-circle"
+                            size={40}
+                            color={theme.colors.brand.mintAlpha10}
+                          />
                         </Box>
                       )}
 
@@ -280,21 +288,25 @@ export default function ScheduleScreen() {
                         <Box flexDir="row" align="center">
                           <Typography
                             variant="caption"
-                            color={cell.isToday ? "brand.mint" : "text.secondary"}
+                            color={
+                              cell.isToday ? "brand.mint" : "text.secondary"
+                            }
                           >
                             {cell.day}
                           </Typography>
                         </Box>
                         {cell.location && (
                           <Box flexDir="row" align="center">
-                            {isFuture && cell.matchId !== undefined && ticketAlarmMap.has(cell.matchId) && (
-                              <MaterialIcons 
-                                name="notifications-active" 
-                                size={12} 
-                                color={theme.colors.brand.mint} 
-                                style={styles.alarmIcon}
-                              />
-                            )}
+                            {isFuture &&
+                              cell.matchId !== undefined &&
+                              ticketAlarmMap.has(cell.matchId) && (
+                                <MaterialIcons
+                                  name="notifications-active"
+                                  size={12}
+                                  color={theme.colors.brand.mint}
+                                  style={styles.alarmIcon}
+                                />
+                              )}
                             <Typography
                               variant="caption"
                               weight="bold"
@@ -310,7 +322,7 @@ export default function ScheduleScreen() {
                           <Box
                             bg={
                               cell.opponentCode
-                                ? `team.${findTeamMeta(cell.opponentCode)?.colorToken || "fallback"}` as ThemeColorPath
+                                ? (`team.${findTeamMeta(cell.opponentCode)?.colorToken || "fallback"}` as ThemeColorPath)
                                 : "team.neutralLight"
                             }
                             rounded="full"
@@ -372,7 +384,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     zIndex: 5,
   },
   contentContainer: {
@@ -389,7 +401,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.team.neutralLight,
     padding: 4,
   },
-   mascotEmoji: {
+  mascotEmoji: {
     fontSize: LOCAL_LAYOUT.mascotFontSize,
   },
   leagueSelector: {

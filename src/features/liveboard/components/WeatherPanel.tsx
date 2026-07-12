@@ -3,14 +3,13 @@ import { Box } from "@/components/ui/box";
 import { Typography } from "@/components/ui/typography";
 import { ForeCastTable } from "@/src/features/liveboard/components/ForeCastTable";
 import { NowCastCard } from "@/src/features/liveboard/components/NowCastCard";
+import { useWeatherPanel } from "@/src/features/liveboard/hooks/useWeatherPanel";
+import { styles } from "@/src/features/liveboard/styles/matchId.styles";
 import { WeatherApiStatus } from "@/src/features/liveboard/types";
 import { filterUpcomingForeCast } from "@/src/features/liveboard/utils/weatherFormat";
 import { theme } from "@/src/styles/theme";
 import { MaterialIcons } from "@expo/vector-icons";
-import React from "react";
 import { ActivityIndicator, ScrollView, TouchableOpacity } from "react-native";
-import { useWeatherPanel } from "@/src/features/liveboard/hooks/useWeatherPanel";
-import { styles } from "@/src/features/liveboard/styles/matchId.styles";
 
 /**
  * WeatherStatusBanner

@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
 import { useQuery } from "@tanstack/react-query";
 import { AppState, AppStateStatus } from "react-native";
@@ -53,7 +53,11 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: colors.tint,
         headerShown: false,
-        tabBarButton: HapticTab,
+        tabBarButton: (props) => (
+          <HapticTab
+            {...(props as unknown as import("@react-navigation/bottom-tabs").BottomTabBarButtonProps)}
+          />
+        ),
       }}
     >
       <Tabs.Screen

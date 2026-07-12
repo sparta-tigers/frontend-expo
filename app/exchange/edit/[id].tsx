@@ -4,21 +4,21 @@ import { SafeLayout } from "@/components/ui/safe-layout";
 import { itemsGetDetailAPI, itemsUpdateAPI } from "@/src/features/exchange/api";
 import { UpdateItemRequest } from "@/src/features/exchange/types";
 import { useAuth } from "@/src/hooks/useAuth";
-import { theme, SPACING } from "@/src/styles/theme";
+import { SPACING, theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
 import { getImageUrl } from "@/src/utils/url";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
@@ -158,13 +158,15 @@ export default function EditItemScreen() {
   );
 
   // 아이템 데이터가 로드된 후 폼 초기화
-  React.useEffect(() => {
+  const [prevItem, setPrevItem] = useState(item);
+  if (item !== prevItem) {
+    setPrevItem(item);
     if (item) {
       setTitle(item.title);
       setDescription(item.description);
       setCategory(item.category);
     }
-  }, [item]);
+  }
 
   const queryClient = useQueryClient();
 
@@ -263,8 +265,12 @@ export default function EditItemScreen() {
     return (
       <SafeLayout edges={["top", "bottom"]} style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>아이템 정보를 불러올 수 없습니다.</Text>
-          <Button onPress={() => router.replace("/(tabs)/exchange")}>돌아가기</Button>
+          <Text style={styles.errorText}>
+            아이템 정보를 불러올 수 없습니다.
+          </Text>
+          <Button onPress={() => router.replace("/(tabs)/exchange")}>
+            돌아가기
+          </Button>
         </View>
       </SafeLayout>
     );

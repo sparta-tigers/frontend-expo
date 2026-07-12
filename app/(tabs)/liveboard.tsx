@@ -1,22 +1,20 @@
 // app/(tabs)/liveboard.tsx
 // Why: Expo Router 탭 라우트 파일. 로직은 liveboard/ 하위 모듈에 위임.
-import { Box, Typography, SafeLayout } from "@/components/ui";
-import { theme } from "@/src/styles/theme";
-import { getTeamBgStyle } from "@/src/utils/team";
-import { MaterialIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import React from "react";
-import {
-  ActivityIndicator,
-  ScrollView,
-  TouchableOpacity,
-} from "react-native";
+import { Box, SafeLayout, Typography } from "@/components/ui";
 import {
   WeekDayDto,
   getWeatherDisplay,
   useLiveboard,
 } from "@/src/features/liveboard/hooks/useLiveboard";
-import { LOCAL_LAYOUT, styles } from "@/src/features/liveboard/styles/liveboard.styles";
+import {
+  LOCAL_LAYOUT,
+  styles,
+} from "@/src/features/liveboard/styles/liveboard.styles";
+import { theme } from "@/src/styles/theme";
+import { getTeamBgStyle } from "@/src/utils/team";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { ActivityIndicator, ScrollView, TouchableOpacity } from "react-native";
 
 /**
  * 라이브보드 화면
@@ -208,7 +206,10 @@ export default function LiveboardScreen() {
 
             const weather =
               room.liveBoardStatus === "TODAY" && room.nowCast
-                ? getWeatherDisplay(room.nowCast.skyStatus, room.nowCast.rainType)
+                ? getWeatherDisplay(
+                    room.nowCast.skyStatus,
+                    room.nowCast.rainType,
+                  )
                 : room.foreCast?.[0]
                   ? getWeatherDisplay(
                       room.foreCast[0].skyStatus,
@@ -247,7 +248,10 @@ export default function LiveboardScreen() {
                       rounded="full"
                       align="center"
                       justify="center"
-                      style={[styles.teamLogo, getTeamBgStyle(room.awayTeamName)]}
+                      style={[
+                        styles.teamLogo,
+                        getTeamBgStyle(room.awayTeamName),
+                      ]}
                     >
                       <Typography
                         variant="caption"
@@ -263,7 +267,11 @@ export default function LiveboardScreen() {
                   </Box>
 
                   {/* 경기 정보 (중앙) */}
-                  <Box align="center" justify="center" style={styles.centerBlock}>
+                  <Box
+                    align="center"
+                    justify="center"
+                    style={styles.centerBlock}
+                  >
                     <Box align="center" style={styles.timeStadiumBlock}>
                       <Typography style={styles.timeText} weight="semibold">
                         {timeText}
@@ -294,7 +302,10 @@ export default function LiveboardScreen() {
                       rounded="full"
                       align="center"
                       justify="center"
-                      style={[styles.teamLogo, getTeamBgStyle(room.homeTeamName)]}
+                      style={[
+                        styles.teamLogo,
+                        getTeamBgStyle(room.homeTeamName),
+                      ]}
                     >
                       <Typography
                         variant="caption"

@@ -1,11 +1,28 @@
-import type { 
-  MatchScheduleDto, 
+import type {
+  LeagueType,
+  MatchDetail,
+  MatchRoomDto,
+  MatchScheduleDto,
+  MatchSummary,
+  MatchTeamInfo,
   RankingRowDto,
+  RankingUIModel,
 } from "@/src/shared/types/match";
+
+export type {
+  LeagueType,
+  MatchDetail,
+  MatchRoomDto,
+  MatchScheduleDto,
+  MatchSummary,
+  MatchTeamInfo,
+  RankingRowDto,
+  RankingUIModel,
+};
 
 /**
  * Match 도메인 전용 타입 확장
- * 
+ *
  * Why: shared에서 정의된 핵심 타입을 기반으로 match 피처에서 필요한
  * 추가적인 API 응답 구조 등을 정의함.
  */

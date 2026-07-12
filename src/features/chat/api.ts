@@ -1,10 +1,10 @@
 import { apiClient } from "@/src/core/client";
 import { ApiResponse } from "@/src/shared/types/common";
 import {
-  ChatMessageListResponse,
-  CreateDirectRoomRequest,
-  DirectRoomListResponse,
-  DirectRoomCreateResponse,
+    ChatMessageListResponse,
+    CreateDirectRoomRequest,
+    DirectRoomCreateResponse,
+    DirectRoomListResponse,
 } from "./types";
 
 /**
@@ -56,5 +56,3 @@ export async function chatroomsGetMessagesAPI(
 ): Promise<ApiResponse<ChatMessageListResponse>> {
   return apiClient.get(`/api/direct-rooms/${roomId}/messages`, { page, size });
 }
-
-

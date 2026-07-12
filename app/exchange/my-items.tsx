@@ -1,12 +1,12 @@
-import { Href, useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
-import { Box, Typography, List } from "@/components/ui";
+import { Box, List, Typography } from "@/components/ui";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import { itemsGetMyItemsAPI } from "@/src/features/exchange/api";
 import { Item } from "@/src/features/exchange/types";
 import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
+import { Href, useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
+import { StyleSheet, TouchableOpacity } from "react-native";
 
 export default function MyItemsScreen() {
   const router = useRouter();
@@ -29,7 +29,10 @@ export default function MyItemsScreen() {
   }, []);
 
   React.useEffect(() => {
-    fetchMyItems().catch(() => {});
+    const timerId = setTimeout(() => {
+      fetchMyItems().catch(() => {});
+    }, 0);
+    return () => clearTimeout(timerId);
   }, [fetchMyItems]);
 
   const handleRefresh = useCallback(async () => {
@@ -38,66 +41,73 @@ export default function MyItemsScreen() {
     setRefreshing(false);
   }, [fetchMyItems]);
 
-  const renderItem = useCallback(({ item }: { item: Item }) => (
-    <TouchableOpacity
-      onPress={() => router.push(`/exchange/${item.id}` as Href)}
-      activeOpacity={0.8}
-    >
-      <Box 
-        p="md" 
-        mb="sm" 
-        rounded="md" 
-        borderWidth={1} 
-        bg="surface" 
-        borderColor="border.medium"
+  const renderItem = useCallback(
+    ({ item }: { item: Item }) => (
+      <TouchableOpacity
+        onPress={() => router.push(`/exchange/${item.id}` as Href)}
+        activeOpacity={0.8}
       >
-        <Box flexDir="row" justify="space-between" align="center" mb="sm">
-          <Typography
-            variant="body1"
-            weight="bold"
-            color="text.primary"
-            style={styles.itemTitle}
-            numberOfLines={1}
-          >
-            {item.title}
-          </Typography>
-          <Typography variant="caption" weight="bold" color="primary">
-            {item.category === "TICKET" ? "티켓" : "굿즈"}
-          </Typography>
-        </Box>
-        <Typography 
-          variant="body2" 
-          color="text.secondary" 
-          numberOfLines={2} 
-          mb="md"
-          minHeight={36}
+        <Box
+          p="md"
+          mb="sm"
+          rounded="md"
+          borderWidth={1}
+          bg="surface"
+          borderColor="border.medium"
         >
-          {item.description}
-        </Typography>
-        <Box flexDir="row" justify="space-between" align="center">
-          <Typography variant="caption" color="text.secondary">
-            {new Date(item.createdAt).toLocaleDateString()}
-          </Typography>
-          <Box px="sm" py="xxs" rounded="sm" bg="text.secondary">
-            <Typography variant="caption" weight="semibold" color="background">
-              활성
+          <Box flexDir="row" justify="space-between" align="center" mb="sm">
+            <Typography
+              variant="body1"
+              weight="bold"
+              color="text.primary"
+              style={styles.itemTitle}
+              numberOfLines={1}
+            >
+              {item.title}
+            </Typography>
+            <Typography variant="caption" weight="bold" color="primary">
+              {item.category === "TICKET" ? "티켓" : "굿즈"}
             </Typography>
           </Box>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            numberOfLines={2}
+            mb="md"
+            minHeight={36}
+          >
+            {item.description}
+          </Typography>
+          <Box flexDir="row" justify="space-between" align="center">
+            <Typography variant="caption" color="text.secondary">
+              {new Date(item.createdAt).toLocaleDateString()}
+            </Typography>
+            <Box px="sm" py="xxs" rounded="sm" bg="text.secondary">
+              <Typography
+                variant="caption"
+                weight="semibold"
+                color="background"
+              >
+                활성
+              </Typography>
+            </Box>
+          </Box>
         </Box>
-      </Box>
-    </TouchableOpacity>
-  ), [router]);
+      </TouchableOpacity>
+    ),
+    [router],
+  );
 
   return (
     <SafeLayout style={styles.container}>
       {/* 헤더 바 */}
-      <Box 
-        flexDir="row" 
-        align="center" 
-        justify="center" 
-        py="md" 
-        px="SCREEN" 
-        borderBottomWidth={1} 
+      <Box
+        flexDir="row"
+        align="center"
+        justify="center"
+        py="md"
+        px="SCREEN"
+        borderBottomWidth={1}
         borderColor="border.medium"
       >
         <Typography variant="h3" weight="bold" color="text.primary">
@@ -112,7 +122,9 @@ export default function MyItemsScreen() {
         </Box>
       ) : myItems.length === 0 ? (
         <Box flex={1} justify="center" align="center">
-          <Typography color="text.secondary">현재 활성화된 등록 물건이 없습니다.</Typography>
+          <Typography color="text.secondary">
+            현재 활성화된 등록 물건이 없습니다.
+          </Typography>
         </Box>
       ) : (
         <List

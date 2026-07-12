@@ -2,9 +2,9 @@
 import { useAuth } from "@/context/AuthContext";
 import { fetchMatchLineup } from "@/src/features/liveboard/api";
 import { LineupRowDto } from "@/src/features/liveboard/types";
+import { matchKeys } from "@/src/features/match";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { matchKeys } from "@/src/features/match";
 
 type FetchState = "LOADING" | "SUCCESS" | "ERROR";
 type ActiveTeam = "HOME" | "AWAY";
@@ -35,11 +35,7 @@ export function useLineupPanel(
 
   const [activeTeam, setActiveTeam] = useState<ActiveTeam>("HOME");
 
-  const {
-    data,
-    status,
-    refetch,
-  } = useQuery({
+  const { data, status, refetch } = useQuery({
     queryKey: matchKeys.liveboard.lineup(matchId),
     queryFn: () => fetchMatchLineup(matchId),
     enabled: isLoggedIn && !!matchId,

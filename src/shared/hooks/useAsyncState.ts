@@ -1,5 +1,5 @@
 import { AsyncState, RequestResult } from "@/src/shared/types/common";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * 비동기 상태 관리 훅
@@ -21,7 +21,9 @@ export function useAsyncState<T>(
 
   // [RC-1] 최신 status를 deps 없이 참조하기 위한 ref
   const statusRef = useRef(state.status);
-  statusRef.current = state.status;
+  useEffect(() => {
+    statusRef.current = state.status;
+  }, [state.status]);
 
   // [RC-1] 실행 토큰 — 새 Promise가 올 때마다 증가.
   // 완료 시점에 토큰이 현재와 다르면 더 최신 요청이 있으므로 결과를 버린다.
@@ -53,16 +55,21 @@ export function useAsyncState<T>(
 
       const errorMessage =
         error instanceof Error ? error.message : "알 수 없는 오류";
-      setState({ status: "error", data: null, error: errorMessage, rawError: error });
+      setState({
+        status: "error",
+        data: null,
+        error: errorMessage,
+        rawError: error,
+      });
     }
-  // [EB-2] deps: [] — 함수 참조를 고정하여 연쇄 리렌더 방지
+    // [EB-2] deps: [] — 함수 참조를 고정하여 연쇄 리렌더 방지
   }, []);
 
   const reset = useCallback(() => {
     // reset 시 토큰도 증가 → 진행 중이던 요청 결과를 버림 (탭 전환 방어)
     executionIdRef.current += 1;
     setState({ status: "idle", data: initialData, error: null });
-  // initialData는 훅 선언 시 1회만 평가되므로 deps 유지
+    // initialData는 훅 선언 시 1회만 평가되므로 deps 유지
   }, [initialData]);
 
   return [state, execute, reset];

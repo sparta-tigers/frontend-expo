@@ -1,7 +1,6 @@
-import { theme } from "@/src/styles/theme";
-import React from "react";
-import { View, ViewProps, ViewStyle } from "react-native";
 import { ThemeColorPath, getThemeColorByPath } from "@/src/shared/types/theme";
+import { theme } from "@/src/styles/theme";
+import { View, ViewProps, ViewStyle } from "react-native";
 
 /**
  * Box 컴포넌트의 커스텀 Props
@@ -87,7 +86,7 @@ export interface BoxProps extends ViewProps, BoxCustomProps {}
 
 /**
  * 디자인 시스템의 최소 단위 컨테이너 컴포넌트
- * 
+ *
  * Why: 일관된 간격(Spacing)과 반경(Radius)을 유지하기 위해 직접 숫자를 쓰지 않고
  * 테마 토큰을 Props로 강제함. ViewProps를 상속받아 확장성을 보장함.
  */
@@ -147,7 +146,7 @@ export const Box = ({
 
   // 🚨 앙드레 카파시: exactOptionalPropertyTypes 대응을 위해 정의된 값만 스타일에 포함
   const boxStyle: ViewStyle = {};
-  
+
   if (p !== undefined) boxStyle.padding = getSpacing(p);
   if (px !== undefined) boxStyle.paddingHorizontal = getSpacing(px);
   if (py !== undefined) boxStyle.paddingVertical = getSpacing(py);
@@ -155,7 +154,7 @@ export const Box = ({
   if (pb !== undefined) boxStyle.paddingBottom = getSpacing(pb);
   if (pl !== undefined) boxStyle.paddingLeft = getSpacing(pl);
   if (pr !== undefined) boxStyle.paddingRight = getSpacing(pr);
-  
+
   if (m !== undefined) boxStyle.margin = getSpacing(m);
   if (mx !== undefined) boxStyle.marginHorizontal = getSpacing(mx);
   if (my !== undefined) boxStyle.marginVertical = getSpacing(my);
@@ -167,7 +166,7 @@ export const Box = ({
   if (bg !== undefined) {
     boxStyle.backgroundColor = getThemeColorByPath(bg);
   }
-  
+
   if (flex !== undefined) boxStyle.flex = flex;
   if (flexDir !== undefined) boxStyle.flexDirection = flexDir;
   if (flexWrap !== undefined) boxStyle.flexWrap = flexWrap;
@@ -178,7 +177,7 @@ export const Box = ({
   if (height !== undefined) boxStyle.height = height;
   if (minHeight !== undefined) boxStyle.minHeight = minHeight;
   if (gap !== undefined) boxStyle.gap = getSpacing(gap);
-  
+
   if (rounded !== undefined) boxStyle.borderRadius = getRadius(rounded);
   if (roundedTop !== undefined) {
     boxStyle.borderTopLeftRadius = getRadius(roundedTop);
@@ -188,18 +187,20 @@ export const Box = ({
     boxStyle.borderBottomLeftRadius = getRadius(roundedBottom);
     boxStyle.borderBottomRightRadius = getRadius(roundedBottom);
   }
-  
+
   if (position !== undefined) boxStyle.position = position;
   if (top !== undefined) boxStyle.top = top;
   if (bottom !== undefined) boxStyle.bottom = bottom;
   if (left !== undefined) boxStyle.left = left;
   if (right !== undefined) boxStyle.right = right;
-  
+
   if (borderWidth !== undefined) boxStyle.borderWidth = borderWidth;
   if (borderTopWidth !== undefined) boxStyle.borderTopWidth = borderTopWidth;
-  if (borderBottomWidth !== undefined) boxStyle.borderBottomWidth = borderBottomWidth;
+  if (borderBottomWidth !== undefined)
+    boxStyle.borderBottomWidth = borderBottomWidth;
   if (borderLeftWidth !== undefined) boxStyle.borderLeftWidth = borderLeftWidth;
-  if (borderRightWidth !== undefined) boxStyle.borderRightWidth = borderRightWidth;
+  if (borderRightWidth !== undefined)
+    boxStyle.borderRightWidth = borderRightWidth;
   if (borderColor !== undefined) {
     boxStyle.borderColor = getThemeColorByPath(borderColor);
   }

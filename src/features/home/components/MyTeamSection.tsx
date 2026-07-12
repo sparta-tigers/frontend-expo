@@ -3,7 +3,7 @@ import { ThemeColorPath, getTeamColorPath } from "@/src/shared/types/theme";
 import { theme } from "@/src/styles/theme";
 import { TeamMeta } from "@/src/utils/team";
 import { MaterialIcons } from "@expo/vector-icons";
-import React, { memo } from "react";
+import { memo } from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 
 // ========================================================

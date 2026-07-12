@@ -1,14 +1,21 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { Alert } from "react-native";
-import { useQueryClient } from "@tanstack/react-query";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Notifications from "expo-notifications";
+import { useQueryClient } from "@tanstack/react-query";
 import * as Device from "expo-device";
+import * as Notifications from "expo-notifications";
+import {
+  ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { Alert } from "react-native";
 
 import {
-    authSigninAPI,
-    authSignoutAPI,
-    authSignupAPI, fcmTokenCreateAPI,
+  authSigninAPI,
+  authSignoutAPI,
+  authSignupAPI,
+  fcmTokenCreateAPI,
 } from "@/src/features/auth/api";
 import {
   AuthSigninRequest,
@@ -28,7 +35,7 @@ import {
   setTokens,
 } from "@/src/utils/tokenStore";
 
-const authLogger = Logger.category('AUTH');
+const authLogger = Logger.category("AUTH");
 
 const getMyTeamKey = (userId?: number) =>
   userId ? `yaguniv_my_team_${userId}` : "yaguniv_my_team_guest";
@@ -133,12 +140,13 @@ export const useAuth = () => {
 
 /**
  * 백엔드 팀 코드(HT)를 프론트엔드 팀 코드(KIA)로 변환하기 위한 역매핑 맵
- * 
+ *
  * Why: 매번 Object.entries를 순회하며 찾는 비용을 절감하기 위해 모듈 스코프에 한 번만 생성하여 O(1) 조회를 보장한다.
  */
-const BACKEND_TO_FRONTEND_TEAM_CODE: Record<string, string> = Object.fromEntries(
-  Object.entries(TEAM_DATA).map(([fe, data]) => [data.backendCode, fe])
-);
+const BACKEND_TO_FRONTEND_TEAM_CODE: Record<string, string> =
+  Object.fromEntries(
+    Object.entries(TEAM_DATA).map(([fe, data]) => [data.backendCode, fe]),
+  );
 
 /**
  * AuthProvider 컴포넌트
@@ -191,39 +199,57 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           };
 
           setUser(tokenPayload);
-          
+
           // 🚨 [Data Sync] 1. 백엔드에서 응원팀 정보 우선 조회
           try {
             const teamRes = await favoriteTeamGetAPI();
             if (teamRes.resultType === "SUCCESS" && teamRes.data) {
               const backendTeamCode = teamRes.data.teamCode;
               // 백엔드 코드(HT) -> 프론트엔드 코드(KIA) 역매핑 찾기
-              const frontendTeamCode = BACKEND_TO_FRONTEND_TEAM_CODE[backendTeamCode];
-              
+              const frontendTeamCode =
+                BACKEND_TO_FRONTEND_TEAM_CODE[backendTeamCode];
+
               if (frontendTeamCode) {
                 setMyTeam(frontendTeamCode);
                 setMyTeamId(teamRes.data.teamId);
-                await AsyncStorage.setItem(getMyTeamKey(tokenPayload.userId), frontendTeamCode);
+                await AsyncStorage.setItem(
+                  getMyTeamKey(tokenPayload.userId),
+                  frontendTeamCode,
+                );
               }
             } else {
               // 백엔드에 없으면 로컬 스토리지 확인
-              const savedTeam = await AsyncStorage.getItem(getMyTeamKey(tokenPayload.userId));
+              const savedTeam = await AsyncStorage.getItem(
+                getMyTeamKey(tokenPayload.userId),
+              );
               if (savedTeam) {
                 setMyTeam(savedTeam);
                 // 🚨 [Data Sync] 백엔드에 자동 등록 시도
-                const backendCode = isValidTeamCode(savedTeam) ? TEAM_DATA[savedTeam]?.backendCode : null;
+                const backendCode = isValidTeamCode(savedTeam)
+                  ? TEAM_DATA[savedTeam]?.backendCode
+                  : null;
                 if (backendCode) {
-                  const addRes = await favoriteTeamAddAPI({ teamCode: backendCode });
+                  const addRes = await favoriteTeamAddAPI({
+                    teamCode: backendCode,
+                  });
                   if (addRes.resultType !== "SUCCESS") {
-                    Logger.warn("[AuthContext] 백엔드 자동 등록 실패:", addRes.error?.message);
+                    Logger.warn(
+                      "[AuthContext] 백엔드 자동 등록 실패:",
+                      addRes.error?.message,
+                    );
                   }
                 }
               }
             }
           } catch (error) {
-            Logger.warn("[AuthContext] 응원팀 동기화 중 오류 발생 (로컬 폴백 진행):", error);
+            Logger.warn(
+              "[AuthContext] 응원팀 동기화 중 오류 발생 (로컬 폴백 진행):",
+              error,
+            );
             // API 실패 시 로컬 스토리지로 폴백
-            const savedTeam = await AsyncStorage.getItem(getMyTeamKey(tokenPayload.userId));
+            const savedTeam = await AsyncStorage.getItem(
+              getMyTeamKey(tokenPayload.userId),
+            );
             if (savedTeam) {
               setMyTeam(savedTeam);
             }
@@ -299,13 +325,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         }
 
         try {
-            const fcmToken = await getFcmToken();
+          const fcmToken = await getFcmToken();
 
-            if (fcmToken) {
-                await fcmTokenCreateAPI({fcmToken});
-            }
+          if (fcmToken) {
+            await fcmTokenCreateAPI({ fcmToken });
+          }
         } catch (error) {
-            Logger.warn("FCM 토큰 저장 실패: ", error);
+          Logger.warn("FCM 토큰 저장 실패: ", error);
         }
 
         // 디버깅 로그: 토큰 저장 상태 확인
@@ -412,10 +438,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   /**
    * 응원팀 업데이트 함수
-   * 
+   *
    * Why: 백엔드 동기화 성공 후 UI 상태를 갱신하는 서버 우선(Pessimistic) 방식을 채택한다.
    * 실패 시 이전 팀 상태를 유지하여 데이터 정합성을 보장한다.
-   * 
+   *
    * @param teamName - 변경할 팀 명칭
    */
   const updateMyTeam = async (teamName: string): Promise<void> => {
@@ -423,9 +449,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     try {
       // 1. 로그인 상태라면 백엔드와 동기화 시도
       if (isLoggedIn && user?.userId) {
-        const backendCode = isValidTeamCode(teamName) ? TEAM_DATA[teamName]?.backendCode : null;
+        const backendCode = isValidTeamCode(teamName)
+          ? TEAM_DATA[teamName]?.backendCode
+          : null;
         if (!backendCode) {
-          Logger.warn(`[AuthContext] backendCode 누락 - 동기화 스킵: ${teamName}`);
+          Logger.warn(
+            `[AuthContext] backendCode 누락 - 동기화 스킵: ${teamName}`,
+          );
         } else {
           let teamExists = false;
           try {
@@ -434,55 +464,72 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           } catch {
             teamExists = false;
           }
-          
+
           if (teamExists) {
-            const updateRes = await favoriteTeamUpdateAPI({ teamCode: backendCode });
+            const updateRes = await favoriteTeamUpdateAPI({
+              teamCode: backendCode,
+            });
             if (updateRes.resultType !== "SUCCESS") {
-              throw new Error(updateRes.error?.message ?? "응원팀 정보를 업데이트하지 못했습니다.");
+              throw new Error(
+                updateRes.error?.message ??
+                  "응원팀 정보를 업데이트하지 못했습니다.",
+              );
             }
           } else {
             const addRes = await favoriteTeamAddAPI({ teamCode: backendCode });
             if (addRes.resultType !== "SUCCESS") {
-              throw new Error(addRes.error?.message ?? "응원팀을 등록하지 못했습니다.");
+              throw new Error(
+                addRes.error?.message ?? "응원팀을 등록하지 못했습니다.",
+              );
             }
           }
-          
+
           // 🚨 [ID Sync] 최신 teamId 확보 (단일 출처 유지를 위해 재조회 수행)
           const teamRes = await favoriteTeamGetAPI();
           if (teamRes.resultType === "SUCCESS" && teamRes.data) {
             setMyTeamId(teamRes.data.teamId);
           } else {
-            throw new Error(teamRes.error?.message ?? "최신 팀 정보를 불러오는데 실패했습니다.");
+            throw new Error(
+              teamRes.error?.message ??
+                "최신 팀 정보를 불러오는데 실패했습니다.",
+            );
           }
         }
       }
 
       // 🚨 [State Sync] 백엔드 호출 성공 후 상태 업데이트 및 쿼리 무효화
-      // Why: 상태 업데이트가 먼저 일어나야 HomeScreen에서 구독 중인 myTeamId가 변경되고, 
+      // Why: 상태 업데이트가 먼저 일어나야 HomeScreen에서 구독 중인 myTeamId가 변경되고,
       // 그에 따라 리액트 쿼리가 새로운 teamId를 포함한 키로 패칭을 시작하는 자연스러운 흐름이 완성됨.
-      
+
       // 2. UI 및 로컬 스토리지 업데이트
       setMyTeam(teamName);
       await AsyncStorage.setItem(getMyTeamKey(user?.userId), teamName);
-      
+
       // 3. 쿼리 무효화 (안전장치)
-      await queryClient.invalidateQueries({ queryKey: ["matches", "schedule"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["matches", "schedule"],
+      });
       await queryClient.invalidateQueries({ queryKey: ["home", "dashboard"] });
 
       if (__DEV__) {
-        authLogger.debug(`✅ [AuthContext] 응원팀 변경 및 데이터 동기화 완료: ${teamName}`);
+        authLogger.debug(
+          `✅ [AuthContext] 응원팀 변경 및 데이터 동기화 완료: ${teamName}`,
+        );
       }
     } catch (error) {
       Logger.error("[AuthContext] 응원팀 변경 실패:", error);
       setMyTeam(previousTeam);
-      Alert.alert("알림", "팀 정보를 저장하는 중 오류가 발생했습니다. 다시 시도해주세요.");
+      Alert.alert(
+        "알림",
+        "팀 정보를 저장하는 중 오류가 발생했습니다. 다시 시도해주세요.",
+      );
     }
   };
-  
+
   /**
    * 사용자 정보 부분 업데이트 함수
    * 닉네임 등 변경된 정보만 유저 상태에 병합 (토큰 등 기존 정보 보호)
-   * 
+   *
    * @param partialUser - 업데이트할 사용자 정보 조각
    */
   const updateUser = (partialUser: Partial<SimpleToken>): void => {
@@ -493,44 +540,53 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         ...partialUser,
       };
     });
-    
+
     if (__DEV__) {
-      authLogger.debug("✅ [AuthContext] 사용자 정보 부분 업데이트 완료", partialUser);
+      authLogger.debug(
+        "✅ [AuthContext] 사용자 정보 부분 업데이트 완료",
+        partialUser,
+      );
     }
   };
 
-    const getFcmToken = async (): Promise<string | null> => {
-        if (!Device.isDevice) {
-            Logger.warn("FCM 토큰은 실제 기기에서만 발급됩니다.");
-            return null;
-        }
+  const getFcmToken = async (): Promise<string | null> => {
+    if (!Device.isDevice) {
+      Logger.warn("FCM 토큰은 실제 기기에서만 발급됩니다.");
+      return null;
+    }
 
-        const { status: existingStatus } = await Notifications.getPermissionsAsync();
-        let finalStatus = existingStatus;
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
 
-        if (existingStatus !== "granted") {
-            const { status } = await Notifications.requestPermissionsAsync();
-            finalStatus = status;
-        }
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
 
-        if (finalStatus !== "granted") {
-            Logger.warn("푸시 알림 권한이 거부되었습니다.");
-            return null;
-        }
+    if (finalStatus !== "granted") {
+      Logger.warn("푸시 알림 권한이 거부되었습니다.");
+      return null;
+    }
 
-        const token = await Notifications.getDevicePushTokenAsync();
+    const token = await Notifications.getDevicePushTokenAsync();
 
-        if (token.type !== "android") {
-            Logger.warn("FCM 토큰 등록은 Android 디바이스에서만 수행됩니다.");
-            return null;
-        }
+    if (token.type !== "android") {
+      Logger.warn("FCM 토큰 등록은 Android 디바이스에서만 수행됩니다.");
+      return null;
+    }
 
-        return token.data;
-    };
+    return token.data;
+  };
 
   // 컴포넌트 마운트 시 토큰 로드
   useEffect(() => {
-    loadToken().catch((err) => authLogger.error("[Auth] loadToken failed", err));
+    const timerId = setTimeout(() => {
+      loadToken().catch((err) =>
+        authLogger.error("[Auth] loadToken failed", err),
+      );
+    }, 0);
+    return () => clearTimeout(timerId);
   }, []);
 
   const contextValue: AuthContextType = {

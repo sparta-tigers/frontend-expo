@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-import * as Location from "expo-location";
 import { useLocationStore } from "@/src/store/useLocationStore";
 import { Logger } from "@/src/utils/logger";
+import * as Location from "expo-location";
+import { useEffect, useState } from "react";
 
-const mapLogger = Logger.category('MAP');
+const mapLogger = Logger.category("MAP");
 
 export const useLocationTracker = () => {
   const { setUserLocation, setPermissionGranted } = useLocationStore();
@@ -41,14 +41,14 @@ export const useLocationTracker = () => {
               distanceInterval: 10, // 10미터 이동 시 갱신
               timeInterval: 5000, // 최소 5초 간격
             },
-          (location) => {
-            setUserLocation({
-              latitude: location.coords.latitude,
-              longitude: location.coords.longitude,
-            });
-            // 고빈도 로그이므로 릴리즈/일반 상황에서는 소거
-          }
-        );
+            (location) => {
+              setUserLocation({
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+              });
+              // 고빈도 로그이므로 릴리즈/일반 상황에서는 소거
+            },
+          );
         }
 
         // [ML-2] 구독 완료 직후에 이미 언마운트된 경우 (Race Condition 방어)

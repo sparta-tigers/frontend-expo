@@ -1,14 +1,13 @@
 import { SafeLayout } from "@/components/ui";
-import { LineupSection } from "@/src/shared/components/match/LineupSection";
 import { MyTeamSection } from "@/src/features/home/components/MyTeamSection";
+import { RankingSkeleton } from "@/src/features/home/components/RankingSkeleton";
 import { RankingSummarySection } from "@/src/features/home/components/RankingSummarySection";
 import { ScheduleSection } from "@/src/features/home/components/ScheduleSection";
-import { commonStyles as styles } from "@/src/features/home/components/common.styles";
-import React from "react";
-import { ScrollView } from "react-native";
 import { ScheduleSkeleton } from "@/src/features/home/components/ScheduleSkeleton";
-import { RankingSkeleton } from "@/src/features/home/components/RankingSkeleton";
+import { commonStyles as styles } from "@/src/features/home/components/common.styles";
 import { useHomeDashboard } from "@/src/features/home/hooks/useHomeDashboard";
+import { LineupSection } from "@/src/shared/components/match/LineupSection";
+import { ScrollView } from "react-native";
 
 /**
  * 홈 화면 (`main_0`)
@@ -17,14 +16,7 @@ import { useHomeDashboard } from "@/src/features/home/hooks/useHomeDashboard";
  * 여기서는 선언적인 섹션 렌더링과 레이아웃 구성에만 집중한다.
  */
 export default function HomeScreen() {
-  const {
-    user,
-    stats,
-    content,
-    status,
-    today,
-    handlers,
-  } = useHomeDashboard();
+  const { user, stats, content, status, today, handlers } = useHomeDashboard();
 
   return (
     <SafeLayout style={styles.safeLayout} edges={["top", "left", "right"]}>
@@ -46,9 +38,9 @@ export default function HomeScreen() {
         {status.isRankingLoading ? (
           <RankingSkeleton />
         ) : (
-          <RankingSummarySection 
-            ranking={content.ranking} 
-            myTeamCode={user.myTeamId} 
+          <RankingSummarySection
+            ranking={content.ranking}
+            myTeamCode={user.myTeamId}
           />
         )}
 
@@ -57,11 +49,16 @@ export default function HomeScreen() {
         {status.isScheduleLoading ? (
           <ScheduleSkeleton />
         ) : status.isScheduleError ? (
-          <ScheduleSection schedule={[]} year={today.year} month={today.month} isError={true} />
+          <ScheduleSection
+            schedule={[]}
+            year={today.year}
+            month={today.month}
+            isError={true}
+          />
         ) : (
-          <ScheduleSection 
-            schedule={content.schedule} 
-            year={today.year} 
+          <ScheduleSection
+            schedule={content.schedule}
+            year={today.year}
             month={today.month}
             today={today}
             attendanceMatchIds={content.attendanceMatchIds}

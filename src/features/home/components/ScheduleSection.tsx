@@ -1,12 +1,12 @@
 import { Box, Typography } from "@/components/ui";
 import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
-import { theme } from "@/src/styles/theme";
+import { MatchSummary } from "@/src/shared/types/match";
 import { getTeamColorPath } from "@/src/shared/types/theme";
+import { theme } from "@/src/styles/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
-import { MatchSummary } from "@/src/shared/types/match";
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -43,7 +43,14 @@ export const ScheduleSection = React.memo(function ScheduleSection({
   attendanceMatchIds, // 🚨 추가
   isError,
 }: ScheduleSectionProps) {
-  const days = useCalendarGrid(year, month, schedule, today, undefined, attendanceMatchIds);
+  const days = useCalendarGrid(
+    year,
+    month,
+    schedule,
+    today,
+    undefined,
+    attendanceMatchIds,
+  );
 
   return (
     <Box mt="xxxxl" pb="xxl" px="SCREEN_DASHBOARD">
@@ -60,18 +67,20 @@ export const ScheduleSection = React.memo(function ScheduleSection({
 
       <Box width={LOCAL_LAYOUT.wrapWidth} alignSelf="center">
         {isError ? (
-          <Box 
-            height={LOCAL_LAYOUT.headerHeight + (LOCAL_LAYOUT.cellHeight * 5)} 
-            bg="card" 
-            rounded="calendar" 
-            align="center" 
+          <Box
+            height={LOCAL_LAYOUT.headerHeight + LOCAL_LAYOUT.cellHeight * 5}
+            bg="card"
+            rounded="calendar"
+            align="center"
             justify="center"
             borderWidth={LOCAL_LAYOUT.borderWidth}
             borderColor="team.neutralLight"
             accessibilityRole="alert"
             accessibilityLabel="일정 데이터를 불러오지 못했습니다"
           >
-            <Typography variant="caption" color="brand.subtitle" mb="md">일정 데이터를 불러오지 못했습니다.</Typography>
+            <Typography variant="caption" color="brand.subtitle" mb="md">
+              일정 데이터를 불러오지 못했습니다.
+            </Typography>
           </Box>
         ) : (
           <>
@@ -147,13 +156,19 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                         >
                           {cell.hasAttendance && (
                             <Box style={styles.attendanceStamp}>
-                              <Ionicons name="checkmark-done-circle" size={32} color={theme.colors.brand.mintAlpha10} />
+                              <Ionicons
+                                name="checkmark-done-circle"
+                                size={32}
+                                color={theme.colors.brand.mintAlpha10}
+                              />
                             </Box>
                           )}
                           <Typography
                             variant="caption"
                             weight={cell.isToday ? "bold" : "medium"}
-                            color={cell.isToday ? "brand.mint" : "brand.subtitle"}
+                            color={
+                              cell.isToday ? "brand.mint" : "brand.subtitle"
+                            }
                           >
                             {cell.day}
                           </Typography>

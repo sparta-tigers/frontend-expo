@@ -1,16 +1,16 @@
-import React from "react";
-import { StyleSheet, Animated } from "react-native";
 import { Box } from "@/components/ui";
 import { theme } from "@/src/styles/theme";
+import React from "react";
+import { Animated, StyleSheet } from "react-native";
 
 /**
  * 순위 요약 섹션 스켈레톤 UI
- * 
- * Why: 데이터 로딩 시 ActivityIndicator 대신 실제 UI와 동일한 레이아웃을 미리 보여주어 
+ *
+ * Why: 데이터 로딩 시 ActivityIndicator 대신 실제 UI와 동일한 레이아웃을 미리 보여주어
  * 레이아웃 시프트(Layout Shift)를 방지하고 시각적 연속성을 제공함.
  */
 export const RankingSkeleton = () => {
-  const animatedValue = React.useRef(new Animated.Value(0.3)).current;
+  const [animatedValue] = React.useState(() => new Animated.Value(0.3));
 
   React.useEffect(() => {
     const animation = Animated.loop(
@@ -25,11 +25,11 @@ export const RankingSkeleton = () => {
           duration: 1000,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     );
-    
+
     animation.start();
-    
+
     return () => animation.stop();
   }, [animatedValue]);
 
@@ -37,7 +37,9 @@ export const RankingSkeleton = () => {
     <Box mt="xxxxl" px="xxxl">
       {/* Title Skeleton */}
       <Box align="center" mb="md">
-        <Animated.View style={[styles.titleSkeleton, { opacity: animatedValue }]} />
+        <Animated.View
+          style={[styles.titleSkeleton, { opacity: animatedValue }]}
+        />
       </Box>
 
       {/* Row Skeletons */}
@@ -45,14 +47,16 @@ export const RankingSkeleton = () => {
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <Box key={i} flexDir="row" align="center" gap="sm">
             <Box width={theme.spacing.xxl} align="center">
-               <Animated.View style={[styles.rankSkeleton, { opacity: animatedValue }]} />
+              <Animated.View
+                style={[styles.rankSkeleton, { opacity: animatedValue }]}
+              />
             </Box>
-            <Animated.View 
+            <Animated.View
               style={[
-                styles.pillSkeleton, 
+                styles.pillSkeleton,
                 { opacity: animatedValue },
-                i === 4 && styles.myTeamHighlight // 4번째를 가상의 내 팀으로 표시하여 레이아웃 유지
-              ]} 
+                i === 4 && styles.myTeamHighlight, // 4번째를 가상의 내 팀으로 표시하여 레이아웃 유지
+              ]}
             />
           </Box>
         ))}

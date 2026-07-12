@@ -14,7 +14,7 @@ interface SectionProps extends ViewProps {
 
 /**
  * 표준 섹션 레이아웃 컴포넌트
- * 
+ *
  * Why: 화면 내의 논리적 구분을 일관된 스타일(제목 폰트, 여백 등)로 처리하기 위해 정의함.
  */
 export const Section = ({
@@ -28,10 +28,10 @@ export const Section = ({
   return (
     <Box m="SCREEN" style={style} {...rest}>
       {title && (
-        <Box 
-          flexDir="row" 
-          align="center" 
-          justify="space-between" 
+        <Box
+          flexDir="row"
+          align="center"
+          justify="space-between"
           mb={hasTitleMargin ? "md" : undefined}
         >
           <Typography variant="h2">{title}</Typography>

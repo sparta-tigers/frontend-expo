@@ -1,26 +1,32 @@
-import { useState, useMemo, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { BroadcastItem } from "../types";
 
 /**
  * useTextBroadcast Hook
- * 
+ *
  * Why: 텍스트 중계의 이닝 필터링 및 초기 이닝 결정 로직을 뷰에서 분리.
  * 결정론적(Deterministic) 초기 상태 설정을 통해 UX 깜빡임을 방지함.
  */
-export const useTextBroadcast = (inningTexts?: { [inning: number]: BroadcastItem[] }) => {
+export const useTextBroadcast = (inningTexts?: {
+  [inning: number]: BroadcastItem[];
+}) => {
   // 1. [Deterministic] 데이터가 있는 가장 높은 이닝을 초기값으로 설정
   const initialInning = useMemo(() => {
     if (!inningTexts) return 1;
-    const innings = Object.keys(inningTexts).map(Number).filter(n => inningTexts[n].length > 0);
+    const innings = Object.keys(inningTexts)
+      .map(Number)
+      .filter((n) => inningTexts[n].length > 0);
     return innings.length > 0 ? Math.max(...innings) : 1;
   }, [inningTexts]);
 
   const [activeInning, setActiveInning] = useState<number>(initialInning);
 
   // initialInning 변경 시 (비동기 데이터 로드 완료 등) 상태 동기화
-  useEffect(() => {
+  const [prevInitialInning, setPrevInitialInning] = useState(initialInning);
+  if (initialInning !== prevInitialInning) {
+    setPrevInitialInning(initialInning);
     setActiveInning(initialInning);
-  }, [initialInning]);
+  }
 
   // 2. 가용한 이닝 리스트 (칩 표시용)
   const availableInnings = useMemo(() => {

@@ -18,7 +18,7 @@ import { Image } from "expo-image";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -69,13 +69,17 @@ export default function AttendanceFormScreen() {
    * Why: matchId 단건 조회 결과(attendance)가 존재하면 수정 모드로 동작함.
    * 100건 제한 목록에 의존하지 않아 데이터 누락 위험이 없음.
    */
-  useEffect(() => {
+  const [prevAttendance, setPrevAttendance] = useState(attendance);
+  if (attendance !== prevAttendance) {
+    setPrevAttendance(attendance);
     if (attendance) {
       setExistingId(attendance.id);
       setContents(attendance.contents || "");
       setSeat(attendance.seat || "");
       // 🛡️ [Senior Architect] images 필드 유무 및 타입 체크 강화
-      const safeImages = Array.isArray(attendance.images) ? attendance.images : [];
+      const safeImages = Array.isArray(attendance.images)
+        ? attendance.images
+        : [];
       setImages(safeImages.map((img) => img.imageUrl));
     } else {
       // 🎯 [Phase 36] 결정론적 상태 리셋: 데이터 부재 시(기록 없음 등) 폼 초기화
@@ -84,7 +88,7 @@ export default function AttendanceFormScreen() {
       setSeat("");
       setImages([]);
     }
-  }, [attendance]);
+  }
 
   if (isAttendanceLoading) {
     return (

@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/src/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
 import { checkHasActiveItemAPI } from "./api";
 
 /**

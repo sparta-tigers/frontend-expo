@@ -1,10 +1,13 @@
 import { CombinedProvider } from "@/components/providers/combined-provider";
-import { Logger } from "@/src/utils/logger";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/hooks/useTheme";
 import { ErrorBoundaryFallback } from "@/src/components/shared/ErrorBoundaryFallback";
 import { OfflineBanner } from "@/src/components/shared/OfflineBanner";
+import { Logger } from "@/src/utils/logger";
 
+import { Box, Typography } from "@/components/ui";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { theme } from "@/src/styles/theme";
 import { useNetInfo } from "@react-native-community/netinfo";
 import * as Notifications from "expo-notifications";
 import { Href, router, Stack, useSegments } from "expo-router";
@@ -13,12 +16,9 @@ import { ErrorBoundary } from "react-error-boundary";
 import { ActivityIndicator, StyleSheet, TouchableOpacity } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { theme } from "@/src/styles/theme";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import { Box, Typography } from "@/components/ui";
 
+import { useNotificationListeners } from "@/src/hooks/useNotificationListeners";
 import Constants, { AppOwnership } from "expo-constants";
-import {useNotificationListeners} from "@/src/hooks/useNotificationListeners";
 
 /**
  * 푸시 알림 핸들러 설정 (모듈 스코프)
@@ -35,7 +35,10 @@ if (Constants.appOwnership !== AppOwnership.Expo) {
       }),
     });
   } catch (e) {
-    Logger.category('SYSTEM').warn("Notifications are not supported in this environment", e);
+    Logger.category("SYSTEM").warn(
+      "Notifications are not supported in this environment",
+      e,
+    );
   }
 }
 
@@ -44,7 +47,7 @@ if (Constants.appOwnership !== AppOwnership.Expo) {
  * 전체 앱의 진입점
  */
 export default function RootLayout() {
-    useNotificationListeners();
+  useNotificationListeners();
   return (
     <GestureHandlerRootView style={styles.gestureContainer}>
       <CombinedProvider>
@@ -67,7 +70,6 @@ function RootLayoutInner() {
   const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const inAuthGroup = segments[0] === "(auth)";
-
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -127,54 +129,56 @@ function RootLayoutInner() {
           {!netInfo.isConnected && <OfflineBanner />}
 
           {/* 1. 고정 헤더 (전역) */}
-          {!inAuthGroup && segments[0] !== "schedule" && segments[1] !== "create" && (
-            <Box 
-              flexDir="row" 
-              align="center" 
-              justify="space-between" 
-              px="xl" 
-              py="lg"
-            >
-              <Box width={48} align="flex-start">
-                {router.canGoBack() && (
-                  <TouchableOpacity 
-                    activeOpacity={0.7} 
+          {!inAuthGroup &&
+            segments[0] !== "schedule" &&
+            segments[1] !== "create" && (
+              <Box
+                flexDir="row"
+                align="center"
+                justify="space-between"
+                px="xl"
+                py="lg"
+              >
+                <Box width={48} align="flex-start">
+                  {router.canGoBack() && (
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      style={styles.headerIconBtn}
+                      onPress={() => router.back()}
+                    >
+                      <IconSymbol
+                        size={theme.layout.header.backIconSize}
+                        name="chevron.left"
+                        color={theme.colors.team.neutralDark}
+                      />
+                    </TouchableOpacity>
+                  )}
+                </Box>
+
+                <Typography
+                  variant="h3"
+                  weight="black"
+                  color="brand.mint"
+                  style={styles.headerTitle}
+                >
+                  YAGUNIV
+                </Typography>
+
+                <Box width={48} align="flex-end">
+                  <TouchableOpacity
+                    activeOpacity={0.7}
                     style={styles.headerIconBtn}
-                    onPress={() => router.back()}
+                    onPress={() => router.push("/profile")}
                   >
                     <IconSymbol
-                      size={theme.layout.header.backIconSize}
-                      name="chevron.left"
+                      name="person.fill"
+                      size={theme.layout.header.profileIconSize}
                       color={theme.colors.team.neutralDark}
                     />
                   </TouchableOpacity>
-                )}
+                </Box>
               </Box>
-              
-              <Typography 
-                variant="h3" 
-                weight="black" 
-                color="brand.mint"
-                style={styles.headerTitle}
-              >
-                YAGUNIV
-              </Typography>
-              
-              <Box width={48} align="flex-end">
-                <TouchableOpacity 
-                  activeOpacity={0.7} 
-                  style={styles.headerIconBtn} 
-                  onPress={() => router.push("/profile")}
-                >
-                  <IconSymbol 
-                    name="person.fill" 
-                    size={theme.layout.header.profileIconSize} 
-                    color={theme.colors.team.neutralDark} 
-                  />
-                </TouchableOpacity>
-              </Box>
-            </Box>
-          )}
+            )}
 
           {/* 2. 하위 라우팅 화면 */}
           <Box flex={1} bg="background">

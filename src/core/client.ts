@@ -5,11 +5,11 @@ import {
   getRefreshToken,
   setTokens,
 } from "@/src/utils/tokenStore";
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
+import { AxiosError, AxiosInstance, AxiosRequestConfig, create as createAxios } from "axios";
 import { Platform } from "react-native";
 import { z } from "zod";
 
-const apiLogger = Logger.category('API');
+const apiLogger = Logger.category("API");
 
 /**
  * Mutex 상태 변수 (Race Condition 방지)
@@ -60,7 +60,7 @@ const getDynamicBaseURL = (): string => {
  * 순환 의존성 방지를 위한 bare axios 인스턴스
  * 토큰 갱신 요청에만 사용 (인터셉터 없음)
  */
-const bareAxios = axios.create({
+const bareAxios = createAxios({
   baseURL: getDynamicBaseURL(),
   timeout: 10000,
   headers: {
@@ -72,7 +72,7 @@ const bareAxios = axios.create({
  * 메인 axios 인스턴스
  * 토큰 자동 관리 및 갱신 로직 포함
  */
-export const axiosInstance: AxiosInstance = axios.create({
+export const axiosInstance: AxiosInstance = createAxios({
   baseURL: getDynamicBaseURL(),
   timeout: 10000,
   headers: {
@@ -163,7 +163,7 @@ axiosInstance.interceptors.request.use(
         if (!isTokenValid) {
           apiLogger.error(
             "비정상 형식의 토큰 (Invalid Token Format)",
-            maskSensitive(accessToken)
+            maskSensitive(accessToken),
           );
           // 토큰 형식이 비정상이면 요청 중단 및 토큰 클리어
           await clearTokens();
@@ -303,7 +303,7 @@ export const apiClient = {
         if (!result.success) {
           apiLogger.error(
             `데이터 검증 실패 (Zod Validation Failed) GET ${url}`,
-            result.error
+            result.error,
           );
           throw new Error(`Data validation failed for GET ${url}`);
         }
@@ -334,7 +334,7 @@ export const apiClient = {
         if (!result.success) {
           apiLogger.error(
             `데이터 검증 실패 (Zod Validation Failed) POST ${url}`,
-            result.error
+            result.error,
           );
           throw new Error(`Data validation failed for POST ${url}`);
         }
@@ -365,7 +365,7 @@ export const apiClient = {
         if (!result.success) {
           apiLogger.error(
             `데이터 검증 실패 (Zod Validation Failed) PUT ${url}`,
-            result.error
+            result.error,
           );
           throw new Error(`Data validation failed for PUT ${url}`);
         }
@@ -382,7 +382,10 @@ export const apiClient = {
   /**
    * DELETE 요청
    */
-  delete: async <T = unknown>(url: string, schema?: z.ZodType<T>): Promise<T> => {
+  delete: async <T = unknown>(
+    url: string,
+    schema?: z.ZodType<T>,
+  ): Promise<T> => {
     try {
       const response = await axiosInstance.delete(url);
       const responseData = response.data;
@@ -392,7 +395,7 @@ export const apiClient = {
         if (!result.success) {
           apiLogger.error(
             `데이터 검증 실패 (Zod Validation Failed) DELETE ${url}`,
-            result.error
+            result.error,
           );
           throw new Error(`Data validation failed for DELETE ${url}`);
         }
@@ -423,7 +426,7 @@ export const apiClient = {
         if (!result.success) {
           apiLogger.error(
             `데이터 검증 실패 (Zod Validation Failed) PATCH ${url}`,
-            result.error
+            result.error,
           );
           throw new Error(`Data validation failed for PATCH ${url}`);
         }

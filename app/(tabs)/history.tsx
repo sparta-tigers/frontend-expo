@@ -4,17 +4,16 @@ import { useInfiniteMyAttendances } from "@/src/features/match-attendance/querie
 import { MatchAttendance } from "@/src/features/match-attendance/types";
 import { useFavoriteTeam } from "@/src/features/user/queries";
 import { theme } from "@/src/styles/theme";
+import { Logger } from "@/src/utils/logger";
 import { calculateMatchResult } from "@/src/utils/match";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React from "react";
 import {
     ActivityIndicator,
     FlatList,
     StyleSheet,
     TouchableOpacity,
 } from "react-native";
-import { Logger } from "@/src/utils/logger";
 
 /**
  * 🚨 [Phase 24] 직관 기록 목록 화면 (Match Diary)
@@ -33,8 +32,8 @@ export default function HistoryScreen() {
   } = useInfiniteMyAttendances(10);
   const { data: favoriteTeam, isLoading: isFavLoading } = useFavoriteTeam();
 
-  const attendances = data?.pages.flatMap((page) => page.data?.content || []) || [];
-
+  const attendances =
+    data?.pages.flatMap((page) => page.data?.content || []) || [];
 
   // 🚨 [Phase 2-3] Pull-to-refresh 상태 동기화
   const onRefresh = async () => {

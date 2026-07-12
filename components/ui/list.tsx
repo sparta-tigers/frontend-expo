@@ -1,15 +1,15 @@
+import { theme } from "@/src/styles/theme";
 import React from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    ListRenderItem,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-    ViewStyle,
+  ActivityIndicator,
+  FlatList,
+  ListRenderItem,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ViewStyle,
 } from "react-native";
-import { theme } from "@/src/styles/theme";
 
 /**
  * 리스트 아이템 속성
@@ -77,13 +77,15 @@ export const List = <T,>({
   showSeparator = true,
   ListEmptyComponent,
 }: ListProps<T>) => {
-
   const renderSeparator = () => {
     if (!showSeparator) return null;
 
     return (
       <View
-        style={[styles.separator, { backgroundColor: theme.colors.border.medium }]}
+        style={[
+          styles.separator,
+          { backgroundColor: theme.colors.border.medium },
+        ]}
       />
     );
   };
@@ -101,7 +103,9 @@ export const List = <T,>({
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color={theme.colors.primary} />
-          <Text style={[styles.loadingText, { color: theme.colors.text.primary }]}>
+          <Text
+            style={[styles.loadingText, { color: theme.colors.text.primary }]}
+          >
             더 불러오는 중...
           </Text>
         </View>
@@ -121,7 +125,9 @@ export const List = <T,>({
       >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text style={[styles.loadingText, { color: theme.colors.text.primary }]}>
+          <Text
+            style={[styles.loadingText, { color: theme.colors.text.primary }]}
+          >
             로딩 중...
           </Text>
         </View>
@@ -151,7 +157,7 @@ export const List = <T,>({
         onRefresh={onRefresh}
         contentContainerStyle={[
           data.length === 0 ? styles.emptyContent : undefined,
-          contentContainerStyle
+          contentContainerStyle,
         ]}
       />
     </View>
@@ -168,7 +174,6 @@ export const ListItem: React.FC<ListItemProps> = ({
   onPress,
   style,
 }) => {
-
   return (
     <TouchableOpacity
       style={[styles.item, { backgroundColor: theme.colors.surface }, style]}
