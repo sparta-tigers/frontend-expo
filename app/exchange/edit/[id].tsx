@@ -269,7 +269,15 @@ export default function EditItemScreen() {
           <Text style={styles.errorText}>
             아이템 정보를 불러올 수 없습니다.
           </Text>
-          <Button onPress={() => router.replace("/(tabs)/exchange")}>
+          <Button
+            onPress={() => {
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.replace("/(tabs)/exchange");
+              }
+            }}
+          >
             돌아가기
           </Button>
         </View>
