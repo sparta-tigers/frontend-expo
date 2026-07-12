@@ -2,14 +2,15 @@
  * 교환 화면 아이템 목록/필터 관련 로직 훅
  *
  * Why: exchange.tsx에서 아이템 페칭, 필터링, 새로고침 로직을 분리.
- * 핵심 개선: loadItems의 itemsState.data 의존성을 제거하여
- * 데이터 변경 → 함수 재생성 → Effect 재실행 순환을 차단.
+ * 핵심 개선: useAsyncState를 TanStack React Query로 마이그레이션하여
+ * 캐싱, 자동 재요청, 상태 관리 최적화를 이룸 (S01).
  */
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo, useState } from "react";
+
 import { itemsGetListAPI } from "@/src/features/exchange/api";
 import { Item } from "@/src/features/exchange/types";
-import { useAsyncState } from "@/src/shared/hooks/useAsyncState";
 import { Logger } from "@/src/utils/logger";
-import { useCallback, useMemo, useState } from "react";
 
 const mapLogger = Logger.category("MAP");
 
@@ -18,8 +19,12 @@ type CategoryFilter = "ALL" | "TICKET" | "GOODS";
 
 /** useExchangeItems 훅의 반환 타입 */
 export interface UseExchangeItemsReturn {
-  /** useAsyncState의 상태 (status, data, error) */
-  itemsState: ReturnType<typeof useAsyncState<Item[]>>[0];
+  /** 호환성을 위해 유지된 상태 객체 */
+  itemsState: {
+    status: "IDLE" | "LOADING" | "SUCCESS" | "ERROR";
+    data: Item[];
+    error: Error | null;
+  };
   /** 선택된 카테고리 필터 */
   selectedCategory: CategoryFilter;
   /** 카테고리 필터 변경 */
@@ -47,12 +52,15 @@ const deltaToRadius = (latDelta: number): number => latDelta * 111;
 
 /**
  * 아이템 목록 관리 훅
- *
- * loadItems는 deps를 빈 배열로 유지하여 함수 참조가 고정됨.
- * 페이지네이션(append) 시에는 setState(prev => ...) 패턴으로 처리.
  */
 export function useExchangeItems(): UseExchangeItemsReturn {
-  const [itemsState, fetchItems] = useAsyncState<Item[]>([]);
+  const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useState<{
+    lat: number;
+    lng: number;
+    radiusKm: number;
+  } | null>(null);
+
   const [selectedCategory, setSelectedCategory] =
     useState<CategoryFilter>("ALL");
   const [refreshing, setRefreshing] = useState(false);
@@ -60,10 +68,6 @@ export function useExchangeItems(): UseExchangeItemsReturn {
 
   /**
    * API에서 아이템 목록을 가져오는 순수 함수
-   *
-   * Why: 이전 구현에서는 itemsState.data를 useCallback deps에 포함시켜
-   * 데이터 변경 → 함수 재생성 → Effect 재실행 순환이 발생했다.
-   * 새 구현에서는 API 결과만 반환하고, 병합은 호출자가 처리한다.
    */
   const loadItems = useCallback(
     async (lat: number, lng: number, radiusKm: number): Promise<Item[]> => {
@@ -87,7 +91,40 @@ export function useExchangeItems(): UseExchangeItemsReturn {
         response.error?.message || "아이템 목록을 불러오는데 실패했습니다.",
       );
     },
-    [], // ← deps 없음! API 호출 파라미터만으로 결과가 결정됨
+    [],
+  );
+
+  // React Query를 통한 캐싱 및 페칭
+  const query = useQuery({
+    queryKey: [
+      "exchangeItems",
+      searchParams?.lat,
+      searchParams?.lng,
+      searchParams?.radiusKm,
+    ],
+    queryFn: async () => {
+      if (!searchParams) return [];
+      return loadItems(
+        searchParams.lat,
+        searchParams.lng,
+        searchParams.radiusKm,
+      );
+    },
+    enabled: !!searchParams,
+    staleTime: 1000 * 60 * 5, // 5분 캐싱
+  });
+
+  // 명령형 페칭을 위한 액션
+  const fetchItemsAction = useCallback(
+    async (lat: number, lng: number, radiusKm: number) => {
+      setSearchParams({ lat, lng, radiusKm });
+      return queryClient.fetchQuery({
+        queryKey: ["exchangeItems", lat, lng, radiusKm],
+        queryFn: () => loadItems(lat, lng, radiusKm),
+        staleTime: 1000 * 60 * 5,
+      });
+    },
+    [queryClient, loadItems],
   );
 
   /** 새로고침 핸들러 */
@@ -96,14 +133,14 @@ export function useExchangeItems(): UseExchangeItemsReturn {
       setRefreshing(true);
       try {
         const radius = deltaToRadius(latDelta);
-        await fetchItems(loadItems(lat, lng, radius));
+        await fetchItemsAction(lat, lng, radius);
       } catch (error) {
         mapLogger.error("새로고침 실패", error);
       } finally {
         setRefreshing(false);
       }
     },
-    [fetchItems, loadItems],
+    [fetchItemsAction],
   );
 
   /** 현 지도에서 재검색 */
@@ -112,7 +149,7 @@ export function useExchangeItems(): UseExchangeItemsReturn {
       setRefreshing(true);
       try {
         const radius = deltaToRadius(latDelta);
-        await fetchItems(loadItems(lat, lng, radius));
+        await fetchItemsAction(lat, lng, radius);
       } catch (error) {
         mapLogger.error("현 지도에서 재검색 실패", error);
         throw error; // 호출자에서 isMapMoved 복구 처리
@@ -120,7 +157,7 @@ export function useExchangeItems(): UseExchangeItemsReturn {
         setRefreshing(false);
       }
     },
-    [fetchItems, loadItems],
+    [fetchItemsAction],
   );
 
   /** 초기 GPS 기반 아이템 로딩 (1회 실행) */
@@ -128,18 +165,30 @@ export function useExchangeItems(): UseExchangeItemsReturn {
     async (lat: number, lng: number, latDelta: number) => {
       try {
         const radius = deltaToRadius(latDelta);
-        await fetchItems(loadItems(lat, lng, radius));
+        await fetchItemsAction(lat, lng, radius);
       } catch (error) {
         mapLogger.error("초기 아이템 로딩 실패", error);
-        // 🚨 [Senior Architect] 초기 로딩 실패는 Critical 에러로 간주하여 전파
         throw error;
       } finally {
-        // 실패하더라도 무한 로딩 스피너 방지를 위해 '가져옴' 상태로 완결
         setIsInitialFetched(true);
       }
     },
-    [fetchItems, loadItems],
+    [fetchItemsAction],
   );
+
+  // 기존 API 호환성을 위한 itemsState 매핑
+  const itemsState = useMemo(() => {
+    let status: "IDLE" | "LOADING" | "SUCCESS" | "ERROR" = "IDLE";
+    if (query.status === "pending") status = "LOADING";
+    else if (query.status === "error") status = "ERROR";
+    else if (query.status === "success") status = "SUCCESS";
+
+    return {
+      status,
+      data: query.data || [],
+      error: query.error as Error | null,
+    };
+  }, [query.status, query.data, query.error]);
 
   /** 필터링 적용된 아이템 목록 */
   const filteredItems = useMemo(() => {
@@ -160,3 +209,4 @@ export function useExchangeItems(): UseExchangeItemsReturn {
     fetchInitialItems,
   };
 }
+

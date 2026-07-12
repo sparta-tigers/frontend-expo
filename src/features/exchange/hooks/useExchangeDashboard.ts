@@ -104,8 +104,8 @@ export function useExchangeDashboard() {
 
   const handleMarkerPress = useCallback(
     (itemId: number) => {
-      const item = filteredItems.find((i) => i.id === itemId);
       const index = filteredItems.findIndex((i) => i.id === itemId);
+      const item = index !== -1 ? filteredItems[index] : undefined;
 
       if (item && item.latitude != null && item.longitude != null) {
         // 1. 지도 이동
