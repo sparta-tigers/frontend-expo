@@ -1,54 +1,59 @@
 // app/(tabs)/exchange.tsx
-import React, { useCallback } from "react";
-import {
-  ActivityIndicator,
-  RefreshControl,
-  StyleSheet,
-} from "react-native";
 import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
+import React, { useCallback } from "react";
+import { ActivityIndicator, RefreshControl, StyleSheet } from "react-native";
 import MapView from "react-native-map-clustering";
 import { Marker } from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { SafeLayout } from "@/components/ui/safe-layout";
-import { Button } from "@/components/ui/button";
 import { Box, Typography } from "@/components/ui";
+import { Button } from "@/components/ui/button";
+import { SafeLayout } from "@/components/ui/safe-layout";
 import { theme } from "@/src/styles/theme";
 
-import { useExchangeDashboard } from "@/src/features/exchange/hooks/useExchangeDashboard";
 import { ExchangeItemRow } from "@/src/features/exchange/components/ExchangeItemRow";
-import { ExchangeProfileModal } from "@/src/features/exchange/components/ExchangeProfileModal";
 import { ExchangeMapOverlay } from "@/src/features/exchange/components/ExchangeMapOverlay";
+import { ExchangeProfileModal } from "@/src/features/exchange/components/ExchangeProfileModal";
+import { useExchangeDashboard } from "@/src/features/exchange/hooks/useExchangeDashboard";
 import { Item } from "@/src/features/exchange/types";
 
 /**
  * 지도 마커 리렌더링 방지용 서브 컴포넌트
  */
-const MapMarkers = React.memo(({ items, currentLocation, onMarkerPress }: { 
-  items: Item[], 
-  currentLocation: { latitude: number; longitude: number } | null, 
-  onMarkerPress: (id: number) => void 
-}) => (
-  <>
-    {currentLocation && (
-      <Marker
-        coordinate={currentLocation}
-        title="내 위치"
-        pinColor={theme.colors.primary}
-      />
-    )}
-    {items.map((item) => (
-      item.latitude != null && item.longitude != null && Number.isFinite(item.latitude) && Number.isFinite(item.longitude) ? (
+const MapMarkers = React.memo(
+  ({
+    items,
+    currentLocation,
+    onMarkerPress,
+  }: {
+    items: Item[];
+    currentLocation: { latitude: number; longitude: number } | null;
+    onMarkerPress: (id: number) => void;
+  }) => (
+    <>
+      {currentLocation && (
         <Marker
-          key={`item-${item.id}`}
-          coordinate={{ latitude: item.latitude, longitude: item.longitude }}
-          title={item.title}
-          onPress={() => onMarkerPress(item.id)}
+          coordinate={currentLocation}
+          title="내 위치"
+          pinColor={theme.colors.primary}
         />
-      ) : null
-    ))}
-  </>
-));
+      )}
+      {items.map((item) =>
+        item.latitude != null &&
+        item.longitude != null &&
+        Number.isFinite(item.latitude) &&
+        Number.isFinite(item.longitude) ? (
+          <Marker
+            key={`item-${item.id}`}
+            coordinate={{ latitude: item.latitude, longitude: item.longitude }}
+            title={item.title}
+            onPress={() => onMarkerPress(item.id)}
+          />
+        ) : null,
+      )}
+    </>
+  ),
+);
 MapMarkers.displayName = "MapMarkers";
 
 /**
@@ -59,7 +64,7 @@ MapMarkers.displayName = "MapMarkers";
  */
 export default function ExchangeScreen() {
   const insets = useSafeAreaInsets();
-  
+
   // 🧠 Facade Hook 연동 (모든 두뇌는 여기로)
   const {
     mapRef,
@@ -86,12 +91,12 @@ export default function ExchangeScreen() {
     navigateToRequests,
   } = useExchangeDashboard();
 
-  const renderItem = useCallback(({ item }: { item: Item }) => (
-    <ExchangeItemRow 
-      item={item} 
-      onPress={navigateToItemDetail} 
-    />
-  ), [navigateToItemDetail]);
+  const renderItem = useCallback(
+    ({ item }: { item: Item }) => (
+      <ExchangeItemRow item={item} onPress={navigateToItemDetail} />
+    ),
+    [navigateToItemDetail],
+  );
 
   return (
     <SafeLayout style={styles.container}>
@@ -105,7 +110,7 @@ export default function ExchangeScreen() {
         clusterColor={theme.colors.primary}
         clusterTextColor={theme.colors.background}
       >
-        <MapMarkers 
+        <MapMarkers
           items={filteredItems}
           currentLocation={currentLocation}
           onMarkerPress={handleMarkerPress}
@@ -125,7 +130,13 @@ export default function ExchangeScreen() {
               key={cat}
               variant={selectedCategory === cat ? "primary" : "outline"}
               size="sm"
-              onPress={() => setSelectedCategory(selectedCategory === cat ? "ALL" : cat as "TICKET" | "GOODS")}
+              onPress={() =>
+                setSelectedCategory(
+                  selectedCategory === cat
+                    ? "ALL"
+                    : (cat as "TICKET" | "GOODS"),
+                )
+              }
               style={styles.filterButton}
             >
               {cat === "GOODS" ? "ITEM" : cat}
@@ -141,7 +152,9 @@ export default function ExchangeScreen() {
             </Box>
           ) : itemsState.status === "error" ? (
             <Box flex={1} justify="center" align="center" py="xxl">
-              <Typography variant="caption" center mb="md">{itemsState.error}</Typography>
+              <Typography variant="caption" center mb="md">
+                {itemsState.error}
+              </Typography>
               <Button onPress={handleManualRefresh}>다시 시도</Button>
             </Box>
           ) : (
@@ -151,9 +164,9 @@ export default function ExchangeScreen() {
               renderItem={renderItem}
               keyExtractor={(item) => item.id.toString()}
               refreshControl={
-                <RefreshControl 
-                  refreshing={refreshing} 
-                  onRefresh={handleManualRefresh} 
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={handleManualRefresh}
                   tintColor={theme.colors.primary}
                 />
               }

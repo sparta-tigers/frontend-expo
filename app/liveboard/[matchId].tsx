@@ -6,12 +6,13 @@ import { LineupPanel } from "@/src/features/liveboard/components/LineupPanel";
 import { LiveSection } from "@/src/features/liveboard/components/LiveSection";
 import { TextBroadcastPanel } from "@/src/features/liveboard/components/TextBroadcastPanel";
 import { WeatherPanel } from "@/src/features/liveboard/components/WeatherPanel";
+import {
+  TABS,
+  useLiveboardScreen,
+} from "@/src/features/liveboard/hooks/useLiveboardScreen";
 import { styles } from "@/src/features/liveboard/styles/matchId.styles";
-import { useLiveboardScreen, TABS } from "@/src/features/liveboard/hooks/useLiveboardScreen";
 import { theme } from "@/src/styles/theme";
-import React from "react";
 import { ActivityIndicator, TouchableOpacity } from "react-native";
-
 
 /**
  * 라이브보드 상세 화면
@@ -67,10 +68,10 @@ export default function LiveboardDetailScreen() {
   return (
     <SafeLayout style={styles.container} edges={["left", "right"]}>
       {match ? (
-        <LiveSection 
-          match={match} 
-          liveData={liveData} 
-          isLiveLoading={isLoading.live} 
+        <LiveSection
+          match={match}
+          liveData={liveData}
+          isLiveLoading={isLoading.live}
         />
       ) : (
         <Box py="xxl" align="center">
@@ -109,9 +110,9 @@ export default function LiveboardDetailScreen() {
 
         {activeTab === "text" && (
           <Box style={[styles.tabPanel, styles.visible]}>
-            <TextBroadcastPanel 
-              inningTexts={liveData?.inningTexts} 
-              isVisible={true} 
+            <TextBroadcastPanel
+              inningTexts={liveData?.inningTexts}
+              isVisible={true}
             />
           </Box>
         )}

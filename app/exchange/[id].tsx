@@ -10,16 +10,16 @@ import { theme } from "@/src/styles/theme";
 import { getImageUrl } from "@/src/utils/url";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type Href, Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Dimensions,
+  FlatList,
   Image,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
-  Dimensions,
 } from "react-native";
 
 import { Box } from "@/components/ui/box";
@@ -234,7 +234,9 @@ export default function ItemDetailScreen() {
       return (
         <Box style={styles.imageContainer}>
           <Box style={styles.imagePlaceholder}>
-            <Typography variant="body2" color="text.secondary">이미지 없음</Typography>
+            <Typography variant="body2" color="text.secondary">
+              이미지 없음
+            </Typography>
           </Box>
         </Box>
       );
@@ -265,7 +267,10 @@ export default function ItemDetailScreen() {
                 setIsImageViewerVisible(true);
               }}
             >
-              <Image source={{ uri: getImageUrl(imageUrl as string) }} style={styles.image} />
+              <Image
+                source={{ uri: getImageUrl(imageUrl as string) }}
+                style={styles.image}
+              />
             </TouchableOpacity>
           )}
         />
@@ -277,7 +282,9 @@ export default function ItemDetailScreen() {
                 key={index}
                 style={[
                   styles.indicatorDot,
-                  index === currentImageIndex ? styles.indicatorDotActive : styles.indicatorDotInactive,
+                  index === currentImageIndex
+                    ? styles.indicatorDotActive
+                    : styles.indicatorDotInactive,
                 ]}
               />
             ))}
@@ -303,32 +310,37 @@ export default function ItemDetailScreen() {
     router.push(`/exchange/apply/${id}` as Href);
   }, [user, id, router]);
 
-  const { mutate: updateItemStatus, isPending: isUpdatingStatus } = useMutation({
-    mutationFn: async (newStatus: "COMPLETED" | "FAILED") => {
-      const targetId = item?.data?.id;
-      if (!targetId) throw new Error("itemId가 없습니다.");
-      const response = await itemsUpdateStatusAPI(targetId, newStatus);
-      if (response.resultType !== "SUCCESS") throw new Error("status update failed");
-      return true;
+  const { mutate: updateItemStatus, isPending: isUpdatingStatus } = useMutation(
+    {
+      mutationFn: async (newStatus: "COMPLETED" | "FAILED") => {
+        const targetId = item?.data?.id;
+        if (!targetId) throw new Error("itemId가 없습니다.");
+        const response = await itemsUpdateStatusAPI(targetId, newStatus);
+        if (response.resultType !== "SUCCESS")
+          throw new Error("status update failed");
+        return true;
+      },
+      onSuccess: async () => {
+        Alert.alert("성공", "상태가 변경되었습니다.");
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["item", id] }),
+          queryClient.invalidateQueries({ queryKey: ["items"] }),
+        ]);
+      },
+      onError: () => {
+        Alert.alert("오류", "상태 변경에 실패했습니다.");
+      },
     },
-    onSuccess: async () => {
-      Alert.alert("성공", "상태가 변경되었습니다.");
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["item", id] }),
-        queryClient.invalidateQueries({ queryKey: ["items"] }),
-      ]);
-    },
-    onError: () => {
-      Alert.alert("오류", "상태 변경에 실패했습니다.");
-    },
-  });
+  );
 
   const handleStatusChange = useCallback(
     (newStatus: "COMPLETED" | "FAILED") => {
       if (!item?.data) return;
       Alert.alert(
         "상태 변경",
-        newStatus === "COMPLETED" ? "교환을 완료 상태로 변경하시겠습니까?" : "교환을 취소 상태로 변경하시겠습니까?",
+        newStatus === "COMPLETED"
+          ? "교환을 완료 상태로 변경하시겠습니까?"
+          : "교환을 취소 상태로 변경하시겠습니까?",
         [
           { text: "취소", style: "cancel" },
           { text: "확인", onPress: () => updateItemStatus(newStatus) },
@@ -363,7 +375,9 @@ export default function ItemDetailScreen() {
           <Typography variant="body1" center mb="md">
             로그인이 필요합니다.
           </Typography>
-          <Button onPress={() => router.back()} variant="outline">돌아가기</Button>
+          <Button onPress={() => router.back()} variant="outline">
+            돌아가기
+          </Button>
         </Box>
       </SafeLayout>
     );
@@ -401,7 +415,12 @@ export default function ItemDetailScreen() {
 
       <SafeLayout edges={["top", "bottom"]} style={styles.container}>
         <Box style={styles.customHeader}>
-          <Typography variant="body1" weight="bold" center style={styles.headerTitle}>
+          <Typography
+            variant="body1"
+            weight="bold"
+            center
+            style={styles.headerTitle}
+          >
             아이템 상세
           </Typography>
           <Box style={styles.headerRightContainer}>
@@ -411,16 +430,23 @@ export default function ItemDetailScreen() {
                   onPress={() => router.push(`/exchange/edit/${id}` as Href)}
                   style={styles.headerActionButton}
                 >
-                  <Typography variant="body2" color="brand.mint">수정</Typography>
+                  <Typography variant="body2" color="brand.mint">
+                    수정
+                  </Typography>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleDelete} style={styles.headerActionButton}>
-                  <Typography variant="body2" color="error">삭제</Typography>
+                <TouchableOpacity
+                  onPress={handleDelete}
+                  style={styles.headerActionButton}
+                >
+                  <Typography variant="body2" color="error">
+                    삭제
+                  </Typography>
                 </TouchableOpacity>
               </>
             )}
           </Box>
         </Box>
-        
+
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
@@ -430,15 +456,24 @@ export default function ItemDetailScreen() {
 
           <Box style={styles.profileRow}>
             {item.data.user?.profileImage ? (
-              <Image source={{ uri: getImageUrl(item.data.user.profileImage) }} style={styles.profileImage} />
+              <Image
+                source={{ uri: getImageUrl(item.data.user.profileImage) }}
+                style={styles.profileImage}
+              />
             ) : (
               <Box style={styles.profileImage} justify="center" align="center">
-                <Typography variant="body1" weight="bold" color="text.secondary">
+                <Typography
+                  variant="body1"
+                  weight="bold"
+                  color="text.secondary"
+                >
                   {item.data.user?.userNickname?.[0]?.toUpperCase() || "U"}
                 </Typography>
               </Box>
             )}
-            <Typography variant="body1" weight="bold">{item.data.user?.userNickname || "알 수 없음"}</Typography>
+            <Typography variant="body1" weight="bold">
+              {item.data.user?.userNickname || "알 수 없음"}
+            </Typography>
           </Box>
 
           <Box style={styles.contentContainer}>
@@ -452,7 +487,9 @@ export default function ItemDetailScreen() {
 
           <Box style={styles.bottomBar}>
             <Box style={styles.desiredItemContainer}>
-              <Typography variant="caption" color="text.secondary">희망 아이템</Typography>
+              <Typography variant="caption" color="text.secondary">
+                희망 아이템
+              </Typography>
               <Typography variant="body1" weight="bold" mt="xxs">
                 {item.data.desiredItem || "없음"}
               </Typography>
@@ -462,37 +499,59 @@ export default function ItemDetailScreen() {
               <Box style={styles.buttonRow}>
                 <Box style={styles.statusSection}>
                   <Box style={styles.statusInfoRow}>
-                    <Typography variant="caption" color="text.secondary">현재 상태</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      현재 상태
+                    </Typography>
                     <Typography
                       variant="body2"
                       weight="bold"
                       color={
-                        item.data.status === "COMPLETED" ? "brand.mint" : 
-                        item.data.status === "FAILED" ? "error" : "primary"
+                        item.data.status === "COMPLETED"
+                          ? "brand.mint"
+                          : item.data.status === "FAILED"
+                            ? "error"
+                            : "primary"
                       }
                     >
-                      {item.data.status === "REGISTERED" ? "교환 대기" : 
-                       item.data.status === "COMPLETED" ? "교환 완료" : "교환 취소"}
+                      {item.data.status === "REGISTERED"
+                        ? "교환 대기"
+                        : item.data.status === "COMPLETED"
+                          ? "교환 완료"
+                          : "교환 취소"}
                     </Typography>
                   </Box>
 
                   <Box style={styles.statusActionsRow}>
                     <Button
                       style={styles.statusActionButton}
-                      disabled={item.data.status !== "REGISTERED" || isUpdatingStatus}
+                      disabled={
+                        item.data.status !== "REGISTERED" || isUpdatingStatus
+                      }
                       onPress={() => handleStatusChange("COMPLETED")}
                     >
-                      <Typography variant="caption" weight="medium" color="background" center>
+                      <Typography
+                        variant="caption"
+                        weight="medium"
+                        color="background"
+                        center
+                      >
                         교환 완료로 표시
                       </Typography>
                     </Button>
                     <Button
                       variant="outline"
                       style={styles.statusActionButton}
-                      disabled={item.data.status !== "REGISTERED" || isUpdatingStatus}
+                      disabled={
+                        item.data.status !== "REGISTERED" || isUpdatingStatus
+                      }
                       onPress={() => handleStatusChange("FAILED")}
                     >
-                      <Typography variant="caption" weight="medium" color="error" center>
+                      <Typography
+                        variant="caption"
+                        weight="medium"
+                        color="error"
+                        center
+                      >
                         교환 취소로 표시
                       </Typography>
                     </Button>
@@ -503,18 +562,33 @@ export default function ItemDetailScreen() {
           </Box>
         </ScrollView>
 
-        <Box style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+        <Box
+          style={[
+            styles.bottomContainer,
+            { paddingBottom: Math.max(insets.bottom, 20) },
+          ]}
+        >
           {isOwner ? (
-            <TouchableOpacity style={styles.applyButton} onPress={() => router.push("/exchange/requests" as Href)}>
-              <Typography variant="body1" weight="bold" color="background">대화중인 채팅</Typography>
+            <TouchableOpacity
+              style={styles.applyButton}
+              onPress={() => router.push("/exchange/requests" as Href)}
+            >
+              <Typography variant="body1" weight="bold" color="background">
+                대화중인 채팅
+              </Typography>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
-              style={[styles.applyButton, item.data.status !== "REGISTERED" && styles.applyButtonDisabled]}
+              style={[
+                styles.applyButton,
+                item.data.status !== "REGISTERED" && styles.applyButtonDisabled,
+              ]}
               onPress={handleExchangeRequest}
               disabled={item.data.status !== "REGISTERED"}
             >
-              <Typography variant="body1" weight="bold" color="background">교환 제안하기</Typography>
+              <Typography variant="body1" weight="bold" color="background">
+                교환 제안하기
+              </Typography>
             </TouchableOpacity>
           )}
         </Box>

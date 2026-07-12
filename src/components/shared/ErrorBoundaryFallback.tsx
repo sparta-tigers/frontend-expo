@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
 import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/theme";
-import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 /**

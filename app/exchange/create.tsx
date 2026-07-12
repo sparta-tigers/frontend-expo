@@ -14,14 +14,14 @@ import {
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
-import { SafeLayout } from "@/components/ui/safe-layout";
 import { Box, Typography } from "@/components/ui";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { SafeLayout } from "@/components/ui/safe-layout";
 import { createExchangeItem } from "@/src/features/exchange/api";
 import { useCheckActiveItem } from "@/src/features/exchange/queries";
 import { ItemCategory, LocationDto } from "@/src/features/exchange/types";
 import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 
 interface ReactNativeFile {
   uri: string;
@@ -90,14 +90,15 @@ export default function CreateItemScreen() {
     onError: (error: Error & { response?: { status?: number } }) => {
       let errorMessage = "게시글 등록 중 문제가 발생했습니다.";
       const status = error?.response?.status;
-      
+
       if (status === 409) {
-        errorMessage = "이미 등록된 아이템이 있습니다. 하나의 계정당 하나의 아이템만 등록 가능합니다.";
+        errorMessage =
+          "이미 등록된 아이템이 있습니다. 하나의 계정당 하나의 아이템만 등록 가능합니다.";
         Logger.warn("아이템 중복 등록 시도 차단 (409)");
       } else {
         Logger.error(
           "아이템 생성 실패:",
-          error instanceof Error ? error.message : String(error)
+          error instanceof Error ? error.message : String(error),
         );
       }
 
@@ -146,7 +147,10 @@ export default function CreateItemScreen() {
       setCurrentLocation(locationData);
     } catch (error) {
       Logger.error("위치 정보 가져오기 실패:", error);
-      Alert.alert("위치 정보 오류", "위치 정보를 가져올 수 없습니다. 기본 위치(서울)를 사용합니다.");
+      Alert.alert(
+        "위치 정보 오류",
+        "위치 정보를 가져올 수 없습니다. 기본 위치(서울)를 사용합니다.",
+      );
       const defaultLocation: LocationDto = {
         latitude: 37.5665,
         longitude: 126.978,
@@ -162,7 +166,9 @@ export default function CreateItemScreen() {
 
   React.useEffect(() => {
     const timerId = setTimeout(() => {
-      getCurrentLocation().catch((err) => Logger.error("[Create] Location init failed", err));
+      getCurrentLocation().catch((err) =>
+        Logger.error("[Create] Location init failed", err),
+      );
     }, 0);
     return () => clearTimeout(timerId);
   }, []);
@@ -170,9 +176,9 @@ export default function CreateItemScreen() {
   React.useEffect(() => {
     if (hasActiveItem === true) {
       Alert.alert(
-        "접근 제한", 
+        "접근 제한",
         "이미 등록된 아이템이 있어 작성 페이지를 이용할 수 없습니다.",
-        [{ text: "확인", onPress: () => router.back() }]
+        [{ text: "확인", onPress: () => router.back() }],
       );
     }
   }, [hasActiveItem]);
@@ -207,28 +213,38 @@ export default function CreateItemScreen() {
 
   return (
     <SafeLayout edges={["top", "bottom"]} style={styles.container}>
-      <Box 
-        flexDir="row" 
-        justify="space-between" 
-        align="center" 
-        px="lg" 
-        py="sm" 
-        borderBottomWidth={1} 
+      <Box
+        flexDir="row"
+        justify="space-between"
+        align="center"
+        px="lg"
+        py="sm"
+        borderBottomWidth={1}
         borderColor="border.medium"
       >
-        <TouchableOpacity 
-          style={styles.backButton} 
+        <TouchableOpacity
+          style={styles.backButton}
           onPress={() => router.back()}
         >
-          <IconSymbol name="chevron.left" size={24} color={theme.colors.text.primary} />
+          <IconSymbol
+            name="chevron.left"
+            size={24}
+            color={theme.colors.text.primary}
+          />
         </TouchableOpacity>
-        <Typography variant="h2" weight="bold" color="text.primary" flex={1} center>
+        <Typography
+          variant="h2"
+          weight="bold"
+          color="text.primary"
+          flex={1}
+          center
+        >
           교환글 쓰기
         </Typography>
         <TouchableOpacity onPress={handleSubmit} disabled={isPending}>
-          <Typography 
-            weight="bold" 
-            color="primary" 
+          <Typography
+            weight="bold"
+            color="primary"
             style={isPending ? styles.submitButtonDisabled : undefined}
           >
             {isPending ? "등록 중..." : "등록"}
@@ -255,7 +271,9 @@ export default function CreateItemScreen() {
                 style={styles.imageAddButton}
                 onPress={handleImagePicker}
               >
-                <Typography variant="h1" color="text.tertiary">📷</Typography>
+                <Typography variant="h1" color="text.tertiary">
+                  📷
+                </Typography>
                 <Typography variant="caption" color="text.tertiary">
                   {selectedImages.length}/5
                 </Typography>
@@ -264,12 +282,21 @@ export default function CreateItemScreen() {
 
             {selectedImages.map((imageUri, index) => (
               <Box key={index} style={styles.imageItemWrapper}>
-                <Image source={{ uri: imageUri }} style={styles.imageThumbnail} />
+                <Image
+                  source={{ uri: imageUri }}
+                  style={styles.imageThumbnail}
+                />
                 <TouchableOpacity
                   style={styles.deleteButton}
                   onPress={() => removeImage(index)}
                 >
-                  <Typography variant="caption" weight="bold" color="background">×</Typography>
+                  <Typography
+                    variant="caption"
+                    weight="bold"
+                    color="background"
+                  >
+                    ×
+                  </Typography>
                 </TouchableOpacity>
               </Box>
             ))}
@@ -278,7 +305,9 @@ export default function CreateItemScreen() {
 
         <Box px="lg" py="md" borderBottomWidth={1} borderColor="border.medium">
           <Box flexDir="row" justify="space-between" align="center" mb="sm">
-            <Typography variant="body1" weight="bold" color="text.primary">📍 위치 정보</Typography>
+            <Typography variant="body1" weight="bold" color="text.primary">
+              📍 위치 정보
+            </Typography>
             <TouchableOpacity
               onPress={getCurrentLocation}
               disabled={locationLoading}
@@ -290,35 +319,48 @@ export default function CreateItemScreen() {
           </Box>
 
           <Box flexDir="row" align="center" p="sm" bg="surface" rounded="md">
-            <Typography variant="body1" mr="sm">📍</Typography>
+            <Typography variant="body1" mr="sm">
+              📍
+            </Typography>
             <Typography variant="body2" color="text.secondary" flex={1}>
               {currentLocation.address}
             </Typography>
             {locationLoading && (
-              <ActivityIndicator
-                size="small"
-                color={theme.colors.primary}
-              />
+              <ActivityIndicator size="small" color={theme.colors.primary} />
             )}
           </Box>
         </Box>
 
         <Box px="lg">
           <Box py="md" borderBottomWidth={1} borderColor="border.medium">
-            <Typography variant="body1" weight="bold" color="text.primary" mb="sm">
+            <Typography
+              variant="body1"
+              weight="bold"
+              color="text.primary"
+              mb="sm"
+            >
               카테고리
             </Typography>
             <Box flexDir="row" gap="sm">
               <TouchableOpacity
                 style={[
                   styles.categoryButton,
-                  formData.itemCategory === "TICKET" && styles.categoryButtonActive,
+                  formData.itemCategory === "TICKET" &&
+                    styles.categoryButtonActive,
                 ]}
-                onPress={() => setFormData({ ...formData, itemCategory: "TICKET" })}
+                onPress={() =>
+                  setFormData({ ...formData, itemCategory: "TICKET" })
+                }
               >
                 <Typography
-                  weight={formData.itemCategory === "TICKET" ? "bold" : "medium"}
-                  color={formData.itemCategory === "TICKET" ? "background" : "text.secondary"}
+                  weight={
+                    formData.itemCategory === "TICKET" ? "bold" : "medium"
+                  }
+                  color={
+                    formData.itemCategory === "TICKET"
+                      ? "background"
+                      : "text.secondary"
+                  }
                 >
                   티켓
                 </Typography>
@@ -326,13 +368,20 @@ export default function CreateItemScreen() {
               <TouchableOpacity
                 style={[
                   styles.categoryButton,
-                  formData.itemCategory === "GOODS" && styles.categoryButtonActive,
+                  formData.itemCategory === "GOODS" &&
+                    styles.categoryButtonActive,
                 ]}
-                onPress={() => setFormData({ ...formData, itemCategory: "GOODS" })}
+                onPress={() =>
+                  setFormData({ ...formData, itemCategory: "GOODS" })
+                }
               >
                 <Typography
                   weight={formData.itemCategory === "GOODS" ? "bold" : "medium"}
-                  color={formData.itemCategory === "GOODS" ? "background" : "text.secondary"}
+                  color={
+                    formData.itemCategory === "GOODS"
+                      ? "background"
+                      : "text.secondary"
+                  }
                 >
                   굿즈
                 </Typography>
@@ -352,7 +401,9 @@ export default function CreateItemScreen() {
             placeholder="희망 아이템 (선택)"
             style={styles.desiredItemInput}
             value={formData.desiredItem}
-            onChangeText={(text) => setFormData({ ...formData, desiredItem: text })}
+            onChangeText={(text) =>
+              setFormData({ ...formData, desiredItem: text })
+            }
             placeholderTextColor={theme.colors.text.tertiary}
           />
 

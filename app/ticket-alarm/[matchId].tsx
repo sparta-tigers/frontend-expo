@@ -6,7 +6,7 @@ import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
 import Slider from "@react-native-community/slider";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Alert, ScrollView, StyleSheet } from "react-native";
 
 /**
@@ -16,7 +16,10 @@ import { Alert, ScrollView, StyleSheet } from "react-native";
  * 바텀시트 대신 독립된 페이지를 사용하여 직관 기록과 일관된 내비게이션 경험을 제공함.
  */
 export default function TicketAlarmFormScreen() {
-  const { matchId, from } = useLocalSearchParams<{ matchId: string; from?: string }>();
+  const { matchId, from } = useLocalSearchParams<{
+    matchId: string;
+    from?: string;
+  }>();
   const matchIdNumber = Number(matchId);
   const { myTeamId } = useAuth();
 
@@ -30,7 +33,11 @@ export default function TicketAlarmFormScreen() {
    */
   const handleSave = async () => {
     if (!matchId || Number.isNaN(matchIdNumber) || myTeamId == null) {
-      Logger.error("Missing or invalid matchId or teamId", { matchId, matchIdNumber, myTeamId });
+      Logger.error("Missing or invalid matchId or teamId", {
+        matchId,
+        matchIdNumber,
+        myTeamId,
+      });
       Alert.alert("오류", "필수 정보가 누락되었거나 유효하지 않습니다.");
       return;
     }
@@ -44,8 +51,8 @@ export default function TicketAlarmFormScreen() {
       });
 
       Alert.alert("성공", "예매 알림이 설정되었습니다.", [
-        { 
-          text: "확인", 
+        {
+          text: "확인",
           onPress: () => {
             if (from === "notification") {
               // 🔄 알림 관리 페이지에서 온 경우, 스케줄을 건너뛰고 즉시 복귀
@@ -53,7 +60,7 @@ export default function TicketAlarmFormScreen() {
             } else {
               router.back();
             }
-          } 
+          },
         },
       ]);
     } catch (error) {

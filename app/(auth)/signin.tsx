@@ -1,7 +1,10 @@
+import { Box, SafeLayout, Typography } from "@/components/ui";
+import { IconSymbol, type IconSymbolName } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
-import { IconSymbol, type IconSymbolName } from "@/components/ui/icon-symbol";
+import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { type Href, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -13,9 +16,6 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { LinearGradient } from "expo-linear-gradient";
-import { Image } from "expo-image";
-import { Box, Typography, SafeLayout } from "@/components/ui";
 
 const loginLogo = require("@/assets/images/auth/yaguniv-logo.png");
 const kakaoIcon = require("@/assets/images/auth/kakao.png");
@@ -120,20 +120,26 @@ export default function SigninScreen() {
       >
         <Pressable style={styles.pressableArea} onPress={Keyboard.dismiss}>
           {/* Header */}
-          <Box 
-            height={LOCAL_LAYOUT.headerHeight} 
-            px="xl" 
-            pb="sm" 
-            flexDir="row" 
-            align="flex-end" 
-            justify="space-between" 
+          <Box
+            height={LOCAL_LAYOUT.headerHeight}
+            px="xl"
+            pb="sm"
+            flexDir="row"
+            align="flex-end"
+            justify="space-between"
             bg="background"
           >
-            <Box width={LOCAL_LAYOUT.headerIconBox} height={LOCAL_LAYOUT.headerIconBox} />
+            <Box
+              width={LOCAL_LAYOUT.headerIconBox}
+              height={LOCAL_LAYOUT.headerIconBox}
+            />
             <Typography variant="h3" weight="regular" color="brand.mint" center>
               YAGUNIV
             </Typography>
-            <Box width={LOCAL_LAYOUT.headerIconBox} height={LOCAL_LAYOUT.headerIconBox} />
+            <Box
+              width={LOCAL_LAYOUT.headerIconBox}
+              height={LOCAL_LAYOUT.headerIconBox}
+            />
           </Box>
 
           <LinearGradient
@@ -181,7 +187,12 @@ export default function SigninScreen() {
                 disabled={isLoading}
                 style={styles.loginButton}
               >
-                <Typography variant="body2" weight="regular" color="background" center>
+                <Typography
+                  variant="body2"
+                  weight="regular"
+                  color="background"
+                  center
+                >
                   LOGIN
                 </Typography>
               </TouchableOpacity>
@@ -192,26 +203,44 @@ export default function SigninScreen() {
                 disabled={isLoading}
                 style={styles.registerButton}
               >
-                <Typography variant="body2" weight="medium" color="brand.subtitle" center>
+                <Typography
+                  variant="body2"
+                  weight="medium"
+                  color="brand.subtitle"
+                  center
+                >
                   Register Now
                 </Typography>
               </TouchableOpacity>
 
-              <Box width="100%" height={LOCAL_LAYOUT.socialDividerHeight} align="center" justify="center">
-                <Box 
-                  width="100%" 
-                  height={LOCAL_LAYOUT.dividerLineHeight} 
-                  bg="background" 
+              <Box
+                width="100%"
+                height={LOCAL_LAYOUT.socialDividerHeight}
+                align="center"
+                justify="center"
+              >
+                <Box
+                  width="100%"
+                  height={LOCAL_LAYOUT.dividerLineHeight}
+                  bg="background"
                   style={styles.dividerLine}
                 />
               </Box>
 
-              <Box flexDir="row" align="center" justify="center" gap="xl" style={styles.socialButtonsContainer}>
+              <Box
+                flexDir="row"
+                align="center"
+                justify="center"
+                gap="xl"
+                style={styles.socialButtonsContainer}
+              >
                 <TouchableOpacity
                   activeOpacity={0.85}
                   style={styles.socialButton}
                   disabled={isLoading}
-                  onPress={() => Alert.alert("준비중", "카카오 로그인은 준비중입니다")}
+                  onPress={() =>
+                    Alert.alert("준비중", "카카오 로그인은 준비중입니다")
+                  }
                 >
                   <Image
                     source={kakaoIcon}
@@ -224,7 +253,9 @@ export default function SigninScreen() {
                   activeOpacity={0.85}
                   style={styles.socialButton}
                   disabled={isLoading}
-                  onPress={() => Alert.alert("준비중", "Apple 로그인은 준비중입니다")}
+                  onPress={() =>
+                    Alert.alert("준비중", "Apple 로그인은 준비중입니다")
+                  }
                 >
                   <Image
                     source={appleIcon}
@@ -237,22 +268,39 @@ export default function SigninScreen() {
           </LinearGradient>
 
           {/* Fake Tab Bar (Figma Design Reproduction) */}
-          <Box 
-            height={LOCAL_LAYOUT.tabBarHeight} 
-            bg="card" 
-            roundedTop="tabBar" 
+          <Box
+            height={LOCAL_LAYOUT.tabBarHeight}
+            bg="card"
+            roundedTop="tabBar"
             style={styles.fakeTabBar}
           >
             <Box flex={1} py="AUTH_TAB">
-              <Box flex={1} flexDir="row" px="xl" justify="space-between" align="center">
-                {([
-                  { name: "house.fill", label: "홈" },
-                  { name: "chart.bar.fill", label: "라이브보드" },
-                  { name: "arrow.left.arrow.right", label: "교환" },
-                  { name: "bell.fill", label: "예매알림" },
-                  { name: "list.bullet", label: "직관기록" },
-                ] as const satisfies { readonly name: IconSymbolName; readonly label: string }[]).map((tab, idx) => (
-                  <Box key={idx} width={LOCAL_LAYOUT.tabLabelWidth} align="center" justify="center" gap="xs">
+              <Box
+                flex={1}
+                flexDir="row"
+                px="xl"
+                justify="space-between"
+                align="center"
+              >
+                {(
+                  [
+                    { name: "house.fill", label: "홈" },
+                    { name: "chart.bar.fill", label: "라이브보드" },
+                    { name: "arrow.left.arrow.right", label: "교환" },
+                    { name: "bell.fill", label: "예매알림" },
+                    { name: "list.bullet", label: "직관기록" },
+                  ] as const satisfies {
+                    readonly name: IconSymbolName;
+                    readonly label: string;
+                  }[]
+                ).map((tab, idx) => (
+                  <Box
+                    key={idx}
+                    width={LOCAL_LAYOUT.tabLabelWidth}
+                    align="center"
+                    justify="center"
+                    gap="xs"
+                  >
                     <IconSymbol
                       size={theme.typography.size.xl}
                       name={tab.name}

@@ -7,24 +7,14 @@ import React from "react";
 
 /**
  * 메인 스크린 컴포넌트
- * 
+ *
  * Why: 앱의 시작 화면 또는 안내 화면으로 활용.
  * Zero-Magic UI 원칙에 따라 Box와 Typography 프리미티브를 사용하여 구조화함.
  */
 const MainScreen: React.FC = () => {
   return (
-    <Box 
-      flex={1} 
-      justify="center" 
-      align="center" 
-      bg="background" 
-      px="SCREEN"
-    >
-      <Typography 
-        variant="h1" 
-        weight="bold" 
-        mb="sm"
-      >
+    <Box flex={1} justify="center" align="center" bg="background" px="SCREEN">
+      <Typography variant="h1" weight="bold" mb="sm">
         스파르타 타이거즈
       </Typography>
       <Typography variant="body1" center color="text.secondary">

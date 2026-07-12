@@ -1,12 +1,11 @@
 import { Box, Typography } from "@/components/ui";
 import { SafeLayout } from "@/components/ui/safe-layout";
-import { theme } from "@/src/styles/theme";
 import { useAuth } from "@/context/AuthContext";
-import { Stack, router } from "expo-router";
-import React from "react";
-import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
-import { TEAM_LIST } from "@/src/utils/team";
 import { ThemeColorPath } from "@/src/shared/types/theme";
+import { theme } from "@/src/styles/theme";
+import { TEAM_LIST } from "@/src/utils/team";
+import { Stack, router } from "expo-router";
+import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -40,7 +39,7 @@ const LOCAL_LAYOUT = {
 
 /**
  * 응원팀 변경 화면
- * 
+ *
  * Why: 사용자의 소속 팀을 변경하고, 그에 따른 앱 테마 색상을 동적으로 적용하기 위함.
  * Zero-Magic UI 원칙에 따라 모든 수치는 LOCAL_LAYOUT 및 theme 토큰을 참조함.
  */
@@ -54,23 +53,19 @@ export default function ChangeTeamScreen() {
 
   return (
     <SafeLayout style={styles.container} edges={["top", "left", "right"]}>
-      <Stack.Screen 
-        options={{ 
+      <Stack.Screen
+        options={{
           title: "응원팀 변경",
           headerShadowVisible: false,
-        }} 
+        }}
       />
-      
-      <ScrollView 
+
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         <Box mb="xxl">
-          <Typography 
-            variant="h3" 
-            weight="bold" 
-            mb="sm"
-          >
+          <Typography variant="h3" weight="bold" mb="sm">
             응원하는 팀을 선택해주세요
           </Typography>
           <Typography variant="body2" color="text.secondary">
@@ -82,7 +77,7 @@ export default function ChangeTeamScreen() {
           {TEAM_LIST.map((team) => {
             const isSelected = myTeam === team.id;
             const colorPath = `team.${team.colorToken}` as ThemeColorPath;
-            
+
             return (
               <TouchableOpacity
                 key={team.id}
@@ -91,10 +86,10 @@ export default function ChangeTeamScreen() {
                 style={[
                   styles.teamCard,
                   isSelected && styles.teamCardSelected,
-                  isSelected && { borderColor: team.color }
+                  isSelected && { borderColor: team.color },
                 ]}
               >
-                <Box 
+                <Box
                   width={LOCAL_LAYOUT.avatarSize}
                   height={LOCAL_LAYOUT.avatarSize}
                   rounded="full"
@@ -104,26 +99,28 @@ export default function ChangeTeamScreen() {
                   bg={colorPath}
                   style={styles.colorBadge}
                 >
-                  <Typography style={styles.mascot}>{team.mascotEmoji}</Typography>
+                  <Typography style={styles.mascot}>
+                    {team.mascotEmoji}
+                  </Typography>
                 </Box>
-                <Typography 
-                  variant="caption" 
-                  weight={isSelected ? "bold" : "semibold"} 
+                <Typography
+                  variant="caption"
+                  weight={isSelected ? "bold" : "semibold"}
                   center
                   color={isSelected ? colorPath : "primary"}
                 >
                   {team.name}
                 </Typography>
                 {isSelected && (
-                  <Box 
+                  <Box
                     rounded="sm"
                     px="xs"
                     py="xxs"
                     bg={colorPath}
                     style={styles.checkBadge}
                   >
-                    <Typography 
-                      color="background" 
+                    <Typography
+                      color="background"
                       weight="bold"
                       style={styles.checkText}
                     >

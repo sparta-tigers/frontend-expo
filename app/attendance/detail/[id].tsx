@@ -1,8 +1,8 @@
 import { Box, Typography } from "@/components/ui";
 import { SafeLayout } from "@/components/ui/safe-layout";
 import {
-    useAttendance,
-    useDeleteAttendance,
+  useAttendance,
+  useDeleteAttendance,
 } from "@/src/features/match-attendance/queries";
 import { useFavoriteTeam } from "@/src/features/user/queries";
 import { theme } from "@/src/styles/theme";
@@ -11,14 +11,13 @@ import { findTeamMeta } from "@/src/utils/team";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    ScrollView,
-    StyleSheet,
-    TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
 } from "react-native";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -35,7 +34,6 @@ export default function AttendanceDetailScreen() {
   const { data: attendance, isLoading } = useAttendance(Number(id));
   const deleteMutation = useDeleteAttendance();
   const { data: favoriteTeam, isLoading: isFavLoading } = useFavoriteTeam();
-
 
   // [Phase 2-1] 라우트 파라미터 유효성 검사 (Fail-fast)
   const idNumber = Number(id);

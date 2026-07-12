@@ -1,11 +1,11 @@
-import { theme } from "@/src/styles/theme";
+import { Box, Button, Input, SafeLayout, Typography } from "@/components/ui";
 import { useAuth } from "@/src/hooks/useAuth";
+import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, StyleSheet } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { Box, Typography, Input, Button, SafeLayout } from "@/components/ui";
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -85,7 +85,13 @@ export default function SignupScreen() {
         extraScrollHeight={theme.spacing.xl}
       >
         <Box bg="card" p="xl" rounded="lg" style={styles.card}>
-          <Typography variant="h2" weight="bold" color="text.primary" center mb="xl">
+          <Typography
+            variant="h2"
+            weight="bold"
+            color="text.primary"
+            center
+            mb="xl"
+          >
             회원가입
           </Typography>
 
