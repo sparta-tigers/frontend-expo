@@ -42,7 +42,7 @@ type ChatDomain = "liveboard" | "directroom" | "location";
  * React Native 환경에서 TextEncoder 확인
  */
 const checkPolyfills = (): boolean => {
-  if (!global.TextEncoder) {
+  if (!globalThis.TextEncoder) {
     chatLogger.warn(
       "TextEncoder polyfill missing. WebSocket connection may fail. " +
         "Ensure 'fast-text-encoding' is imported in app/_layout.tsx",
@@ -202,9 +202,13 @@ export function useWebSocket(
   }, []);
 
   useEffect(() => {
-    connect().catch(() => {});
+    // Delay slightly to prevent sync setState in effect if connect() returns early
+    const timerId = setTimeout(() => {
+      connect().catch(() => {});
+    }, 0);
 
     return () => {
+      clearTimeout(timerId);
       if (clientRef.current?.connected) {
         clientRef.current.deactivate().catch((err) => chatLogger.warn("cleanup deactivate failed", err));
       }

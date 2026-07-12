@@ -1,5 +1,5 @@
 import { AsyncState, RequestResult } from "@/src/shared/types/common";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * 비동기 상태 관리 훅
@@ -21,7 +21,9 @@ export function useAsyncState<T>(
 
   // [RC-1] 최신 status를 deps 없이 참조하기 위한 ref
   const statusRef = useRef(state.status);
-  statusRef.current = state.status;
+  useEffect(() => {
+    statusRef.current = state.status;
+  }, [state.status]);
 
   // [RC-1] 실행 토큰 — 새 Promise가 올 때마다 증가.
   // 완료 시점에 토큰이 현재와 다르면 더 최신 요청이 있으므로 결과를 버린다.

@@ -11,7 +11,7 @@ export const useThemeColor = (
   props: { light?: string; dark?: string },
   colorName: keyof typeof colors.light,
 ) => {
-  const theme = useColorScheme() ?? "light";
+  const theme = useColorScheme() === "dark" ? "dark" : "light";
   const colorFromProps = props[theme as keyof typeof props];
 
   if (colorFromProps) {
@@ -26,7 +26,7 @@ export const useThemeColor = (
  * 모든 색상을 객체로 반환
  */
 export const useTheme = () => {
-  const theme = useColorScheme() ?? "light";
+  const theme = useColorScheme() === "dark" ? "dark" : "light";
   return colors[theme];
 };
 
