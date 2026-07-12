@@ -18,6 +18,8 @@ import {
   Dimensions,
   FlatList,
   Image,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -228,6 +230,29 @@ export default function ItemDetailScreen() {
     typeof myUserId !== "undefined" &&
     Number(itemUserObjId) === Number(myUserId);
 
+  const handleMomentumScrollEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { width } = event.nativeEvent.layoutMeasurement;
+    const index = Math.round(event.nativeEvent.contentOffset.x / width);
+    setCurrentImageIndex(index);
+  }, []);
+
+  const imageKeyExtractor = useCallback((_: unknown, index: number) => `image-${index}`, []);
+
+  const renderImageItem = useCallback(({ item: imageUrl, index }: { item: unknown; index: number }) => (
+    <TouchableOpacity
+      style={[styles.imageContainer, { width: SCREEN_WIDTH }]}
+      onPress={() => {
+        setImageViewerIndex(index);
+        setIsImageViewerVisible(true);
+      }}
+    >
+      <Image
+        source={{ uri: getImageUrl(imageUrl as string) }}
+        style={styles.image}
+      />
+    </TouchableOpacity>
+  ), []);
+
   const renderImageCarousel = useCallback(() => {
     const images = item?.data?.imageUrls ?? item?.data?.images ?? [];
 
@@ -254,26 +279,9 @@ export default function ItemDetailScreen() {
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
-          keyExtractor={(_, index) => `image-${index}`}
-          onMomentumScrollEnd={(event) => {
-            const { width } = event.nativeEvent.layoutMeasurement;
-            const index = Math.round(event.nativeEvent.contentOffset.x / width);
-            setCurrentImageIndex(index);
-          }}
-          renderItem={({ item: imageUrl, index }) => (
-            <TouchableOpacity
-              style={[styles.imageContainer, { width: SCREEN_WIDTH }]}
-              onPress={() => {
-                setImageViewerIndex(index);
-                setIsImageViewerVisible(true);
-              }}
-            >
-              <Image
-                source={{ uri: getImageUrl(imageUrl as string) }}
-                style={styles.image}
-              />
-            </TouchableOpacity>
-          )}
+          keyExtractor={imageKeyExtractor}
+          onMomentumScrollEnd={handleMomentumScrollEnd}
+          renderItem={renderImageItem}
         />
 
         {images.length > 1 ? (
@@ -301,7 +309,7 @@ export default function ItemDetailScreen() {
         />
       </Box>
     );
-  }, [item, currentImageIndex, imageViewerIndex, isImageViewerVisible]);
+  }, [item, currentImageIndex, imageViewerIndex, isImageViewerVisible, handleMomentumScrollEnd, imageKeyExtractor, renderImageItem]);
 
   const handleExchangeRequest = useCallback(() => {
     if (!user?.accessToken) {

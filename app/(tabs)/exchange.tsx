@@ -104,6 +104,8 @@ export default function ExchangeScreen() {
     [navigateToItemDetail],
   );
 
+  const keyExtractor = useCallback((item: Item) => item.id.toString(), []);
+
   return (
     <SafeLayout style={styles.container}>
       <Head>
@@ -187,7 +189,7 @@ export default function ExchangeScreen() {
               ref={listRef}
               data={filteredItems}
               renderItem={renderItem}
-              keyExtractor={(item) => item.id.toString()}
+              keyExtractor={keyExtractor}
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}

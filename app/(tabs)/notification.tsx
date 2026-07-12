@@ -10,7 +10,7 @@ import { formatToKoreanDateTime } from "@/src/utils/date";
 import { Logger } from "@/src/utils/logger";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback } from "react";
 import { Alert, StyleSheet, TouchableOpacity } from "react-native";
 
 /**
@@ -26,7 +26,7 @@ export default function NotificationScreen() {
 
   const alarms = useMemo(() => pageResponse?.content || [], [pageResponse]);
 
-  const handleDeleteAlarm = (alarm: TicketAlarm) => {
+  const handleDeleteAlarm = useCallback((alarm: TicketAlarm) => {
     Alert.alert(
       "티켓 알림 삭제",
       `${alarm.stadiumName} - ${formatToKoreanDateTime(alarm.matchTime, false)} 알림을 삭제하시겠습니까?`,
@@ -46,7 +46,17 @@ export default function NotificationScreen() {
         },
       ],
     );
-  };
+  }, [deleteAlarm]);
+
+  const keyExtractor = useCallback((item: TicketAlarm) => item.alarmId.toString(), []);
+
+  const renderItem = useCallback(({ item }: { item: TicketAlarm }) => (
+    <AlarmItem
+      item={item}
+      onDelete={handleDeleteAlarm}
+      isDeleting={isDeleting}
+    />
+  ), [handleDeleteAlarm, isDeleting]);
 
   return (
     <SafeLayout style={styles.safeLayout}>
@@ -62,14 +72,8 @@ export default function NotificationScreen() {
 
         <List
           data={alarms}
-          renderItem={({ item }) => (
-            <AlarmItem
-              item={item}
-              onDelete={handleDeleteAlarm}
-              isDeleting={isDeleting}
-            />
-          )}
-          keyExtractor={(item) => item.alarmId.toString()}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
           contentContainerStyle={styles.listContainer}
           refreshing={isLoading}
           onRefresh={refetch}
