@@ -75,16 +75,9 @@ export function scan(opts: ScanOptions): ScanResult[] {
   } = {
     rootDir: opts.rootDir,
     targets: opts.targets,
+    extensions: opts.extensions,
+    excludeDirs: opts.excludeDirs,
   };
-  // `exactOptionalPropertyTypes: true` disallows writing `undefined` into an
-  // optional field, so we copy the keys only when the caller actually
-  // supplied them.
-  if (opts.extensions !== undefined) {
-    enumerateOpts.extensions = opts.extensions;
-  }
-  if (opts.excludeDirs !== undefined) {
-    enumerateOpts.excludeDirs = opts.excludeDirs;
-  }
 
   const absolutePaths = enumerateSourceFiles(enumerateOpts);
 
