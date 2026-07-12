@@ -17,7 +17,8 @@ import { KBO_TEAMS } from "@/src/features/user/types";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
 import React, { useRef } from "react";
-import { ScrollView, TouchableOpacity, LayoutAnimation } from "react-native";
+import { ScrollView, TouchableOpacity } from "react-native";
+import { animateLayout } from "@/src/utils/motion";
 import { theme } from "@/src/styles/theme";
 
 export default function ProfileScreen() {
@@ -49,7 +50,7 @@ export default function ProfileScreen() {
   };
 
   const onSelectTeam = (team: (typeof KBO_TEAMS)[number]) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    animateLayout();
     bottomSheetModalRef.current?.dismiss();
     handleSelectTeam(team).catch(() => {
       // Why: 에러 처리는 useProfile 내부에서 Alert 및 Logger를 통해 이미 완료됨.
@@ -57,7 +58,7 @@ export default function ProfileScreen() {
   };
 
   const onDeleteFavoriteTeam = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    animateLayout();
     if (favoriteTeam) {
       handleDeleteFavoriteTeam(favoriteTeam);
     }

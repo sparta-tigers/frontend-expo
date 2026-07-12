@@ -7,7 +7,8 @@ import { Logger } from "@/src/utils/logger";
 import Slider from "@react-native-community/slider";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Alert, ScrollView, StyleSheet, LayoutAnimation } from "react-native";
+import { Alert, ScrollView, StyleSheet } from "react-native";
+import { animateLayout } from "@/src/utils/motion";
 
 /**
  * 🔔 TicketAlarmFormScreen: 티켓 예매 알림 설정 화면
@@ -31,7 +32,7 @@ export default function TicketAlarmFormScreen() {
   const onChangeMembership = (text: string) => {
     setMembership(text);
     if (errorText) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      animateLayout();
       setErrorText("");
     }
   };
@@ -52,7 +53,7 @@ export default function TicketAlarmFormScreen() {
     }
 
     if (membership.trim().length > 20) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      animateLayout();
       setErrorText("멤버십 정보는 20자 이내로 입력해주세요.");
       return;
     }

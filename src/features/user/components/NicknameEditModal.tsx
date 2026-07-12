@@ -5,13 +5,13 @@ import { useState } from "react";
 import {
   Keyboard,
   KeyboardAvoidingView,
-  LayoutAnimation,
   Modal,
   Platform,
   StyleSheet,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { animateLayout } from "@/src/utils/motion";
 
 interface NicknameEditModalProps {
   visible: boolean;
@@ -43,7 +43,7 @@ export function NicknameEditModal({
   const onChangeText = (text: string) => {
     setNickname(text);
     if (errorText) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      animateLayout();
       setErrorText("");
     }
   };
@@ -51,7 +51,7 @@ export function NicknameEditModal({
   const handleSave = () => {
     const trimmed = nickname.trim();
     if (!trimmed || trimmed.length < 2) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      animateLayout();
       setErrorText("닉네임은 2자 이상 입력해주세요.");
       return;
     }
