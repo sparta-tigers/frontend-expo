@@ -1,5 +1,5 @@
 import { Logger } from "@/src/utils/logger";
-import * as SecureStore from "expo-secure-store";
+import { getItemAsync, setItemAsync, deleteItemAsync } from "expo-secure-store";
 
 const authLogger = Logger.category("AUTH");
 
@@ -35,7 +35,7 @@ export async function getAccessToken(): Promise<string | null> {
 
   // SecureStore에서 로드
   try {
-    const token = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+    const token = await getItemAsync(ACCESS_TOKEN_KEY);
     _accessToken = token; // 메모리 캐시 저장
     return token;
   } catch (error) {
@@ -58,7 +58,7 @@ export async function getRefreshToken(): Promise<string | null> {
 
   // SecureStore에서 로드
   try {
-    const token = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+    const token = await getItemAsync(REFRESH_TOKEN_KEY);
     _refreshToken = token; // 메모리 캐시 저장
     return token;
   } catch (error) {
@@ -85,8 +85,10 @@ export async function setTokens(
     _refreshToken = refreshToken;
 
     // SecureStore에 저장
-    await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
-    await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+    await Promise.all([
+      setItemAsync(ACCESS_TOKEN_KEY, accessToken),
+      setItemAsync(REFRESH_TOKEN_KEY, refreshToken),
+    ]);
 
     return true;
   } catch (error) {
@@ -113,8 +115,10 @@ export async function clearTokens(): Promise<boolean> {
     _refreshToken = null;
 
     // SecureStore에서 삭제
-    await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
-    await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+    await Promise.all([
+      deleteItemAsync(ACCESS_TOKEN_KEY),
+      deleteItemAsync(REFRESH_TOKEN_KEY),
+    ]);
 
     return true;
   } catch (error) {
@@ -136,8 +140,10 @@ export async function initializeTokenCache(): Promise<void> {
 
   // SecureStore에서 토큰 미리 로드
   try {
-    const accessToken = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
-    const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+    const [accessToken, refreshToken] = await Promise.all([
+      getItemAsync(ACCESS_TOKEN_KEY),
+      getItemAsync(REFRESH_TOKEN_KEY),
+    ]);
 
     if (accessToken && refreshToken) {
       _accessToken = accessToken;
