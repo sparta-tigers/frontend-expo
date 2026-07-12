@@ -67,6 +67,7 @@ repomix.config.json
 .agents/pipeline/*
 !.agents/pipeline/project-doc.md
 .planning/
+.gsd/
 
 # Architecture Guard Reports
 scripts/architecture-guard/dependency/reports/
