@@ -26,7 +26,7 @@ export const ScheduleSkeleton = () => {
 
   useEffect(() => {
     // 부드러운 펄스 애니메이션 적용
-    Animated.loop(
+    const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(opacity, {
           toValue: 0.7,
@@ -39,7 +39,10 @@ export const ScheduleSkeleton = () => {
           useNativeDriver: true,
         }),
       ]),
-    ).start();
+    );
+    animation.start();
+
+    return () => animation.stop();
   }, [opacity]);
 
   return (
