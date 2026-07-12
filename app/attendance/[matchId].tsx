@@ -18,6 +18,7 @@ import { Image } from "expo-image";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
+import { AttendanceEmptyState } from "@/src/features/match-attendance/components";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -63,31 +64,26 @@ export default function AttendanceFormScreen() {
   const [images, setImages] = useState<string[]>([]);
   const [existingId, setExistingId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [prevAttendanceId, setPrevAttendanceId] = useState<number | null>(null);
 
-  /**
-   * 🎯 [Phase 2] 결정론적 수정 모드 판별 및 데이터 초기화
-   * Why: matchId 단건 조회 결과(attendance)가 존재하면 수정 모드로 동작함.
-   * 100건 제한 목록에 의존하지 않아 데이터 누락 위험이 없음.
-   */
-  const [prevAttendance, setPrevAttendance] = useState(attendance);
-  if (attendance !== prevAttendance) {
-    setPrevAttendance(attendance);
-    if (attendance) {
-      setExistingId(attendance.id);
-      setContents(attendance.contents || "");
-      setSeat(attendance.seat || "");
-      // 🛡️ [Senior Architect] images 필드 유무 및 타입 체크 강화
-      const safeImages = Array.isArray(attendance.images)
-        ? attendance.images
-        : [];
-      setImages(safeImages.map((img) => img.imageUrl));
-    } else {
-      // 🎯 [Phase 36] 결정론적 상태 리셋: 데이터 부재 시(기록 없음 등) 폼 초기화
-      setExistingId(null);
-      setContents("");
-      setSeat("");
-      setImages([]);
-    }
+  // 🎯 [Phase 2] 결정론적 수정 모드 판별 및 데이터 초기화 (During render)
+  if (attendance && attendance.id !== prevAttendanceId) {
+    setPrevAttendanceId(attendance.id);
+    setExistingId(attendance.id);
+    setContents(attendance.contents || "");
+    setSeat(attendance.seat || "");
+    // 🛡️ [Senior Architect] images 필드 유무 및 타입 체크 강화
+    const safeImages = Array.isArray(attendance.images)
+      ? attendance.images
+      : [];
+    setImages(safeImages.map((img) => img.imageUrl));
+  } else if (!attendance && !isAttendanceLoading && prevAttendanceId !== null) {
+    // 🎯 [Phase 36] 결정론적 상태 리셋: 데이터 부재 시(기록 없음 등) 폼 초기화
+    setPrevAttendanceId(null);
+    setExistingId(null);
+    setContents("");
+    setSeat("");
+    setImages([]);
   }
 
   if (isAttendanceLoading) {
@@ -107,33 +103,10 @@ export default function AttendanceFormScreen() {
     // 화이트 스크린 방지: 명시적인 에러 UI 렌더링
     return (
       <SafeLayout style={styles.safeLayout}>
-        <Box flex={1} justify="center" align="center" p="SCREEN">
-          <Ionicons
-            name="alert-circle-outline"
-            size={64}
-            color={theme.colors.error}
-          />
-          <Typography
-            variant="h3"
-            color="text.primary"
-            weight="bold"
-            center
-            mt="md"
-          >
-            유효하지 않은 경기 ID
-          </Typography>
-          <Typography variant="body2" color="text.secondary" center mt="sm">
-            경기 정보를 불러올 수 없습니다.
-          </Typography>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.replace("/(tabs)/history")}
-          >
-            <Typography variant="body1" color="background" weight="bold">
-              이전 화면으로
-            </Typography>
-          </TouchableOpacity>
-        </Box>
+        <AttendanceEmptyState
+          title="유효하지 않은 경기 ID"
+          description="경기 정보를 불러올 수 없습니다."
+        />
       </SafeLayout>
     );
   }
@@ -296,49 +269,47 @@ export default function AttendanceFormScreen() {
             <Typography variant="label" color="text.primary" mb="sm">
               사진 (최대 5장)
             </Typography>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <Box flexDir="row">
-                {images.length < 5 && (
+            <Box flexDir="row" style={localStyles.imageWrap}>
+              {images.length < 5 && (
+                <TouchableOpacity
+                  style={[styles.imagePickerButton, localStyles.noMargin]}
+                  onPress={pickImage}
+                >
+                  <Ionicons
+                    name="camera-outline"
+                    size={32}
+                    color={theme.colors.text.secondary}
+                  />
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    mt="xs"
+                  >
+                    {images.length}/5
+                  </Typography>
+                </TouchableOpacity>
+              )}
+
+              {images.map((uri, index) => (
+                <Box key={uri} position="relative">
+                  <Image
+                    source={{ uri }}
+                    style={styles.thumbnail}
+                    contentFit="cover"
+                  />
                   <TouchableOpacity
-                    style={styles.imagePickerButton}
-                    onPress={pickImage}
+                    style={styles.removeButton}
+                    onPress={() => removeImage(index)}
                   >
                     <Ionicons
-                      name="camera-outline"
-                      size={32}
-                      color={theme.colors.text.secondary}
+                      name="close"
+                      size={14}
+                      color={theme.colors.background}
                     />
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      mt="xs"
-                    >
-                      {images.length}/5
-                    </Typography>
                   </TouchableOpacity>
-                )}
-
-                {images.map((uri, index) => (
-                  <Box key={uri} mr="sm" position="relative">
-                    <Image
-                      source={{ uri }}
-                      style={styles.thumbnail}
-                      contentFit="cover"
-                    />
-                    <TouchableOpacity
-                      style={styles.removeButton}
-                      onPress={() => removeImage(index)}
-                    >
-                      <Ionicons
-                        name="close"
-                        size={14}
-                        color={theme.colors.background}
-                      />
-                    </TouchableOpacity>
-                  </Box>
-                ))}
-              </Box>
-            </ScrollView>
+                </Box>
+              ))}
+            </Box>
           </Box>
 
           <TouchableOpacity
@@ -431,11 +402,15 @@ const styles = StyleSheet.create({
   disabledButton: {
     opacity: 0.6,
   },
-  backButton: {
-    backgroundColor: theme.colors.brand.mint,
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
-    borderRadius: theme.radius.md,
-    marginTop: theme.spacing.lg,
+});
+
+const localStyles = StyleSheet.create({
+  imageWrap: {
+    flexWrap: "wrap",
+    gap: theme.spacing.sm,
+  },
+  noMargin: {
+    margin: 0,
+    marginRight: 0,
   },
 });

@@ -11,6 +11,7 @@ import { findTeamMeta } from "@/src/utils/team";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { AttendanceEmptyState } from "@/src/features/match-attendance/components";
 import {
   ActivityIndicator,
   Alert,
@@ -40,33 +41,10 @@ export default function AttendanceDetailScreen() {
   if (!id || isNaN(idNumber)) {
     return (
       <SafeLayout style={styles.safeLayout}>
-        <Box flex={1} justify="center" align="center" p="SCREEN">
-          <Ionicons
-            name="alert-circle-outline"
-            size={64}
-            color={theme.colors.error}
-          />
-          <Typography
-            variant="h3"
-            color="text.primary"
-            weight="bold"
-            center
-            mt="md"
-          >
-            유효하지 않은 기록 ID
-          </Typography>
-          <Typography variant="body2" color="text.secondary" center mt="sm">
-            기록 정보를 불러올 수 없습니다.
-          </Typography>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.replace("/(tabs)/history")}
-          >
-            <Typography variant="body1" color="background" weight="bold">
-              이전 화면으로
-            </Typography>
-          </TouchableOpacity>
-        </Box>
+        <AttendanceEmptyState
+          title="유효하지 않은 기록 ID"
+          description="기록 정보를 불러올 수 없습니다."
+        />
       </SafeLayout>
     );
   }
@@ -105,33 +83,10 @@ export default function AttendanceDetailScreen() {
   if (!attendance) {
     return (
       <SafeLayout style={styles.safeLayout}>
-        <Box flex={1} justify="center" align="center" p="SCREEN">
-          <Ionicons
-            name="alert-circle-outline"
-            size={64}
-            color={theme.colors.error}
-          />
-          <Typography
-            variant="h3"
-            color="text.primary"
-            weight="bold"
-            center
-            mt="md"
-          >
-            기록을 찾을 수 없습니다
-          </Typography>
-          <Typography variant="body2" color="text.secondary" center mt="sm">
-            해당 기록이 삭제되었거나 존재하지 않습니다.
-          </Typography>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.replace("/(tabs)/history")}
-          >
-            <Typography variant="body1" color="background" weight="bold">
-              이전 화면으로
-            </Typography>
-          </TouchableOpacity>
-        </Box>
+        <AttendanceEmptyState
+          title="기록을 찾을 수 없습니다"
+          description="해당 기록이 삭제되었거나 존재하지 않습니다."
+        />
       </SafeLayout>
     );
   }
@@ -278,29 +233,24 @@ export default function AttendanceDetailScreen() {
 
         {/* Gallery */}
         {attendance.images && attendance.images.length > 0 && (
-          <Box mb="SCREEN">
+          <Box mb="SCREEN" px="SCREEN">
             <Typography
               variant="label"
               color="text.secondary"
-              mx="SCREEN"
               mb="sm"
             >
               GALLERY
             </Typography>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.galleryContent}
-            >
+            <Box style={{ gap: theme.spacing.sm }}>
               {attendance.images.map((img) => (
                 <Image
                   key={img.id}
                   source={{ uri: img.imageUrl }}
-                  style={styles.galleryImage}
+                  style={[styles.galleryImage, styles.fullWidthImage]}
                   contentFit="cover"
                 />
               ))}
-            </ScrollView>
+            </Box>
           </Box>
         )}
 
@@ -341,23 +291,15 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.brand.mintAlpha10,
     borderWidth: 1,
   },
-  galleryContent: {
-    paddingHorizontal: theme.spacing.SCREEN,
-    gap: theme.spacing.sm,
-  },
   galleryImage: {
     width: SCREEN_WIDTH * 0.7,
     height: SCREEN_WIDTH * 0.7,
     borderRadius: theme.radius.lg,
   },
+  fullWidthImage: {
+    width: "100%",
+  },
   memoText: {
     lineHeight: 24,
-  },
-  backButton: {
-    backgroundColor: theme.colors.brand.mint,
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
-    borderRadius: theme.radius.md,
-    marginTop: theme.spacing.lg,
   },
 });
