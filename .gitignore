@@ -62,7 +62,10 @@ repomix.config.json
 **/frontend-context**.txt
 
 # AI Agents
-**/**agents**/
+.agents/*
+!.agents/pipeline/
+.agents/pipeline/*
+!.agents/pipeline/project-doc.md
 .planning/
 
 # Architecture Guard Reports
