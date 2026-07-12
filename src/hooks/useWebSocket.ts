@@ -61,6 +61,14 @@ const checkPolyfills = (): boolean => {
  */
 const getWebSocketURL = (url?: string): string => {
   const envUrl = process.env.EXPO_PUBLIC_WS_BASE_URL;
+
+  // [VibeSec/S06] 프로덕션 환경에서 WS URL이 없으면 조용한 실패 대신 명시적 에러 발생
+  if (!__DEV__ && !envUrl) {
+    throw new Error(
+      "프로덕션 환경에서는 EXPO_PUBLIC_WS_BASE_URL 환경 변수가 필수입니다.",
+    );
+  }
+
   const defaultUrl = "http://localhost:8080/ws";
   const resolved = url || envUrl || defaultUrl;
 
