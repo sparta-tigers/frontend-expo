@@ -167,6 +167,8 @@ export default function SigninScreen() {
                 style={styles.input}
                 editable={!isLoading}
                 returnKeyType="next"
+                accessibilityLabel="이메일 입력"
+                accessibilityHint="로그인에 사용할 이메일을 입력하세요"
               />
 
               <TextInput
@@ -179,6 +181,8 @@ export default function SigninScreen() {
                 editable={!isLoading}
                 returnKeyType="done"
                 onSubmitEditing={handleSignin}
+                accessibilityLabel="비밀번호 입력"
+                accessibilityHint="계정의 비밀번호를 입력하세요"
               />
 
               <TouchableOpacity
@@ -186,6 +190,9 @@ export default function SigninScreen() {
                 onPress={handleSignin}
                 disabled={isLoading}
                 style={styles.loginButton}
+                accessibilityRole="button"
+                accessibilityLabel="로그인"
+                accessibilityState={{ disabled: isLoading }}
               >
                 <Typography
                   variant="body2"
@@ -202,6 +209,8 @@ export default function SigninScreen() {
                 onPress={() => router.push("/(auth)/signup")}
                 disabled={isLoading}
                 style={styles.registerButton}
+                accessibilityRole="button"
+                accessibilityLabel="회원가입 페이지로 이동"
               >
                 <Typography
                   variant="body2"
@@ -241,6 +250,8 @@ export default function SigninScreen() {
                   onPress={() =>
                     Alert.alert("준비중", "카카오 로그인은 준비중입니다")
                   }
+                  accessibilityRole="button"
+                  accessibilityLabel="카카오 로그인"
                 >
                   <Image
                     source={kakaoIcon}
@@ -256,6 +267,8 @@ export default function SigninScreen() {
                   onPress={() =>
                     Alert.alert("준비중", "Apple 로그인은 준비중입니다")
                   }
+                  accessibilityRole="button"
+                  accessibilityLabel="애플 로그인"
                 >
                   <Image
                     source={appleIcon}
@@ -347,6 +360,7 @@ const styles = StyleSheet.create({
   input: {
     width: "100%",
     height: LOCAL_LAYOUT.inputHeight,
+    minHeight: 44,
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.full,
     paddingHorizontal: theme.spacing.lg,
@@ -356,6 +370,7 @@ const styles = StyleSheet.create({
   loginButton: {
     width: "100%",
     height: LOCAL_LAYOUT.inputHeight,
+    minHeight: 44,
     backgroundColor: theme.colors.brand.mint,
     borderRadius: theme.radius.full,
     alignItems: "center",
@@ -363,12 +378,16 @@ const styles = StyleSheet.create({
   },
   registerButton: {
     height: LOCAL_LAYOUT.inputHeight,
+    minHeight: 44,
+    minWidth: 44,
     alignItems: "center",
     justifyContent: "center",
   },
   socialButton: {
     width: LOCAL_LAYOUT.socialButtonSize,
     height: LOCAL_LAYOUT.socialButtonSize,
+    minHeight: 44,
+    minWidth: 44,
     borderRadius: theme.radius.lg,
     backgroundColor: theme.colors.card,
     alignItems: "center",

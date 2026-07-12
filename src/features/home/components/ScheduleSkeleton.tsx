@@ -1,7 +1,7 @@
 import { Box } from "@/components/ui";
 import { theme } from "@/src/styles/theme";
 import React, { useEffect } from "react";
-import { Animated, StyleSheet, View } from "react-native";
+import { Animated, Easing, StyleSheet, View } from "react-native";
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -31,11 +31,13 @@ export const ScheduleSkeleton = () => {
         Animated.timing(opacity, {
           toValue: 0.7,
           duration: 800,
+          easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
         Animated.timing(opacity, {
           toValue: 0.3,
           duration: 800,
+          easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
       ]),

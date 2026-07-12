@@ -52,6 +52,9 @@ export const RankingSummarySection = React.memo(function RankingSummarySection({
     <TouchableOpacity
       activeOpacity={0.9}
       onPress={() => router.push("/ranking")}
+      accessibilityRole="button"
+      accessibilityLabel="전체 순위 보기"
+      accessibilityHint="KBO 리그 전체 순위 페이지로 이동합니다"
     >
       <Box mt="xxxxl" px="xxxl">
         <Typography variant="h3" weight="bold" center mb="md">

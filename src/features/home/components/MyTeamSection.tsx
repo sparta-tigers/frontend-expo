@@ -146,6 +146,9 @@ export const MyTeamSection = memo(
               activeOpacity={0.75}
               onPress={onPressChangeTeam}
               style={styles.changeTeamButton}
+              accessibilityRole="button"
+              accessibilityLabel="응원팀 변경"
+              accessibilityHint="응원하는 팀을 변경할 수 있습니다"
             >
               <Typography
                 variant="caption"
@@ -231,6 +234,10 @@ const styles = StyleSheet.create({
   changeTeamButton: {
     paddingVertical: 4,
     paddingHorizontal: 12,
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: 20,
     borderWidth: 1,
     borderColor: theme.colors.border.medium,

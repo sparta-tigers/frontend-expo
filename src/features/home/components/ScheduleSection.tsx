@@ -247,6 +247,8 @@ const styles = StyleSheet.create({
   cell: {
     width: LOCAL_LAYOUT.cellWidth,
     height: LOCAL_LAYOUT.cellHeight,
+    minWidth: 44,
+    minHeight: 44,
     borderRightWidth: LOCAL_LAYOUT.borderWidth,
     borderBottomWidth: LOCAL_LAYOUT.borderWidth,
     borderColor: theme.colors.team.neutralLight,

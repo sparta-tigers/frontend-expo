@@ -102,6 +102,8 @@ export default function SignupScreen() {
               placeholder="이메일"
               keyboardType="email-address"
               fullWidth
+              accessibilityLabel="이메일 입력"
+              accessibilityHint="회원가입에 사용할 이메일을 입력하세요"
             />
 
             <Input
@@ -109,6 +111,8 @@ export default function SignupScreen() {
               onChangeText={setNickname}
               placeholder="닉네임"
               fullWidth
+              accessibilityLabel="닉네임 입력"
+              accessibilityHint="회원가입에 사용할 닉네임을 입력하세요"
             />
 
             <Input
@@ -117,6 +121,8 @@ export default function SignupScreen() {
               placeholder="비밀번호"
               secureTextEntry
               fullWidth
+              accessibilityLabel="비밀번호 입력"
+              accessibilityHint="계정의 비밀번호를 입력하세요"
             />
 
             <Button
@@ -125,6 +131,8 @@ export default function SignupScreen() {
               disabled={isLoading}
               fullWidth
               style={styles.signupButton}
+              accessibilityRole="button"
+              accessibilityLabel="회원가입"
             >
               회원가입
             </Button>
@@ -133,6 +141,8 @@ export default function SignupScreen() {
               onPress={() => router.push("/(auth)/signin")}
               variant="ghost"
               fullWidth
+              accessibilityRole="button"
+              accessibilityLabel="로그인 페이지로 이동"
             >
               이미 계정이 있나요? 로그인하기
             </Button>

@@ -1,7 +1,7 @@
 import { Box } from "@/components/ui";
 import { theme } from "@/src/styles/theme";
 import React from "react";
-import { Animated, StyleSheet } from "react-native";
+import { Animated, Easing, StyleSheet } from "react-native";
 
 /**
  * 순위 요약 섹션 스켈레톤 UI
@@ -18,11 +18,13 @@ export const RankingSkeleton = () => {
         Animated.timing(animatedValue, {
           toValue: 0.7,
           duration: 1000,
+          easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
         Animated.timing(animatedValue, {
           toValue: 0.3,
           duration: 1000,
+          easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
         }),
       ]),
