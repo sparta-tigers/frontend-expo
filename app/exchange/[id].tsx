@@ -276,7 +276,7 @@ export default function ItemDetailScreen() {
           )}
         />
 
-        {images.length > 1 && (
+        {images.length > 1 ? (
           <Box style={styles.indicatorContainer}>
             {images.map((_: string, index: number) => (
               <Box
@@ -290,7 +290,7 @@ export default function ItemDetailScreen() {
               />
             ))}
           </Box>
-        )}
+        ) : null}
 
         <ImageViewing
           images={formattedImages}
@@ -429,7 +429,7 @@ export default function ItemDetailScreen() {
             아이템 상세
           </Typography>
           <Box style={styles.headerRightContainer}>
-            {isOwner && (
+            {isOwner ? (
               <>
                 <TouchableOpacity
                   onPress={() => router.push(`/exchange/edit/${id}` as Href)}
@@ -448,7 +448,7 @@ export default function ItemDetailScreen() {
                   </Typography>
                 </TouchableOpacity>
               </>
-            )}
+            ) : null}
           </Box>
         </Box>
 
@@ -500,7 +500,7 @@ export default function ItemDetailScreen() {
               </Typography>
             </Box>
 
-            {isOwner && (
+            {isOwner ? (
               <Box style={styles.buttonRow}>
                 <Box style={styles.statusSection}>
                   <Box style={styles.statusInfoRow}>
@@ -563,7 +563,7 @@ export default function ItemDetailScreen() {
                   </Box>
                 </Box>
               </Box>
-            )}
+            ) : null}
           </Box>
         </ScrollView>
 

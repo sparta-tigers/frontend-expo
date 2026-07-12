@@ -130,7 +130,7 @@ export default function ChatRoomScreen() {
                   : "교환 취소"}
             </Text>
 
-            {exchangeItem.status === "REGISTERED" && (
+            {exchangeItem.status === "REGISTERED" ? (
               <View style={styles.statusButtons}>
                 {exchangeItem.ownerId === user?.userId ? (
                   <>
@@ -171,7 +171,7 @@ export default function ChatRoomScreen() {
                   </View>
                 )}
               </View>
-            )}
+            ) : null}
           </View>
         ) : null}
       </View>
@@ -203,9 +203,9 @@ export default function ChatRoomScreen() {
               item.isMine ? styles.myBubble : styles.otherBubble,
             ]}
           >
-            {!item.isMine && (
+            {!item.isMine ? (
               <Text style={styles.senderName}>{item.senderName}</Text>
-            )}
+            ) : null}
             <Text
               style={[
                 styles.messageText,

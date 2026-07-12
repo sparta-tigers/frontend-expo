@@ -1,9 +1,7 @@
 // src/features/liveboard/components/ChatPanel.tsx
 import { Box } from "@/components/ui/box";
 import { Typography } from "@/components/ui/typography";
-import {
-  useChatPanel,
-} from "@/src/features/liveboard/hooks/useChatPanel";
+import { useChatPanel } from "@/src/features/liveboard/hooks/useChatPanel";
 import { styles } from "@/src/features/liveboard/styles/matchId.styles";
 import { theme } from "@/src/styles/theme";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -33,11 +31,11 @@ function ChatBubble({
       justify={mine ? "flex-end" : "flex-start"}
       style={styles.bubbleRow}
     >
-      {mine && (
+      {mine ? (
         <Typography style={styles.bubbleTime} weight="regular">
           {time}
         </Typography>
-      )}
+      ) : null}
       <Box style={styles.bubbleColumn} align={mine ? "flex-end" : "flex-start"}>
         <Typography style={styles.bubbleAuthor} weight="regular">
           {author}
@@ -53,11 +51,11 @@ function ChatBubble({
           </Typography>
         </Box>
       </Box>
-      {!mine && (
+      {!mine ? (
         <Typography style={styles.bubbleTime} weight="regular">
           {time}
         </Typography>
-      )}
+      ) : null}
     </Box>
   );
 }

@@ -114,7 +114,7 @@ export default function ScheduleScreen() {
     return (
       <Box flex={1} bg="background">
         <Stack.Screen options={{ headerShown: false }} />
-        {activeTeam && <BrandingHeader team={activeTeam} />}
+        {activeTeam ? <BrandingHeader team={activeTeam} /> : null}
         <ScheduleSkeleton />
       </Box>
     );
@@ -123,11 +123,11 @@ export default function ScheduleScreen() {
     <Box flex={1} bg="background">
       <Stack.Screen options={{ headerShown: false }} />
 
-      {activeTeam && <BrandingHeader team={activeTeam} />}
+      {activeTeam ? <BrandingHeader team={activeTeam} /> : null}
 
-      {isDropdownOpen && (
+      {isDropdownOpen ? (
         <Pressable style={styles.overlay} onPress={closeDropdown} />
-      )}
+      ) : null}
 
       <Box style={styles.contentContainer}>
         <Box style={styles.dropdownContainer}>
@@ -150,7 +150,7 @@ export default function ScheduleScreen() {
             </Typography>
           </TouchableOpacity>
 
-          {isDropdownOpen && (
+          {isDropdownOpen ? (
             <Box
               style={styles.dropdownMenu}
               bg="card"
@@ -174,7 +174,7 @@ export default function ScheduleScreen() {
                 </TouchableOpacity>
               ))}
             </Box>
-          )}
+          ) : null}
         </Box>
 
         <Box flexDir="row" align="center" mb="xl">
@@ -272,9 +272,9 @@ export default function ScheduleScreen() {
                     }
                   }}
                 >
-                  {!isEmpty && (
+                  {!isEmpty ? (
                     <>
-                      {cell.hasAttendance && (
+                      {cell.hasAttendance ? (
                         <Box style={styles.attendanceStamp}>
                           <Ionicons
                             name="checkmark-done-circle"
@@ -282,7 +282,7 @@ export default function ScheduleScreen() {
                             color={theme.colors.brand.mintAlpha10}
                           />
                         </Box>
-                      )}
+                      ) : null}
 
                       <Box flexDir="row" justify="space-between" width="100%">
                         <Box flexDir="row" align="center">
@@ -295,18 +295,18 @@ export default function ScheduleScreen() {
                             {cell.day}
                           </Typography>
                         </Box>
-                        {cell.location && (
+                        {cell.location ? (
                           <Box flexDir="row" align="center">
                             {isFuture &&
-                              cell.matchId !== undefined &&
-                              ticketAlarmMap.has(cell.matchId) && (
-                                <MaterialIcons
-                                  name="notifications-active"
-                                  size={12}
-                                  color={theme.colors.brand.mint}
-                                  style={styles.alarmIcon}
-                                />
-                              )}
+                            cell.matchId !== undefined &&
+                            ticketAlarmMap.has(cell.matchId) ? (
+                              <MaterialIcons
+                                name="notifications-active"
+                                size={12}
+                                color={theme.colors.brand.mint}
+                                style={styles.alarmIcon}
+                              />
+                            ) : null}
                             <Typography
                               variant="caption"
                               weight="bold"
@@ -315,9 +315,9 @@ export default function ScheduleScreen() {
                               {cell.location}
                             </Typography>
                           </Box>
-                        )}
+                        ) : null}
                       </Box>
-                      {cell.hasGame && (
+                      {cell.hasGame ? (
                         <Box flex={1} justify="center" align="center">
                           <Box
                             bg={
@@ -341,16 +341,16 @@ export default function ScheduleScreen() {
                             {cell.timeText}
                           </Typography>
                         </Box>
-                      )}
+                      ) : null}
                     </>
-                  )}
+                  ) : null}
                 </TouchableOpacity>
               );
             })}
           </Box>
         </Box>
 
-        {(year !== today.year || month !== today.month) && (
+        {year !== today.year || month !== today.month ? (
           <TouchableOpacity
             style={[
               styles.todayBtn,
@@ -373,7 +373,7 @@ export default function ScheduleScreen() {
               오늘로 돌아가기
             </Typography>
           </TouchableOpacity>
-        )}
+        ) : null}
       </Box>
     </Box>
   );

@@ -13,7 +13,13 @@ import {
 import { styles } from "@/src/features/liveboard/styles/matchId.styles";
 import { theme } from "@/src/styles/theme";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Animated, TouchableOpacity, useWindowDimensions, StyleSheet } from "react-native";
+import {
+  ActivityIndicator,
+  Animated,
+  TouchableOpacity,
+  useWindowDimensions,
+  StyleSheet,
+} from "react-native";
 
 /**
  * 라이브보드 상세 화면
@@ -148,7 +154,7 @@ export default function LiveboardDetailScreen() {
           </Box>
 
           <Box style={[localStyles.tabPanel, { width }]}>
-            {match && <LineupPanel match={match} />}
+            {match ? <LineupPanel match={match} /> : null}
           </Box>
 
           <Box style={[localStyles.tabPanel, { width }]}>

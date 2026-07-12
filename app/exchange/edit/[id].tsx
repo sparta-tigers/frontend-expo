@@ -177,7 +177,9 @@ export default function EditItemScreen() {
       itemsUpdateAPI(Number(id), request),
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: exchangeKeys.item(id as string) }),
+        queryClient.invalidateQueries({
+          queryKey: exchangeKeys.item(id as string),
+        }),
         queryClient.invalidateQueries({ queryKey: exchangeKeys.items() }),
       ]);
 
@@ -294,7 +296,7 @@ export default function EditItemScreen() {
         extraScrollHeight={20}
       >
         {/* 아이템 이미지 */}
-        {item.imageUrl && (
+        {item.imageUrl ? (
           <Card style={styles.imageCard}>
             <Image
               source={{ uri: getImageUrl(item.imageUrl) }}
@@ -302,7 +304,7 @@ export default function EditItemScreen() {
               resizeMode="cover"
             />
           </Card>
-        )}
+        ) : null}
 
         {/* 수정 폼 */}
         <Card style={styles.formCard}>

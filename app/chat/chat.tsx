@@ -168,14 +168,14 @@ export default function ChatListScreen() {
           <Text style={[chatStyles.avatarText, { color: colors.muted }]}>
             {item.opponentNickname.charAt(0).toUpperCase()}
           </Text>
-          {item.opponentOnline && (
+          {item.opponentOnline ? (
             <View
               style={[
                 chatStyles.onlineIndicator,
                 { backgroundColor: colors.primary },
               ]}
             />
-          )}
+          ) : null}
         </View>
 
         {/* 채팅 정보 */}

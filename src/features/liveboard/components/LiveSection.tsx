@@ -198,13 +198,13 @@ export function LiveSection({
         {/* 선수 배치 필드 (5) */}
         <Box style={styles.fieldArea} pointerEvents="none">
           {/* 실시간 이벤트 배너 */}
-          {!!liveData?.lastEvent && (
+          {!!liveData?.lastEvent ? (
             <Box style={styles.eventBanner}>
               <Typography style={styles.eventBannerText} weight="bold">
                 {liveData.lastEvent}
               </Typography>
             </Box>
-          )}
+          ) : null}
 
           {/* 수비수 배치 */}
           {liveData?.defenders?.map((p) => (
@@ -217,36 +217,36 @@ export function LiveSection({
           ))}
 
           {/* 주자 배치 */}
-          {liveData?.runner1 && (
+          {liveData?.runner1 ? (
             <PlayerChip
               name={liveData.runner1.name}
               role="runner1"
               kind="batter"
             />
-          )}
-          {liveData?.runner2 && (
+          ) : null}
+          {liveData?.runner2 ? (
             <PlayerChip
               name={liveData.runner2.name}
               role="runner2"
               kind="batter"
             />
-          )}
-          {liveData?.runner3 && (
+          ) : null}
+          {liveData?.runner3 ? (
             <PlayerChip
               name={liveData.runner3.name}
               role="runner3"
               kind="batter"
             />
-          )}
+          ) : null}
 
           {/* 현재 타자 배치 */}
-          {liveData?.batter && (
+          {liveData?.batter ? (
             <PlayerChip
               name={liveData.batter.name}
               role="batter"
               kind="batter"
             />
-          )}
+          ) : null}
         </Box>
       </Box>
     </Box>

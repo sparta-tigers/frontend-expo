@@ -35,7 +35,7 @@ export function ErrorBoundaryFallback({
           시작해주세요.
         </Text>
 
-        {__DEV__ && (
+        {__DEV__ ? (
           <View style={[styles.debugInfo, { backgroundColor: colors.surface }]}>
             <Text style={[styles.errorTitle, { color: colors.muted }]}>
               개발자 정보:
@@ -44,7 +44,7 @@ export function ErrorBoundaryFallback({
               {errorObj.name}: {errorObj.message}
             </Text>
           </View>
-        )}
+        ) : null}
 
         <Button
           onPress={resetErrorBoundary}

@@ -85,7 +85,7 @@ export function WeatherPanel({ matchId }: { matchId: string }) {
         <Typography variant="body1" color="text.secondary" weight="medium">
           {errorMessage}
         </Typography>
-        {isLoggedIn && (
+        {isLoggedIn ? (
           <TouchableOpacity
             style={styles.retryBtn}
             onPress={handleRetry}
@@ -96,7 +96,7 @@ export function WeatherPanel({ matchId }: { matchId: string }) {
               다시 시도
             </Typography>
           </TouchableOpacity>
-        )}
+        ) : null}
       </Box>
     );
   }
@@ -109,9 +109,9 @@ export function WeatherPanel({ matchId }: { matchId: string }) {
       contentContainerStyle={styles.weatherContent}
       showsVerticalScrollIndicator={false}
     >
-      {weatherStatus !== "SUCCESS" && (
+      {weatherStatus !== "SUCCESS" ? (
         <WeatherStatusBanner status={weatherStatus} />
-      )}
+      ) : null}
       <NowCastCard stadiumName={stadiumName} nowCast={nowCast} />
       <ForeCastTable foreCast={upcoming} />
     </ScrollView>

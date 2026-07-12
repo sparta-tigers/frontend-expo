@@ -17,7 +17,11 @@ import { useExchangeDashboard } from "@/src/features/exchange/hooks/useExchangeD
 import { Item } from "@/src/features/exchange/types";
 
 const MapView = React.lazy(() => import("react-native-map-clustering"));
-const ExchangeProfileModal = React.lazy(() => import("@/src/features/exchange/components/ExchangeProfileModal").then(module => ({ default: module.ExchangeProfileModal })));
+const ExchangeProfileModal = React.lazy(() =>
+  import("@/src/features/exchange/components/ExchangeProfileModal").then(
+    (module) => ({ default: module.ExchangeProfileModal }),
+  ),
+);
 
 /**
  * 지도 마커 리렌더링 방지용 서브 컴포넌트
@@ -33,13 +37,13 @@ const MapMarkers = React.memo(
     onMarkerPress: (id: number) => void;
   }) => (
     <>
-      {currentLocation && (
+      {currentLocation ? (
         <Marker
           coordinate={currentLocation}
           title="내 위치"
           pinColor={theme.colors.primary}
         />
-      )}
+      ) : null}
       {items.map((item) =>
         item.latitude != null &&
         item.longitude != null &&
@@ -104,16 +108,25 @@ export default function ExchangeScreen() {
     <SafeLayout style={styles.container}>
       <Head>
         <title>교환 | 스파르타타이거즈</title>
-        <meta name="description" content="내 주변에서 진행되는 직관 티켓 및 굿즈 교환을 확인하세요." />
+        <meta
+          name="description"
+          content="내 주변에서 진행되는 직관 티켓 및 굿즈 교환을 확인하세요."
+        />
       </Head>
       {/* 1. 지도 영역 */}
-      <Suspense fallback={
-        <Box style={styles.mapFallback}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-        </Box>
-      }>
+      <Suspense
+        fallback={
+          <Box style={styles.mapFallback}>
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+          </Box>
+        }
+      >
         <MapView
-          ref={mapRef as React.LegacyRef<globalThis.React.Component<unknown, unknown, unknown>>}
+          ref={
+            mapRef as React.LegacyRef<
+              globalThis.React.Component<unknown, unknown, unknown>
+            >
+          }
           style={styles.map}
           initialRegion={defaultRegion}
           onMapReady={() => setIsMapReady(true)}

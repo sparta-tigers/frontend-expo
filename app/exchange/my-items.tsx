@@ -13,7 +13,12 @@ export default function MyItemsScreen() {
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
 
-  const { data: myItems = [], isLoading, isError, refetch } = useQuery({
+  const {
+    data: myItems = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: exchangeKeys.myItems(),
     queryFn: async () => {
       const response = await itemsGetMyItemsAPI(0, 50);

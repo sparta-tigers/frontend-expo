@@ -50,7 +50,7 @@ export const ExchangeMapOverlay = React.memo(
     return (
       <>
         {/* FAB 버튼 그룹 (프로필 모달 열림 시 숨김) */}
-        {!isProfileModalVisible && (
+        {!isProfileModalVisible ? (
           <View style={styles.fabContainer}>
             <TouchableOpacity
               style={[styles.fabButton, styles.locationButton]}
@@ -63,7 +63,7 @@ export const ExchangeMapOverlay = React.memo(
               <Text style={styles.fabText}>👤</Text>
             </TouchableOpacity>
           </View>
-        )}
+        ) : null}
 
         {/* 상단 오버레이 버튼 (등록하기 + 교환현황) */}
         <View
@@ -87,7 +87,7 @@ export const ExchangeMapOverlay = React.memo(
         </View>
 
         {/* 재검색 버튼 (지도 이동 시 표시) */}
-        {isMapMoved && (
+        {isMapMoved ? (
           <TouchableOpacity
             style={[
               styles.reSearchButton,
@@ -97,7 +97,7 @@ export const ExchangeMapOverlay = React.memo(
           >
             <Text style={styles.reSearchText}>↻ 현 지도에서 재검색</Text>
           </TouchableOpacity>
-        )}
+        ) : null}
       </>
     );
   },
