@@ -1,5 +1,6 @@
 // app/(tabs)/exchange.tsx
 import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
+import Head from "expo-router/head";
 import React, { useCallback, Suspense } from "react";
 import { ActivityIndicator, RefreshControl, StyleSheet } from "react-native";
 import { Marker } from "react-native-maps";
@@ -101,6 +102,10 @@ export default function ExchangeScreen() {
 
   return (
     <SafeLayout style={styles.container}>
+      <Head>
+        <title>교환 | 스파르타타이거즈</title>
+        <meta name="description" content="내 주변에서 진행되는 직관 티켓 및 굿즈 교환을 확인하세요." />
+      </Head>
       {/* 1. 지도 영역 */}
       <Suspense fallback={
         <Box style={styles.mapFallback}>

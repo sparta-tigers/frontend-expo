@@ -8,6 +8,7 @@ import { Logger } from "@/src/utils/logger";
 import { calculateMatchResult } from "@/src/utils/match";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import Head from "expo-router/head";
 import {
     ActivityIndicator,
     FlatList,
@@ -136,6 +137,10 @@ export default function HistoryScreen() {
 
   return (
     <SafeLayout style={styles.safeLayout}>
+      <Head>
+        <title>직관 기록 | 스파르타타이거즈</title>
+        <meta name="description" content="나의 야구장 직관 일기를 기록하고 관리하세요." />
+      </Head>
       <Box flex={1} p="SCREEN">
         <Typography variant="h2" weight="bold" color="text.primary" mb="SCREEN">
           나의 직관 일기

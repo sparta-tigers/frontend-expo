@@ -8,6 +8,7 @@ import { commonStyles as styles } from "@/src/features/home/components/common.st
 import { useHomeDashboard } from "@/src/features/home/hooks/useHomeDashboard";
 import { LineupSection } from "@/src/shared/components/match/LineupSection";
 import { ScrollView } from "react-native";
+import Head from "expo-router/head";
 
 /**
  * 홈 화면 (`main_0`)
@@ -20,6 +21,10 @@ export default function HomeScreen() {
 
   return (
     <SafeLayout style={styles.safeLayout} edges={["top", "left", "right"]}>
+      <Head>
+        <title>홈 | 스파르타타이거즈</title>
+        <meta name="description" content="나의 응원팀 순위와 오늘의 라인업, 이번 달 경기 일정을 한눈에 확인하세요." />
+      </Head>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
