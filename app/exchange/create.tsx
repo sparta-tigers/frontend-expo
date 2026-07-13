@@ -430,7 +430,7 @@ export default function CreateItemScreen() {
             placeholderTextColor={theme.colors.text.tertiary}
           />
           {errors.title ? (
-            <Typography variant="caption" color="error" mt="-md" mb="md">
+            <Typography variant="caption" color="error" mt="xs" mb="md">
               {errors.title}
             </Typography>
           ) : null}
