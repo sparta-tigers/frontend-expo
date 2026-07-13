@@ -126,8 +126,11 @@ function RootLayoutInner() {
       gestureEnabled: true,
       animation: 'slide_from_right' as const,
       fullScreenGestureEnabled: true,
+      headerStyle: { backgroundColor: colors.background },
+      headerTintColor: colors.text?.primary || colors.primary,
+      headerTitleStyle: { fontWeight: 'bold' as const },
     }),
-    [],
+    [colors],
   );
 
   if (isInitializing) {

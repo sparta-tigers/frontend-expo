@@ -463,6 +463,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const backendCode = isValidTeamCode(teamName) ? TEAM_DATA[teamName]?.backendCode : null;
           if (!backendCode) {
             Logger.warn(`[AuthContext] backendCode 누락 - 동기화 스킵: ${teamName}`);
+            setMyTeamId(null);
           } else {
             let teamExists = false;
             try {
@@ -502,7 +503,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         // 2. UI 및 로컬 스토리지 업데이트
         setMyTeam(teamName);
-        await AsyncStorage.setItem(getMyTeamKey(user?.userId), teamName);
+        if (teamName === 'DEFAULT' || !isValidTeamCode(teamName)) {
+          setMyTeamId(null);
+          await AsyncStorage.removeItem(getMyTeamKey(user?.userId));
+        } else {
+          await AsyncStorage.setItem(getMyTeamKey(user?.userId), teamName);
+        }
 
         // 3. 쿼리 무효화 (안전장치)
         await queryClient.invalidateQueries({

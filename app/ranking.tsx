@@ -219,13 +219,14 @@ export default function RankingScreen() {
               borderBottomWidth={StyleSheet.hairlineWidth}
               borderColor="team.neutralLight"
               bg="background"
+              px="xxs"
             >
               <Box width={36} align="center">
                 <Typography variant="caption" color="text.secondary">
                   순위
                 </Typography>
               </Box>
-              <Box flex={1} pl="sm">
+              <Box flex={1} pl="xs">
                 <Typography variant="caption" color="text.secondary">
                   팀명
                 </Typography>
