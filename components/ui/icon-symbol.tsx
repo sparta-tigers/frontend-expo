@@ -19,7 +19,10 @@ export type IconSymbolName =
   | 'bell.fill'
   | 'list.bullet'
   | 'person.3.fill'
-  | 'plus.circle';
+  | 'plus.circle'
+  | 'info.circle.fill'
+  | 'checkmark.circle.fill'
+  | 'exclamationmark.triangle.fill';
 
 type IconMapping = Record<IconSymbolName, ComponentProps<typeof MaterialIcons>['name']>;
 
@@ -43,6 +46,9 @@ const MAPPING: IconMapping = {
   'list.bullet': 'list',
   'person.3.fill': 'groups',
   'plus.circle': 'add-circle',
+  'info.circle.fill': 'info',
+  'checkmark.circle.fill': 'check-circle',
+  'exclamationmark.triangle.fill': 'warning',
 };
 
 /**

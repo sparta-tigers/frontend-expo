@@ -8,9 +8,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { exchangeKeys } from '@/src/features/exchange/keys';
 import { useLocalSearchParams } from 'expo-router';
 import { useCallback } from 'react';
+import { useToastStore } from '@/src/store/useToastStore';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -30,6 +30,7 @@ export default function ChatRoomScreen() {
   const { roomId } = useLocalSearchParams<{ roomId: string }>();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const showToast = useToastStore((state) => state.showToast);
   const roomIdNumber = Number(roomId);
 
   // 🛠️ 거래 상태 변경 뮤테이션 (상위 레이어로 이동)
@@ -56,7 +57,7 @@ export default function ChatRoomScreen() {
 
       // 🛡️ Fail-safe: 개별 무효화 실패가 전체 UI 흐름(성공 알람)을 방해하지 않도록 보장
       await Promise.allSettled(invalidations);
-      Alert.alert('성공', '거래 상태를 변경했어요.');
+      showToast('거래 상태를 변경했어요.', undefined, 'success');
     },
   });
 

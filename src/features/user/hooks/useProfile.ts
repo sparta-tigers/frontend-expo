@@ -17,7 +17,8 @@ import { Logger } from '@/src/utils/logger';
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert } from 'react-native';
+import { useToastStore } from '@/src/store/useToastStore';
+import { useConfirmStore } from '@/src/store/useConfirmStore';
 
 /**
  * useProfile
@@ -30,6 +31,8 @@ export function useProfile() {
   const { data: favoriteTeam } = useFavoriteTeam();
   const queryClient = useQueryClient();
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const showToast = useToastStore((state) => state.showToast);
+  const showConfirm = useConfirmStore((state) => state.showConfirm);
 
   const handleEditProfile = () => {
     setIsEditModalVisible(true);
@@ -42,13 +45,13 @@ export function useProfile() {
    */
   const handleSaveNickname = async (newNickname: string) => {
     if (!newNickname || newNickname.trim().length === 0) {
-      Alert.alert('알림', '닉네임을 입력해주세요.');
+      showToast('닉네임을 입력해주세요.', undefined, 'error');
       return;
     }
 
     const currentNickname = user?.nickname ?? '';
     if (currentNickname.length > 0 && newNickname.trim() === currentNickname) {
-      Alert.alert('알림', '같은 닉네임이에요.');
+      showToast('같은 닉네임이에요.', undefined, 'info');
       return;
     }
 
@@ -60,14 +63,14 @@ export function useProfile() {
       const response = await usersUpdateProfileAPI(request);
       if (response.resultType === 'SUCCESS' && response.data) {
         updateUser({ nickname: response.data.nickname });
-        Alert.alert('성공', '프로필을 수정했어요.');
+        showToast('프로필을 수정했어요.', undefined, 'success');
         setIsEditModalVisible(false);
       } else {
-        Alert.alert('알림', '프로필을 수정하지 못했어요.');
+        showToast('프로필을 수정하지 못했어요.', undefined, 'error');
       }
     } catch (error) {
       Logger.error('프로필 수정 실패:', error);
-      Alert.alert('알림', '네트워크에 문제가 생겼어요.');
+      showToast('네트워크에 문제가 생겼어요.', undefined, 'error');
     } finally {
       setLoading(false);
     }
@@ -79,7 +82,7 @@ export function useProfile() {
    *      API 호출 성공 시 로컬 세션(JWT 등)을 파기(signout)하여 보안 결함을 차단함.
    */
   const handleDeleteAccount = () => {
-    Alert.alert(
+    showConfirm(
       '회원 탈퇴',
       '회원 탈퇴 시 모든 데이터가 영구적으로 삭제되며 복구할 수 없어요.\n\n정말 탈퇴할까요?',
       [
@@ -88,7 +91,7 @@ export function useProfile() {
           text: '탈퇴',
           style: 'destructive',
           onPress: async () => {
-            Alert.alert('최종 확인', '정말 탈퇴할까요? 탈퇴하면 이전으로 되돌릴 수 없어요.', [
+            showConfirm('최종 확인', '정말 탈퇴할까요? 탈퇴하면 이전으로 되돌릴 수 없어요.', [
               { text: '닫기', style: 'cancel' },
               {
                 text: '영구 탈퇴',
@@ -98,7 +101,7 @@ export function useProfile() {
                   try {
                     const response = await usersDeleteAccountAPI();
                     if (response.resultType === 'SUCCESS') {
-                      Alert.alert('탈퇴 완료', '회원 탈퇴를 완료했어요.', [
+                      showConfirm('탈퇴 완료', '회원 탈퇴를 완료했어요.', [
                         {
                           text: '확인',
                           onPress: async () => {
@@ -108,11 +111,11 @@ export function useProfile() {
                         },
                       ]);
                     } else {
-                      Alert.alert('알림', '탈퇴 처리 중 문제가 생겼어요.');
+                      showToast('탈퇴 처리 중 문제가 생겼어요.', undefined, 'error');
                     }
                   } catch (error) {
                     Logger.error('회원 탈퇴 실패:', error);
-                    Alert.alert('알림', '네트워크에 문제가 생겼어요.');
+                    showToast('네트워크에 문제가 생겼어요.', undefined, 'error');
                   } finally {
                     setLoading(false);
                   }
@@ -131,7 +134,7 @@ export function useProfile() {
    *      어떤 상황에서도(네트워크 에러 포함) 로그인 화면으로 fallback되도록 finally 블록에서 라우팅함.
    */
   const handleLogout = () => {
-    Alert.alert('로그아웃', '정말 로그아웃할까요?', [
+    showConfirm('로그아웃', '정말 로그아웃할까요?', [
       { text: '닫기', style: 'cancel' },
       {
         text: '로그아웃',
@@ -166,13 +169,17 @@ export function useProfile() {
         queryClient.invalidateQueries({ queryKey: favoriteTeamKeys.mine() }).catch((err) => {
           Logger.error('즐겨찾기 캐시 무효화 실패 (서버 저장은 성공):', err);
         });
-        Alert.alert('성공', `${team.name}을 즐겨찾기에 ${teamExists ? '변경' : '추가'}했어요.`);
+        showToast(
+          `${team.name}을 즐겨찾기에 ${teamExists ? '변경' : '추가'}했어요.`,
+          undefined,
+          'success',
+        );
       } else {
-        Alert.alert('알림', `즐겨찾기 ${teamExists ? '변경' : '추가'}하지 못했어요.`);
+        showToast(`즐겨찾기 ${teamExists ? '변경' : '추가'}하지 못했어요.`, undefined, 'error');
       }
     } catch (error) {
       Logger.error('즐겨찾기 팀 처리 실패:', error);
-      Alert.alert('알림', '네트워크에 문제가 생겼어요.');
+      showToast('네트워크에 문제가 생겼어요.', undefined, 'error');
     }
   };
 
@@ -182,7 +189,7 @@ export function useProfile() {
    *      로컬 상태와 리모트 상태의 불일치를 최소화함.
    */
   const handleDeleteFavoriteTeam = (team: FavoriteTeam) => {
-    Alert.alert('즐겨찾기 팀 삭제', `${team.teamName}을 즐겨찾기에서 삭제할까요?`, [
+    showConfirm('즐겨찾기 팀 삭제', `${team.teamName}을 즐겨찾기에서 삭제할까요?`, [
       { text: '닫기', style: 'cancel' },
       {
         text: '삭제',
@@ -194,13 +201,13 @@ export function useProfile() {
               queryClient.invalidateQueries({ queryKey: favoriteTeamKeys.mine() }).catch((err) => {
                 Logger.error('즐겨찾기 삭제 캐시 무효화 실패 (서버 삭제는 성공):', err);
               });
-              Alert.alert('성공', `${team.teamName}을 즐겨찾기에서 삭제했어요.`);
+              showToast(`${team.teamName}을 즐겨찾기에서 삭제했어요.`, undefined, 'success');
             } else {
-              Alert.alert('알림', '즐겨찾기에서 삭제하지 못했어요.');
+              showToast('즐겨찾기에서 삭제하지 못했어요.', undefined, 'error');
             }
           } catch (error) {
             Logger.error('즐겨찾기 팀 삭제 실패:', error);
-            Alert.alert('알림', '네트워크에 문제가 생겼어요.');
+            showToast('네트워크에 문제가 생겼어요.', undefined, 'error');
           }
         },
       },

@@ -9,8 +9,8 @@ import { useLocationStore } from '@/src/store/useLocationStore';
 import { Logger } from '@/src/utils/logger';
 import * as Location from 'expo-location';
 import React, { useCallback, useRef, useState } from 'react';
-import { Alert } from 'react-native';
 import MapView from 'react-native-maps';
+import { useToastStore } from '@/src/store/useToastStore';
 
 const mapLogger = Logger.category('MAP');
 
@@ -64,6 +64,7 @@ export interface UseExchangeMapReturn {
  */
 export function useExchangeMap(isInitialFetched: boolean): UseExchangeMapReturn {
   const mapRef = useRef<MapView>(null);
+  const showToast = useToastStore((state) => state.showToast);
 
   // 전역 위치 스토어 연동
   const { userLocation } = useLocationStore();
@@ -111,14 +112,15 @@ export function useExchangeMap(isInitialFetched: boolean): UseExchangeMapReturn 
         MAP_ANIMATE_DURATION,
       );
     } else {
-      Alert.alert(
-        '알림',
+      showToast(
         locationError
           ? '위치 권한이 거부되었어요.\n설정에서 권한을 허용해주세요.'
           : '현재 위치를 확인하고 있어요.\n잠시 후 다시 시도해주세요.',
+        undefined,
+        'error',
       );
     }
-  }, [userLocation, locationError]);
+  }, [userLocation, locationError, showToast]);
 
   /**
    * 컴포넌트 마운트 시 초기 위치 설정

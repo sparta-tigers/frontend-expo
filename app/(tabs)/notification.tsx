@@ -11,7 +11,9 @@ import { Logger } from '@/src/utils/logger';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useMemo, useCallback } from 'react';
-import { Alert, StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
+import { useToastStore } from '@/src/store/useToastStore';
+import { useConfirmStore } from '@/src/store/useConfirmStore';
 
 /**
  * 🔔 NotificationScreen: 사용자가 설정한 모든 티켓 예매 알림을 관리하는 화면입니다.
@@ -23,12 +25,14 @@ export default function NotificationScreen() {
   // 🎣 [Server State] TanStack Query를 이용한 선언적 데이터 관리
   const { data: pageResponse, isLoading, refetch } = useTicketAlarms(1, 100);
   const { deleteAlarm, isDeleting } = useTicketAlarmMutation();
+  const showToast = useToastStore((state) => state.showToast);
+  const showConfirm = useConfirmStore((state) => state.showConfirm);
 
   const alarms = useMemo(() => pageResponse?.content || [], [pageResponse]);
 
   const handleDeleteAlarm = useCallback(
     (alarm: TicketAlarm) => {
-      Alert.alert(
+      showConfirm(
         '티켓 알림 삭제',
         `${alarm.stadiumName} - ${formatToKoreanDateTime(alarm.matchTime, false)} 알림을 삭제할까요?`,
         [
@@ -39,16 +43,17 @@ export default function NotificationScreen() {
             onPress: async () => {
               try {
                 await deleteAlarm(alarm.alarmId);
-                Alert.alert('성공', '티켓 알림을 삭제했어요.');
+                showToast('티켓 알림을 삭제했어요.', undefined, 'success');
               } catch (error) {
                 Logger.error('티켓 알림 삭제 실패', error);
+                showToast('티켓 알림을 삭제하지 못했어요.', undefined, 'error');
               }
             },
           },
         ],
       );
     },
-    [deleteAlarm],
+    [deleteAlarm, showConfirm, showToast],
   );
 
   const keyExtractor = useCallback((item: TicketAlarm) => item.alarmId.toString(), []);

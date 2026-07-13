@@ -5,7 +5,7 @@ import { ErrorBoundaryFallback } from '@/src/components/shared/ErrorBoundaryFall
 import { OfflineBanner } from '@/src/components/shared/OfflineBanner';
 import { Logger } from '@/src/utils/logger';
 
-import { Box, Typography } from '@/components/ui';
+import { Box, Typography, Toast, ConfirmModal } from '@/components/ui';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { theme } from '@/src/styles/theme';
 import { useNetInfo } from '@react-native-community/netinfo';
@@ -189,6 +189,8 @@ function RootLayoutInner() {
             />
           </Box>
         </SafeAreaView>
+        <Toast />
+        <ConfirmModal />
       </SafeAreaProvider>
     </ErrorBoundary>
   );

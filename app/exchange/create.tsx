@@ -6,7 +6,6 @@ import { router } from 'expo-router';
 import React from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Image,
   ScrollView,
   StyleSheet,
@@ -23,6 +22,8 @@ import { useCheckActiveItem } from '@/src/features/exchange/queries';
 import { ItemCategory, LocationDto } from '@/src/features/exchange/types';
 import { theme } from '@/src/styles/theme';
 import { Logger } from '@/src/utils/logger';
+import { useToastStore } from '@/src/store/useToastStore';
+import { useConfirmStore } from '@/src/store/useConfirmStore';
 
 interface ReactNativeFile {
   uri: string;
@@ -32,6 +33,8 @@ interface ReactNativeFile {
 
 export default function CreateItemScreen() {
   const queryClient = useQueryClient();
+  const showToast = useToastStore((state) => state.showToast);
+  const showConfirm = useConfirmStore((state) => state.showConfirm);
 
   const [formData, setFormData] = React.useState({
     title: '',
@@ -89,7 +92,7 @@ export default function CreateItemScreen() {
       return createExchangeItem(requestFormData);
     },
     onSuccess: async () => {
-      Alert.alert('성공', '아이템을 등록했어요.');
+      showToast('아이템을 등록했어요.', undefined, 'success');
       await queryClient.invalidateQueries({ queryKey: exchangeKeys.items() });
       if (router.canGoBack()) {
         router.back();
@@ -108,7 +111,7 @@ export default function CreateItemScreen() {
         Logger.error('아이템 생성 실패:', error instanceof Error ? error.message : String(error));
       }
 
-      Alert.alert('알림', errorMessage);
+      showToast(errorMessage, undefined, 'error');
     },
   });
 
@@ -132,14 +135,14 @@ export default function CreateItemScreen() {
     mutate(formData);
   };
 
-  const getCurrentLocation = async () => {
+  const getCurrentLocation = React.useCallback(async () => {
     setLocationLoading(true);
 
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status !== 'granted') {
-        Alert.alert('권한 필요', '위치 정보를 사용하려면 권한을 허용해주세요.');
+        showToast('위치 정보를 사용하려면 권한을 허용해주세요.', undefined, 'info');
         setLocationLoading(false);
         return;
       }
@@ -165,7 +168,7 @@ export default function CreateItemScreen() {
       setCurrentLocation(locationData);
     } catch (error) {
       Logger.error('위치 정보 가져오기 실패:', error);
-      Alert.alert('알림', '위치 정보를 가져올 수 없어 기본 위치(서울)로 설정할게요.');
+      showToast('위치 정보를 가져올 수 없어 기본 위치(서울)로 설정할게요.', undefined, 'info');
       const defaultLocation: LocationDto = {
         latitude: 37.5665,
         longitude: 126.978,
@@ -175,7 +178,7 @@ export default function CreateItemScreen() {
     } finally {
       setLocationLoading(false);
     }
-  };
+  }, [showToast]);
 
   const { data: hasActiveItem } = useCheckActiveItem();
 
@@ -184,19 +187,19 @@ export default function CreateItemScreen() {
       getCurrentLocation().catch((err) => Logger.error('[Create] Location init failed', err));
     }, 0);
     return () => clearTimeout(timerId);
-  }, []);
+  }, [getCurrentLocation]);
 
   React.useEffect(() => {
     if (hasActiveItem === true) {
-      Alert.alert('접근 제한', '이미 등록한 아이템이 있어서 지금은 새로 작성할 수 없어요.', [
+      showConfirm('접근 제한', '이미 등록한 아이템이 있어서 지금은 새로 작성할 수 없어요.', [
         { text: '확인', onPress: () => router.back() },
       ]);
     }
-  }, [hasActiveItem]);
+  }, [hasActiveItem, showConfirm]);
 
   const handleImagePicker = async () => {
     if (selectedImages.length >= 5) {
-      Alert.alert('알림', '이미지는 최대 5장까지 선택할 수 있어요.');
+      showToast('이미지는 최대 5장까지 선택할 수 있어요.', undefined, 'info');
       return;
     }
     try {
@@ -213,7 +216,7 @@ export default function CreateItemScreen() {
           (a) => a.fileSize != null && a.fileSize > MAX_FILE_SIZE_BYTES,
         );
         if (oversized.length > 0) {
-          Alert.alert('알림', '이미지 파일은 각 10MB 이하만 업로드할 수 있어요.');
+          showToast('이미지 파일은 각 10MB 이하만 업로드할 수 있어요.', undefined, 'info');
           return;
         }
         const newImages = result.assets.map((asset) => asset.uri || '');
@@ -221,7 +224,7 @@ export default function CreateItemScreen() {
         setSelectedImages(updatedImages);
       }
     } catch {
-      Alert.alert('알림', '이미지를 선택하지 못했어요.');
+      showToast('이미지를 선택하지 못했어요.', undefined, 'error');
     }
   };
 

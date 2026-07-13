@@ -6,7 +6,9 @@ import { theme } from '@/src/styles/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Alert, StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
+import { useToastStore } from '@/src/store/useToastStore';
+import { useConfirmStore } from '@/src/store/useConfirmStore';
 
 /**
  * 교환 요청 관리 화면
@@ -15,6 +17,8 @@ import { Alert, StyleSheet, TouchableOpacity } from 'react-native';
 export default function ExchangeRequestsScreen() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'receiver' | 'sender'>('receiver');
+  const showToast = useToastStore((state) => state.showToast);
+  const showConfirm = useConfirmStore((state) => state.showConfirm);
 
   const {
     requests,
@@ -29,43 +33,47 @@ export default function ExchangeRequestsScreen() {
 
   const onAccept = useCallback(
     async (id: number) => {
-      Alert.alert('교환 수락', '이 교환 요청을 수락할까요?', [
+      showConfirm('교환 수락', '이 교환 요청을 수락할까요?', [
         { text: '닫기', style: 'cancel' },
         {
           text: '수락',
           onPress: async () => {
             try {
               await handleAccept(id);
-              Alert.alert('성공', '교환 요청을 수락했어요. 채팅방에서 대화를 시작하세요!');
+              showToast(
+                '교환 요청을 수락했어요. 채팅방에서 대화를 시작하세요!',
+                undefined,
+                'success',
+              );
             } catch {
-              Alert.alert('알림', '수락하지 못했어요.');
+              showToast('수락하지 못했어요.', undefined, 'error');
             }
           },
         },
       ]);
     },
-    [handleAccept],
+    [handleAccept, showConfirm, showToast],
   );
 
   const onReject = useCallback(
     async (id: number) => {
-      Alert.alert('교환 거절', '이 교환 요청을 거절할까요?', [
+      showConfirm('교환 거절', '이 교환 요청을 거절할까요?', [
         { text: '닫기', style: 'cancel' },
         {
           text: '거절',
           onPress: async () => {
             try {
               await handleReject(id);
-              Alert.alert('성공', '교환 요청을 거절했어요.');
+              showToast('교환 요청을 거절했어요.', undefined, 'success');
             } catch {
-              Alert.alert('알림', '거절하지 못했어요.');
+              showToast('거절하지 못했어요.', undefined, 'error');
             }
           },
           style: 'destructive',
         },
       ]);
     },
-    [handleReject],
+    [handleReject, showConfirm, showToast],
   );
 
   const renderRequestItem = useCallback(

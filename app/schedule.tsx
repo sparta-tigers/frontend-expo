@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   overlay: {
-    ...StyleSheet.absoluteFill,
+    ...StyleSheet.absoluteFillObject,
     zIndex: 5,
   },
   contentContainer: {

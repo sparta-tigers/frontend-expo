@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { exchangeKeys } from '@/src/features/exchange/keys';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -18,6 +18,8 @@ import { CreateExchangeDto } from '@/src/features/exchange/types';
 import { useAuth } from '@/src/hooks/useAuth';
 import { theme } from '@/src/styles/theme';
 import { Logger } from '@/src/utils/logger';
+import { useToastStore } from '@/src/store/useToastStore';
+import { useConfirmStore } from '@/src/store/useConfirmStore';
 
 const LOCAL_LAYOUT = {
   contentPaddingBottom: theme.layout.common.bottomPadding,
@@ -137,6 +139,8 @@ export default function ApplyExchangeScreen() {
 
   /** 내가 제안하는 교환 물건 설명 (필수, 백엔드 have 필드) */
   const [have, setHave] = useState('');
+  const showToast = useToastStore((state) => state.showToast);
+  const showConfirm = useConfirmStore((state) => state.showConfirm);
 
   // [EB-1] 마운트 시 유효성 검사 및 딥링크 비로그인 접근 차단
   React.useEffect(() => {
@@ -145,7 +149,7 @@ export default function ApplyExchangeScreen() {
 
     // 1. 로그인 상태 체크
     if (user === null) {
-      Alert.alert('알림', '로그인 후 이용해주세요.', [
+      showConfirm('알림', '로그인 후 이용해주세요.', [
         { text: '확인', onPress: () => router.back() },
       ]);
       return;
@@ -154,11 +158,11 @@ export default function ApplyExchangeScreen() {
     // 2. ID 유효성 체크 (Early Return)
     if (!isTargetItemIdValid) {
       Logger.error('[ExchangeApply] 유효하지 않은 아이템 ID:', id);
-      Alert.alert('알림', '올바르지 않은 요청이에요.', [
+      showConfirm('알림', '올바르지 않은 요청이에요.', [
         { text: '확인', onPress: () => router.back() },
       ]);
     }
-  }, [user, isAuthLoading, router, isTargetItemIdValid, id]);
+  }, [user, isAuthLoading, router, isTargetItemIdValid, id, showConfirm]);
 
   // 교환 대상 아이템 조회 (receiverId 추출용)
   const { data: targetItem, isLoading: isItemLoading } = useQuery({
@@ -204,27 +208,27 @@ export default function ApplyExchangeScreen() {
       ]);
 
       if (roomId) {
-        Alert.alert('성공', '교환 제안을 전달했어요!');
+        showToast('교환 제안을 전달했어요!', undefined, 'success');
         router.replace(`/exchange/chat/${roomId}`);
       } else {
-        Alert.alert('성공', '교환 제안을 전달했어요. 상대가 수락하면 채팅이 시작돼요.');
+        showToast('교환 제안을 전달했어요. 상대가 수락하면 채팅이 시작돼요.', undefined, 'success');
         router.back();
       }
     },
     onError: (error) => {
       const msg = error instanceof Error ? error.message : '교환을 신청하지 못했어요.';
-      Alert.alert('알림', msg);
+      showToast(msg, undefined, 'error');
       Logger.error('교환 신청 실패:', error);
     },
   });
 
   const handleSubmit = useCallback(() => {
     if (!have.trim()) {
-      Alert.alert('입력 필요', '교환을 제안할 물건을 설명해주세요.');
+      showToast('교환을 제안할 물건을 설명해주세요.', undefined, 'info');
       return;
     }
     requestExchange();
-  }, [have, requestExchange]);
+  }, [have, requestExchange, showToast]);
 
   if (!isTargetItemIdValid || user === null) {
     return null; // Early Return 처리 중 (Alert 표시 중)

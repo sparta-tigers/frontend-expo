@@ -13,7 +13,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Image,
   StyleSheet,
   Text,
@@ -22,6 +21,8 @@ import {
   View,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useToastStore } from '@/src/store/useToastStore';
+import { useConfirmStore } from '@/src/store/useConfirmStore';
 
 const styles = StyleSheet.create({
   container: {
@@ -137,6 +138,8 @@ export default function EditItemScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const { user } = useAuth();
+  const showToast = useToastStore((state) => state.showToast);
+  const showConfirm = useConfirmStore((state) => state.showConfirm);
 
   // React Query로 아이템 상세 정보 가져오기
   const {
@@ -180,7 +183,7 @@ export default function EditItemScreen() {
         queryClient.invalidateQueries({ queryKey: exchangeKeys.items() }),
       ]);
 
-      Alert.alert('수정 완료', '아이템을 수정했어요.', [
+      showConfirm('수정 완료', '아이템을 수정했어요.', [
         {
           text: '확인',
           onPress: () => router.back(),
@@ -189,25 +192,25 @@ export default function EditItemScreen() {
     },
     onError: (error) => {
       Logger.error('아이템 수정 실패:', error);
-      Alert.alert('알림', '아이템을 수정하지 못했어요.');
+      showToast('아이템을 수정하지 못했어요.', undefined, 'error');
     },
   });
 
   // 아이템 수정 핸들러
   const handleUpdateItem = useCallback(() => {
     if (!item || !user?.accessToken) {
-      Alert.alert('알림', '먼저 로그인하시거나, 올바른 아이템인지 확인해주세요.');
+      showToast('먼저 로그인하시거나, 올바른 아이템인지 확인해주세요.', undefined, 'error');
       return;
     }
 
     // 본인 아이템인지 확인 - 강화된 권한 검증
     if (!user?.userId || !item?.userId) {
-      Alert.alert('알림', '사용자 정보를 찾지 못했어요. 다시 로그인해주세요.');
+      showToast('사용자 정보를 찾지 못했어요. 다시 로그인해주세요.', undefined, 'error');
       return;
     }
 
     if (item.userId !== user.userId) {
-      Alert.alert('알림', '본인의 아이템만 수정할 수 있어요.');
+      showToast('본인의 아이템만 수정할 수 있어요.', undefined, 'error');
       Logger.debug('[권한 오류] 아이템 소유자 불일치:', {
         itemUserId: item.userId,
         currentUserId: user.userId,
@@ -219,16 +222,16 @@ export default function EditItemScreen() {
 
     // 유효성 검사
     if (!title.trim()) {
-      Alert.alert('알림', '제목을 입력해주세요.');
+      showToast('제목을 입력해주세요.', undefined, 'info');
       return;
     }
 
     if (!description.trim()) {
-      Alert.alert('알림', '설명을 입력해주세요.');
+      showToast('설명을 입력해주세요.', undefined, 'info');
       return;
     }
 
-    Alert.alert('아이템 수정', '이 아이템을 수정할까요?', [
+    showConfirm('아이템 수정', '이 아이템을 수정할까요?', [
       {
         text: '닫기',
         style: 'cancel',
@@ -246,7 +249,7 @@ export default function EditItemScreen() {
         },
       },
     ]);
-  }, [item, user, title, description, category, updateItemMutation]);
+  }, [item, user, title, description, category, updateItemMutation, showToast, showConfirm]);
 
   // 로딩 상태
   if (isLoading) {

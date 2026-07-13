@@ -2,8 +2,8 @@
 import BottomSheet, { BottomSheetFlatListMethods } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert } from 'react-native';
 import MapViewType from 'react-native-maps';
+import { useToastStore } from '@/src/store/useToastStore';
 
 import { useExchangeItems } from '@/src/features/exchange/hooks/useExchangeItems';
 import { useExchangeMap } from '@/src/features/exchange/hooks/useExchangeMap';
@@ -27,6 +27,7 @@ export function useExchangeDashboard() {
 
   // --- UI 상태 ---
   const [isProfileModalVisible, setProfileModalVisible] = useState(false);
+  const showToast = useToastStore((state) => state.showToast);
 
   // --- 기존 훅 연동 ---
   const {
@@ -60,9 +61,9 @@ export function useExchangeDashboard() {
   useEffect(() => {
     initializeLocation().catch(() => {
       // mapLogger.error는 initializeLocation 내부에서 이미 수행됨
-      Alert.alert('알림', '현재 위치를 확인하지 못해 기본 위치로 보여드릴게요.');
+      showToast('현재 위치를 확인하지 못해 기본 위치로 보여드릴게요.', undefined, 'info');
     });
-  }, [initializeLocation]);
+  }, [initializeLocation, showToast]);
 
   useEffect(() => {
     if (!isInitialFetched && userLocation) {
@@ -72,10 +73,10 @@ export function useExchangeDashboard() {
         mapRegion.latitudeDelta,
       ).catch(() => {
         // fetchInitialItems 내부에서 로깅 수행됨
-        Alert.alert('데이터 로딩 실패', '주변 아이템 목록을 불러오지 못했어요.');
+        showToast('주변 아이템 목록을 불러오지 못했어요.', undefined, 'error');
       });
     }
-  }, [userLocation, isInitialFetched, mapRegion.latitudeDelta, fetchInitialItems]);
+  }, [userLocation, isInitialFetched, mapRegion.latitudeDelta, fetchInitialItems, showToast]);
 
   // --- 핸들러 (명령형 흐름 제어) ---
 
@@ -143,20 +144,20 @@ export function useExchangeDashboard() {
     if (isCheckingActive) return;
 
     if (hasActiveItem === true) {
-      Alert.alert('등록 제한', '이미 등록한 물건이 있어요. 계정당 하나만 등록할 수 있어요.');
+      showToast('이미 등록한 물건이 있어요. 계정당 하나만 등록할 수 있어요.', undefined, 'info');
       return;
     }
 
     router.push('/exchange/create');
-  }, [isCheckingActive, hasActiveItem, router]);
+  }, [isCheckingActive, hasActiveItem, router, showToast]);
 
   const handleManualRefresh = useCallback(async () => {
     try {
       await handleRefresh(mapRegion.latitude, mapRegion.longitude, mapRegion.latitudeDelta);
     } catch {
-      Alert.alert('새로고침 실패', '네트워크 상태를 확인하고 다시 시도해주세요.');
+      showToast('네트워크 상태를 확인하고 다시 시도해주세요.', undefined, 'error');
     }
-  }, [handleRefresh, mapRegion]);
+  }, [handleRefresh, mapRegion, showToast]);
 
   const navigateToItemDetail = useCallback(
     (itemId: number) => {

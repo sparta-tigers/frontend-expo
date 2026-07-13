@@ -5,8 +5,9 @@ import { Logger } from '@/src/utils/logger';
 import { getUserMessage } from '@/src/core/errors';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useToastStore } from '@/src/store/useToastStore';
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -30,25 +31,26 @@ export default function SignupScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [nickname, setNickname] = useState('');
+  const showToast = useToastStore((state) => state.showToast);
 
   const validateInputs = () => {
     if (!email.trim() || !password.trim() || !nickname.trim()) {
-      Alert.alert('알림', '모든 필드를 입력해주세요');
+      showToast('모든 필드를 입력해주세요', undefined, 'error');
       return false;
     }
 
     if (!email.includes('@')) {
-      Alert.alert('알림', '올바른 이메일 형식을 입력해주세요');
+      showToast('올바른 이메일 형식을 입력해주세요', undefined, 'error');
       return false;
     }
 
     if (password.length < 6) {
-      Alert.alert('알림', '비밀번호는 최소 6자 이상이어야 해요');
+      showToast('비밀번호는 최소 6자 이상이어야 해요', undefined, 'error');
       return false;
     }
 
     if (nickname.trim().length < 2) {
-      Alert.alert('알림', '닉네임은 최소 2자 이상이어야 해요');
+      showToast('닉네임은 최소 2자 이상이어야 해요', undefined, 'error');
       return false;
     }
 
@@ -63,14 +65,14 @@ export default function SignupScreen() {
     try {
       const success = await signup({ email, password, nickname });
       if (success) {
-        Alert.alert('성공', '회원가입을 완료했어요');
+        showToast('회원가입을 완료했어요', undefined, 'success');
         router.replace('/(tabs)');
       } else {
-        Alert.alert('알림', '회원가입하지 못했어요');
+        showToast('회원가입하지 못했어요', undefined, 'error');
       }
     } catch (error) {
       Logger.error('회원가입 에러:', error);
-      Alert.alert('알림', getUserMessage(error));
+      showToast('회원가입 에러', getUserMessage(error), 'error');
     }
   };
 

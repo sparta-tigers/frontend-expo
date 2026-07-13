@@ -9,7 +9,9 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AttendanceEmptyState } from '@/src/features/match-attendance/components';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { useToastStore } from '@/src/store/useToastStore';
+import { useConfirmStore } from '@/src/store/useConfirmStore';
 
 /**
  * 🚨 [Phase 24] 직관 기록 상세 조회 화면 (개선 버전)
@@ -23,6 +25,8 @@ export default function AttendanceDetailScreen() {
   const { data: attendance, isLoading } = useAttendance(Number(id));
   const deleteMutation = useDeleteAttendance();
   const { data: favoriteTeam, isLoading: isFavLoading } = useFavoriteTeam();
+  const showToast = useToastStore((state) => state.showToast);
+  const showConfirm = useConfirmStore((state) => state.showConfirm);
 
   // [Phase 2-1] 라우트 파라미터 유효성 검사 (Fail-fast)
   const idNumber = Number(id);
@@ -38,7 +42,7 @@ export default function AttendanceDetailScreen() {
   }
 
   const handleDelete = () => {
-    Alert.alert('삭제 확인', '이 직관 기록을 정말 삭제할까요?', [
+    showConfirm('삭제 확인', '이 직관 기록을 정말 삭제할까요?', [
       { text: '닫기', style: 'cancel' },
       {
         text: '삭제',
@@ -48,7 +52,7 @@ export default function AttendanceDetailScreen() {
             await deleteMutation.mutateAsync(Number(id));
             router.replace('/(tabs)/history');
           } catch {
-            Alert.alert('알림', '삭제하지 못했어요.');
+            showToast('삭제하지 못했어요.', undefined, 'error');
           }
         },
       },

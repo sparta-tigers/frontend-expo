@@ -71,7 +71,7 @@ export const RankingSummarySection = React.memo(function RankingSummarySection({
         accessibilityHint="KBO 리그 전체 순위 페이지로 이동합니다"
         style={styles.ctaButton}
       >
-        <Typography variant="body2" color="secondary" weight="medium">
+        <Typography variant="body2" color="text.secondary" weight="medium">
           전체 순위 보기 〉
         </Typography>
       </TouchableOpacity>
