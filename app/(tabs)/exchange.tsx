@@ -1,7 +1,7 @@
 // app/(tabs)/exchange.tsx
 import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
 import Head from "expo-router/head";
-import React, { useCallback, Suspense } from "react";
+import React, { useCallback } from "react";
 import { ActivityIndicator, RefreshControl, StyleSheet } from "react-native";
 import { Marker } from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,12 +16,8 @@ import { ExchangeMapOverlay } from "@/src/features/exchange/components/ExchangeM
 import { useExchangeDashboard } from "@/src/features/exchange/hooks/useExchangeDashboard";
 import { Item } from "@/src/features/exchange/types";
 
-const MapView = React.lazy(() => import("react-native-map-clustering"));
-const ExchangeProfileModal = React.lazy(() =>
-  import("@/src/features/exchange/components/ExchangeProfileModal").then(
-    (module) => ({ default: module.ExchangeProfileModal }),
-  ),
-);
+import MapView from "react-native-map-clustering";
+import { ExchangeProfileModal } from "@/src/features/exchange/components/ExchangeProfileModal";
 
 /**
  * 지도 마커 리렌더링 방지용 서브 컴포넌트
@@ -116,19 +112,8 @@ export default function ExchangeScreen() {
         />
       </Head>
       {/* 1. 지도 영역 */}
-      <Suspense
-        fallback={
-          <Box style={styles.mapFallback}>
-            <ActivityIndicator size="large" color={theme.colors.primary} />
-          </Box>
-        }
-      >
-        <MapView
-          ref={
-            mapRef as React.LegacyRef<
-              globalThis.React.Component<unknown, unknown, unknown>
-            >
-          }
+      <MapView
+        ref={mapRef as React.LegacyRef<globalThis.React.Component<unknown, unknown, unknown>>}
           style={styles.map}
           initialRegion={defaultRegion}
           onMapReady={() => setIsMapReady(true)}
@@ -142,7 +127,6 @@ export default function ExchangeScreen() {
             onMarkerPress={handleMarkerPress}
           />
         </MapView>
-      </Suspense>
 
       {/* 2. 바텀시트 목록 영역 */}
       <BottomSheet
@@ -214,12 +198,10 @@ export default function ExchangeScreen() {
         onSearchCurrentLocation={handleSearchCurrentLocation}
       />
 
-      <Suspense fallback={null}>
-        <ExchangeProfileModal
-          visible={isProfileModalVisible}
-          onClose={() => setProfileModalVisible(false)}
-        />
-      </Suspense>
+      <ExchangeProfileModal
+        visible={isProfileModalVisible}
+        onClose={() => setProfileModalVisible(false)}
+      />
     </SafeLayout>
   );
 }
@@ -232,11 +214,7 @@ const styles = StyleSheet.create({
   map: {
     ...StyleSheet.absoluteFill,
   },
-  mapFallback: {
-    ...StyleSheet.absoluteFill,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+
   bottomSheetBackground: {
     backgroundColor: theme.colors.background,
     borderTopLeftRadius: theme.radius.lg,
