@@ -27,11 +27,11 @@ const appleIcon = require('@/assets/images/auth/apple.png');
 // ========================================================
 const LOCAL_LAYOUT = {
   bodyPaddingHorizontal: theme.layout.auth.bodyPaddingHorizontal,
-  bodyPaddingVertical: theme.layout.auth.bodyPaddingVertical,
-  logoWidth: theme.layout.auth.logoWidth,
-  logoHeight: theme.layout.auth.logoHeight,
-  inputHeight: theme.layout.auth.inputHeight,
-  socialDividerHeight: theme.layout.auth.socialDividerHeight,
+  // bodyPaddingVertical은 사용 기기에 맞게 자동 정렬되도록 제거하거나 줄임
+  logoWidth: theme.layout.auth.logoWidth * 0.8, // 로고 크기를 살짝 줄여 공간 확보
+  logoHeight: theme.layout.auth.logoHeight * 0.8,
+  inputHeight: 48, // 텍스트 잘림 방지 및 터치 타겟 44px 이상 확보 (기존 36)
+  socialDividerHeight: 40, // 공간 확보를 위해 구분선 여백 축소
   dividerLineHeight: StyleSheet.hairlineWidth,
 } as const;
 
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
   gradientBody: {
     flex: 1,
     paddingHorizontal: LOCAL_LAYOUT.bodyPaddingHorizontal,
-    paddingVertical: LOCAL_LAYOUT.bodyPaddingVertical,
+    paddingVertical: theme.spacing.xl, // 과도한 86px 패딩을 줄이고 중앙 정렬에 의존
     alignItems: 'center',
     justifyContent: 'center',
   },

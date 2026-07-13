@@ -91,9 +91,7 @@ export default function TicketAlarmFormScreen() {
 
   return (
     <SafeLayout style={styles.safeLayout}>
-      <Stack.Screen
-        options={{ headerShown: true, title: '예매 알림 설정', headerShadowVisible: false }}
-      />
+      <Stack.Screen options={{ headerShown: false }} />
       <ScrollView contentContainerStyle={styles.container}>
         <Box mb="xxl">
           <Typography variant="body2" color="text.secondary">

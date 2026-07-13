@@ -15,7 +15,7 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 import { Box, Typography } from '@/components/ui';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+
 import { SafeLayout } from '@/components/ui/safe-layout';
 import { createExchangeItem } from '@/src/features/exchange/api';
 import { useCheckActiveItem } from '@/src/features/exchange/queries';
@@ -244,9 +244,7 @@ export default function CreateItemScreen() {
         borderBottomWidth={1}
         borderColor="border.medium"
       >
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <IconSymbol name="chevron.left" size={24} color={theme.colors.text.primary} />
-        </TouchableOpacity>
+        <Box width={40} />
         <Typography variant="h2" weight="bold" color="text.primary" flex={1} center>
           교환글 쓰기
         </Typography>
@@ -417,12 +415,6 @@ const styles = StyleSheet.create({
   },
   submitButtonDisabled: {
     opacity: 0.6,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   imageScrollContent: {
     borderBottomWidth: 1,

@@ -91,8 +91,6 @@ export default function RankingScreen() {
   const handleSwitchToYear = React.useCallback(() => switchMode('year'), [switchMode]);
   const handleShiftPrev = React.useCallback(() => shiftDate(-1), [shiftDate]);
   const handleShiftNext = React.useCallback(() => shiftDate(1), [shiftDate]);
-  const handleGoBack = React.useCallback(() => router.back(), [router]);
-
   return (
     <Box flex={1} bg="background">
       <Stack.Screen options={{ headerShown: false }} />
@@ -111,16 +109,7 @@ export default function RankingScreen() {
           align="center"
           justify="space-between"
         >
-          <TouchableOpacity
-            onPress={handleGoBack}
-            activeOpacity={theme.layout.dashboard.activeOpacity}
-          >
-            <MaterialIcons
-              name="arrow-back-ios"
-              size={theme.layout.header.profileIconSize}
-              color={theme.colors.brand.subtitle}
-            />
-          </TouchableOpacity>
+          <Box width={theme.layout.header.profileIconSize} />
 
           {/* View Mode Toggle (URL-driven) */}
           <Box flexDir="row" bg="team.neutralLight" rounded="full" p="xs">

@@ -4,10 +4,9 @@ import { exchangeGetMyRequestsAPI } from '@/src/features/exchange/api';
 import { ExchangeRequestStatus, ReceiveExchangeRequest } from '@/src/features/exchange/types';
 import { theme } from '@/src/styles/theme';
 import { exchangeKeys } from '@/src/features/exchange/keys';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+
 import { useState, useCallback } from 'react';
-import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, StyleSheet } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 
@@ -16,8 +15,6 @@ import { Button } from '@/components/ui/button';
  * 사용자가 완료(승낙/거절)한 모든 교환 요청 내역을 표시합니다.
  */
 export default function ExchangeHistoryScreen() {
-  const router = useRouter();
-
   const [refreshing, setRefreshing] = useState(false);
 
   const {
@@ -125,9 +122,7 @@ export default function ExchangeHistoryScreen() {
     <SafeLayout style={styles.safeLayout}>
       <Box flex={1}>
         <Box flexDir="row" align="center" justify="space-between" mb="md" px="md">
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color={theme.colors.text.primary} />
-          </TouchableOpacity>
+          <Box width={40} />
           <Typography variant="h2" weight="bold" center style={styles.headerTitle}>
             교환 내역
           </Typography>
@@ -158,9 +153,6 @@ const styles = StyleSheet.create({
   safeLayout: {
     flex: 1,
     backgroundColor: theme.colors.background,
-  },
-  backButton: {
-    padding: theme.spacing.xs,
   },
   listContainer: {
     paddingHorizontal: theme.spacing.lg,
