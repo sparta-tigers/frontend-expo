@@ -7,6 +7,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import { HapticTab } from '@/components/haptic-tab';
 import { Box } from '@/components/ui';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { GlobalHeader } from '@/components/ui/global-header';
 import { useTheme } from '@/hooks/useTheme';
 import { exchangeGetMyRequestsAPI } from '@/src/features/exchange/api';
 import { useAuth } from '@/src/hooks/useAuth';
@@ -46,76 +47,79 @@ export default function TabLayout() {
   const TAB_ICON_SIZE = 28;
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: colors.tint,
-        headerShown: false,
-        tabBarButton: (props) => (
-          <HapticTab
-            {...(props as unknown as import('@react-navigation/bottom-tabs').BottomTabBarButtonProps)}
-          />
-        ),
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: '홈',
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={TAB_ICON_SIZE} name="house.fill" color={color} />
+    <>
+      <GlobalHeader />
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: colors.tint,
+          headerShown: false,
+          tabBarButton: (props) => (
+            <HapticTab
+              {...(props as unknown as import('@react-navigation/bottom-tabs').BottomTabBarButtonProps)}
+            />
           ),
         }}
-      />
-      <Tabs.Screen
-        name="liveboard"
-        options={{
-          title: '라이브보드',
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={TAB_ICON_SIZE} name="chart.bar.fill" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="exchange"
-        options={{
-          title: '교환',
-          tabBarIcon: ({ color }) => (
-            <Box>
-              <IconSymbol size={TAB_ICON_SIZE} name="arrow.left.arrow.right" color={color} />
-              {hasNewExchangeRequest ? (
-                <Box
-                  position="absolute"
-                  right={theme.layout.tabBar.badgeOffset}
-                  top={theme.layout.tabBar.badgeOffset}
-                  width={theme.layout.tabBar.badgeSize}
-                  height={theme.layout.tabBar.badgeSize}
-                  rounded="sm"
-                  bg="error"
-                />
-              ) : null}
-            </Box>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="notification"
-        options={{
-          title: '예매알림',
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={TAB_ICON_SIZE} name="bell.fill" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="history"
-        options={{
-          title: '직관일기',
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={TAB_ICON_SIZE} name="list.bullet" color={color} />
-          ),
-        }}
-      />
-    </Tabs>
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: '홈',
+            tabBarIcon: ({ color }) => (
+              <IconSymbol size={TAB_ICON_SIZE} name="house.fill" color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="liveboard"
+          options={{
+            title: '라이브보드',
+            tabBarIcon: ({ color }) => (
+              <IconSymbol size={TAB_ICON_SIZE} name="chart.bar.fill" color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="exchange"
+          options={{
+            title: '교환',
+            tabBarIcon: ({ color }) => (
+              <Box>
+                <IconSymbol size={TAB_ICON_SIZE} name="arrow.left.arrow.right" color={color} />
+                {hasNewExchangeRequest ? (
+                  <Box
+                    position="absolute"
+                    right={theme.layout.tabBar.badgeOffset}
+                    top={theme.layout.tabBar.badgeOffset}
+                    width={theme.layout.tabBar.badgeSize}
+                    height={theme.layout.tabBar.badgeSize}
+                    rounded="sm"
+                    bg="error"
+                  />
+                ) : null}
+              </Box>
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="notification"
+          options={{
+            title: '예매알림',
+            tabBarIcon: ({ color }) => (
+              <IconSymbol size={TAB_ICON_SIZE} name="bell.fill" color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="history"
+          options={{
+            title: '직관일기',
+            tabBarIcon: ({ color }) => (
+              <IconSymbol size={TAB_ICON_SIZE} name="list.bullet" color={color} />
+            ),
+          }}
+        />
+      </Tabs>
+    </>
   );
 }
 

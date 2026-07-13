@@ -6,7 +6,6 @@ import { OfflineBanner } from '@/src/components/shared/OfflineBanner';
 import { Logger } from '@/src/utils/logger';
 
 import { Box, Toast, ConfirmModal } from '@/components/ui';
-import { GlobalHeader } from '@/components/ui/global-header';
 import { theme } from '@/src/styles/theme';
 import { useNetInfo } from '@react-native-community/netinfo';
 import * as Notifications from 'expo-notifications';
@@ -152,10 +151,7 @@ function RootLayoutInner() {
         <Box flex={1} style={dynamicBgStyle}>
           {!netInfo.isConnected ? <OfflineBanner /> : null}
 
-          {/* 1. 고정 헤더 (전역) - auth 그룹에서는 숨김 처리 */}
-          <GlobalHeader />
-
-          {/* 2. 하위 라우팅 화면 */}
+          {/* 하위 라우팅 화면 */}
           <Box flex={1} style={dynamicBgStyle}>
             <Stack screenOptions={stackScreenOptions} />
           </Box>
