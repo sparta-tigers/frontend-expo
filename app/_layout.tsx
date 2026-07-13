@@ -138,8 +138,8 @@ function RootLayoutInner() {
         >
           {!netInfo.isConnected ? <OfflineBanner /> : null}
 
-          {/* 1. 고정 헤더 (전역) */}
-          {!inAuthGroup && segments[0] !== 'schedule' && segments[1] !== 'create' ? (
+          {/* 1. 고정 헤더 (전역) - (tabs) 그룹에서만 노출하여 중첩 방지 */}
+          {segments[0] === '(tabs)' ? (
             <Box flexDir="row" align="center" justify="space-between" px="xl" py="lg">
               <Box width={48} align="flex-start">
                 {router.canGoBack() ? (

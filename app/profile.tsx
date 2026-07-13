@@ -8,7 +8,7 @@ import { useProfile } from '@/src/features/user/hooks/useProfile';
 import { LOCAL_LAYOUT, styles } from '@/src/features/user/styles/profile.styles';
 import { KBO_TEAMS } from '@/src/features/user/types';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
-import { router } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import React, { useRef } from 'react';
 import { ScrollView, TouchableOpacity } from 'react-native';
 import { animateLayout } from '@/src/utils/motion';
@@ -61,19 +61,10 @@ export default function ProfileScreen() {
   if (!user?.accessToken) {
     return (
       <SafeLayout>
+        <Stack.Screen
+          options={{ headerShown: true, title: '프로필', headerShadowVisible: false }}
+        />
         <Box flex={1} bg="surface">
-          <Box
-            py="lg"
-            align="center"
-            bg="background"
-            borderBottomWidth={1}
-            borderColor="border.medium"
-          >
-            <Typography variant="h3" weight="bold">
-              프로필
-            </Typography>
-          </Box>
-
           <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
@@ -125,19 +116,8 @@ export default function ProfileScreen() {
   // 로그인된 상태
   return (
     <SafeLayout>
+      <Stack.Screen options={{ headerShown: true, title: '프로필', headerShadowVisible: false }} />
       <Box flex={1} bg="surface">
-        <Box
-          py="lg"
-          align="center"
-          bg="background"
-          borderBottomWidth={1}
-          borderColor="border.medium"
-        >
-          <Typography variant="h3" weight="bold">
-            프로필
-          </Typography>
-        </Box>
-
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
