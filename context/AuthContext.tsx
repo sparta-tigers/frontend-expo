@@ -99,7 +99,8 @@ const getTokenClaimFromAccessToken = (
  */
 interface AuthContextType {
   user: SimpleToken | null;
-  isLoading: boolean;
+  isLoading: boolean; // Includes both isInitializing and isAuthenticating
+  isInitializing: boolean; // Only true during initial token load
   isLoggedIn: boolean;
   myTeam: string | null;
   myTeamId: number | null;
@@ -150,8 +151,11 @@ const BACKEND_TO_FRONTEND_TEAM_CODE: Record<string, string> = Object.fromEntries
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const queryClient = useQueryClient();
   const [user, setUser] = useState<SimpleToken | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isInitializing, setIsInitializing] = useState<boolean>(true);
+  const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
   const [myTeam, setMyTeam] = useState<string | null>(null);
+
+  const isLoading = isInitializing || isAuthenticating;
   const [myTeamId, setMyTeamId] = useState<number | null>(null);
   const showToast = useToastStore((state) => state.showToast);
 
@@ -167,7 +171,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
    */
   const loadToken = useCallback(async (): Promise<void> => {
     try {
-      setIsLoading(true);
+      setIsInitializing(true);
 
       const accessToken = await getAccessToken();
 
@@ -258,7 +262,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       Logger.error('[AuthContext] 토큰 로드 실패:', error);
       await clearTokens();
     } finally {
-      setIsLoading(false);
+      setIsInitializing(false);
     }
   }, []);
 
@@ -301,7 +305,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signin = useCallback(
     async (credentials: AuthSigninRequest): Promise<boolean> => {
       try {
-        setIsLoading(true);
+        setIsAuthenticating(true);
 
         // 🚨 3단계: 로그인 페이로드 정제 (trim 처리)
         const trimmedCredentials = {
@@ -366,7 +370,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         Logger.error('로그인 에러:', error);
         throw error;
       } finally {
-        setIsLoading(false);
+        setIsAuthenticating(false);
       }
     },
     [getFcmToken],
@@ -382,7 +386,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signup = useCallback(
     async (userData: AuthSignupRequest): Promise<boolean> => {
       try {
-        setIsLoading(true);
+        setIsAuthenticating(true);
         const response = await authSignupAPI(userData);
 
         // 🚨 방어 로직 추가: 통신 실패나 네트워크 에러로 undefined가 들어왔을 때 크래시 방지
@@ -412,7 +416,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         Logger.error('회원가입 에러:', error);
         throw error;
       } finally {
-        setIsLoading(false);
+        setIsAuthenticating(false);
       }
     },
     [signin],
@@ -552,6 +556,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     () => ({
       user,
       isLoading,
+      isInitializing,
       isLoggedIn,
       myTeam,
       myTeamId,
@@ -565,6 +570,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     [
       user,
       isLoading,
+      isInitializing,
       isLoggedIn,
       myTeam,
       myTeamId,

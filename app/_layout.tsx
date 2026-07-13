@@ -11,7 +11,7 @@ import { theme } from '@/src/styles/theme';
 import { useNetInfo } from '@react-native-community/netinfo';
 import * as Notifications from 'expo-notifications';
 import { Href, router, Stack, useSegments } from 'expo-router';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ActivityIndicator, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -71,7 +71,7 @@ export default function RootLayout() {
  * 내부 레이아웃 컴포넌트
  */
 function RootLayoutInner() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isInitializing } = useAuth();
   const { colors } = useTheme();
   const segments = useSegments();
   const netInfo = useNetInfo();
@@ -121,7 +121,24 @@ function RootLayoutInner() {
     }
   }, [user, inAuthGroup, isLoading, safeRedirect]);
 
-  if (isLoading) {
+  const dynamicBgStyle = useMemo(
+    () => ({
+      backgroundColor: inAuthGroup ? theme.colors.transparent : colors.background,
+    }),
+    [inAuthGroup, colors.background],
+  );
+
+  const stackScreenOptions = useMemo(
+    () => ({
+      headerShown: false,
+      gestureEnabled: true,
+      animation: 'slide_from_right' as const,
+      fullScreenGestureEnabled: true,
+    }),
+    [],
+  );
+
+  if (isInitializing) {
     return (
       <Box flex={1} justify="center" align="center" bg="background">
         <ActivityIndicator size="large" color={colors.primary} />
@@ -129,31 +146,18 @@ function RootLayoutInner() {
     );
   }
 
-  const dynamicStyles = StyleSheet.create({
-    dynamicBg: {
-      backgroundColor: inAuthGroup ? theme.colors.transparent : colors.background,
-    },
-  });
-
   return (
     <ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
       <SafeAreaProvider>
-        <Box flex={1} style={dynamicStyles.dynamicBg}>
+        <Box flex={1} style={dynamicBgStyle}>
           {!netInfo.isConnected ? <OfflineBanner /> : null}
 
           {/* 1. 고정 헤더 (전역) - auth 그룹에서는 숨김 처리 */}
           <GlobalHeader />
 
           {/* 2. 하위 라우팅 화면 */}
-          <Box flex={1} style={dynamicStyles.dynamicBg}>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                gestureEnabled: true,
-                animation: 'slide_from_right',
-                fullScreenGestureEnabled: true,
-              }}
-            />
+          <Box flex={1} style={dynamicBgStyle}>
+            <Stack screenOptions={stackScreenOptions} />
           </Box>
         </Box>
         <Toast />
