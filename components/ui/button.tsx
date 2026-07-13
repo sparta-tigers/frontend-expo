@@ -33,7 +33,10 @@ interface ButtonProps {
   style?: StyleProp<ViewStyle>;
   /** 텍스트 스타일 */
   textStyle?: StyleProp<TextStyle>;
-  /** 접근성 라벨 */
+  /** 
+   * 접근성 라벨 
+   * @note 문자열이 아닌 복잡한 children(예: 아이콘 + 텍스트)을 사용할 경우 반드시 명시적으로 주입해야 합니다.
+   */
   accessibilityLabel?: string;
   /** 접근성 힌트 */
   accessibilityHint?: string;
