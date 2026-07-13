@@ -44,7 +44,12 @@ export function AttendanceEmptyState({
       <Typography variant="body2" color="text.secondary" center mt="sm">
         {description}
       </Typography>
-      <TouchableOpacity style={styles.backButton} onPress={handleAction}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={handleAction}
+        accessibilityRole="button"
+        accessibilityLabel={actionLabel}
+      >
         <Typography variant="body1" color="background" weight="bold">
           {actionLabel}
         </Typography>

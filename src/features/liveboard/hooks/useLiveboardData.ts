@@ -32,6 +32,7 @@ export const useLiveboardData = (matchId: number) => {
       }
     },
     staleTime: 1000 * 30, // 🛰️ 30초 내에서는 캐시 신선도 유지
+    refetchInterval: 1000 * 60, // 🚨 WebSocket 장애 대비 저빈도(60초) 폴링 백업
     enabled: !!matchId,
   });
 };

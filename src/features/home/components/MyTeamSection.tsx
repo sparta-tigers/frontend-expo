@@ -234,8 +234,8 @@ const styles = StyleSheet.create({
   changeTeamButton: {
     paddingVertical: 4,
     paddingHorizontal: 12,
-    minHeight: 44,
-    minWidth: 44,
+    minHeight: theme.layout.touch.minTargetSize,
+    minWidth: theme.layout.touch.minTargetSize,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 20,
