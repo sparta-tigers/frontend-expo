@@ -281,7 +281,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, []);
 
-  const getFcmToken = async (): Promise<string | null> => {
+  const getFcmToken = useCallback(async (): Promise<string | null> => {
     if (!Device.isDevice) {
       Logger.warn("FCM 토큰은 실제 기기에서만 발급됩니다.");
       return null;
@@ -309,7 +309,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
 
     return token.data;
-  };
+  }, []);
 
   /**
    * 로그인 함수
@@ -397,7 +397,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [getFcmToken]);
 
   /**
    * 회원가입 함수
