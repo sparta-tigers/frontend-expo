@@ -211,6 +211,7 @@ export default function SigninScreen() {
                 style={styles.registerButton}
                 accessibilityRole="button"
                 accessibilityLabel="회원가입 페이지로 이동"
+                accessibilityState={{ disabled: isLoading }}
               >
                 <Typography
                   variant="body2"
@@ -252,6 +253,7 @@ export default function SigninScreen() {
                   }
                   accessibilityRole="button"
                   accessibilityLabel="카카오 로그인"
+                  accessibilityState={{ disabled: isLoading }}
                 >
                   <Image
                     source={kakaoIcon}
@@ -269,6 +271,7 @@ export default function SigninScreen() {
                   }
                   accessibilityRole="button"
                   accessibilityLabel="애플 로그인"
+                  accessibilityState={{ disabled: isLoading }}
                 >
                   <Image
                     source={appleIcon}
