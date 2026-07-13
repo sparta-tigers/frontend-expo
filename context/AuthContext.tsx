@@ -36,6 +36,7 @@ import {
   getRefreshToken,
   setTokens,
 } from "@/src/utils/tokenStore";
+import { AppError } from "@/src/core/errors";
 
 const authLogger = Logger.category("AUTH");
 
@@ -394,7 +395,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         return true;
       } else {
         Logger.error("로그인 실패:", response.error?.message);
-        throw new Error(response.error?.message || "로그인 실패");
+        throw new AppError(response.error?.message || "로그인 실패", "UNAUTHORIZED");
       }
     } catch (error) {
       Logger.error("로그인 에러:", error);
@@ -439,7 +440,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         }
       } else {
         Logger.error("회원가입 실패:", response.error?.message);
-        throw new Error(response.error?.message || "회원가입 실패");
+        throw new AppError(response.error?.message || "회원가입 실패", "UNAUTHORIZED");
       }
     } catch (error) {
       Logger.error("회원가입 에러:", error);
