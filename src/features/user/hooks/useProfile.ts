@@ -5,11 +5,7 @@ import {
   usersUpdateProfileAPI,
 } from '@/src/features/auth';
 import { FavoriteTeam } from '@/src/features/user/favorite-team';
-import {
-  favoriteTeamAddAPI,
-  favoriteTeamDeleteAPI,
-  favoriteTeamUpdateAPI,
-} from '@/src/features/user/favorite-team-api';
+import { favoriteTeamDeleteAPI } from '@/src/features/user/favorite-team-api';
 import { favoriteTeamKeys, useFavoriteTeam } from '@/src/features/user/queries';
 import { KBO_TEAMS } from '@/src/features/user/types';
 import { useAuth } from '@/src/hooks/useAuth';
@@ -19,6 +15,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { useToastStore } from '@/src/store/useToastStore';
 import { useConfirmStore } from '@/src/store/useConfirmStore';
+import { TEAM_LIST } from '@/src/utils/team';
 
 /**
  * useProfile
@@ -26,7 +23,7 @@ import { useConfirmStore } from '@/src/store/useConfirmStore';
  * Why: 프로필 화면의 회원 관리, 즐겨찾기 팀 관리 비즈니스 로직을 UI와 분리.
  */
 export function useProfile() {
-  const { user, signout, updateUser } = useAuth();
+  const { user, signout, updateUser, updateMyTeam } = useAuth();
   const [loading, setLoading] = useState(false);
   const { data: favoriteTeam } = useFavoriteTeam();
   const queryClient = useQueryClient();
@@ -159,13 +156,17 @@ export function useProfile() {
    */
   const handleSelectTeam = async (team: (typeof KBO_TEAMS)[number]) => {
     try {
+      const selectedTeamData = TEAM_LIST.find((t) => t.backendCode === team.code);
+      if (!selectedTeamData) {
+        throw new Error('Team not found in TEAM_LIST');
+      }
+
       const teamExists = !!favoriteTeam;
 
-      const response = teamExists
-        ? await favoriteTeamUpdateAPI({ teamCode: team.code })
-        : await favoriteTeamAddAPI({ teamCode: team.code });
+      // AuthContext의 updateMyTeam을 호출하면 내부적으로 favoriteTeam API 호출 및 홈 화면 데이터까지 동기화됩니다.
+      const success = await updateMyTeam(selectedTeamData.id);
 
-      if (response.resultType === 'SUCCESS') {
+      if (success) {
         queryClient.invalidateQueries({ queryKey: favoriteTeamKeys.mine() }).catch((err) => {
           Logger.error('즐겨찾기 캐시 무효화 실패 (서버 저장은 성공):', err);
         });
@@ -174,8 +175,6 @@ export function useProfile() {
           undefined,
           'success',
         );
-      } else {
-        showToast(`즐겨찾기 ${teamExists ? '변경' : '추가'}하지 못했어요.`, undefined, 'error');
       }
     } catch (error) {
       Logger.error('즐겨찾기 팀 처리 실패:', error);
@@ -198,6 +197,9 @@ export function useProfile() {
           try {
             const response = await favoriteTeamDeleteAPI();
             if (response.resultType === 'SUCCESS') {
+              // 응원팀(myTeam) 상태도 기본값으로 초기화하여 완전히 동기화
+              await updateMyTeam('DEFAULT');
+
               queryClient.invalidateQueries({ queryKey: favoriteTeamKeys.mine() }).catch((err) => {
                 Logger.error('즐겨찾기 삭제 캐시 무효화 실패 (서버 삭제는 성공):', err);
               });

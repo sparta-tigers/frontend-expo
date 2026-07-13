@@ -107,7 +107,7 @@ interface AuthContextType {
   signup: (userData: AuthSignupRequest) => Promise<boolean>;
   signout: () => Promise<void>;
   loadToken: () => Promise<void>;
-  updateMyTeam: (teamName: string) => Promise<void>;
+  updateMyTeam: (teamName: string) => Promise<boolean>;
   updateUser: (partialUser: Partial<SimpleToken>) => void;
 }
 
@@ -451,7 +451,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
    * @param teamName - 변경할 팀 명칭
    */
   const updateMyTeam = useCallback(
-    async (teamName: string): Promise<void> => {
+    async (teamName: string): Promise<boolean> => {
       const previousTeam = myTeam;
       try {
         // 1. 로그인 상태라면 백엔드와 동기화 시도
@@ -509,10 +509,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (__DEV__) {
           authLogger.debug(`✅ [AuthContext] 응원팀 변경 및 데이터 동기화 완료: ${teamName}`);
         }
+        return true;
       } catch (error) {
         Logger.error('[AuthContext] 응원팀 변경 실패:', error);
         setMyTeam(previousTeam);
         showToast('팀 정보를 저장하는 중 문제가 생겼어요. 다시 시도해주세요.', undefined, 'error');
+        return false;
       }
     },
     [isLoggedIn, myTeam, queryClient, user, showToast],
