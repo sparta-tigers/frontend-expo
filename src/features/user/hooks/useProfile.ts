@@ -151,8 +151,8 @@ export function useProfile() {
 
   /**
    * 즐겨찾기 팀 선택/변경 핸들러
-   * Why: 기존 팀 유무를 조회(checkRes)하여 Add/Update API를 분기함으로써
-   *      단일 엔드포인트에 묶이지 않고 명시적인 비즈니스 트랜잭션을 구현함.
+   * Why: 비즈니스 트랜잭션의 책임을 AuthContext의 updateMyTeam에 위임하여,
+   *      로컬 상태, 홈 화면 데이터, 그리고 백엔드 즐겨찾기 데이터를 원자적으로 동기화합니다.
    */
   const handleSelectTeam = async (team: (typeof KBO_TEAMS)[number]) => {
     try {
@@ -198,12 +198,16 @@ export function useProfile() {
             const response = await favoriteTeamDeleteAPI();
             if (response.resultType === 'SUCCESS') {
               // 응원팀(myTeam) 상태도 기본값으로 초기화하여 완전히 동기화
-              await updateMyTeam('DEFAULT');
+              const success = await updateMyTeam('DEFAULT');
 
-              queryClient.invalidateQueries({ queryKey: favoriteTeamKeys.mine() }).catch((err) => {
-                Logger.error('즐겨찾기 삭제 캐시 무효화 실패 (서버 삭제는 성공):', err);
-              });
-              showToast(`${team.teamName}을 즐겨찾기에서 삭제했어요.`, undefined, 'success');
+              if (success) {
+                queryClient
+                  .invalidateQueries({ queryKey: favoriteTeamKeys.mine() })
+                  .catch((err) => {
+                    Logger.error('즐겨찾기 삭제 캐시 무효화 실패 (서버 삭제는 성공):', err);
+                  });
+                showToast(`${team.teamName}을 즐겨찾기에서 삭제했어요.`, undefined, 'success');
+              }
             } else {
               showToast('즐겨찾기에서 삭제하지 못했어요.', undefined, 'error');
             }
