@@ -11,7 +11,6 @@ import { Keyboard, Pressable, StyleSheet, TextInput, TouchableOpacity } from 're
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useToastStore } from '@/src/store/useToastStore';
 import Animated, {
-  FadeInDown,
   FadeInUp,
   useAnimatedStyle,
   useSharedValue,
@@ -27,15 +26,11 @@ const appleIcon = require('@/assets/images/auth/apple.png');
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
 // ========================================================
 const LOCAL_LAYOUT = {
-  headerHeight: theme.layout.auth.headerHeight,
-  headerIconBox: theme.layout.auth.headerIconBox,
   bodyPaddingHorizontal: theme.layout.auth.bodyPaddingHorizontal,
   bodyPaddingVertical: theme.layout.auth.bodyPaddingVertical,
   logoWidth: theme.layout.auth.logoWidth,
   logoHeight: theme.layout.auth.logoHeight,
   inputHeight: theme.layout.auth.inputHeight,
-  socialButtonSize: theme.layout.auth.socialButtonSize,
-  socialIconSize: theme.layout.auth.socialIconSize,
   socialDividerHeight: theme.layout.auth.socialDividerHeight,
   dividerLineHeight: StyleSheet.hairlineWidth,
 } as const;
@@ -127,7 +122,7 @@ export default function SigninScreen() {
   }));
 
   return (
-    <SafeLayout style={styles.safeLayout} edges={['top', 'left', 'right', 'bottom']}>
+    <SafeLayout style={styles.safeLayout} edges={['left', 'right', 'bottom']}>
       <KeyboardAwareScrollView
         contentContainerStyle={styles.scrollContent}
         enableOnAndroid={true}
@@ -135,46 +130,108 @@ export default function SigninScreen() {
         extraScrollHeight={theme.spacing.xl}
       >
         <Pressable style={styles.pressableArea} onPress={Keyboard.dismiss}>
-          {/* Header */}
-          <Animated.View entering={FadeInDown.delay(100).duration(800)}>
-            <Box
-              height={LOCAL_LAYOUT.headerHeight}
-              px="xl"
-              pb="sm"
-              flexDir="row"
-              align="flex-end"
-              justify="space-between"
-              bg="background"
-            >
-              <Box width={LOCAL_LAYOUT.headerIconBox} height={LOCAL_LAYOUT.headerIconBox} />
-              <Typography variant="h3" weight="regular" color="brand.mint" center>
-                YAGUNIV
-              </Typography>
-              <Box width={LOCAL_LAYOUT.headerIconBox} height={LOCAL_LAYOUT.headerIconBox} />
-            </Box>
-          </Animated.View>
-
           <LinearGradient
             colors={theme.colors.brand.loginGradientStops}
             locations={[0, 0.55, 1]}
             style={styles.gradientBody}
           >
-            <Animated.View entering={FadeInUp.delay(200).duration(800).springify()}>
-              <Box width="100%" align="center" justify="center" mb="xxl">
+            <Animated.View entering={FadeInUp.delay(100).duration(800).springify()}>
+              <Box width="100%" align="center" justify="center" mb="xxl" mt="xl">
                 <Image source={loginLogo} style={styles.logo} contentFit="contain" />
               </Box>
             </Animated.View>
 
-            <Box width="100%" align="center" gap="lg" style={styles.formContainer}>
+            <Box width="100%" align="center" gap="md" style={styles.formContainer}>
+              {/* 소셜 로그인 (Primary Action) */}
+              <Animated.View
+                entering={FadeInUp.delay(200).duration(800).springify()}
+                style={styles.fullWidth}
+              >
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  style={[styles.socialButtonFull, styles.kakaoButton]}
+                  disabled={isLoading}
+                  onPress={() =>
+                    showToast('준비 중', '카카오 로그인은 아직 준비하고 있어요.', 'info')
+                  }
+                  accessibilityRole="button"
+                  accessibilityLabel="카카오 로그인"
+                >
+                  <Box flexDir="row" align="center" justify="center" gap="sm">
+                    <Image source={kakaoIcon} style={styles.socialIconSmall} contentFit="contain" />
+                    <Typography variant="body1" weight="bold" style={styles.kakaoText}>
+                      카카오로 시작하기
+                    </Typography>
+                  </Box>
+                </TouchableOpacity>
+              </Animated.View>
+
               <Animated.View
                 entering={FadeInUp.delay(300).duration(800).springify()}
+                style={styles.fullWidth}
+              >
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  style={[styles.socialButtonFull, styles.appleButton]}
+                  disabled={isLoading}
+                  onPress={() =>
+                    showToast('준비 중', 'Apple 로그인은 아직 준비하고 있어요.', 'info')
+                  }
+                  accessibilityRole="button"
+                  accessibilityLabel="애플 로그인"
+                >
+                  <Box flexDir="row" align="center" justify="center" gap="sm">
+                    <Image source={appleIcon} style={styles.socialIconSmall} contentFit="contain" />
+                    <Typography variant="body1" weight="bold" style={styles.appleText}>
+                      Apple로 시작하기
+                    </Typography>
+                  </Box>
+                </TouchableOpacity>
+              </Animated.View>
+
+              {/* 구분선 */}
+              <Animated.View
+                entering={FadeInUp.delay(400).duration(800).springify()}
+                style={styles.fullWidth}
+              >
+                <Box
+                  width="100%"
+                  height={LOCAL_LAYOUT.socialDividerHeight}
+                  align="center"
+                  justify="center"
+                  mt="sm"
+                  mb="sm"
+                  flexDir="row"
+                  gap="md"
+                >
+                  <Box
+                    flex={1}
+                    height={LOCAL_LAYOUT.dividerLineHeight}
+                    bg="background"
+                    style={styles.dividerLine}
+                  />
+                  <Typography variant="body2" color="brand.subtitle">
+                    또는 이메일로 로그인
+                  </Typography>
+                  <Box
+                    flex={1}
+                    height={LOCAL_LAYOUT.dividerLineHeight}
+                    bg="background"
+                    style={styles.dividerLine}
+                  />
+                </Box>
+              </Animated.View>
+
+              {/* 이메일/비밀번호 입력 폼 */}
+              <Animated.View
+                entering={FadeInUp.delay(500).duration(800).springify()}
                 style={styles.inputWrapper}
               >
                 <Animated.View style={[styles.inputBorder, emailAnimatedStyle]}>
                   <TextInput
                     value={email}
                     onChangeText={setEmail}
-                    placeholder="Email Address"
+                    placeholder="이메일"
                     placeholderTextColor={theme.colors.brand.subtitle}
                     keyboardType="email-address"
                     autoCapitalize="none"
@@ -195,14 +252,14 @@ export default function SigninScreen() {
               </Animated.View>
 
               <Animated.View
-                entering={FadeInUp.delay(400).duration(800).springify()}
+                entering={FadeInUp.delay(600).duration(800).springify()}
                 style={styles.inputWrapper}
               >
                 <Animated.View style={[styles.inputBorder, passwordAnimatedStyle]}>
                   <TextInput
                     value={password}
                     onChangeText={setPassword}
-                    placeholder="Password"
+                    placeholder="비밀번호"
                     placeholderTextColor={theme.colors.brand.subtitle}
                     secureTextEntry
                     style={styles.input}
@@ -221,8 +278,9 @@ export default function SigninScreen() {
                 </Animated.View>
               </Animated.View>
 
+              {/* 이메일 로그인 버튼 */}
               <Animated.View
-                entering={FadeInUp.delay(500).duration(800).springify()}
+                entering={FadeInUp.delay(700).duration(800).springify()}
                 style={styles.buttonWrapper}
               >
                 <TouchableOpacity
@@ -231,17 +289,18 @@ export default function SigninScreen() {
                   disabled={isLoading}
                   style={styles.loginButton}
                   accessibilityRole="button"
-                  accessibilityLabel="로그인"
+                  accessibilityLabel="이메일로 로그인"
                   accessibilityState={{ disabled: isLoading }}
                 >
                   <Typography variant="body1" weight="bold" color="background" center>
-                    LOGIN
+                    로그인
                   </Typography>
                 </TouchableOpacity>
               </Animated.View>
 
+              {/* 회원가입 버튼 */}
               <Animated.View
-                entering={FadeInUp.delay(600).duration(800).springify()}
+                entering={FadeInUp.delay(800).duration(800).springify()}
                 style={styles.buttonWrapper}
               >
                 <TouchableOpacity
@@ -254,69 +313,9 @@ export default function SigninScreen() {
                   accessibilityState={{ disabled: isLoading }}
                 >
                   <Typography variant="body2" weight="medium" color="brand.subtitle" center>
-                    Register Now
+                    회원가입
                   </Typography>
                 </TouchableOpacity>
-              </Animated.View>
-
-              <Animated.View
-                entering={FadeInUp.delay(700).duration(800).springify()}
-                style={styles.fullWidth}
-              >
-                <Box
-                  width="100%"
-                  height={LOCAL_LAYOUT.socialDividerHeight}
-                  align="center"
-                  justify="center"
-                  mt="xl"
-                  mb="md"
-                >
-                  <Box
-                    width="100%"
-                    height={LOCAL_LAYOUT.dividerLineHeight}
-                    bg="background"
-                    style={styles.dividerLine}
-                  />
-                </Box>
-              </Animated.View>
-
-              <Animated.View
-                entering={FadeInUp.delay(800).duration(800).springify()}
-                style={styles.fullWidth}
-              >
-                <Box
-                  flexDir="row"
-                  align="center"
-                  justify="center"
-                  gap="xl"
-                  style={styles.socialButtonsContainer}
-                >
-                  <TouchableOpacity
-                    activeOpacity={0.85}
-                    style={styles.socialButton}
-                    disabled={isLoading}
-                    onPress={() =>
-                      showToast('준비 중', '카카오 로그인은 아직 준비하고 있어요.', 'info')
-                    }
-                    accessibilityRole="button"
-                    accessibilityLabel="카카오 로그인"
-                  >
-                    <Image source={kakaoIcon} style={styles.socialIcon} contentFit="contain" />
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    activeOpacity={0.85}
-                    style={styles.socialButton}
-                    disabled={isLoading}
-                    onPress={() =>
-                      showToast('준비 중', 'Apple 로그인은 아직 준비하고 있어요.', 'info')
-                    }
-                    accessibilityRole="button"
-                    accessibilityLabel="애플 로그인"
-                  >
-                    <Image source={appleIcon} style={styles.socialIcon} contentFit="contain" />
-                  </TouchableOpacity>
-                </Box>
               </Animated.View>
             </Box>
           </LinearGradient>
@@ -367,12 +366,13 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     paddingHorizontal: theme.spacing.lg,
+    paddingVertical: 0, // Android 텍스트 잘림 현상 방지
     fontSize: theme.typography.size.sm,
     color: theme.colors.text.primary,
   },
   buttonWrapper: {
     width: '100%',
-    marginTop: theme.spacing.md,
+    marginTop: theme.spacing.xs,
   },
   loginButton: {
     width: '100%',
@@ -389,24 +389,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: -theme.spacing.sm,
   },
-  socialButton: {
-    width: LOCAL_LAYOUT.socialButtonSize,
-    height: LOCAL_LAYOUT.socialButtonSize,
+  socialButtonFull: {
+    width: '100%',
+    height: LOCAL_LAYOUT.inputHeight,
     borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.card,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    ...theme.shadow.card,
+    ...theme.shadow.button,
   },
-  socialIcon: {
-    width: LOCAL_LAYOUT.socialIconSize,
-    height: LOCAL_LAYOUT.socialIconSize,
+  kakaoButton: {
+    backgroundColor: theme.colors.social.kakao.background,
+  },
+  kakaoText: {
+    color: theme.colors.social.kakao.text,
+    opacity: 0.85,
+  },
+  appleButton: {
+    backgroundColor: theme.colors.social.apple.background,
+  },
+  appleText: {
+    color: theme.colors.social.apple.text,
+  },
+  socialIconSmall: {
+    width: 20,
+    height: 20,
   },
   dividerLine: {
     opacity: 0.3,
-  },
-  socialButtonsContainer: {
-    width: '100%',
   },
   fullWidth: {
     width: '100%',
