@@ -128,6 +128,8 @@ export default function SigninScreen() {
         enableOnAndroid={true}
         keyboardShouldPersistTaps="handled"
         extraScrollHeight={theme.spacing.xl}
+        bounces={false}
+        showsVerticalScrollIndicator={false}
       >
         <Pressable style={styles.pressableArea} onPress={Keyboard.dismiss}>
           <LinearGradient
@@ -136,7 +138,7 @@ export default function SigninScreen() {
             style={styles.gradientBody}
           >
             <Animated.View entering={FadeInUp.delay(100).duration(800).springify()}>
-              <Box width="100%" align="center" justify="center" mb="xxl" mt="xl">
+              <Box width="100%" align="center" justify="center" mb="xl">
                 <Image source={loginLogo} style={styles.logo} contentFit="contain" />
               </Box>
             </Animated.View>
@@ -340,10 +342,9 @@ const styles = StyleSheet.create({
   gradientBody: {
     flex: 1,
     paddingHorizontal: LOCAL_LAYOUT.bodyPaddingHorizontal,
-    paddingTop: LOCAL_LAYOUT.bodyPaddingVertical,
-    paddingBottom: LOCAL_LAYOUT.bodyPaddingVertical,
+    paddingVertical: LOCAL_LAYOUT.bodyPaddingVertical,
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
   },
   formContainer: {
     width: '100%',
