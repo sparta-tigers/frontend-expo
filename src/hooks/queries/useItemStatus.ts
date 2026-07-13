@@ -1,7 +1,7 @@
 import { itemsUpdateStatusAPI } from '@/src/features/exchange/api';
 import { Item } from '@/src/features/exchange/items';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Alert } from 'react-native';
+import { useToastStore } from '@/src/store/useToastStore';
 
 /**
  * 아이템 상태 변경 훅
@@ -16,6 +16,8 @@ import { Alert } from 'react-native';
  */
 export const useUpdateItemStatus = (itemId: number) => {
   const queryClient = useQueryClient();
+
+  const showToast = useToastStore((state) => state.showToast);
 
   return useMutation({
     mutationFn: (newStatus: string) => itemsUpdateStatusAPI(itemId, newStatus),
@@ -42,7 +44,7 @@ export const useUpdateItemStatus = (itemId: number) => {
       if (context?.previousItem) {
         queryClient.setQueryData(['item', itemId], context.previousItem);
       }
-      Alert.alert('알림', '상태를 변경하지 못했어요.');
+      showToast('상태를 변경하지 못했어요.', undefined, 'error');
     },
     onSettled: () => {
       // [Zero Magic] 성공/실패 여부와 상관없이 최종적으로 서버 데이터와 캐시를 동기화함.

@@ -7,8 +7,10 @@ import { Logger } from '@/src/utils/logger';
 import Slider from '@react-native-community/slider';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Alert, ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { animateLayout } from '@/src/utils/motion';
+import { useToastStore } from '@/src/store/useToastStore';
+import { useConfirmStore } from '@/src/store/useConfirmStore';
 
 /**
  * 🔔 TicketAlarmFormScreen: 티켓 예매 알림 설정 화면
@@ -28,6 +30,8 @@ export default function TicketAlarmFormScreen() {
   const [membership, setMembership] = useState('');
   const [errorText, setErrorText] = useState('');
   const { createAlarm, isCreating } = useTicketAlarmMutation();
+  const showToast = useToastStore((state) => state.showToast);
+  const showConfirm = useConfirmStore((state) => state.showConfirm);
 
   const onChangeMembership = (text: string) => {
     setMembership(text);
@@ -48,7 +52,7 @@ export default function TicketAlarmFormScreen() {
         matchIdNumber,
         myTeamId,
       });
-      Alert.alert('알림', '필수 정보가 누락되었거나 유효하지 않아요.');
+      showToast('필수 정보가 누락되었거나 유효하지 않아요.', undefined, 'error');
       return;
     }
 
@@ -66,7 +70,7 @@ export default function TicketAlarmFormScreen() {
         ...(membership.trim() ? { membership: membership.trim() } : {}),
       });
 
-      Alert.alert('성공', '예매 알림을 설정했어요.', [
+      showConfirm('성공', '예매 알림을 설정했어요.', [
         {
           text: '확인',
           onPress: () => {

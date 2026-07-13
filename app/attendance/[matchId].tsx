@@ -19,7 +19,6 @@ import { AttendanceEmptyState } from '@/src/features/match-attendance/components
 import { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -27,6 +26,8 @@ import {
   TextInput,
   TouchableOpacity,
 } from 'react-native';
+import { useToastStore } from '@/src/store/useToastStore';
+import { useConfirmStore } from '@/src/store/useConfirmStore';
 
 /**
  * 레이아웃 고정 상수
@@ -62,6 +63,9 @@ export default function AttendanceFormScreen() {
   const [existingId, setExistingId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [prevAttendanceId, setPrevAttendanceId] = useState<number | null>(null);
+
+  const showToast = useToastStore((state) => state.showToast);
+  const showConfirm = useConfirmStore((state) => state.showConfirm);
 
   // 🎯 [Phase 2] 결정론적 수정 모드 판별 및 데이터 초기화 (During render)
   if (attendance && attendance.id !== prevAttendanceId) {
@@ -138,7 +142,7 @@ export default function AttendanceFormScreen() {
    */
   const handleSubmit = async () => {
     if (!seat.trim()) {
-      Alert.alert('알림', '좌석 정보를 입력해주세요.');
+      showToast('좌석 정보를 입력해주세요.', undefined, 'info');
       return;
     }
 
@@ -204,13 +208,13 @@ export default function AttendanceFormScreen() {
         .invalidateQueries({ queryKey: attendanceKeys.byMatch(matchIdNumber) })
         .catch((err) => logger.error('Invalidate failed', err));
 
-      Alert.alert('성공', '직관 기록을 저장했어요.', [
+      showConfirm('성공', '직관 기록을 저장했어요.', [
         { text: '확인', onPress: () => router.replace('/(tabs)/history') },
       ]);
     } catch (error) {
       // 🚨 [Phase 37] 관측성 확보: 운영 환경 디버깅을 위해 에러 로깅 추가 (UX용 Alert는 유지)
       logger.error('save failed', error);
-      Alert.alert('알림', '기록을 저장하지 못했어요.');
+      showToast('기록을 저장하지 못했어요.', undefined, 'error');
     } finally {
       setIsSubmitting(false);
     }

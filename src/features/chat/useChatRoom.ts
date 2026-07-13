@@ -1,7 +1,9 @@
 // src/features/chat/useChatRoom.ts
 import { InfiniteData, useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, AppState } from 'react-native';
+import { AppState } from 'react-native';
+import { useToastStore } from '@/src/store/useToastStore';
+import { useConfirmStore } from '@/src/store/useConfirmStore';
 
 import { apiClient } from '@/src/core/client';
 import { chatroomsGetMessagesAPI } from '@/src/features/chat/api';
@@ -78,6 +80,8 @@ export function useChatRoom(roomId: string, options?: ChatRoomOptions): UseChatR
   const onStatusChange = options?.onStatusChange;
   const [messageText, setMessageText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false); // 🛡️ Race Condition 방어용 플래그
+  const showToast = useToastStore((state) => state.showToast);
+  const showConfirm = useConfirmStore((state) => state.showConfirm);
 
   const roomIdNumber = Number(roomId);
   const isRoomIdInvalid =
@@ -191,7 +195,7 @@ export function useChatRoom(roomId: string, options?: ChatRoomOptions): UseChatR
 
   const handleSendMessage = useCallback(() => {
     if (!client || !isConnected) {
-      Alert.alert('알림', '서버와 연결이 불안정해요.');
+      showToast('서버와 연결이 불안정해요.', undefined, 'error');
       return;
     }
     if (!user?.userId || !messageText.trim()) return;
@@ -234,9 +238,18 @@ export function useChatRoom(roomId: string, options?: ChatRoomOptions): UseChatR
         },
       );
       setMessageText(prevText);
-      Alert.alert('알림', '메시지를 보내지 못했어요.');
+      showToast('메시지를 보내지 못했어요.', undefined, 'error');
     }
-  }, [client, handleMessageReceived, isConnected, messageText, queryClient, roomIdNumber, user]);
+  }, [
+    client,
+    handleMessageReceived,
+    isConnected,
+    messageText,
+    queryClient,
+    roomIdNumber,
+    user,
+    showToast,
+  ]);
 
   // STOMP 구독 및 AppState 관리 (기존 로직 유지)
   useEffect(() => {
@@ -305,7 +318,7 @@ export function useChatRoom(roomId: string, options?: ChatRoomOptions): UseChatR
       if (isProcessing) return; // 🛡️ 이미 처리 중이면 차단 (Race Condition 방어)
       if (!exchangeItem?.itemId) return;
 
-      Alert.alert('확인', newStatus === 'COMPLETE' ? '교환을 확정할까요?' : '교환을 취소할까요?', [
+      showConfirm('확인', newStatus === 'COMPLETE' ? '교환을 확정할까요?' : '교환을 취소할까요?', [
         { text: '취소', style: 'cancel' },
         {
           text: '확인',
@@ -319,7 +332,7 @@ export function useChatRoom(roomId: string, options?: ChatRoomOptions): UseChatR
             } catch (error) {
               Logger.error('[ChatRoom] Status change failed:', error);
               // 🚨 Fail-fast: 사용자에게 명확한 피드백 유지
-              Alert.alert('알림', '거래 상태를 변경하지 못했어요.');
+              showToast('거래 상태를 변경하지 못했어요.', undefined, 'error');
             } finally {
               setIsProcessing(false); // ✅ 로딩 종료
             }
@@ -327,7 +340,7 @@ export function useChatRoom(roomId: string, options?: ChatRoomOptions): UseChatR
         },
       ]);
     },
-    [exchangeItem, isProcessing, onStatusChange],
+    [exchangeItem, isProcessing, onStatusChange, showConfirm, showToast],
   );
 
   return {

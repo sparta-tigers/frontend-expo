@@ -14,7 +14,6 @@ import { type Href, Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Dimensions,
   FlatList,
   Image,
@@ -32,6 +31,8 @@ import ImageViewing from 'react-native-image-viewing';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/button';
+import { useToastStore } from '@/src/store/useToastStore';
+import { useConfirmStore } from '@/src/store/useConfirmStore';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -209,6 +210,8 @@ export default function ItemDetailScreen() {
 
   const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
   const [imageViewerIndex, setImageViewerIndex] = useState(0);
+  const showToast = useToastStore((state) => state.showToast);
+  const showConfirm = useConfirmStore((state) => state.showConfirm);
 
   const {
     data: item,
@@ -321,11 +324,11 @@ export default function ItemDetailScreen() {
 
   const handleExchangeRequest = useCallback(() => {
     if (!user?.accessToken) {
-      Alert.alert('로그인이 필요해요', '교환을 신청하려면 먼저 로그인해주세요.');
+      showToast('교환을 신청하려면 먼저 로그인해주세요.', undefined, 'error');
       return;
     }
     router.push(`/exchange/apply/${id}` as Href);
-  }, [user, id, router]);
+  }, [user, id, router, showToast]);
 
   const { mutate: updateItemStatus, isPending: isUpdatingStatus } = useMutation({
     mutationFn: async (newStatus: 'COMPLETED' | 'FAILED') => {
@@ -336,21 +339,21 @@ export default function ItemDetailScreen() {
       return true;
     },
     onSuccess: async () => {
-      Alert.alert('성공', '상태를 변경했어요.');
+      showToast('상태를 변경했어요.', undefined, 'success');
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: exchangeKeys.item(id) }),
         queryClient.invalidateQueries({ queryKey: exchangeKeys.items() }),
       ]);
     },
     onError: () => {
-      Alert.alert('알림', '상태를 변경하지 못했어요.');
+      showToast('상태를 변경하지 못했어요.', undefined, 'error');
     },
   });
 
   const handleStatusChange = useCallback(
     (newStatus: 'COMPLETED' | 'FAILED') => {
       if (!item?.data) return;
-      Alert.alert(
+      showConfirm(
         '상태 변경',
         newStatus === 'COMPLETED'
           ? '교환을 완료 상태로 변경할까요?'
@@ -361,7 +364,7 @@ export default function ItemDetailScreen() {
         ],
       );
     },
-    [item?.data, updateItemStatus],
+    [item?.data, updateItemStatus, showConfirm],
   );
 
   const { mutate: deleteItem } = useMutation({
@@ -375,16 +378,16 @@ export default function ItemDetailScreen() {
       }
     },
     onError: () => {
-      Alert.alert('알림', '아이템을 삭제하지 못했어요.');
+      showToast('아이템을 삭제하지 못했어요.', undefined, 'error');
     },
   });
 
   const handleDelete = useCallback(() => {
-    Alert.alert('게시글 삭제', '정말 삭제할까요?', [
+    showConfirm('게시글 삭제', '정말 삭제할까요?', [
       { text: '닫기', style: 'cancel' },
       { text: '삭제', style: 'destructive', onPress: () => deleteItem() },
     ]);
-  }, [deleteItem]);
+  }, [deleteItem, showConfirm]);
 
   if (user === null && !isAuthLoading && !isItemLoading) {
     return (

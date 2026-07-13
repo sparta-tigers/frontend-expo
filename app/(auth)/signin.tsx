@@ -8,8 +8,9 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { type Href, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Keyboard, Pressable, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { Keyboard, Pressable, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useToastStore } from '@/src/store/useToastStore';
 
 const loginLogo = require('@/assets/images/auth/yaguniv-logo.png');
 const kakaoIcon = require('@/assets/images/auth/kakao.png');
@@ -46,6 +47,7 @@ export default function SigninScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const showToast = useToastStore((state) => state.showToast);
 
   // 🚨 앙드레 카파시: 네비게이터 준비 상태 추적
   const navigationReady = useRef(false);
@@ -82,21 +84,21 @@ export default function SigninScreen() {
 
   const handleSignin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('알림', '이메일과 비밀번호를 입력해주세요');
+      showToast('이메일과 비밀번호를 입력해주세요', undefined, 'error');
       return;
     }
 
     try {
       const success = await signin({ email, password });
       if (success) {
-        Alert.alert('성공', '로그인했어요');
+        showToast('로그인했어요', undefined, 'success');
         safeRedirect('/(tabs)');
       } else {
-        Alert.alert('알림', '로그인하지 못했어요');
+        showToast('로그인하지 못했어요', undefined, 'error');
       }
     } catch (error) {
       Logger.error('로그인 에러:', error);
-      Alert.alert('알림', getUserMessage(error));
+      showToast('로그인 실패', getUserMessage(error), 'error');
     }
   };
 
@@ -218,7 +220,9 @@ export default function SigninScreen() {
                   activeOpacity={0.85}
                   style={styles.socialButton}
                   disabled={isLoading}
-                  onPress={() => Alert.alert('준비 중', '카카오 로그인은 아직 준비하고 있어요.')}
+                  onPress={() =>
+                    showToast('준비 중', '카카오 로그인은 아직 준비하고 있어요.', 'info')
+                  }
                   accessibilityRole="button"
                   accessibilityLabel="카카오 로그인"
                   accessibilityState={{ disabled: isLoading }}
@@ -230,7 +234,9 @@ export default function SigninScreen() {
                   activeOpacity={0.85}
                   style={styles.socialButton}
                   disabled={isLoading}
-                  onPress={() => Alert.alert('준비 중', 'Apple 로그인은 아직 준비하고 있어요.')}
+                  onPress={() =>
+                    showToast('준비 중', 'Apple 로그인은 아직 준비하고 있어요.', 'info')
+                  }
                   accessibilityRole="button"
                   accessibilityLabel="애플 로그인"
                   accessibilityState={{ disabled: isLoading }}

@@ -16,6 +16,8 @@ export { List, ListItem } from './list';
 export { SafeLayout } from './safe-layout';
 export { Section } from './section';
 export { Typography } from './typography';
+export { Toast } from './toast';
+export { ConfirmModal } from './confirm-modal';
 
 // 기존 PWA 컴포넌트와 호환성을 위한 재내보트
 export { ThemedText } from '../themed-text';

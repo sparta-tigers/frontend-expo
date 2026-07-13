@@ -11,7 +11,7 @@ import {
   useMemo,
   useCallback,
 } from 'react';
-import { Alert } from 'react-native';
+import { useToastStore } from '@/src/store/useToastStore';
 
 import {
   authSigninAPI,
@@ -153,6 +153,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [myTeam, setMyTeam] = useState<string | null>(null);
   const [myTeamId, setMyTeamId] = useState<number | null>(null);
+  const showToast = useToastStore((state) => state.showToast);
 
   /**
    * 로그인 여부 확인
@@ -511,10 +512,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } catch (error) {
         Logger.error('[AuthContext] 응원팀 변경 실패:', error);
         setMyTeam(previousTeam);
-        Alert.alert('알림', '팀 정보를 저장하는 중 문제가 생겼어요. 다시 시도해주세요.');
+        showToast('팀 정보를 저장하는 중 문제가 생겼어요. 다시 시도해주세요.', undefined, 'error');
       }
     },
-    [isLoggedIn, myTeam, queryClient, user],
+    [isLoggedIn, myTeam, queryClient, user, showToast],
   );
 
   /**

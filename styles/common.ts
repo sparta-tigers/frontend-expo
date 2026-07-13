@@ -1,5 +1,6 @@
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { StyleSheet } from 'react-native';
+import { theme } from '@/src/styles/theme';
 
 /**
  * 테마 색상 타입

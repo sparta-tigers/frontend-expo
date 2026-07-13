@@ -2,7 +2,8 @@
 import { useAuth } from '@/context/AuthContext';
 import { useWebSocket } from '@/src/hooks/useWebSocket';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, FlatList } from 'react-native';
+import { FlatList } from 'react-native';
+import { useToastStore } from '@/src/store/useToastStore';
 
 let messageCounter = 0;
 
@@ -73,6 +74,7 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
   const [messages, setMessages] = useState<ChatBubbleMessage[]>([]);
   const [draft, setDraft] = useState('');
   const scrollRef = useRef<FlatList<ChatBubbleMessage> | null>(null);
+  const showToast = useToastStore((state) => state.showToast);
 
   // 구독: 새 메시지 수신 시 목록에 추가 + optimistic 대체
   useEffect(() => {
@@ -123,12 +125,12 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
     if (!content) return;
 
     if (!client || !isConnected) {
-      Alert.alert('알림', '서버 연결이 불안정해요. 잠시 후 다시 시도해주세요.');
+      showToast('서버 연결이 불안정해요. 잠시 후 다시 시도해주세요.', undefined, 'error');
       return;
     }
 
     if (!user?.userId) {
-      Alert.alert('알림', '메시지를 보내려면 로그인이 필요해요.');
+      showToast('메시지를 보내려면 로그인이 필요해요.', undefined, 'info');
       return;
     }
 
@@ -154,9 +156,9 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
       });
     } catch {
       setMessages((prev) => prev.filter((m) => m.key !== localKey));
-      Alert.alert('알림', '메시지를 보내지 못했어요.');
+      showToast('메시지를 보내지 못했어요.', undefined, 'error');
     }
-  }, [client, draft, isConnected, roomId, user]);
+  }, [client, draft, isConnected, roomId, user, showToast]);
 
   return { messages, draft, setDraft, isConnected, scrollRef, handleSend };
 }

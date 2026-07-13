@@ -107,7 +107,7 @@ export default function ExchangeScreen() {
       </Head>
       {/* 1. 지도 영역 */}
       <MapView
-        mapRef={mapRef}
+        ref={mapRef}
         style={styles.map}
         initialRegion={defaultRegion}
         onMapReady={() => setIsMapReady(true)}
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   map: {
-    ...StyleSheet.absoluteFill,
+    ...StyleSheet.absoluteFillObject,
   },
 
   bottomSheetBackground: {
