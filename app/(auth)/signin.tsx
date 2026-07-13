@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
   input: {
     width: "100%",
     height: LOCAL_LAYOUT.inputHeight,
-    minHeight: 44,
+    minHeight: theme.layout.touch.minTargetSize,
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.full,
     paddingHorizontal: theme.spacing.lg,
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
   loginButton: {
     width: "100%",
     height: LOCAL_LAYOUT.inputHeight,
-    minHeight: 44,
+    minHeight: theme.layout.touch.minTargetSize,
     backgroundColor: theme.colors.brand.mint,
     borderRadius: theme.radius.full,
     alignItems: "center",
@@ -381,16 +381,16 @@ const styles = StyleSheet.create({
   },
   registerButton: {
     height: LOCAL_LAYOUT.inputHeight,
-    minHeight: 44,
-    minWidth: 44,
+    minHeight: theme.layout.touch.minTargetSize,
+    minWidth: theme.layout.touch.minTargetSize,
     alignItems: "center",
     justifyContent: "center",
   },
   socialButton: {
     width: LOCAL_LAYOUT.socialButtonSize,
     height: LOCAL_LAYOUT.socialButtonSize,
-    minHeight: 44,
-    minWidth: 44,
+    minHeight: theme.layout.touch.minTargetSize,
+    minWidth: theme.layout.touch.minTargetSize,
     borderRadius: theme.radius.lg,
     backgroundColor: theme.colors.card,
     alignItems: "center",
