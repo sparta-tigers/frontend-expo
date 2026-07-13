@@ -98,6 +98,7 @@ export default function SignupScreen() {
               value={email}
               onChangeText={setEmail}
               placeholder="이메일"
+              accessibilityLabel="이메일 입력"
               keyboardType="email-address"
               fullWidth
             />
@@ -106,6 +107,7 @@ export default function SignupScreen() {
               value={nickname}
               onChangeText={setNickname}
               placeholder="닉네임"
+              accessibilityLabel="닉네임 입력"
               fullWidth
             />
 
@@ -113,6 +115,7 @@ export default function SignupScreen() {
               value={password}
               onChangeText={setPassword}
               placeholder="비밀번호"
+              accessibilityLabel="비밀번호 입력"
               secureTextEntry
               fullWidth
             />
