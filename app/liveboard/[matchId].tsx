@@ -26,8 +26,17 @@ import {
  * 뷰는 오직 렌더링에만 집중하며, 복잡한 로직이나 useEffect 체인을 포함하지 않음.
  */
 export default function LiveboardDetailScreen() {
-  const { matchId, match, liveData, activeTab, setActiveTab, isLoading, isError, isValidMatchId } =
-    useLiveboardScreen();
+  const {
+    matchId,
+    match,
+    liveData,
+    activeTab,
+    visitedTabs,
+    setActiveTab,
+    isLoading,
+    isError,
+    isValidMatchId,
+  } = useLiveboardScreen();
 
   const { width } = useWindowDimensions();
   const tabIndex = TABS.findIndex((t) => t.key === activeTab);
@@ -126,7 +135,7 @@ export default function LiveboardDetailScreen() {
             accessibilityElementsHidden={activeTab !== 'chat'}
             importantForAccessibility={activeTab !== 'chat' ? 'no-hide-descendants' : 'auto'}
           >
-            {activeTab === 'chat' && <ChatPanel matchId={matchId} />}
+            {visitedTabs.includes('chat') && <ChatPanel matchId={matchId} />}
           </Box>
 
           <Box
@@ -134,10 +143,12 @@ export default function LiveboardDetailScreen() {
             accessibilityElementsHidden={activeTab !== 'text'}
             importantForAccessibility={activeTab !== 'text' ? 'no-hide-descendants' : 'auto'}
           >
-            <TextBroadcastPanel
-              inningTexts={liveData?.inningTexts}
-              isVisible={activeTab === 'text'}
-            />
+            {visitedTabs.includes('text') && (
+              <TextBroadcastPanel
+                inningTexts={liveData?.inningTexts}
+                isVisible={activeTab === 'text'}
+              />
+            )}
           </Box>
 
           <Box
@@ -145,7 +156,7 @@ export default function LiveboardDetailScreen() {
             accessibilityElementsHidden={activeTab !== 'lineup'}
             importantForAccessibility={activeTab !== 'lineup' ? 'no-hide-descendants' : 'auto'}
           >
-            {activeTab === 'lineup' && match && <LineupPanel match={match} />}
+            {visitedTabs.includes('lineup') && match && <LineupPanel match={match} />}
           </Box>
 
           <Box
@@ -153,7 +164,7 @@ export default function LiveboardDetailScreen() {
             accessibilityElementsHidden={activeTab !== 'weather'}
             importantForAccessibility={activeTab !== 'weather' ? 'no-hide-descendants' : 'auto'}
           >
-            {activeTab === 'weather' && <WeatherPanel matchId={matchId} />}
+            {visitedTabs.includes('weather') && <WeatherPanel matchId={matchId} />}
           </Box>
         </Animated.View>
       </Box>
