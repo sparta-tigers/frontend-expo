@@ -15,13 +15,13 @@ import { AttendanceEmptyState } from "@/src/features/match-attendance/components
 import {
   ActivityIndicator,
   Alert,
-  Dimensions,
+
   ScrollView,
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
 
 /**
  * 🚨 [Phase 24] 직관 기록 상세 조회 화면 (개선 버전)
@@ -288,12 +288,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   galleryImage: {
-    width: SCREEN_WIDTH * 0.7,
-    height: SCREEN_WIDTH * 0.7,
     borderRadius: theme.radius.lg,
   },
   fullWidthImage: {
     width: "100%",
+    aspectRatio: 1,
   },
   memoText: {
     lineHeight: 24,
