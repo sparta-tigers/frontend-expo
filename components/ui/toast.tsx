@@ -8,6 +8,8 @@ import { Typography } from './typography';
 import { IconSymbol, IconSymbolName } from './icon-symbol';
 import { theme } from '@/src/styles/theme';
 
+const toastEntering = FadeInUp.springify().damping(15).stiffness(200);
+
 export function Toast() {
   const { isVisible, title, message, type, hideToast } = useToastStore();
   const insets = useSafeAreaInsets();
@@ -38,7 +40,7 @@ export function Toast() {
 
   return (
     <Animated.View
-      entering={FadeInUp.springify().damping(15).stiffness(200)}
+      entering={toastEntering}
       exiting={FadeOutUp}
       style={[styles.container, { top: insets.top + 10, backgroundColor: bg }]}
     >

@@ -6,6 +6,11 @@ import { Box } from './box';
 import { Typography } from './typography';
 import { theme } from '@/src/styles/theme';
 
+const overlayEntering = FadeIn.duration(200);
+const overlayExiting = FadeOut.duration(200);
+const modalEntering = ZoomIn.duration(200);
+const modalExiting = ZoomOut.duration(200);
+
 export function ConfirmModal() {
   const { isVisible, title, message, buttons, hideConfirm } = useConfirmStore();
 
@@ -13,14 +18,10 @@ export function ConfirmModal() {
 
   return (
     <Modal transparent visible={isVisible} animationType="none" onRequestClose={hideConfirm}>
-      <Animated.View
-        entering={FadeIn.duration(200)}
-        exiting={FadeOut.duration(200)}
-        style={styles.overlay}
-      >
+      <Animated.View entering={overlayEntering} exiting={overlayExiting} style={styles.overlay}>
         <Animated.View
-          entering={ZoomIn.duration(200)}
-          exiting={ZoomOut.duration(200)}
+          entering={modalEntering}
+          exiting={modalExiting}
           style={styles.modalContainer}
         >
           <Box style={styles.content}>

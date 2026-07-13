@@ -21,7 +21,7 @@ import { MatchDetail } from '@/src/shared/types/match';
  *
  * Why: 라이브보드 룸의 "선수 라인업" 탭 콘텐츠. 로직은 useLineupPanel에 위임.
  */
-export function LineupPanel({ match }: { match: MatchDetail }) {
+export function LineupPanel({ match, isVisible }: { match: MatchDetail; isVisible?: boolean }) {
   const { matchId, homeTeam, awayTeam } = match;
   const homeTeamName = homeTeam.name;
   const awayTeamName = awayTeam.name;

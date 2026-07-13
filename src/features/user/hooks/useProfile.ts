@@ -200,12 +200,11 @@ export function useProfile() {
               // 응원팀(myTeam) 상태도 기본값으로 초기화하여 완전히 동기화
               const success = await updateMyTeam('DEFAULT');
 
+              queryClient.invalidateQueries({ queryKey: favoriteTeamKeys.mine() }).catch((err) => {
+                Logger.error('즐겨찾기 삭제 캐시 무효화 실패 (서버 삭제는 성공):', err);
+              });
+
               if (success) {
-                queryClient
-                  .invalidateQueries({ queryKey: favoriteTeamKeys.mine() })
-                  .catch((err) => {
-                    Logger.error('즐겨찾기 삭제 캐시 무효화 실패 (서버 삭제는 성공):', err);
-                  });
                 showToast(`${team.teamName}을 즐겨찾기에서 삭제했어요.`, undefined, 'success');
               } else {
                 showToast(
