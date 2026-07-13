@@ -21,6 +21,8 @@ interface TypographyCustomProps {
   variant?: TypographyVariant;
   /** 텍스트 두께 */
   weight?: keyof typeof theme.typography.weight;
+  /** 텍스트 자간 */
+  letterSpacing?: keyof typeof theme.typography.letterSpacing;
   /** 텍스트 색상 (테마 컬러 키) */
   color?: ThemeColorPath;
   /** 가운데 정렬 여부 */
@@ -62,6 +64,7 @@ export const Typography = ({
   mb,
   ml,
   mr,
+  letterSpacing,
   flex,
   minHeight,
   style,
@@ -82,6 +85,9 @@ export const Typography = ({
     fontWeight: weight
       ? theme.typography.weight[weight]
       : variantStyle.fontWeight,
+    letterSpacing: letterSpacing
+      ? theme.typography.letterSpacing[letterSpacing]
+      : undefined,
     color: resolvedColor,
     textAlign: center ? "center" : undefined,
     marginTop: getSpacing(mt),

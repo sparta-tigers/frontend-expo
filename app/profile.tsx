@@ -18,6 +18,8 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
 import React, { useRef } from "react";
 import { ScrollView, TouchableOpacity } from "react-native";
+import { animateLayout } from "@/src/utils/motion";
+import { theme } from "@/src/styles/theme";
 
 export default function ProfileScreen() {
   const {
@@ -48,24 +50,33 @@ export default function ProfileScreen() {
   };
 
   const onSelectTeam = (team: (typeof KBO_TEAMS)[number]) => {
+    animateLayout();
     bottomSheetModalRef.current?.dismiss();
     handleSelectTeam(team).catch(() => {
       // Why: 에러 처리는 useProfile 내부에서 Alert 및 Logger를 통해 이미 완료됨.
     });
   };
 
+  const onDeleteFavoriteTeam = () => {
+    animateLayout();
+    if (favoriteTeam) {
+      handleDeleteFavoriteTeam(favoriteTeam);
+    }
+  };
+
   // 로그인되지 않은 상태 (게스트 모드)
   if (!user?.accessToken) {
     return (
       <SafeLayout>
-        <Box flex={1}>
+        <Box flex={1} bg="surface">
           <Box
             py="lg"
             align="center"
+            bg="background"
             borderBottomWidth={1}
             borderColor="border.medium"
           >
-            <Typography variant="h3">프로필</Typography>
+            <Typography variant="h3" weight="bold">프로필</Typography>
           </Box>
 
           <ScrollView
@@ -73,9 +84,9 @@ export default function ProfileScreen() {
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            <Box bg="card" p="xl" rounded="xl" align="center" mb="xxl">
+            <Box bg="background" p="xl" rounded="xl" align="center" mb="xxl" style={theme.shadow.card}>
               <Box
-                bg="text.tertiary"
+                bg="brand.mintLight"
                 rounded="full"
                 align="center"
                 justify="center"
@@ -83,28 +94,29 @@ export default function ProfileScreen() {
                 width={LOCAL_LAYOUT.profileAvatarSize}
                 height={LOCAL_LAYOUT.profileAvatarSize}
               >
-                <Typography variant="h1" color="background">
+                <Typography variant="h1" color="brand.mint" weight="bold">
                   G
                 </Typography>
               </Box>
-              <Typography variant="h2" mb="sm">
+              <Typography variant="h2" weight="bold" mb="xs">
                 게스트 모드
               </Typography>
-              <Typography variant="body2" color="text.secondary" center>
-                로그인하면 더 많은 기능을 이용할 수 있어요
+              <Typography variant="body2" color="text.secondary" center mb="lg">
+                로그인하면 나만의 야구 일정과{'\n'}다양한 기능을 이용할 수 있어요
               </Typography>
-            </Box>
 
-            <Box gap="md">
-              <Button onPress={handleNavSignIn}>
-                로그인
-              </Button>
-              <Button
-                variant="outline"
-                onPress={handleNavSignUp}
-              >
-                회원가입
-              </Button>
+              <Box gap="md" width="100%">
+                <Button onPress={handleNavSignIn} size="lg">
+                  로그인
+                </Button>
+                <Button
+                  variant="outline"
+                  onPress={handleNavSignUp}
+                  size="lg"
+                >
+                  회원가입
+                </Button>
+              </Box>
             </Box>
           </ScrollView>
         </Box>
@@ -115,14 +127,15 @@ export default function ProfileScreen() {
   // 로그인된 상태
   return (
     <SafeLayout>
-      <Box flex={1}>
+      <Box flex={1} bg="surface">
         <Box
           py="lg"
           align="center"
+          bg="background"
           borderBottomWidth={1}
           borderColor="border.medium"
         >
-          <Typography variant="h3">프로필</Typography>
+          <Typography variant="h3" weight="bold">프로필</Typography>
         </Box>
 
         <ScrollView
@@ -131,10 +144,10 @@ export default function ProfileScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* 사용자 정보 */}
-          <Box bg="card" p="lg" rounded="xl" mb="lg">
+          <Box bg="background" p="lg" rounded="xl" mb="lg" style={theme.shadow.card}>
             <Box flexDir="row" align="center">
               <Box
-                bg="primary"
+                bg="brand.mintLight"
                 rounded="full"
                 align="center"
                 justify="center"
@@ -142,17 +155,20 @@ export default function ProfileScreen() {
                 width={LOCAL_LAYOUT.userAvatarSize}
                 height={LOCAL_LAYOUT.userAvatarSize}
               >
-                <Typography variant="h3" color="background">
-                  U
+                <Typography variant="h3" color="brand.mint" weight="bold">
+                  {user?.nickname?.charAt(0).toUpperCase() ?? "U"}
                 </Typography>
               </Box>
               <Box flex={1}>
-                <Typography weight="bold" mb="xxs">
+                <Typography variant="h3" weight="bold" mb="xxs">
                   {user?.nickname ?? user?.email ?? ""}
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  활성 상태
-                </Typography>
+                <Box flexDir="row" align="center">
+                  <Box width={8} height={8} bg="success" rounded="full" mr="xs" />
+                  <Typography variant="caption" color="text.secondary">
+                    활성 상태
+                  </Typography>
+                </Box>
               </Box>
             </Box>
           </Box>
@@ -203,10 +219,13 @@ export default function ProfileScreen() {
                   justify="space-between"
                   px="lg"
                   py="md"
+                  bg="brand.mintAlpha10"
                 >
-                  <Typography>{favoriteTeam.teamName}</Typography>
+                  <Typography weight="semibold" color="brand.mint">
+                    {favoriteTeam.teamName}
+                  </Typography>
                   <TouchableOpacity
-                    onPress={() => handleDeleteFavoriteTeam(favoriteTeam)}
+                    onPress={onDeleteFavoriteTeam}
                     style={styles.deleteButton}
                   >
                     <Typography variant="caption" color="error" weight="bold">
@@ -226,13 +245,15 @@ export default function ProfileScreen() {
           </MenuSection>
 
           {/* 로그아웃 버튼 */}
-          <Button
-            variant="ghost"
-            style={styles.logoutButton}
-            onPress={handleLogout}
-          >
-            로그아웃
-          </Button>
+          <Box mt="md" mb="xl">
+            <Button
+              variant="ghost"
+              style={styles.logoutButton}
+              onPress={handleLogout}
+            >
+              로그아웃
+            </Button>
+          </Box>
         </ScrollView>
       </Box>
 

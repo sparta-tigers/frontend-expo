@@ -12,7 +12,8 @@ import {
 } from "@/src/features/liveboard/hooks/useLiveboardScreen";
 import { styles } from "@/src/features/liveboard/styles/matchId.styles";
 import { theme } from "@/src/styles/theme";
-import { ActivityIndicator, TouchableOpacity } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Animated, TouchableOpacity, useWindowDimensions, StyleSheet } from "react-native";
 
 /**
  * 라이브보드 상세 화면
@@ -32,6 +33,19 @@ export default function LiveboardDetailScreen() {
     isError,
     isValidMatchId,
   } = useLiveboardScreen();
+
+  const { width } = useWindowDimensions();
+  const tabIndex = TABS.findIndex((t) => t.key === activeTab);
+  const [slideAnim] = useState(() => new Animated.Value(tabIndex));
+
+  useEffect(() => {
+    Animated.spring(slideAnim, {
+      toValue: tabIndex,
+      useNativeDriver: true,
+      tension: 50,
+      friction: 8,
+    }).start();
+  }, [tabIndex, slideAnim]);
 
   // 🚨 Step 1: matchId 유효성 검사 (Fail-fast)
   if (!isValidMatchId) {
@@ -74,7 +88,11 @@ export default function LiveboardDetailScreen() {
           isLiveLoading={isLoading.live}
         />
       ) : (
-        <Box py="xxl" align="center">
+        <Box
+          align="center"
+          justify="center"
+          style={localStyles.loaderContainer}
+        >
           <ActivityIndicator color={theme.colors.brand.mint} />
         </Box>
       )}
@@ -101,34 +119,74 @@ export default function LiveboardDetailScreen() {
         })}
       </Box>
 
-      <Box flex={1}>
-        {activeTab === "chat" && (
-          <Box style={[styles.tabPanel, styles.visible]}>
-            <ChatPanel matchId={matchId} />
+      <Box flex={1} overflow="hidden">
+        <Animated.View
+          style={[
+            localStyles.animatedContainer,
+            {
+              width: width * TABS.length,
+              transform: [
+                {
+                  translateX: slideAnim.interpolate({
+                    inputRange: TABS.map((_, i) => i),
+                    outputRange: TABS.map((_, i) => -width * i),
+                    extrapolate: "clamp",
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <Box
+            style={[localStyles.tabPanel, { width }]}
+            accessibilityElementsHidden={activeTab !== "chat"}
+            importantForAccessibility={activeTab !== "chat" ? "no-hide-descendants" : "auto"}
+          >
+            {activeTab === "chat" && <ChatPanel matchId={matchId} />}
           </Box>
-        )}
 
-        {activeTab === "text" && (
-          <Box style={[styles.tabPanel, styles.visible]}>
+          <Box
+            style={[localStyles.tabPanel, { width }]}
+            accessibilityElementsHidden={activeTab !== "text"}
+            importantForAccessibility={activeTab !== "text" ? "no-hide-descendants" : "auto"}
+          >
             <TextBroadcastPanel
               inningTexts={liveData?.inningTexts}
-              isVisible={true}
+              isVisible={activeTab === "text"}
             />
           </Box>
-        )}
 
-        {activeTab === "lineup" && match && (
-          <Box style={[styles.tabPanel, styles.visible]}>
-            <LineupPanel match={match} />
+          <Box
+            style={[localStyles.tabPanel, { width }]}
+            accessibilityElementsHidden={activeTab !== "lineup"}
+            importantForAccessibility={activeTab !== "lineup" ? "no-hide-descendants" : "auto"}
+          >
+            {activeTab === "lineup" && match && <LineupPanel match={match} />}
           </Box>
-        )}
 
-        {activeTab === "weather" && (
-          <Box style={[styles.tabPanel, styles.visible]}>
-            <WeatherPanel matchId={matchId} />
+          <Box
+            style={[localStyles.tabPanel, { width }]}
+            accessibilityElementsHidden={activeTab !== "weather"}
+            importantForAccessibility={activeTab !== "weather" ? "no-hide-descendants" : "auto"}
+          >
+            {activeTab === "weather" && <WeatherPanel matchId={matchId} />}
           </Box>
-        )}
+        </Animated.View>
       </Box>
     </SafeLayout>
   );
 }
+
+const localStyles = StyleSheet.create({
+  loaderContainer: {
+    width: "100%",
+    aspectRatio: 360 / 274,
+  },
+  animatedContainer: {
+    flex: 1,
+    flexDirection: "row",
+  },
+  tabPanel: {
+    flex: 1,
+  },
+});

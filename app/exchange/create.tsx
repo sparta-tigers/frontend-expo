@@ -40,6 +40,11 @@ export default function CreateItemScreen() {
     itemCategory: "TICKET" as ItemCategory,
   });
 
+  const [errors, setErrors] = React.useState({
+    title: "",
+    content: "",
+  });
+
   const [selectedImages, setSelectedImages] = React.useState<string[]>([]);
 
   const [currentLocation, setCurrentLocation] = React.useState<LocationDto>({
@@ -86,7 +91,11 @@ export default function CreateItemScreen() {
     onSuccess: async () => {
       Alert.alert("성공", "아이템이 등록되었습니다.");
       await queryClient.invalidateQueries({ queryKey: exchangeKeys.items() });
-      router.replace("/(tabs)/exchange");
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace("/(tabs)/exchange");
+      }
     },
     onError: (error: Error & { response?: { status?: number } }) => {
       let errorMessage = "게시글 등록 중 문제가 발생했습니다.";
@@ -108,10 +117,22 @@ export default function CreateItemScreen() {
   });
 
   const handleSubmit = () => {
-    if (!formData.title.trim() || !formData.content.trim()) {
-      Alert.alert("오류", "제목과 내용을 입력해주세요.");
-      return;
+    let hasError = false;
+    const newErrors = { title: "", content: "" };
+
+    if (!formData.title.trim()) {
+      newErrors.title = "제목을 입력해주세요.";
+      hasError = true;
     }
+    if (!formData.content.trim()) {
+      newErrors.content = "내용을 입력해주세요.";
+      hasError = true;
+    }
+
+    setErrors(newErrors);
+
+    if (hasError) return;
+
     mutate(formData);
   };
 
@@ -400,11 +421,19 @@ export default function CreateItemScreen() {
 
           <TextInput
             placeholder="제목"
-            style={styles.titleInput}
+            style={[styles.titleInput, errors.title ? styles.inputError : null]}
             value={formData.title}
-            onChangeText={(text) => setFormData({ ...formData, title: text })}
+            onChangeText={(text) => {
+              setFormData({ ...formData, title: text });
+              if (text.trim()) setErrors((prev) => ({ ...prev, title: "" }));
+            }}
             placeholderTextColor={theme.colors.text.tertiary}
           />
+          {errors.title ? (
+            <Typography variant="caption" color="error" mt="xs" mb="md">
+              {errors.title}
+            </Typography>
+          ) : null}
 
           <TextInput
             placeholder="희망 아이템 (선택)"
@@ -419,11 +448,19 @@ export default function CreateItemScreen() {
           <TextInput
             placeholder="내용을 입력하세요."
             multiline
-            style={styles.contentInput}
+            style={[styles.contentInput, errors.content ? styles.inputError : null]}
             value={formData.content}
-            onChangeText={(text) => setFormData({ ...formData, content: text })}
+            onChangeText={(text) => {
+              setFormData({ ...formData, content: text });
+              if (text.trim()) setErrors((prev) => ({ ...prev, content: "" }));
+            }}
             placeholderTextColor={theme.colors.text.tertiary}
           />
+          {errors.content ? (
+            <Typography variant="caption" color="error" mt="xs" mb="md">
+              {errors.content}
+            </Typography>
+          ) : null}
         </Box>
       </KeyboardAwareScrollView>
     </SafeLayout>
@@ -517,5 +554,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: theme.colors.border.medium,
     color: theme.colors.text.primary,
+  },
+  inputError: {
+    borderColor: theme.colors.error,
   },
 });

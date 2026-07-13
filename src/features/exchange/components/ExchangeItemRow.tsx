@@ -4,6 +4,7 @@ import { Item } from "@/src/features/exchange/types";
 import { theme } from "@/src/styles/theme";
 import { getImageUrl } from "@/src/utils/url";
 import { Image } from "expo-image";
+import { triggerHaptic } from "@/src/utils/motion";
 import React from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 
@@ -32,7 +33,10 @@ export const ExchangeItemRow = React.memo(
       <TouchableOpacity
         activeOpacity={0.7}
         style={styles.itemContainer}
-        onPress={() => onPress(item.id)}
+        onPress={() => {
+          triggerHaptic();
+          onPress(item.id);
+        }}
       >
         <Box mr="md">
           {item.imageUrl ? (

@@ -1,4 +1,5 @@
 // app/profile/NicknameEditModal.tsx
+import { Box, Button, Input, Typography } from "@/components/ui";
 import { theme } from "@/src/styles/theme";
 import { useState } from "react";
 import {
@@ -7,35 +8,19 @@ import {
   Modal,
   Platform,
   StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+import { animateLayout } from "@/src/utils/motion";
 
-/**
- * NicknameEditModal Props
- */
 interface NicknameEditModalProps {
-  /** 모달 표시 여부 */
   visible: boolean;
-  /** 현재 닉네임 (초기값) */
   initialNickname: string;
-  /** 로딩 상태 (저장 중) */
   loading: boolean;
-  /** 닫기 핸들러 */
   onClose: () => void;
-  /** 저장 핸들러 */
   onSave: (newNickname: string) => void;
 }
 
-/**
- * NicknameEditModal
- *
- * Why: Android 환경에서 Alert.prompt가 동작하지 않는 문제를 해결하고,
- *      iOS/Android 공통으로 일관된 사용자 경험(UX)과 브랜드 디자인을 제공하기 위함.
- */
 export function NicknameEditModal({
   visible,
   initialNickname,
@@ -44,25 +29,33 @@ export function NicknameEditModal({
   onSave,
 }: NicknameEditModalProps) {
   const [nickname, setNickname] = useState(initialNickname);
+  const [errorText, setErrorText] = useState("");
 
   const [prevVisible, setPrevVisible] = useState(visible);
   if (visible !== prevVisible) {
     setPrevVisible(visible);
     if (visible) {
       setNickname(initialNickname);
+      setErrorText("");
     }
   }
 
-  /**
-   * 닉네임 저장 시 공백 검증 및 상위 컴포넌트 전달
-   * Why: 모달 자체에서 비동기 요청을 수행하지 않고 부모(useProfile)에게 위임하여,
-   *      데이터 fetching의 책임을 컴포넌트(UI)와 분리함.
-   */
+  const onChangeText = (text: string) => {
+    setNickname(text);
+    if (errorText) {
+      animateLayout();
+      setErrorText("");
+    }
+  };
+
   const handleSave = () => {
-    if (!nickname || nickname.trim().length === 0) {
+    const trimmed = nickname.trim();
+    if (!trimmed || trimmed.length < 2) {
+      animateLayout();
+      setErrorText("닉네임은 2자 이상 입력해주세요.");
       return;
     }
-    onSave(nickname.trim());
+    onSave(trimmed);
   };
 
   return (
@@ -79,46 +72,49 @@ export function NicknameEditModal({
               behavior={Platform.OS === "ios" ? "padding" : "height"}
               style={styles.container}
             >
-              <View style={styles.content}>
-                <Text style={styles.title}>프로필 수정</Text>
-                <Text style={styles.subtitle}>새로운 닉네임을 입력하세요</Text>
+              <Box style={styles.content}>
+                <Typography variant="h3" weight="bold" color="text.primary" mb="xs" center>
+                  프로필 수정
+                </Typography>
+                <Typography variant="body2" color="text.secondary" mb="xl" center>
+                  새로운 닉네임을 입력하세요
+                </Typography>
 
-                <TextInput
-                  style={styles.input}
-                  value={nickname}
-                  onChangeText={setNickname}
-                  placeholder="닉네임 입력"
-                  placeholderTextColor={theme.colors.text.tertiary}
-                  autoFocus
-                  maxLength={15}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
+                <Box mb="xxl">
+                  <Input
+                    value={nickname}
+                    onChangeText={onChangeText}
+                    placeholder="닉네임 입력 (2자 이상)"
+                    error={!!errorText}
+                    fullWidth
+                    style={styles.input}
+                  />
+                  {!!errorText && (
+                    <Typography variant="caption" color="error" mt="xs" ml="xs">
+                      {errorText}
+                    </Typography>
+                  )}
+                </Box>
 
-                <View style={styles.buttonContainer}>
-                  <TouchableOpacity
-                    style={[styles.button, styles.cancelButton]}
+                <Box flexDir="row" justify="space-between" gap="md">
+                  <Button
+                    variant="outline"
                     onPress={onClose}
                     disabled={loading}
+                    style={styles.button}
                   >
-                    <Text style={styles.cancelButtonText}>취소</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.button,
-                      styles.saveButton,
-                      (!nickname.trim() || loading) && styles.disabledButton,
-                    ]}
+                    취소
+                  </Button>
+                  <Button
                     onPress={handleSave}
                     disabled={!nickname.trim() || loading}
+                    loading={loading}
+                    style={styles.button}
                   >
-                    <Text style={styles.saveButtonText}>
-                      {loading ? "저장 중..." : "수정"}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
+                    수정
+                  </Button>
+                </Box>
+              </Box>
             </KeyboardAvoidingView>
           </TouchableWithoutFeedback>
         </View>
@@ -144,57 +140,11 @@ const styles = StyleSheet.create({
     padding: theme.spacing.xxl,
     ...theme.shadow.button,
   },
-  title: {
-    fontSize: theme.typography.size.lg,
-    fontWeight: theme.typography.weight.bold,
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing.xs,
-    textAlign: "center",
-  },
-  subtitle: {
-    fontSize: theme.typography.size.sm,
-    color: theme.colors.text.secondary,
-    marginBottom: theme.spacing.xl,
-    textAlign: "center",
-  },
   input: {
-    borderWidth: 1,
-    borderColor: theme.colors.border.medium,
-    borderRadius: theme.radius.md,
-    padding: theme.spacing.md,
-    fontSize: theme.typography.size.md,
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing.xxl,
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: theme.spacing.md,
+    backgroundColor: theme.colors.surface,
   },
   button: {
     flex: 1,
-    paddingVertical: theme.spacing.md,
-    borderRadius: theme.radius.md,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  cancelButton: {
-    backgroundColor: theme.colors.surface,
-  },
-  cancelButtonText: {
-    color: theme.colors.text.secondary,
-    fontSize: theme.typography.size.md,
-    fontWeight: theme.typography.weight.medium,
-  },
-  saveButton: {
-    backgroundColor: theme.colors.primary,
-  },
-  saveButtonText: {
-    color: theme.colors.background,
-    fontSize: theme.typography.size.md,
-    fontWeight: theme.typography.weight.bold,
-  },
-  disabledButton: {
-    opacity: 0.5,
   },
 });
+

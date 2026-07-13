@@ -63,11 +63,11 @@ export const Button: React.FC<ButtonProps> = ({
       case "sm":
         return { height: 36, paddingHorizontal: theme.spacing.md };
       case "md":
-        return { height: 44, paddingHorizontal: theme.spacing.lg };
+        return { height: theme.layout.touch.minTargetSize, paddingHorizontal: theme.spacing.lg };
       case "lg":
         return { height: 52, paddingHorizontal: theme.spacing.xxl };
       default:
-        return { height: 44, paddingHorizontal: theme.spacing.lg };
+        return { height: theme.layout.touch.minTargetSize, paddingHorizontal: theme.spacing.lg };
     }
   };
 

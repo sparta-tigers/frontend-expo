@@ -39,7 +39,10 @@ export default function ExchangeRequestsScreen() {
           onPress: async () => {
             try {
               await handleAccept(id);
-              Alert.alert("성공", "교환 요청을 승낙했습니다.");
+              Alert.alert(
+                "성공",
+                "교환 요청을 승낙했습니다. 채팅방에서 대화를 시작하세요!"
+              );
             } catch {
               Alert.alert("실패", "수락 처리 중 오류가 발생했습니다.");
             }
@@ -138,9 +141,21 @@ export default function ExchangeRequestsScreen() {
               </Box>
             </Box>
           )}
+
+        {item.exchangeStatus === ExchangeRequestStatus.ACCEPTED && item.directRoomId && (
+          <Box mt="md">
+            <Button
+              onPress={() =>
+                router.push(`/exchange/chat/${item.directRoomId}`)
+              }
+            >
+              채팅방으로 이동
+            </Button>
+          </Box>
+        )}
       </Box>
     ),
-    [activeTab, onAccept, onReject],
+    [activeTab, onAccept, onReject, router],
   );
 
   if (loading && !refreshing && requests.length === 0) {

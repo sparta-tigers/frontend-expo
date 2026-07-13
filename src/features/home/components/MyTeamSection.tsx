@@ -146,6 +146,9 @@ export const MyTeamSection = memo(
               activeOpacity={0.75}
               onPress={onPressChangeTeam}
               style={styles.changeTeamButton}
+              accessibilityRole="button"
+              accessibilityLabel="응원팀 변경"
+              accessibilityHint="응원하는 팀을 변경할 수 있습니다"
             >
               <Typography
                 variant="caption"
@@ -169,7 +172,7 @@ export const MyTeamSection = memo(
           {/* 인사말 영역 */}
           <Box
             flexDir="row"
-            align="center"
+            align="baseline"
             mb="lg"
             style={styles.greetingContainer}
           >
@@ -231,6 +234,10 @@ const styles = StyleSheet.create({
   changeTeamButton: {
     paddingVertical: 4,
     paddingHorizontal: 12,
+    minHeight: theme.layout.touch.minTargetSize,
+    minWidth: theme.layout.touch.minTargetSize,
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: 20,
     borderWidth: 1,
     borderColor: theme.colors.border.medium,
@@ -261,9 +268,9 @@ const styles = StyleSheet.create({
   },
   mascotEmoji: {
     fontSize: theme.typography.size.TITLE * 2, // 64px 근사 (28 * 2 = 56, 32 * 2 = 64) - TITLE(28) 기준 보정
-    // 그림자 효과로 입체감 부여
-    textShadowColor: theme.colors.overlay,
-    textShadowOffset: { width: 4, height: 4 },
-    textShadowRadius: 4,
+    // 그림자 효과로 은은한 입체감(Floating) 부여
+    textShadowColor: theme.colors.dashboard.mascotShadow,
+    textShadowOffset: { width: 0, height: 6 },
+    textShadowRadius: 8,
   },
 });

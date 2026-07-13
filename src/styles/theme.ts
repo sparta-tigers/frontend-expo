@@ -173,6 +173,7 @@ export const theme = {
       statIconPink: "#EA0029",
       statIconYellow: "#F59E0B",
       statIconGreen: "#10B981",
+      mascotShadow: "rgba(0, 0, 0, 0.15)",
     },
     /**
      * 라이브보드(`match_detail`) 전용 시각화 컬러
@@ -378,6 +379,29 @@ export const theme = {
     fab: {
       size: 56,
       iconSize: 32,
+    },
+    touch: {
+      minTargetSize: 44,
+      minTargetSpacing: 8,
+    },
+  },
+  motion: {
+    duration: {
+      fast: 150, // Micro-interactions (hover, active)
+      normal: 300, // Standard transitions
+      slow: 500, // Complex entering animations
+    },
+    easing: {
+      // Spring physics (simulated via react-native-reanimated or similar)
+      springConfig: {
+        damping: 15,
+        stiffness: 150,
+        mass: 1,
+      },
+      // Standard bezier curves
+      standard: "cubic-bezier(0.4, 0.0, 0.2, 1)",
+      decelerate: "cubic-bezier(0.0, 0.0, 0.2, 1)", // Entering
+      accelerate: "cubic-bezier(0.4, 0.0, 1, 1)", // Exiting
     },
   },
 } as const;

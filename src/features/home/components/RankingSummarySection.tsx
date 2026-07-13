@@ -49,31 +49,39 @@ export const RankingSummarySection = React.memo(function RankingSummarySection({
   const myTeamRank = ranking.find((r) => r.teamCode === myTeamCode)?.rank;
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.9}
-      onPress={() => router.push("/ranking")}
-    >
-      <Box mt="xxxxl" px="xxxl">
-        <Typography variant="h3" weight="bold" center mb="md">
-          {myTeamRank
-            ? `오늘의 우리 팀 순위는 ${myTeamRank}위예요`
-            : "KBO 리그 순위를 확인해보세요"}
-        </Typography>
+    <Box mt="xxxxl" px="xxxl">
+      <Typography variant="h3" weight="bold" center mb="md">
+        {myTeamRank
+          ? `오늘의 우리 팀 순위는 ${myTeamRank}위예요`
+          : "KBO 리그 순위를 확인해보세요"}
+      </Typography>
 
-        {/* 🚨 가중치 그리드 헤더 */}
-        <RankingHeader />
+      {/* 🚨 가중치 그리드 헤더 */}
+      <RankingHeader />
 
-        <Box gap="sm">
-          {ranking.map((row) => (
-            <RankingRow
-              key={row.teamCode}
-              row={row}
-              isMyTeam={row.teamCode === myTeamCode}
-            />
-          ))}
-        </Box>
+      <Box gap="sm">
+        {ranking.map((row) => (
+          <RankingRow
+            key={row.teamCode}
+            row={row}
+            isMyTeam={row.teamCode === myTeamCode}
+          />
+        ))}
       </Box>
-    </TouchableOpacity>
+
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => router.push("/ranking")}
+        accessibilityRole="button"
+        accessibilityLabel="전체 순위 보기"
+        accessibilityHint="KBO 리그 전체 순위 페이지로 이동합니다"
+        style={styles.ctaButton}
+      >
+        <Typography variant="body2" color="secondary" weight="medium">
+          전체 순위 보기 〉
+        </Typography>
+      </TouchableOpacity>
+    </Box>
   );
 });
 
@@ -206,7 +214,7 @@ const RankingRow = React.memo(function RankingRow({
             {meta.name}
           </Typography>
           {isMyTeam && (
-            <Box bg="brand.mint" px="xxs" rounded="sm" style={styles.myBadge}>
+            <Box bg="brand.mint" px="xs" py="xxs" rounded="sm" style={styles.myBadge}>
               <Typography variant="caption" weight="bold" color="card">
                 MY
               </Typography>
@@ -279,5 +287,11 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: theme.typography.size.xxs,
     textAlign: "center",
+  },
+  ctaButton: {
+    marginTop: theme.spacing.xl,
+    alignItems: "center",
+    minHeight: theme.layout.touch.minTargetSize,
+    justifyContent: "center",
   },
 });

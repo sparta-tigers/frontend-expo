@@ -355,7 +355,11 @@ export default function ItemDetailScreen() {
     mutationFn: () => itemsDeleteAPI(Number(id)),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: exchangeKeys.items() });
-      router.replace("/(tabs)/exchange");
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace("/(tabs)/exchange");
+      }
     },
     onError: () => {
       Alert.alert("삭제 실패", "아이템 삭제에 실패했습니다.");
