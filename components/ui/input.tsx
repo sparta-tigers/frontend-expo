@@ -31,6 +31,10 @@ interface InputProps {
   multiline?: boolean;
   /** 줄 수 */
   numberOfLines?: number;
+  /** 접근성 라벨 */
+  accessibilityLabel?: string;
+  /** 접근성 힌트 */
+  accessibilityHint?: string;
 }
 
 /**
@@ -55,6 +59,8 @@ export const Input: React.FC<InputProps> = ({
   label,
   multiline = false,
   numberOfLines,
+  accessibilityLabel,
+  accessibilityHint,
 }) => {
   const inputProps: ComponentProps<typeof TextInput> = {
     value,
@@ -86,6 +92,8 @@ export const Input: React.FC<InputProps> = ({
     ...(label !== undefined ? { label } : {}),
     ...(placeholder !== undefined ? { placeholder } : {}),
     ...(numberOfLines !== undefined ? { numberOfLines } : {}),
+    ...(accessibilityLabel !== undefined ? { accessibilityLabel } : {}),
+    ...(accessibilityHint !== undefined ? { accessibilityHint } : {}),
   };
 
   return <TextInput {...inputProps} />;

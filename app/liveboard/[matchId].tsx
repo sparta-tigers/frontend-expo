@@ -134,31 +134,47 @@ export default function LiveboardDetailScreen() {
               transform: [
                 {
                   translateX: slideAnim.interpolate({
-                    inputRange: [0, 1, 2, 3],
-                    outputRange: [0, -width, -width * 2, -width * 3],
+                    inputRange: TABS.map((_, i) => i),
+                    outputRange: TABS.map((_, i) => -width * i),
                   }),
                 },
               ],
             },
           ]}
         >
-          <Box style={[localStyles.tabPanel, { width }]}>
-            <ChatPanel matchId={matchId} />
+          <Box
+            style={[localStyles.tabPanel, { width }]}
+            accessibilityElementsHidden={activeTab !== "chat"}
+            importantForAccessibility={activeTab !== "chat" ? "no-hide-descendants" : "auto"}
+          >
+            {activeTab === "chat" && <ChatPanel matchId={matchId} />}
           </Box>
 
-          <Box style={[localStyles.tabPanel, { width }]}>
+          <Box
+            style={[localStyles.tabPanel, { width }]}
+            accessibilityElementsHidden={activeTab !== "text"}
+            importantForAccessibility={activeTab !== "text" ? "no-hide-descendants" : "auto"}
+          >
             <TextBroadcastPanel
               inningTexts={liveData?.inningTexts}
               isVisible={activeTab === "text"}
             />
           </Box>
 
-          <Box style={[localStyles.tabPanel, { width }]}>
-            {match ? <LineupPanel match={match} /> : null}
+          <Box
+            style={[localStyles.tabPanel, { width }]}
+            accessibilityElementsHidden={activeTab !== "lineup"}
+            importantForAccessibility={activeTab !== "lineup" ? "no-hide-descendants" : "auto"}
+          >
+            {activeTab === "lineup" && match && <LineupPanel match={match} />}
           </Box>
 
-          <Box style={[localStyles.tabPanel, { width }]}>
-            <WeatherPanel matchId={matchId} />
+          <Box
+            style={[localStyles.tabPanel, { width }]}
+            accessibilityElementsHidden={activeTab !== "weather"}
+            importantForAccessibility={activeTab !== "weather" ? "no-hide-descendants" : "auto"}
+          >
+            {activeTab === "weather" && <WeatherPanel matchId={matchId} />}
           </Box>
         </Animated.View>
       </Box>

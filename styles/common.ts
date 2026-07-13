@@ -73,7 +73,7 @@ export const createButtonStyles = (colors: ThemeColors) =>
     md: {
       paddingHorizontal: 16,
       paddingVertical: 12,
-      minHeight: 44,
+      minHeight: theme.layout.touch.minTargetSize,
     },
 
     lg: {
