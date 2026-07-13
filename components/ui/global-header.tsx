@@ -28,6 +28,8 @@ export function GlobalHeader() {
           <TouchableOpacity
             activeOpacity={0.7}
             style={styles.headerIconBtn}
+            accessibilityRole="button"
+            accessibilityLabel="뒤로 가기"
             onPress={() => {
               if (router.canGoBack()) {
                 router.back();
@@ -53,6 +55,8 @@ export function GlobalHeader() {
         <TouchableOpacity
           activeOpacity={0.7}
           style={styles.headerIconBtn}
+          accessibilityRole="button"
+          accessibilityLabel="프로필"
           onPress={() => router.push('/profile')}
         >
           <IconSymbol
