@@ -3,7 +3,7 @@ import { SafeLayout } from '@/components/ui/safe-layout';
 import { useExchangeRequests } from '@/src/features/exchange/hooks/useExchangeRequests';
 import { ExchangeRequestStatus, ReceiveExchangeRequest } from '@/src/features/exchange/types';
 import { theme } from '@/src/styles/theme';
-import { Ionicons } from '@expo/vector-icons';
+
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
@@ -164,9 +164,7 @@ export default function ExchangeRequestsScreen() {
     <SafeLayout style={styles.safeLayout}>
       <Box flex={1}>
         <Box flexDir="row" align="center" justify="space-between" mb="lg" px="md">
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color={theme.colors.text.primary} />
-          </TouchableOpacity>
+          <Box width={40} />
           <Typography variant="h2" weight="bold" center flex={1}>
             교환 요청
           </Typography>
@@ -229,9 +227,6 @@ const styles = StyleSheet.create({
   safeLayout: {
     flex: 1,
     backgroundColor: theme.colors.background,
-  },
-  backButton: {
-    padding: theme.spacing.sm,
   },
   tab: {
     flex: 1,

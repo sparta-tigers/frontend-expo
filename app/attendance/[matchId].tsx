@@ -222,9 +222,7 @@ export default function AttendanceFormScreen() {
 
   return (
     <SafeLayout style={styles.safeLayout}>
-      <Stack.Screen
-        options={{ headerShown: true, title: '직관 일기', headerShadowVisible: false }}
-      />
+      <Stack.Screen options={{ headerShown: false }} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.flex1}

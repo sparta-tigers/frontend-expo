@@ -37,9 +37,7 @@ const BrandingHeader = React.memo<{ team: TeamMeta }>(({ team }) => {
       borderColor="team.neutralLight"
     >
       <Box height={LOCAL_LAYOUT.headerHeight} flexDir="row" align="center" justify="space-between">
-        <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
-          <MaterialIcons name="arrow-back-ios" size={24} color={theme.colors.brand.subtitle} />
-        </TouchableOpacity>
+        <Box width={24} />
 
         <Box flexDir="row" align="center">
           <Typography variant="h2" weight="bold" color="text.primary" mr="xs">
