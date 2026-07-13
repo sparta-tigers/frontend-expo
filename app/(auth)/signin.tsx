@@ -11,7 +11,8 @@ import { Keyboard, Pressable, StyleSheet, TextInput, TouchableOpacity } from 're
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useToastStore } from '@/src/store/useToastStore';
 import Animated, {
-  FadeInUp,
+  withSpring,
+  withDelay,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -21,6 +22,37 @@ import * as Haptics from 'expo-haptics';
 const loginLogo = require('@/assets/images/auth/yaguniv-logo.png');
 const kakaoIcon = require('@/assets/images/auth/kakao.png');
 const appleIcon = require('@/assets/images/auth/apple.png');
+
+// ========================================================
+// 1. 공통 레이아웃 상수 및 스타일
+// ========================================================
+
+function FadeInView({
+  delay = 0,
+  duration = 800,
+  children,
+  style,
+}: {
+  delay?: number;
+  duration?: number;
+  children: React.ReactNode;
+  style?: import('react-native').StyleProp<import('react-native').ViewStyle>;
+}) {
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(20);
+
+  useEffect(() => {
+    opacity.value = withDelay(delay, withTiming(1, { duration }));
+    translateY.value = withDelay(delay, withSpring(0, { damping: 12, stiffness: 90 }));
+  }, [delay, duration, opacity, translateY]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  return <Animated.View style={[style, animatedStyle]}>{children}</Animated.View>;
+}
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -138,18 +170,15 @@ export default function SigninScreen() {
         >
           <Pressable style={styles.pressableArea} onPress={Keyboard.dismiss}>
             <Box style={styles.gradientBody}>
-              <Animated.View entering={FadeInUp.delay(100).duration(800).springify()}>
+              <FadeInView delay={100}>
                 <Box width="100%" align="center" justify="center" mb="xl">
                   <Image source={loginLogo} style={styles.logo} contentFit="contain" />
                 </Box>
-              </Animated.View>
+              </FadeInView>
 
               <Box width="100%" align="center" gap="md" style={styles.formContainer}>
                 {/* 소셜 로그인 (Primary Action) */}
-                <Animated.View
-                  entering={FadeInUp.delay(200).duration(800).springify()}
-                  style={styles.fullWidth}
-                >
+                <FadeInView delay={200} style={styles.fullWidth}>
                   <TouchableOpacity
                     activeOpacity={0.85}
                     style={[styles.socialButtonFull, styles.kakaoButton]}
@@ -171,12 +200,9 @@ export default function SigninScreen() {
                       </Typography>
                     </Box>
                   </TouchableOpacity>
-                </Animated.View>
+                </FadeInView>
 
-                <Animated.View
-                  entering={FadeInUp.delay(300).duration(800).springify()}
-                  style={styles.fullWidth}
-                >
+                <FadeInView delay={300} style={styles.fullWidth}>
                   <TouchableOpacity
                     activeOpacity={0.85}
                     style={[styles.socialButtonFull, styles.appleButton]}
@@ -198,13 +224,10 @@ export default function SigninScreen() {
                       </Typography>
                     </Box>
                   </TouchableOpacity>
-                </Animated.View>
+                </FadeInView>
 
                 {/* 구분선 */}
-                <Animated.View
-                  entering={FadeInUp.delay(400).duration(800).springify()}
-                  style={styles.fullWidth}
-                >
+                <FadeInView delay={400} style={styles.fullWidth}>
                   <Box
                     width="100%"
                     height={LOCAL_LAYOUT.socialDividerHeight}
@@ -231,13 +254,10 @@ export default function SigninScreen() {
                       style={styles.dividerLine}
                     />
                   </Box>
-                </Animated.View>
+                </FadeInView>
 
                 {/* 이메일/비밀번호 입력 폼 */}
-                <Animated.View
-                  entering={FadeInUp.delay(500).duration(800).springify()}
-                  style={styles.inputWrapper}
-                >
+                <FadeInView delay={500} style={styles.inputWrapper}>
                   <Animated.View style={[styles.inputBorder, emailAnimatedStyle]}>
                     <TextInput
                       value={email}
@@ -260,12 +280,9 @@ export default function SigninScreen() {
                       accessibilityHint="로그인에 사용할 이메일을 입력하세요"
                     />
                   </Animated.View>
-                </Animated.View>
+                </FadeInView>
 
-                <Animated.View
-                  entering={FadeInUp.delay(600).duration(800).springify()}
-                  style={styles.inputWrapper}
-                >
+                <FadeInView delay={600} style={styles.inputWrapper}>
                   <Animated.View style={[styles.inputBorder, passwordAnimatedStyle]}>
                     <TextInput
                       value={password}
@@ -287,13 +304,10 @@ export default function SigninScreen() {
                       accessibilityHint="계정의 비밀번호를 입력하세요"
                     />
                   </Animated.View>
-                </Animated.View>
+                </FadeInView>
 
                 {/* 이메일 로그인 버튼 */}
-                <Animated.View
-                  entering={FadeInUp.delay(700).duration(800).springify()}
-                  style={styles.buttonWrapper}
-                >
+                <FadeInView delay={700} style={styles.buttonWrapper}>
                   <TouchableOpacity
                     activeOpacity={0.8}
                     onPress={handleSignin}
@@ -307,13 +321,10 @@ export default function SigninScreen() {
                       로그인
                     </Typography>
                   </TouchableOpacity>
-                </Animated.View>
+                </FadeInView>
 
                 {/* 회원가입 버튼 */}
-                <Animated.View
-                  entering={FadeInUp.delay(800).duration(800).springify()}
-                  style={styles.buttonWrapper}
-                >
+                <FadeInView delay={800} style={styles.buttonWrapper}>
                   <TouchableOpacity
                     activeOpacity={0.7}
                     onPress={() => router.push('/(auth)/signup')}
@@ -327,7 +338,7 @@ export default function SigninScreen() {
                       회원가입
                     </Typography>
                   </TouchableOpacity>
-                </Animated.View>
+                </FadeInView>
               </Box>
             </Box>
           </Pressable>
