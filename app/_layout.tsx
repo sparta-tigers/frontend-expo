@@ -7,7 +7,6 @@ import { Logger } from '@/src/utils/logger';
 
 import { Box, Toast, ConfirmModal } from '@/components/ui';
 import { GlobalHeader } from '@/components/ui/global-header';
-import { theme } from '@/src/styles/theme';
 import { useNetInfo } from '@react-native-community/netinfo';
 import * as Notifications from 'expo-notifications';
 import { Href, router, Stack, useSegments } from 'expo-router';
@@ -121,13 +120,6 @@ function RootLayoutInner() {
     }
   }, [user, inAuthGroup, isLoading, safeRedirect]);
 
-  const dynamicBgStyle = useMemo(
-    () => ({
-      backgroundColor: inAuthGroup ? theme.colors.transparent : colors.background,
-    }),
-    [inAuthGroup, colors.background],
-  );
-
   const stackScreenOptions = useMemo(
     () => ({
       headerShown: false,
@@ -149,14 +141,14 @@ function RootLayoutInner() {
   return (
     <ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
       <SafeAreaProvider>
-        <Box flex={1} style={dynamicBgStyle}>
+        <Box flex={1} bg="background">
           {!netInfo.isConnected ? <OfflineBanner /> : null}
 
           {/* 전역 헤더 */}
           <GlobalHeader />
 
           {/* 하위 라우팅 화면 */}
-          <Box flex={1} style={dynamicBgStyle}>
+          <Box flex={1} bg="background">
             <Stack screenOptions={stackScreenOptions} />
           </Box>
         </Box>
