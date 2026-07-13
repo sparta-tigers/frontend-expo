@@ -60,6 +60,8 @@ interface ListProps<T> {
   initialNumToRender?: number;
   /** 최적화: 렌더링 윈도우 크기 */
   windowSize?: number;
+  /** 최적화: 렌더링 배치 사이즈 */
+  maxToRenderPerBatch?: number;
 }
 
 /**
@@ -86,6 +88,7 @@ export const List = <T,>({
   itemHeight,
   initialNumToRender = 10,
   windowSize = 5,
+  maxToRenderPerBatch = 10,
 }: ListProps<T>) => {
   const renderSeparator = () => {
     if (!showSeparator) return null;
@@ -167,15 +170,21 @@ export const List = <T,>({
         onRefresh={onRefresh}
         initialNumToRender={initialNumToRender}
         windowSize={windowSize}
-        maxToRenderPerBatch={10}
+        maxToRenderPerBatch={maxToRenderPerBatch}
         removeClippedSubviews={Platform.OS === 'android'}
         getItemLayout={
           itemHeight
-            ? (_, index) => ({
-                length: itemHeight,
-                offset: itemHeight * index,
-                index,
-              })
+            ? showSeparator
+              ? (_, index) => ({
+                  length: itemHeight + 1,
+                  offset: (itemHeight + 1) * index,
+                  index,
+                })
+              : (_, index) => ({
+                  length: itemHeight,
+                  offset: itemHeight * index,
+                  index,
+                })
             : undefined
         }
         contentContainerStyle={[
