@@ -36,6 +36,7 @@ import {
   getRefreshToken,
   setTokens,
 } from "@/src/utils/tokenStore";
+import { AppError } from "@/src/core/errors";
 
 const authLogger = Logger.category("AUTH");
 
@@ -340,7 +341,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         Logger.error(
           "로그인 실패: 서버로부터 응답을 받지 못했어요 (API 에러 로그 확인).",
         );
-        return false;
+        throw new AppError("서버로부터 응답을 받지 못했습니다.", "NETWORK_ERROR");
       }
 
       if (response.resultType === "SUCCESS" && response.data) {
@@ -348,7 +349,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
         if (!tokenData.accessToken || !tokenData.refreshToken) {
           Logger.error("🚨 [파싱 실패] 토큰 정보가 불완전합니다.");
-          return false;
+          throw new AppError("로그인 토큰 정보가 불완전합니다.", "AUTH_FAILED");
         }
 
         // TokenStore에 토큰 저장
@@ -358,7 +359,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         );
         if (!success) {
           Logger.error("토큰 저장 실패");
-          return false;
+          throw new AppError("로그인 토큰을 저장하지 못했습니다.", "AUTH_FAILED");
         }
 
         try {
@@ -394,7 +395,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         return true;
       } else {
         Logger.error("로그인 실패:", response.error?.message);
-        throw new Error(response.error?.message || "로그인 실패");
+        throw new AppError(response.error?.message || "로그인 실패", "AUTH_FAILED");
       }
     } catch (error) {
       Logger.error("로그인 에러:", error);
@@ -421,7 +422,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         Logger.error(
           "API 통신 실패: 응답이 없어요. 네트워크 연결을 확인해주세요.",
         );
-        return false;
+        throw new AppError("네트워크 연결을 확인하세요.", "NETWORK_ERROR");
       }
 
       if (response.resultType === "SUCCESS" && response.data) {
@@ -435,11 +436,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           return true;
         } else {
           Logger.error("회원가입 후 자동 로그인 실패");
-          return false;
+          throw new AppError("회원가입 후 자동 로그인에 실패했습니다.", "AUTH_FAILED");
         }
       } else {
         Logger.error("회원가입 실패:", response.error?.message);
-        throw new Error(response.error?.message || "회원가입 실패");
+        throw new AppError(response.error?.message || "회원가입 실패", "AUTH_FAILED");
       }
     } catch (error) {
       Logger.error("회원가입 에러:", error);
