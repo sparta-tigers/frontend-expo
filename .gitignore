@@ -78,3 +78,5 @@ scan-result.json
 generated-tasks.json
 
 google-services.json
+
+.vscode/

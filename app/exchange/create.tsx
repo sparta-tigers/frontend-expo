@@ -198,6 +198,14 @@ export default function CreateItemScreen() {
       });
 
       if (!result.canceled && result.assets) {
+        const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+        const oversized = result.assets.filter(
+          (a) => a.fileSize != null && a.fileSize > MAX_FILE_SIZE_BYTES
+        );
+        if (oversized.length > 0) {
+          Alert.alert("알림", "이미지 파일은 각 10MB 이하만 업로드 가능합니다.");
+          return;
+        }
         const newImages = result.assets.map((asset) => asset.uri || "");
         const updatedImages = [...selectedImages, ...newImages].slice(0, 5);
         setSelectedImages(updatedImages);

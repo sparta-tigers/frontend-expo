@@ -214,6 +214,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
               if (frontendTeamCode) {
                 setMyTeam(frontendTeamCode);
                 setMyTeamId(teamRes.data.teamId);
+                // [VibeSec/S05] 무결성 경계 문서화:
+                // AsyncStorage는 평문으로 저장되어 기기 레벨에서 위변조가 가능합니다.
+                // 따라서 주요 인증/인가(Token)는 expo-secure-store에 저장하며,
+                // 응원팀 정보는 UX 최적화(빠른 폴백) 목적으로만 캐싱하고
+                // 항상 백엔드(teamRes)를 SSOT(Single Source of Truth)로 덮어씌웁니다.
                 await AsyncStorage.setItem(
                   getMyTeamKey(tokenPayload.userId),
                   frontendTeamCode,

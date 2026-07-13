@@ -26,7 +26,7 @@ export interface LogOptions {
 // 🚨 시니어 아키텍트 지침: 환경 변수는 초기 로드 시 한 번만 파싱하여 캐싱
 const LOG_CONFIG = {
   // EXPO_PUBLIC_LOG_LEVEL: debug | info | warn | error
-  minLevel: (process.env.EXPO_PUBLIC_LOG_LEVEL as LogLevel) || "debug",
+  minLevel: (process.env.EXPO_PUBLIC_LOG_LEVEL as LogLevel) || "info",
   // EXPO_PUBLIC_LOG_DOMAINS: AUTH,API,CHAT... (쉼표 구분)
   enabledDomains: process.env.EXPO_PUBLIC_LOG_DOMAINS
     ? new Set(process.env.EXPO_PUBLIC_LOG_DOMAINS.split(","))
