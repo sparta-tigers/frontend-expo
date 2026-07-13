@@ -11,6 +11,7 @@ import { useCallback, useMemo, useState } from "react";
 import { itemsGetListAPI } from "@/src/features/exchange/api";
 import { Item } from "@/src/features/exchange/types";
 import { Logger } from "@/src/utils/logger";
+import { exchangeKeys } from "@/src/features/exchange/keys";
 
 const mapLogger = Logger.category("MAP");
 
@@ -96,12 +97,11 @@ export function useExchangeItems(): UseExchangeItemsReturn {
 
   // React Query를 통한 캐싱 및 페칭
   const query = useQuery({
-    queryKey: [
-      "exchangeItems",
+    queryKey: exchangeKeys.list(
       searchParams?.lat,
       searchParams?.lng,
       searchParams?.radiusKm,
-    ],
+    ),
     queryFn: async () => {
       if (!searchParams) return [];
       return loadItems(
@@ -119,7 +119,7 @@ export function useExchangeItems(): UseExchangeItemsReturn {
     async (lat: number, lng: number, radiusKm: number) => {
       setSearchParams({ lat, lng, radiusKm });
       return queryClient.fetchQuery({
-        queryKey: ["exchangeItems", lat, lng, radiusKm],
+        queryKey: exchangeKeys.list(lat, lng, radiusKm),
         queryFn: () => loadItems(lat, lng, radiusKm),
         staleTime: 1000 * 60 * 5,
       });
