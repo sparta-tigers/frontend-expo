@@ -1,17 +1,17 @@
-import { SafeLayout } from "@/components/ui/safe-layout";
+import { SafeLayout } from '@/components/ui/safe-layout';
 import {
   itemsDeleteAPI,
   itemsGetDetailAPI,
   itemsUpdateStatusAPI,
-} from "@/src/features/exchange/api";
-import { useAuth } from "@/src/hooks/useAuth";
-import { exchangeKeys } from "@/src/features/exchange/keys";
-import { theme } from "@/src/styles/theme";
+} from '@/src/features/exchange/api';
+import { useAuth } from '@/src/hooks/useAuth';
+import { exchangeKeys } from '@/src/features/exchange/keys';
+import { theme } from '@/src/styles/theme';
 
-import { getImageUrl } from "@/src/utils/url";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type Href, Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { getImageUrl } from '@/src/utils/url';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { type Href, Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -23,17 +23,17 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-} from "react-native";
+} from 'react-native';
 
-import { Box } from "@/components/ui/box";
-import { Typography } from "@/components/ui/typography";
+import { Box } from '@/components/ui/box';
+import { Typography } from '@/components/ui/typography';
 
-import ImageViewing from "react-native-image-viewing";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import ImageViewing from 'react-native-image-viewing';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // --- 정적 스타일 정의 (SSOT 기반) ---
 const styles = StyleSheet.create({
@@ -48,23 +48,23 @@ const styles = StyleSheet.create({
     paddingBottom: 120, // 하단 버튼 높이만큼 여백 확보
   },
   imageContainer: {
-    width: "100%",
+    width: '100%',
     aspectRatio: 1,
     backgroundColor: theme.colors.border.light,
   },
   image: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
   imagePlaceholder: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   profileRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: theme.spacing.COMPONENT,
     gap: theme.spacing.SMALL,
   },
@@ -78,9 +78,9 @@ const styles = StyleSheet.create({
     padding: theme.spacing.COMPONENT,
   },
   bottomBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: theme.spacing.xl,
     paddingVertical: theme.spacing.sm,
     borderTopWidth: 1,
@@ -94,13 +94,13 @@ const styles = StyleSheet.create({
     paddingRight: theme.spacing.SMALL,
   },
   statusInfoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: theme.spacing.TINY,
   },
   statusActionsRow: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: theme.spacing.TINY,
     marginTop: theme.spacing.TINY,
   },
@@ -109,29 +109,29 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.TINY,
   },
   buttonRow: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 8,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   errorContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: theme.spacing.SCREEN,
   },
   imageCarousel: {
-    width: "100%",
+    width: '100%',
     aspectRatio: 1,
   },
   indicatorContainer: {
-    position: "absolute",
+    position: 'absolute',
     bottom: theme.spacing.SMALL,
     right: theme.spacing.SMALL,
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: theme.spacing.TINY,
   },
   indicatorDot: {
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   bottomContainer: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
@@ -163,20 +163,20 @@ const styles = StyleSheet.create({
   applyButton: {
     height: theme.layout.common.standardItemHeight,
     borderRadius: theme.radius.md,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: theme.colors.primary,
   },
   applyButtonDisabled: {
     backgroundColor: theme.colors.text.secondary,
   },
   headerRightContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: theme.spacing.COMPONENT,
   },
   customHeader: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     height: theme.layout.common.standardItemHeight,
     paddingHorizontal: theme.spacing.COMPONENT,
     borderBottomWidth: 1,
@@ -226,8 +226,8 @@ export default function ItemDetailScreen() {
   const myUserId = user?.userId;
 
   const isOwner =
-    typeof itemUserObjId !== "undefined" &&
-    typeof myUserId !== "undefined" &&
+    typeof itemUserObjId !== 'undefined' &&
+    typeof myUserId !== 'undefined' &&
     Number(itemUserObjId) === Number(myUserId);
 
   const handleMomentumScrollEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -238,20 +238,20 @@ export default function ItemDetailScreen() {
 
   const imageKeyExtractor = useCallback((_: unknown, index: number) => `image-${index}`, []);
 
-  const renderImageItem = useCallback(({ item: imageUrl, index }: { item: string; index: number }) => (
-    <TouchableOpacity
-      style={[styles.imageContainer, { width: SCREEN_WIDTH }]}
-      onPress={() => {
-        setImageViewerIndex(index);
-        setIsImageViewerVisible(true);
-      }}
-    >
-      <Image
-        source={{ uri: getImageUrl(imageUrl) }}
-        style={styles.image}
-      />
-    </TouchableOpacity>
-  ), []);
+  const renderImageItem = useCallback(
+    ({ item: imageUrl, index }: { item: string; index: number }) => (
+      <TouchableOpacity
+        style={[styles.imageContainer, { width: SCREEN_WIDTH }]}
+        onPress={() => {
+          setImageViewerIndex(index);
+          setIsImageViewerVisible(true);
+        }}
+      >
+        <Image source={{ uri: getImageUrl(imageUrl) }} style={styles.image} />
+      </TouchableOpacity>
+    ),
+    [],
+  );
 
   const renderImageCarousel = useCallback(() => {
     const images = item?.data?.imageUrls ?? item?.data?.images ?? [];
@@ -309,50 +309,55 @@ export default function ItemDetailScreen() {
         />
       </Box>
     );
-  }, [item, currentImageIndex, imageViewerIndex, isImageViewerVisible, handleMomentumScrollEnd, imageKeyExtractor, renderImageItem]);
+  }, [
+    item,
+    currentImageIndex,
+    imageViewerIndex,
+    isImageViewerVisible,
+    handleMomentumScrollEnd,
+    imageKeyExtractor,
+    renderImageItem,
+  ]);
 
   const handleExchangeRequest = useCallback(() => {
     if (!user?.accessToken) {
-      Alert.alert("로그인이 필요해요", "교환을 신청하려면 먼저 로그인해주세요.");
+      Alert.alert('로그인이 필요해요', '교환을 신청하려면 먼저 로그인해주세요.');
       return;
     }
     router.push(`/exchange/apply/${id}` as Href);
   }, [user, id, router]);
 
-  const { mutate: updateItemStatus, isPending: isUpdatingStatus } = useMutation(
-    {
-      mutationFn: async (newStatus: "COMPLETED" | "FAILED") => {
-        const targetId = item?.data?.id;
-        if (!targetId) throw new Error("itemId가 없어요.");
-        const response = await itemsUpdateStatusAPI(targetId, newStatus);
-        if (response.resultType !== "SUCCESS")
-          throw new Error("status update failed");
-        return true;
-      },
-      onSuccess: async () => {
-        Alert.alert("성공", "상태를 변경했어요.");
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: exchangeKeys.item(id) }),
-          queryClient.invalidateQueries({ queryKey: exchangeKeys.items() }),
-        ]);
-      },
-      onError: () => {
-        Alert.alert("알림", "상태를 변경하지 못했어요.");
-      },
+  const { mutate: updateItemStatus, isPending: isUpdatingStatus } = useMutation({
+    mutationFn: async (newStatus: 'COMPLETED' | 'FAILED') => {
+      const targetId = item?.data?.id;
+      if (!targetId) throw new Error('itemId가 없어요.');
+      const response = await itemsUpdateStatusAPI(targetId, newStatus);
+      if (response.resultType !== 'SUCCESS') throw new Error('status update failed');
+      return true;
     },
-  );
+    onSuccess: async () => {
+      Alert.alert('성공', '상태를 변경했어요.');
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.item(id) }),
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.items() }),
+      ]);
+    },
+    onError: () => {
+      Alert.alert('알림', '상태를 변경하지 못했어요.');
+    },
+  });
 
   const handleStatusChange = useCallback(
-    (newStatus: "COMPLETED" | "FAILED") => {
+    (newStatus: 'COMPLETED' | 'FAILED') => {
       if (!item?.data) return;
       Alert.alert(
-        "상태 변경",
-        newStatus === "COMPLETED"
-          ? "교환을 완료 상태로 변경할까요?"
-          : "교환을 취소 상태로 변경할까요?",
+        '상태 변경',
+        newStatus === 'COMPLETED'
+          ? '교환을 완료 상태로 변경할까요?'
+          : '교환을 취소 상태로 변경할까요?',
         [
-          { text: "닫기", style: "cancel" },
-          { text: "확인", onPress: () => updateItemStatus(newStatus) },
+          { text: '닫기', style: 'cancel' },
+          { text: '확인', onPress: () => updateItemStatus(newStatus) },
         ],
       );
     },
@@ -366,18 +371,18 @@ export default function ItemDetailScreen() {
       if (router.canGoBack()) {
         router.back();
       } else {
-        router.replace("/(tabs)/exchange");
+        router.replace('/(tabs)/exchange');
       }
     },
     onError: () => {
-      Alert.alert("알림", "아이템을 삭제하지 못했어요.");
+      Alert.alert('알림', '아이템을 삭제하지 못했어요.');
     },
   });
 
   const handleDelete = useCallback(() => {
-    Alert.alert("게시글 삭제", "정말 삭제할까요?", [
-      { text: "닫기", style: "cancel" },
-      { text: "삭제", style: "destructive", onPress: () => deleteItem() },
+    Alert.alert('게시글 삭제', '정말 삭제할까요?', [
+      { text: '닫기', style: 'cancel' },
+      { text: '삭제', style: 'destructive', onPress: () => deleteItem() },
     ]);
   }, [deleteItem]);
 
@@ -426,14 +431,9 @@ export default function ItemDetailScreen() {
     <>
       <Stack.Screen options={{ headerShown: false, gestureEnabled: true }} />
 
-      <SafeLayout edges={["top", "bottom"]} style={styles.container}>
+      <SafeLayout edges={['top', 'bottom']} style={styles.container}>
         <Box style={styles.customHeader}>
-          <Typography
-            variant="body1"
-            weight="bold"
-            center
-            style={styles.headerTitle}
-          >
+          <Typography variant="body1" weight="bold" center style={styles.headerTitle}>
             아이템 상세
           </Typography>
           <Box style={styles.headerRightContainer}>
@@ -447,10 +447,7 @@ export default function ItemDetailScreen() {
                     수정
                   </Typography>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={handleDelete}
-                  style={styles.headerActionButton}
-                >
+                <TouchableOpacity onPress={handleDelete} style={styles.headerActionButton}>
                   <Typography variant="body2" color="error">
                     삭제
                   </Typography>
@@ -475,17 +472,13 @@ export default function ItemDetailScreen() {
               />
             ) : (
               <Box style={styles.profileImage} justify="center" align="center">
-                <Typography
-                  variant="body1"
-                  weight="bold"
-                  color="text.secondary"
-                >
-                  {item.data.user?.userNickname?.[0]?.toUpperCase() || "U"}
+                <Typography variant="body1" weight="bold" color="text.secondary">
+                  {item.data.user?.userNickname?.[0]?.toUpperCase() || 'U'}
                 </Typography>
               </Box>
             )}
             <Typography variant="body1" weight="bold">
-              {item.data.user?.userNickname || "알 수 없음"}
+              {item.data.user?.userNickname || '알 수 없음'}
             </Typography>
           </Box>
 
@@ -504,7 +497,7 @@ export default function ItemDetailScreen() {
                 희망 아이템
               </Typography>
               <Typography variant="body1" weight="bold" mt="xxs">
-                {item.data.desiredItem || "없음"}
+                {item.data.desiredItem || '없음'}
               </Typography>
             </Box>
 
@@ -519,52 +512,38 @@ export default function ItemDetailScreen() {
                       variant="body2"
                       weight="bold"
                       color={
-                        item.data.status === "COMPLETED"
-                          ? "brand.mint"
-                          : item.data.status === "FAILED"
-                            ? "error"
-                            : "primary"
+                        item.data.status === 'COMPLETED'
+                          ? 'brand.mint'
+                          : item.data.status === 'FAILED'
+                            ? 'error'
+                            : 'primary'
                       }
                     >
-                      {item.data.status === "REGISTERED"
-                        ? "교환 대기"
-                        : item.data.status === "COMPLETED"
-                          ? "교환 완료"
-                          : "교환 취소"}
+                      {item.data.status === 'REGISTERED'
+                        ? '교환 대기'
+                        : item.data.status === 'COMPLETED'
+                          ? '교환 완료'
+                          : '교환 취소'}
                     </Typography>
                   </Box>
 
                   <Box style={styles.statusActionsRow}>
                     <Button
                       style={styles.statusActionButton}
-                      disabled={
-                        item.data.status !== "REGISTERED" || isUpdatingStatus
-                      }
-                      onPress={() => handleStatusChange("COMPLETED")}
+                      disabled={item.data.status !== 'REGISTERED' || isUpdatingStatus}
+                      onPress={() => handleStatusChange('COMPLETED')}
                     >
-                      <Typography
-                        variant="caption"
-                        weight="medium"
-                        color="background"
-                        center
-                      >
+                      <Typography variant="caption" weight="medium" color="background" center>
                         교환 완료로 표시
                       </Typography>
                     </Button>
                     <Button
                       variant="outline"
                       style={styles.statusActionButton}
-                      disabled={
-                        item.data.status !== "REGISTERED" || isUpdatingStatus
-                      }
-                      onPress={() => handleStatusChange("FAILED")}
+                      disabled={item.data.status !== 'REGISTERED' || isUpdatingStatus}
+                      onPress={() => handleStatusChange('FAILED')}
                     >
-                      <Typography
-                        variant="caption"
-                        weight="medium"
-                        color="error"
-                        center
-                      >
+                      <Typography variant="caption" weight="medium" color="error" center>
                         교환 취소로 표시
                       </Typography>
                     </Button>
@@ -575,16 +554,11 @@ export default function ItemDetailScreen() {
           </Box>
         </ScrollView>
 
-        <Box
-          style={[
-            styles.bottomContainer,
-            { paddingBottom: Math.max(insets.bottom, 20) },
-          ]}
-        >
+        <Box style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 20) }]}>
           {isOwner ? (
             <TouchableOpacity
               style={styles.applyButton}
-              onPress={() => router.push("/exchange/requests" as Href)}
+              onPress={() => router.push('/exchange/requests' as Href)}
             >
               <Typography variant="body1" weight="bold" color="background">
                 대화중인 채팅
@@ -594,10 +568,10 @@ export default function ItemDetailScreen() {
             <TouchableOpacity
               style={[
                 styles.applyButton,
-                item.data.status !== "REGISTERED" && styles.applyButtonDisabled,
+                item.data.status !== 'REGISTERED' && styles.applyButtonDisabled,
               ]}
               onPress={handleExchangeRequest}
-              disabled={item.data.status !== "REGISTERED"}
+              disabled={item.data.status !== 'REGISTERED'}
             >
               <Typography variant="body1" weight="bold" color="background">
                 교환 제안하기

@@ -1,8 +1,8 @@
-import { TeamCode } from "@/src/utils/team";
-import { useQuery } from "@tanstack/react-query";
-import { fetchMatchRoom } from "../api";
-import { MatchMapper } from "../mapper";
-import { matchKeys } from "../queries";
+import { TeamCode } from '@/src/utils/team';
+import { useQuery } from '@tanstack/react-query';
+import { fetchMatchRoom } from '../api';
+import { MatchMapper } from '../mapper';
+import { matchKeys } from '../queries';
 
 /**
  * 🛰️ useMatchDetail: 특정 경기의 상세 정보를 조회하는 통합 Hook
@@ -14,10 +14,7 @@ import { matchKeys } from "../queries";
  *
  * @param myTeamCode 사용자 응원팀 코드 (컨텍스트)
  */
-export const useMatchDetail = (
-  matchId: number,
-  myTeamCode: TeamCode | null,
-) => {
+export const useMatchDetail = (matchId: number, myTeamCode: TeamCode | null) => {
   return useQuery({
     queryKey: matchKeys.detail(matchId, myTeamCode),
     queryFn: async () => {

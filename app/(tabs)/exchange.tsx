@@ -1,23 +1,23 @@
 // app/(tabs)/exchange.tsx
-import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet";
-import Head from "expo-router/head";
-import React, { useCallback } from "react";
-import { ActivityIndicator, RefreshControl, StyleSheet } from "react-native";
-import { Marker } from "react-native-maps";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
+import Head from 'expo-router/head';
+import React, { useCallback } from 'react';
+import { ActivityIndicator, RefreshControl, StyleSheet } from 'react-native';
+import { Marker } from 'react-native-maps';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Box, Typography } from "@/components/ui";
-import { Button } from "@/components/ui/button";
-import { SafeLayout } from "@/components/ui/safe-layout";
-import { theme } from "@/src/styles/theme";
+import { Box, Typography } from '@/components/ui';
+import { Button } from '@/components/ui/button';
+import { SafeLayout } from '@/components/ui/safe-layout';
+import { theme } from '@/src/styles/theme';
 
-import { ExchangeItemRow } from "@/src/features/exchange/components/ExchangeItemRow";
-import { ExchangeMapOverlay } from "@/src/features/exchange/components/ExchangeMapOverlay";
-import { useExchangeDashboard } from "@/src/features/exchange/hooks/useExchangeDashboard";
-import { Item } from "@/src/features/exchange/types";
+import { ExchangeItemRow } from '@/src/features/exchange/components/ExchangeItemRow';
+import { ExchangeMapOverlay } from '@/src/features/exchange/components/ExchangeMapOverlay';
+import { useExchangeDashboard } from '@/src/features/exchange/hooks/useExchangeDashboard';
+import { Item } from '@/src/features/exchange/types';
 
-import MapView from "react-native-map-clustering";
-import { ExchangeProfileModal } from "@/src/features/exchange/components/ExchangeProfileModal";
+import MapView from 'react-native-map-clustering';
+import { ExchangeProfileModal } from '@/src/features/exchange/components/ExchangeProfileModal';
 
 /**
  * 지도 마커 리렌더링 방지용 서브 컴포넌트
@@ -34,11 +34,7 @@ const MapMarkers = React.memo(
   }) => (
     <>
       {currentLocation ? (
-        <Marker
-          coordinate={currentLocation}
-          title="내 위치"
-          pinColor={theme.colors.primary}
-        />
+        <Marker coordinate={currentLocation} title="내 위치" pinColor={theme.colors.primary} />
       ) : null}
       {items.map((item) =>
         item.latitude != null &&
@@ -56,7 +52,7 @@ const MapMarkers = React.memo(
     </>
   ),
 );
-MapMarkers.displayName = "MapMarkers";
+MapMarkers.displayName = 'MapMarkers';
 
 /**
  * ExchangeScreen (Dumb View)
@@ -94,9 +90,7 @@ export default function ExchangeScreen() {
   } = useExchangeDashboard();
 
   const renderItem = useCallback(
-    ({ item }: { item: Item }) => (
-      <ExchangeItemRow item={item} onPress={navigateToItemDetail} />
-    ),
+    ({ item }: { item: Item }) => <ExchangeItemRow item={item} onPress={navigateToItemDetail} />,
     [navigateToItemDetail],
   );
 
@@ -114,54 +108,50 @@ export default function ExchangeScreen() {
       {/* 1. 지도 영역 */}
       <MapView
         mapRef={mapRef}
-          style={styles.map}
-          initialRegion={defaultRegion}
-          onMapReady={() => setIsMapReady(true)}
-          onRegionChangeComplete={handleRegionChangeComplete}
-          clusterColor={theme.colors.primary}
-          clusterTextColor={theme.colors.background}
-        >
-          <MapMarkers
-            items={filteredItems}
-            currentLocation={currentLocation}
-            onMarkerPress={handleMarkerPress}
-          />
-        </MapView>
+        style={styles.map}
+        initialRegion={defaultRegion}
+        onMapReady={() => setIsMapReady(true)}
+        onRegionChangeComplete={handleRegionChangeComplete}
+        clusterColor={theme.colors.primary}
+        clusterTextColor={theme.colors.background}
+      >
+        <MapMarkers
+          items={filteredItems}
+          currentLocation={currentLocation}
+          onMarkerPress={handleMarkerPress}
+        />
+      </MapView>
 
       {/* 2. 바텀시트 목록 영역 */}
       <BottomSheet
         ref={bottomSheetRef}
-        snapPoints={["15%", "85%"]}
+        snapPoints={['15%', '85%']}
         backgroundStyle={styles.bottomSheetBackground}
       >
         {/* 필터 헤더 */}
         <Box flexDir="row" justify="center" py="sm" gap="sm" bg="background">
-          {["TICKET", "GOODS"].map((cat) => (
+          {['TICKET', 'GOODS'].map((cat) => (
             <Button
               key={cat}
-              variant={selectedCategory === cat ? "primary" : "outline"}
+              variant={selectedCategory === cat ? 'primary' : 'outline'}
               size="sm"
               onPress={() =>
-                setSelectedCategory(
-                  selectedCategory === cat
-                    ? "ALL"
-                    : (cat as "TICKET" | "GOODS"),
-                )
+                setSelectedCategory(selectedCategory === cat ? 'ALL' : (cat as 'TICKET' | 'GOODS'))
               }
               style={styles.filterButton}
             >
-              {cat === "GOODS" ? "ITEM" : cat}
+              {cat === 'GOODS' ? 'ITEM' : cat}
             </Button>
           ))}
         </Box>
 
         {/* 데이터 리스트 */}
         <Box flex={1} px="SCREEN">
-          {itemsState.status === "LOADING" && itemsState.data?.length === 0 ? (
+          {itemsState.status === 'LOADING' && itemsState.data?.length === 0 ? (
             <Box flex={1} justify="center" align="center" py="xxl">
               <ActivityIndicator size="large" color={theme.colors.primary} />
             </Box>
-          ) : itemsState.status === "ERROR" ? (
+          ) : itemsState.status === 'ERROR' ? (
             <Box flex={1} justify="center" align="center" py="xxl">
               <Typography variant="caption" center mb="md">
                 {itemsState.error?.message}

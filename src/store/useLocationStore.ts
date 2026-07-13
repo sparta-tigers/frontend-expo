@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create } from 'zustand';
 
 interface LocationState {
   userLocation: { latitude: number; longitude: number } | null;
@@ -14,8 +14,7 @@ export const useLocationStore = create<LocationState>(
     permissionGranted: false,
     setUserLocation: (location: { latitude: number; longitude: number }) =>
       set({ userLocation: location }),
-    setPermissionGranted: (granted: boolean) =>
-      set({ permissionGranted: granted }),
+    setPermissionGranted: (granted: boolean) => set({ permissionGranted: granted }),
     clearLocation: () => set({ userLocation: null }),
   }),
 );

@@ -1,7 +1,7 @@
-import { Box } from "@/components/ui";
-import { theme } from "@/src/styles/theme";
-import React, { useEffect } from "react";
-import { Animated, Easing, StyleSheet, View } from "react-native";
+import { Box } from '@/components/ui';
+import { theme } from '@/src/styles/theme';
+import React, { useEffect } from 'react';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -125,8 +125,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: theme.colors.team.neutralLight,
     padding: theme.spacing.xs,
-    alignItems: "center",
-    justifyContent: "space-between",
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   dayNumSkeleton: {
     width: theme.spacing.lg,

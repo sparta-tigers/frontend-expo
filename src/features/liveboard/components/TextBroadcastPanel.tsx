@@ -1,15 +1,9 @@
 // src/features/liveboard/components/TextBroadcastPanel.tsx
-import { memo, useCallback } from "react";
-import {
-  FlatList,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { useTextBroadcast } from "../hooks/useTextBroadcast";
-import { styles } from "../styles/matchId.styles";
-import { BroadcastItem } from "../types";
+import { memo, useCallback } from 'react';
+import { FlatList, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useTextBroadcast } from '../hooks/useTextBroadcast';
+import { styles } from '../styles/matchId.styles';
+import { BroadcastItem } from '../types';
 
 interface TextBroadcastPanelProps {
   inningTexts?: { [inning: number]: BroadcastItem[] } | undefined;
@@ -24,15 +18,15 @@ interface TextBroadcastPanelProps {
 const TextBroadcastItem = memo(({ item }: { item: BroadcastItem }) => {
   const itemStyle = [
     styles.broadcastItem,
-    item.type === "BATTER_INFO" && styles.broadcastItemBatter,
-    item.type === "INNING_INFO" && styles.broadcastItemInning,
+    item.type === 'BATTER_INFO' && styles.broadcastItemBatter,
+    item.type === 'INNING_INFO' && styles.broadcastItemInning,
   ];
 
   const textStyle = [
     styles.broadcastText,
-    item.type === "PITCH_LOG" && styles.broadcastTextPitch,
-    item.type === "BATTER_INFO" && styles.broadcastTextBatter,
-    item.type === "INNING_INFO" && styles.broadcastTextInning,
+    item.type === 'PITCH_LOG' && styles.broadcastTextPitch,
+    item.type === 'BATTER_INFO' && styles.broadcastTextBatter,
+    item.type === 'INNING_INFO' && styles.broadcastTextInning,
   ];
 
   return (
@@ -41,78 +35,70 @@ const TextBroadcastItem = memo(({ item }: { item: BroadcastItem }) => {
     </View>
   );
 });
-TextBroadcastItem.displayName = "TextBroadcastItem";
+TextBroadcastItem.displayName = 'TextBroadcastItem';
 
 /**
  * TextBroadcastPanel Component
  * Why: 텍스트 중계 탭의 메인 컨테이너. 이닝 선택 칩과 중계 리스트를 관리.
  */
-export const TextBroadcastPanel = memo(
-  ({ inningTexts, isVisible }: TextBroadcastPanelProps) => {
-    const {
-      activeInning,
-      setActiveInning,
-      availableInnings,
-      filteredBroadcast,
-    } = useTextBroadcast(inningTexts);
+export const TextBroadcastPanel = memo(({ inningTexts, isVisible }: TextBroadcastPanelProps) => {
+  const { activeInning, setActiveInning, availableInnings, filteredBroadcast } =
+    useTextBroadcast(inningTexts);
 
-    const keyExtractor = useCallback((item: BroadcastItem) => item.id, []);
-    
-    const renderItem = useCallback(({ item }: { item: BroadcastItem }) => <TextBroadcastItem item={item} />, []);
+  const keyExtractor = useCallback((item: BroadcastItem) => item.id, []);
 
-    if (!isVisible) return null;
+  const renderItem = useCallback(
+    ({ item }: { item: BroadcastItem }) => <TextBroadcastItem item={item} />,
+    [],
+  );
 
-    return (
-      <View style={styles.tabPanel}>
-        {/* 이닝 선택 칩 (Horizontal Scroll) */}
-        <View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.inningChipList}
-          >
-            {availableInnings.map((inning) => (
-              <TouchableOpacity
-                key={inning}
+  if (!isVisible) return null;
+
+  return (
+    <View style={styles.tabPanel}>
+      {/* 이닝 선택 칩 (Horizontal Scroll) */}
+      <View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.inningChipList}
+        >
+          {availableInnings.map((inning) => (
+            <TouchableOpacity
+              key={inning}
+              style={[styles.inningChip, activeInning === inning && styles.inningChipActive]}
+              onPress={() => setActiveInning(inning)}
+            >
+              <Text
                 style={[
-                  styles.inningChip,
-                  activeInning === inning && styles.inningChipActive,
+                  styles.inningChipText,
+                  activeInning === inning && styles.inningChipTextActive,
                 ]}
-                onPress={() => setActiveInning(inning)}
               >
-                <Text
-                  style={[
-                    styles.inningChipText,
-                    activeInning === inning && styles.inningChipTextActive,
-                  ]}
-                >
-                  {inning === 10 ? "연장" : `${inning}회`}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* 중계 리스트 (FlatList optimized) */}
-        <FlatList
-          data={filteredBroadcast}
-          keyExtractor={keyExtractor}
-          renderItem={renderItem}
-          contentContainerStyle={styles.broadcastList}
-          initialNumToRender={10}
-          maxToRenderPerBatch={10}
-          windowSize={5}
-          ListEmptyComponent={
-            <View style={styles.broadcastEmpty}>
-              <Text style={styles.broadcastEmptyText}>
-                해당 이닝의 중계 데이터가 없어요.
+                {inning === 10 ? '연장' : `${inning}회`}
               </Text>
-            </View>
-          }
-        />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
-    );
-  },
-);
 
-TextBroadcastPanel.displayName = "TextBroadcastPanel";
+      {/* 중계 리스트 (FlatList optimized) */}
+      <FlatList
+        data={filteredBroadcast}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        contentContainerStyle={styles.broadcastList}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        ListEmptyComponent={
+          <View style={styles.broadcastEmpty}>
+            <Text style={styles.broadcastEmptyText}>해당 이닝의 중계 데이터가 없어요.</Text>
+          </View>
+        }
+      />
+    </View>
+  );
+});
+
+TextBroadcastPanel.displayName = 'TextBroadcastPanel';

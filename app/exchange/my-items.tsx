@@ -1,13 +1,13 @@
-import { Box, List, Typography, Button } from "@/components/ui";
-import { SafeLayout } from "@/components/ui/safe-layout";
-import { itemsGetMyItemsAPI } from "@/src/features/exchange/api";
-import { Item } from "@/src/features/exchange/types";
-import { exchangeKeys } from "@/src/features/exchange/keys";
-import { theme } from "@/src/styles/theme";
-import { Href, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
-import { useQuery } from "@tanstack/react-query";
+import { Box, List, Typography, Button } from '@/components/ui';
+import { SafeLayout } from '@/components/ui/safe-layout';
+import { itemsGetMyItemsAPI } from '@/src/features/exchange/api';
+import { Item } from '@/src/features/exchange/types';
+import { exchangeKeys } from '@/src/features/exchange/keys';
+import { theme } from '@/src/styles/theme';
+import { Href, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { StyleSheet, TouchableOpacity } from 'react-native';
+import { useQuery } from '@tanstack/react-query';
 
 export default function MyItemsScreen() {
   const router = useRouter();
@@ -39,14 +39,7 @@ export default function MyItemsScreen() {
         onPress={() => router.push(`/exchange/${item.id}` as Href)}
         activeOpacity={0.8}
       >
-        <Box
-          p="md"
-          mb="sm"
-          rounded="md"
-          borderWidth={1}
-          bg="surface"
-          borderColor="border.medium"
-        >
+        <Box p="md" mb="sm" rounded="md" borderWidth={1} bg="surface" borderColor="border.medium">
           <Box flexDir="row" justify="space-between" align="center" mb="sm">
             <Typography
               variant="body1"
@@ -58,7 +51,7 @@ export default function MyItemsScreen() {
               {item.title}
             </Typography>
             <Typography variant="caption" weight="bold" color="primary">
-              {item.category === "TICKET" ? "티켓" : "굿즈"}
+              {item.category === 'TICKET' ? '티켓' : '굿즈'}
             </Typography>
           </Box>
           <Typography
@@ -75,11 +68,7 @@ export default function MyItemsScreen() {
               {new Date(item.createdAt).toLocaleDateString()}
             </Typography>
             <Box px="sm" py="xxs" rounded="sm" bg="text.secondary">
-              <Typography
-                variant="caption"
-                weight="semibold"
-                color="background"
-              >
+              <Typography variant="caption" weight="semibold" color="background">
                 활성
               </Typography>
             </Box>

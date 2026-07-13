@@ -1,4 +1,4 @@
-import { TeamCode } from "@/src/utils/team";
+import { TeamCode } from '@/src/utils/team';
 
 /**
  * 🔑 matchKeys: Match 도메인 전용 쿼리 키 팩토리
@@ -10,16 +10,16 @@ import { TeamCode } from "@/src/utils/team";
  */
 export const matchKeys = {
   /** 모든 매치 관련 쿼리의 루트 키 */
-  all: ["matches"] as const,
+  all: ['matches'] as const,
 
   /** 매치 목록 조회를 위한 베이스 키 */
-  lists: () => [...matchKeys.all, "list"] as const,
+  lists: () => [...matchKeys.all, 'list'] as const,
 
   /** 필터(날짜, 팀 등)가 포함된 특정 매치 목록 키 */
   list: (filters: object) => [...matchKeys.lists(), filters] as const,
 
   /** 매치 상세 조회를 위한 베이스 키 */
-  details: () => [...matchKeys.all, "detail"] as const,
+  details: () => [...matchKeys.all, 'detail'] as const,
 
   /**
    * 특정 경기 상세 정보 조회를 위한 키
@@ -31,35 +31,31 @@ export const matchKeys = {
 
   ranking: {
     /** 순위 데이터 조회를 위한 베이스 키 */
-    all: () => [...matchKeys.all, "ranking"] as const,
+    all: () => [...matchKeys.all, 'ranking'] as const,
 
     /** 연간 순위 데이터 키 (기록 종류 포함) */
     yearly: (year: number, type: string) =>
-      [...matchKeys.ranking.all(), "yearly", { year, type }] as const,
+      [...matchKeys.ranking.all(), 'yearly', { year, type }] as const,
 
     /** 일별 순위 데이터 키 (기준 날짜 포함) */
     daily: (date: string, type: string) =>
-      [...matchKeys.ranking.all(), "daily", { date, type }] as const,
+      [...matchKeys.ranking.all(), 'daily', { date, type }] as const,
   },
 
   liveboard: {
     /** 라이브보드 전용 쿼리의 베이스 키 */
-    all: () => [...matchKeys.all, "liveboard"] as const,
+    all: () => [...matchKeys.all, 'liveboard'] as const,
 
     /** 주간 경기 일정 키 */
-    week: (startDate: string) =>
-      [...matchKeys.liveboard.all(), "week", { startDate }] as const,
+    week: (startDate: string) => [...matchKeys.liveboard.all(), 'week', { startDate }] as const,
 
     /** 특정 날짜의 라이브보드 경기 목록 키 */
-    rooms: (date: string) =>
-      [...matchKeys.liveboard.all(), "rooms", { date }] as const,
+    rooms: (date: string) => [...matchKeys.liveboard.all(), 'rooms', { date }] as const,
 
     /** 특정 경기의 실시간 라인업 데이터 키 */
-    lineup: (matchId: string) =>
-      [...matchKeys.liveboard.all(), "lineup", { matchId }] as const,
+    lineup: (matchId: string) => [...matchKeys.liveboard.all(), 'lineup', { matchId }] as const,
 
     /** 특정 경기의 구장 날씨 데이터 키 */
-    weather: (matchId: string) =>
-      [...matchKeys.liveboard.all(), "weather", { matchId }] as const,
+    weather: (matchId: string) => [...matchKeys.liveboard.all(), 'weather', { matchId }] as const,
   },
 } as const;

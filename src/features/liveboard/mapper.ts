@@ -1,11 +1,6 @@
 // src/features/liveboard/mapper.ts
-import { MatchRoomDto } from "@/src/shared/types/match";
-import {
-  BroadcastItem,
-  BroadcastType,
-  InningTextsDto,
-  LiveboardData,
-} from "./types";
+import { MatchRoomDto } from '@/src/shared/types/match';
+import { BroadcastItem, BroadcastType, InningTextsDto, LiveboardData } from './types';
 
 /**
  * LiveboardMapper
@@ -23,37 +18,38 @@ export const LiveboardMapper = {
     const players = live?.players || [];
 
     // 수비수/타자 분리 매핑
-    const defenders = players.reduce<{name: string, role: string, x: number, y: number}[]>((acc, p) => {
-      const role = p.role.toLowerCase();
-      if (!role.includes("batter") && !role.includes("runner") && role !== "supervision") {
-        acc.push({ name: p.name, role: p.role, x: 0, y: 0 });
-      }
-      return acc;
-    }, []);
+    const defenders = players.reduce<{ name: string; role: string; x: number; y: number }[]>(
+      (acc, p) => {
+        const role = p.role.toLowerCase();
+        if (!role.includes('batter') && !role.includes('runner') && role !== 'supervision') {
+          acc.push({ name: p.name, role: p.role, x: 0, y: 0 });
+        }
+        return acc;
+      },
+      [],
+    );
 
     // 공격 팀 선수 추출 (Zero Magic: 다양한 role 명칭 대응)
-    const batter = players.find((p) => p.role.toLowerCase().includes("batter"));
+    const batter = players.find((p) => p.role.toLowerCase().includes('batter'));
     const runner1 = players.find((p) => {
       const role = p.role.toLowerCase();
-      return role.includes("runner1") || role.includes("1루주자");
+      return role.includes('runner1') || role.includes('1루주자');
     });
     const runner2 = players.find((p) => {
       const role = p.role.toLowerCase();
-      return role.includes("runner2") || role.includes("2루주자");
+      return role.includes('runner2') || role.includes('2루주자');
     });
     const runner3 = players.find((p) => {
       const role = p.role.toLowerCase();
-      return role.includes("runner3") || role.includes("3루주자");
+      return role.includes('runner3') || role.includes('3루주자');
     });
 
     const rawInningTexts = live?.inningTexts ?? room.inningTexts;
-    const inningTexts = rawInningTexts
-      ? this.parseInningTexts(rawInningTexts)
-      : undefined;
+    const inningTexts = rawInningTexts ? this.parseInningTexts(rawInningTexts) : undefined;
 
     // 가장 최근 이벤트 추출 (현재 이닝의 가장 마지막 유의미한 텍스트)
     const match = live?.currentInning?.match(/([0-9]+)회/);
-    const inningDigits = match ? match[1] : "";
+    const inningDigits = match ? match[1] : '';
     const parsedInning = Number.parseInt(inningDigits, 10);
     const currentInningNum = Number.isNaN(parsedInning) ? 1 : parsedInning;
     const currentInningTexts = inningTexts?.[currentInningNum] || [];
@@ -63,14 +59,12 @@ export const LiveboardMapper = {
       const trimmed = t.text.trim();
       if (trimmed.length === 0) return false;
       // 대시(-), 등호(=), 언더바(_)로만 이루어진 문자열 제거
-      const onlySeparators = trimmed.replace(/[-=_]/g, "").length === 0;
+      const onlySeparators = trimmed.replace(/[-=_]/g, '').length === 0;
       return !onlySeparators;
     });
 
     const lastEvent =
-      validInningTexts.length > 0
-        ? validInningTexts[validInningTexts.length - 1].text
-        : null;
+      validInningTexts.length > 0 ? validInningTexts[validInningTexts.length - 1].text : null;
 
     return {
       matchId: room.matchId,
@@ -78,33 +72,26 @@ export const LiveboardMapper = {
       nowCast: room.nowCast,
       foreCast: room.foreCast,
       connectCount: room.connectCount,
-      homeScore: score ? parseInt(score.homeScore || "0") : 0,
-      awayScore: score ? parseInt(score.awayScore || "0") : 0,
+      homeScore: score ? parseInt(score.homeScore || '0') : 0,
+      awayScore: score ? parseInt(score.awayScore || '0') : 0,
       inning: currentInningNum,
       inningHalf: (() => {
         if (!live?.currentInning) return undefined;
-        if (live.currentInning.includes("초")) return "초";
-        if (live.currentInning.includes("말")) return "말";
+        if (live.currentInning.includes('초')) return '초';
+        if (live.currentInning.includes('말')) return '말';
         return undefined;
       })(),
       ballCount: score?.ball || 0,
       strikeCount: score?.strike || 0,
       outCount: score?.out || 0,
-      pitcherName:
-        players.find((p) => p.role.toLowerCase() === "pitcher")?.name || "-",
-      pitchCount: score ? parseInt(score.pitcherCount || "0") : 0,
+      pitcherName: players.find((p) => p.role.toLowerCase() === 'pitcher')?.name || '-',
+      pitchCount: score ? parseInt(score.pitcherCount || '0') : 0,
       lastEvent,
       defenders,
-      batter: batter ? { name: batter.name, role: "batter", x: 0, y: 0 } : null,
-      runner1: runner1
-        ? { name: runner1.name, role: "runner1", x: 0, y: 0 }
-        : null,
-      runner2: runner2
-        ? { name: runner2.name, role: "runner2", x: 0, y: 0 }
-        : null,
-      runner3: runner3
-        ? { name: runner3.name, role: "runner3", x: 0, y: 0 }
-        : null,
+      batter: batter ? { name: batter.name, role: 'batter', x: 0, y: 0 } : null,
+      runner1: runner1 ? { name: runner1.name, role: 'runner1', x: 0, y: 0 } : null,
+      runner2: runner2 ? { name: runner2.name, role: 'runner2', x: 0, y: 0 } : null,
+      runner3: runner3 ? { name: runner3.name, role: 'runner3', x: 0, y: 0 } : null,
       bases: {
         first: !!runner1,
         second: !!runner2,
@@ -142,22 +129,26 @@ export const LiveboardMapper = {
       // 🚨 Zero Magic: 매퍼 계층에서 모든 문자열 정제 및 타입 판별 완료
       result[inning] = rawTexts.reduce<BroadcastItem[]>((acc, rawText) => {
         const text = rawText.trim();
-        if (text.length === 0 || text.startsWith("---") || text.replace(/[-=_]/g, "").length === 0) {
+        if (
+          text.length === 0 ||
+          text.startsWith('---') ||
+          text.replace(/[-=_]/g, '').length === 0
+        ) {
           return acc;
         }
 
-        const cleanedText = text.replace(/^-\s*/, "").trim();
-        let type: BroadcastType = "PLAY_RESULT";
+        const cleanedText = text.replace(/^-\s*/, '').trim();
+        let type: BroadcastType = 'PLAY_RESULT';
 
-        if (cleanedText.includes("타자")) {
-          type = "BATTER_INFO";
-        } else if (text.startsWith("-")) {
-          type = "PITCH_LOG";
+        if (cleanedText.includes('타자')) {
+          type = 'BATTER_INFO';
+        } else if (text.startsWith('-')) {
+          type = 'PITCH_LOG';
         } else if (
-          cleanedText.includes("회") &&
-          (cleanedText.includes("초") || cleanedText.includes("말"))
+          cleanedText.includes('회') &&
+          (cleanedText.includes('초') || cleanedText.includes('말'))
         ) {
-          type = "INNING_INFO";
+          type = 'INNING_INFO';
         }
 
         acc.push({

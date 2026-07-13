@@ -1,6 +1,2 @@
 // 🚀 Public Queries & Hooks
-export {
-  attendanceKeys,
-  useAttendanceCount,
-  useInfiniteMyAttendances,
-} from "./queries";
+export { attendanceKeys, useAttendanceCount, useInfiniteMyAttendances } from './queries';

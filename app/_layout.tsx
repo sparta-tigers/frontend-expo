@@ -1,32 +1,32 @@
-import { CombinedProvider } from "@/components/providers/combined-provider";
-import { useAuth } from "@/context/AuthContext";
-import { useTheme } from "@/hooks/useTheme";
-import { ErrorBoundaryFallback } from "@/src/components/shared/ErrorBoundaryFallback";
-import { OfflineBanner } from "@/src/components/shared/OfflineBanner";
-import { Logger } from "@/src/utils/logger";
+import { CombinedProvider } from '@/components/providers/combined-provider';
+import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/hooks/useTheme';
+import { ErrorBoundaryFallback } from '@/src/components/shared/ErrorBoundaryFallback';
+import { OfflineBanner } from '@/src/components/shared/OfflineBanner';
+import { Logger } from '@/src/utils/logger';
 
-import { Box, Typography } from "@/components/ui";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import { theme } from "@/src/styles/theme";
-import { useNetInfo } from "@react-native-community/netinfo";
-import * as Notifications from "expo-notifications";
-import { Href, router, Stack, useSegments } from "expo-router";
-import { useCallback, useEffect, useRef } from "react";
-import { ErrorBoundary } from "react-error-boundary";
-import { ActivityIndicator, StyleSheet, TouchableOpacity } from "react-native";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { Box, Typography } from '@/components/ui';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { theme } from '@/src/styles/theme';
+import { useNetInfo } from '@react-native-community/netinfo';
+import * as Notifications from 'expo-notifications';
+import { Href, router, Stack, useSegments } from 'expo-router';
+import { useCallback, useEffect, useRef } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
+import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
-import { useNotificationListeners } from "@/src/hooks/useNotificationListeners";
-import Constants, { AppOwnership } from "expo-constants";
+import { useNotificationListeners } from '@/src/hooks/useNotificationListeners';
+import Constants, { AppOwnership } from 'expo-constants';
 
 /**
  * 전역 에러 핸들링 (React Native 환경)
  */
-if (typeof ErrorUtils !== "undefined") {
+if (typeof ErrorUtils !== 'undefined') {
   const defaultHandler = ErrorUtils.getGlobalHandler();
   ErrorUtils.setGlobalHandler((error, isFatal) => {
-    Logger.error("Unhandled Global Error", error, { context: { isFatal } });
+    Logger.error('Unhandled Global Error', error, { context: { isFatal } });
     if (defaultHandler) {
       defaultHandler(error, isFatal);
     }
@@ -48,10 +48,7 @@ if (Constants.appOwnership !== AppOwnership.Expo) {
       }),
     });
   } catch (e) {
-    Logger.category("SYSTEM").warn(
-      "Notifications are not supported in this environment",
-      e,
-    );
+    Logger.category('SYSTEM').warn('Notifications are not supported in this environment', e);
   }
 }
 
@@ -82,7 +79,7 @@ function RootLayoutInner() {
   const navigationReady = useRef(false);
   const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const inAuthGroup = segments[0] === "(auth)";
+  const inAuthGroup = segments[0] === '(auth)';
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -116,11 +113,11 @@ function RootLayoutInner() {
 
   useEffect(() => {
     if (!user && !inAuthGroup && !isLoading) {
-      safeRedirect("/(auth)/signin");
+      safeRedirect('/(auth)/signin');
     }
 
     if (user && inAuthGroup && !isLoading) {
-      safeRedirect("/(tabs)");
+      safeRedirect('/(tabs)');
     }
   }, [user, inAuthGroup, isLoading, safeRedirect]);
 
@@ -137,21 +134,13 @@ function RootLayoutInner() {
       <SafeAreaProvider>
         <SafeAreaView
           style={[styles.safeArea, { backgroundColor: colors.background }]}
-          edges={["top", "left", "right"]}
+          edges={['top', 'left', 'right']}
         >
           {!netInfo.isConnected ? <OfflineBanner /> : null}
 
           {/* 1. 고정 헤더 (전역) */}
-          {!inAuthGroup &&
-          segments[0] !== "schedule" &&
-          segments[1] !== "create" ? (
-            <Box
-              flexDir="row"
-              align="center"
-              justify="space-between"
-              px="xl"
-              py="lg"
-            >
+          {!inAuthGroup && segments[0] !== 'schedule' && segments[1] !== 'create' ? (
+            <Box flexDir="row" align="center" justify="space-between" px="xl" py="lg">
               <Box width={48} align="flex-start">
                 {router.canGoBack() ? (
                   <TouchableOpacity
@@ -168,12 +157,7 @@ function RootLayoutInner() {
                 ) : null}
               </Box>
 
-              <Typography
-                variant="h3"
-                weight="black"
-                color="brand.mint"
-                style={styles.headerTitle}
-              >
+              <Typography variant="h3" weight="black" color="brand.mint" style={styles.headerTitle}>
                 YAGUNIV
               </Typography>
 
@@ -181,7 +165,7 @@ function RootLayoutInner() {
                 <TouchableOpacity
                   activeOpacity={0.7}
                   style={styles.headerIconBtn}
-                  onPress={() => router.push("/profile")}
+                  onPress={() => router.push('/profile')}
                 >
                   <IconSymbol
                     name="person.fill"
@@ -199,7 +183,7 @@ function RootLayoutInner() {
               screenOptions={{
                 headerShown: false,
                 gestureEnabled: true,
-                animation: "slide_from_right",
+                animation: 'slide_from_right',
                 fullScreenGestureEnabled: true,
               }}
             />

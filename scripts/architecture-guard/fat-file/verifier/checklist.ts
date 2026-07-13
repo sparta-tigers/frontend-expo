@@ -1,11 +1,6 @@
 // Feature: fat-file-refactoring
-import { extractPublicApi } from "../spec/extract-public-api.ts";
-import type {
-  BarrelFilePlan,
-  ModulePlan,
-  SourceFile,
-  ValidationReport,
-} from "../types.ts";
+import { extractPublicApi } from '../spec/extract-public-api.ts';
+import type { BarrelFilePlan, ModulePlan, SourceFile, ValidationReport } from '../types.ts';
 
 export interface VerificationInput {
   originalFile: SourceFile;
@@ -29,13 +24,7 @@ export interface VerificationInput {
  * Validates: Requirements 10, Property 16
  */
 export function evaluateChecklist(input: VerificationInput): ValidationReport {
-  const {
-    generatedModules,
-    barrelFile,
-    tscBaselineErrors,
-    tscCurrentErrors,
-    originalFile,
-  } = input;
+  const { generatedModules, barrelFile, tscBaselineErrors, tscCurrentErrors, originalFile } = input;
 
   const failedReasons: string[] = [];
   const notes: string[] = [];
@@ -43,14 +32,12 @@ export function evaluateChecklist(input: VerificationInput): ValidationReport {
   // 1. locBound
   let locBound = true;
   for (const { file } of generatedModules) {
-    const loc = file.content.split("\n").length;
+    const loc = file.content.split('\n').length;
     // We allow a small margin (e.g. +10%) or strictly <= 300?
     // Requirement says strictly <= 300
     if (loc > 300) {
       locBound = false;
-      failedReasons.push(
-        `Module ${file.relativePath} exceeds 300 LoC (${loc} lines).`,
-      );
+      failedReasons.push(`Module ${file.relativePath} exceeds 300 LoC (${loc} lines).`);
     }
   }
 
@@ -63,20 +50,14 @@ export function evaluateChecklist(input: VerificationInput): ValidationReport {
     current.add(plan.concern);
     concernsByPath.set(plan.path, current);
   }
-  const singleConcern = [...concernsByPath.values()].every(
-    (set) => set.size === 1,
-  );
+  const singleConcern = [...concernsByPath.values()].every((set) => set.size === 1);
   if (!singleConcern) {
-    failedReasons.push(
-      "At least one generated module contains multiple concerns.",
-    );
+    failedReasons.push('At least one generated module contains multiple concerns.');
   }
 
   // 3. tscBaselineClean
   // current errors \ baseline errors = empty
-  const newErrors = tscCurrentErrors.filter(
-    (e) => !tscBaselineErrors.includes(e),
-  );
+  const newErrors = tscCurrentErrors.filter((e) => !tscBaselineErrors.includes(e));
   const tscBaselineClean = newErrors.length === 0;
   if (!tscBaselineClean) {
     failedReasons.push(`Introduced ${newErrors.length} new TypeScript errors.`);
@@ -94,9 +75,7 @@ export function evaluateChecklist(input: VerificationInput): ValidationReport {
   for (const orig of originalApi) {
     // Why: name만 비교하면 함수→타입 변경 등 브레이킹 변경을 놓칠 수 있음.
     //      name + kind 조합으로 시그니처 레벨 보존을 검증한다.
-    const isPreserved = newApi.some(
-      (gen) => gen.name === orig.name && gen.kind === orig.kind,
-    );
+    const isPreserved = newApi.some((gen) => gen.name === orig.name && gen.kind === orig.kind);
     if (!isPreserved) {
       publicApiPreserved = false;
       failedReasons.push(
@@ -119,11 +98,7 @@ export function evaluateChecklist(input: VerificationInput): ValidationReport {
   }
 
   const passed =
-    locBound &&
-    singleConcern &&
-    tscBaselineClean &&
-    publicApiPreserved &&
-    anyResidualCount === 0;
+    locBound && singleConcern && tscBaselineClean && publicApiPreserved && anyResidualCount === 0;
 
   return {
     file: originalFile.relativePath,

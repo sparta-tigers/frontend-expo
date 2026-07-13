@@ -14,18 +14,17 @@
 //   - `sortScanResults` allocates a fresh array via `slice()` so the input
 //     `ReadonlyArray<ScanResult>` is never mutated.
 
-import type { PriorityTier, ScanResult } from "../types.ts";
+import type { PriorityTier, ScanResult } from '../types.ts';
 
 /**
  * Tier weight — lower weight sorts first. `TOP` must precede `REVIEW`.
  * The object is frozen so callers cannot accidentally mutate the ordering
  * at runtime.
  */
-const PRIORITY_TIER_WEIGHT: Readonly<Record<PriorityTier, number>> =
-  Object.freeze({
-    TOP: 0,
-    REVIEW: 1,
-  });
+const PRIORITY_TIER_WEIGHT: Readonly<Record<PriorityTier, number>> = Object.freeze({
+  TOP: 0,
+  REVIEW: 1,
+});
 
 /**
  * Total-order comparator for `ScanResult`.
@@ -39,8 +38,7 @@ const PRIORITY_TIER_WEIGHT: Readonly<Record<PriorityTier, number>> =
  * after, and `0` only when the two scan results are tied on all three axes.
  */
 export function compareScanResult(a: ScanResult, b: ScanResult): number {
-  const tierDelta =
-    PRIORITY_TIER_WEIGHT[a.priorityTier] - PRIORITY_TIER_WEIGHT[b.priorityTier];
+  const tierDelta = PRIORITY_TIER_WEIGHT[a.priorityTier] - PRIORITY_TIER_WEIGHT[b.priorityTier];
   if (tierDelta !== 0) return tierDelta;
 
   // Descending `loc`: larger `loc` sorts first, so we flip the subtraction.

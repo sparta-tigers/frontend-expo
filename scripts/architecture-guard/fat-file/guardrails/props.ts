@@ -1,5 +1,5 @@
 // Feature: fat-file-refactoring
-import type { SourceFile } from "../types.ts";
+import type { SourceFile } from '../types.ts';
 
 export interface PropsGuardrailResult {
   passed: boolean;
@@ -12,15 +12,13 @@ export interface PropsGuardrailResult {
  * Flags inline object, array, or function definitions in JSX props.
  * e.g., style={{ ... }}, data={[...]}, onPress={() => ...}
  */
-export function checkPropsStability(
-  generatedFiles: SourceFile[],
-): PropsGuardrailResult {
+export function checkPropsStability(generatedFiles: SourceFile[]): PropsGuardrailResult {
   const violations: string[] = [];
 
   for (const file of generatedFiles) {
-    if (!file.relativePath.endsWith(".tsx")) continue;
+    if (!file.relativePath.endsWith('.tsx')) continue;
 
-    const lines = file.content.split("\n");
+    const lines = file.content.split('\n');
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
 

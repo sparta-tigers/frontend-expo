@@ -1,7 +1,7 @@
-import { Box } from "@/components/ui";
-import { theme } from "@/src/styles/theme";
-import React from "react";
-import { Animated, Easing, StyleSheet } from "react-native";
+import { Box } from '@/components/ui';
+import { theme } from '@/src/styles/theme';
+import React from 'react';
+import { Animated, Easing, StyleSheet } from 'react-native';
 
 /**
  * 순위 요약 섹션 스켈레톤 UI
@@ -39,9 +39,7 @@ export const RankingSkeleton = () => {
     <Box mt="xxxxl" px="xxxl">
       {/* Title Skeleton */}
       <Box align="center" mb="md">
-        <Animated.View
-          style={[styles.titleSkeleton, { opacity: animatedValue }]}
-        />
+        <Animated.View style={[styles.titleSkeleton, { opacity: animatedValue }]} />
       </Box>
 
       {/* Row Skeletons */}
@@ -49,9 +47,7 @@ export const RankingSkeleton = () => {
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <Box key={i} flexDir="row" align="center" gap="sm">
             <Box width={theme.spacing.xxl} align="center">
-              <Animated.View
-                style={[styles.rankSkeleton, { opacity: animatedValue }]}
-              />
+              <Animated.View style={[styles.rankSkeleton, { opacity: animatedValue }]} />
             </Box>
             <Animated.View
               style={[
@@ -69,7 +65,7 @@ export const RankingSkeleton = () => {
 
 const styles = StyleSheet.create({
   titleSkeleton: {
-    width: "70%",
+    width: '70%',
     height: theme.layout.dashboard.sectionTitleHeight,
     backgroundColor: theme.colors.team.neutralLight,
     borderRadius: theme.radius.sm,

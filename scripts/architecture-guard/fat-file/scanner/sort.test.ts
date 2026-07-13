@@ -24,12 +24,12 @@ import {
   property,
   record,
   string,
-} from "fast-check";
-import { strict as assert } from "node:assert";
-import { test } from "node:test";
+} from 'fast-check';
+import { strict as assert } from 'node:assert';
+import { test } from 'node:test';
 
-import type { ScanResult } from "../types.ts";
-import { compareScanResult, sortScanResults } from "./sort.ts";
+import type { ScanResult } from '../types.ts';
+import { compareScanResult, sortScanResults } from './sort.ts';
 
 // ---------------------------------------------------------------------------
 // Arbitraries
@@ -40,28 +40,25 @@ import { compareScanResult, sortScanResults } from "./sort.ts";
 // actually exercised. `fc.string({ unit, ... })` is the v4 replacement for
 // the now-removed `fc.stringOf` constructor.
 const pathArb = string({
-  unit: constantFrom("a", "b", "c", "d"),
+  unit: constantFrom('a', 'b', 'c', 'd'),
   minLength: 1,
   maxLength: 5,
 });
 
 // Tier determines the allowed `loc` band so the ScanResult invariant
 // `(loc >= 1000) ↔ (tier === "TOP")` holds by construction.
-const scanResultArb: Arbitrary<ScanResult> = constantFrom(
-  "TOP" as const,
-  "REVIEW" as const,
-).chain((priorityTier) => {
-  const locArb =
-    priorityTier === "TOP"
-      ? integer({ min: 1000, max: 2500 })
-      : integer({ min: 500, max: 999 });
-  return record({
-    absolutePath: pathArb,
-    relativePath: pathArb,
-    loc: locArb,
-    priorityTier: constant(priorityTier),
-  });
-});
+const scanResultArb: Arbitrary<ScanResult> = constantFrom('TOP' as const, 'REVIEW' as const).chain(
+  (priorityTier) => {
+    const locArb =
+      priorityTier === 'TOP' ? integer({ min: 1000, max: 2500 }) : integer({ min: 500, max: 999 });
+    return record({
+      absolutePath: pathArb,
+      relativePath: pathArb,
+      loc: locArb,
+      priorityTier: constant(priorityTier),
+    });
+  },
+);
 
 const scanResultsArb = array(scanResultArb, { minLength: 0, maxLength: 20 });
 
@@ -82,7 +79,7 @@ function multiset(xs: readonly ScanResult[]): string[] {
 // Properties
 // ---------------------------------------------------------------------------
 
-test("Property 6a: sortScanResults output is monotone non-decreasing under compareScanResult", () => {
+test('Property 6a: sortScanResults output is monotone non-decreasing under compareScanResult', () => {
   fcAssert(
     property(scanResultsArb, (xs) => {
       const sorted = sortScanResults(xs);
@@ -97,7 +94,7 @@ test("Property 6a: sortScanResults output is monotone non-decreasing under compa
   );
 });
 
-test("Property 6b: sortScanResults is idempotent (sort ∘ sort = sort)", () => {
+test('Property 6b: sortScanResults is idempotent (sort ∘ sort = sort)', () => {
   fcAssert(
     property(scanResultsArb, (xs) => {
       const once = sortScanResults(xs);
@@ -107,7 +104,7 @@ test("Property 6b: sortScanResults is idempotent (sort ∘ sort = sort)", () => 
   );
 });
 
-test("Property 6c: sortScanResults does not mutate the input array", () => {
+test('Property 6c: sortScanResults does not mutate the input array', () => {
   fcAssert(
     property(scanResultsArb, (xs) => {
       const snapshot = xs.slice();
@@ -117,7 +114,7 @@ test("Property 6c: sortScanResults does not mutate the input array", () => {
   );
 });
 
-test("Property 6d: sortScanResults output is a permutation of the input", () => {
+test('Property 6d: sortScanResults output is a permutation of the input', () => {
   fcAssert(
     property(scanResultsArb, (xs) => {
       const sorted = sortScanResults(xs);

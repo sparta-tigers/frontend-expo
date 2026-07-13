@@ -1,6 +1,6 @@
 // app/(tabs)/liveboard/liveboard.styles.ts
-import { theme } from "@/src/styles/theme";
-import { StyleSheet } from "react-native";
+import { theme } from '@/src/styles/theme';
+import { StyleSheet } from 'react-native';
 
 /**
  * 라이브보드 전용 레이아웃 상수
@@ -49,18 +49,18 @@ export const styles = StyleSheet.create({
   },
   calendarCell: {
     flex: 1,
-    alignItems: "center",
+    alignItems: 'center',
   },
   dayOfWeekText: {
     fontSize: LOCAL_LAYOUT.calendarDayFontSize,
     color: theme.colors.text.tertiary,
-    textAlign: "center",
+    textAlign: 'center',
     lineHeight: LOCAL_LAYOUT.calendarDayLineHeight,
   },
   dateText: {
     fontSize: LOCAL_LAYOUT.dateFontSize,
     color: theme.colors.team.neutralDark,
-    textAlign: "center",
+    textAlign: 'center',
     lineHeight: LOCAL_LAYOUT.dateLineHeight,
   },
   dateCircle: {
@@ -97,7 +97,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: LOCAL_LAYOUT.cardPaddingH,
     paddingVertical: LOCAL_LAYOUT.cardPaddingV,
     gap: LOCAL_LAYOUT.cardGap,
-    justifyContent: "center",
+    justifyContent: 'center',
     shadowColor: theme.colors.team.kt,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.1,
@@ -114,7 +114,7 @@ export const styles = StyleSheet.create({
   teamNameText: {
     fontSize: theme.typography.size.xs,
     color: theme.colors.team.neutralDark,
-    textAlign: "center",
+    textAlign: 'center',
   },
   centerBlock: {
     width: LOCAL_LAYOUT.centerBlockWidth,
@@ -127,17 +127,17 @@ export const styles = StyleSheet.create({
   timeText: {
     fontSize: theme.typography.size.md,
     color: theme.colors.team.neutralDark,
-    textAlign: "center",
+    textAlign: 'center',
   },
   stadiumText: {
     fontSize: theme.typography.size.xxs,
     color: theme.colors.brand.subtitle,
-    textAlign: "center",
+    textAlign: 'center',
   },
   weatherText: {
     fontSize: theme.typography.size.xxs,
     color: theme.colors.brand.mint,
-    textAlign: "center",
+    textAlign: 'center',
   },
   retryBtn: {
     paddingHorizontal: LOCAL_LAYOUT.retryBtnPaddingH,

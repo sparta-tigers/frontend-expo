@@ -1,11 +1,11 @@
-import { router } from "expo-router";
-import React from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import { router } from 'expo-router';
+import React from 'react';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 
-import { Box, Typography } from "@/components/ui";
-import { RankingUIModel } from "@/src/shared/types/match";
-import { theme } from "@/src/styles/theme";
-import { TeamCode } from "@/src/utils/team";
+import { Box, Typography } from '@/components/ui';
+import { RankingUIModel } from '@/src/shared/types/match';
+import { theme } from '@/src/styles/theme';
+import { TeamCode } from '@/src/utils/team';
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -51,9 +51,7 @@ export const RankingSummarySection = React.memo(function RankingSummarySection({
   return (
     <Box mt="xxxxl" px="xxxl">
       <Typography variant="h3" weight="bold" center mb="md">
-        {myTeamRank
-          ? `오늘의 우리 팀 순위는 ${myTeamRank}위예요`
-          : "KBO 리그 순위를 확인해보세요"}
+        {myTeamRank ? `오늘의 우리 팀 순위는 ${myTeamRank}위예요` : 'KBO 리그 순위를 확인해보세요'}
       </Typography>
 
       {/* 🚨 가중치 그리드 헤더 */}
@@ -61,17 +59,13 @@ export const RankingSummarySection = React.memo(function RankingSummarySection({
 
       <Box gap="sm">
         {ranking.map((row) => (
-          <RankingRow
-            key={row.teamCode}
-            row={row}
-            isMyTeam={row.teamCode === myTeamCode}
-          />
+          <RankingRow key={row.teamCode} row={row} isMyTeam={row.teamCode === myTeamCode} />
         ))}
       </Box>
 
       <TouchableOpacity
         activeOpacity={0.7}
-        onPress={() => router.push("/ranking")}
+        onPress={() => router.push('/ranking')}
         accessibilityRole="button"
         accessibilityLabel="전체 순위 보기"
         accessibilityHint="KBO 리그 전체 순위 페이지로 이동합니다"
@@ -100,7 +94,7 @@ const RankingHeader = React.memo(function RankingHeader() {
         <Box flex={LOCAL_LAYOUT.flexWeights.team} />
 
         {/* Stat Labels (Flex 1, 1, 1, 1, 1.5) */}
-        {["경기", "승", "패", "무"].map((label) => (
+        {['경기', '승', '패', '무'].map((label) => (
           <Box key={label} flex={LOCAL_LAYOUT.flexWeights.stat} align="center">
             <Typography
               variant="caption"
@@ -144,25 +138,17 @@ interface RankingRowProps {
  *
  * Weighted Grid: Team(5.5) : Stats(1)*4 : WinRate(1.5) = Total 11
  */
-const RankingRow = React.memo(function RankingRow({
-  row,
-  isMyTeam,
-}: RankingRowProps) {
+const RankingRow = React.memo(function RankingRow({ row, isMyTeam }: RankingRowProps) {
   const { meta } = row;
 
   return (
-    <Box
-      flexDir="row"
-      align="center"
-      gap="sm"
-      accessibilityLabel={`${row.rank}위 ${meta.name}`}
-    >
+    <Box flexDir="row" align="center" gap="sm" accessibilityLabel={`${row.rank}위 ${meta.name}`}>
       {/* Rank Column */}
       <Box width={LOCAL_LAYOUT.rankWidth} align="center">
         <Typography
-          variant={isMyTeam ? "h2" : "h3"}
+          variant={isMyTeam ? 'h2' : 'h3'}
           weight="bold"
-          color={isMyTeam ? "brand.mint" : "text.secondary"}
+          color={isMyTeam ? 'brand.mint' : 'text.secondary'}
         >
           {row.rank}
         </Typography>
@@ -171,10 +157,8 @@ const RankingRow = React.memo(function RankingRow({
       {/* Weighted Grid Pill */}
       <Box
         flex={1}
-        height={
-          isMyTeam ? LOCAL_LAYOUT.pillHeightActive : LOCAL_LAYOUT.pillHeight
-        }
-        bg={isMyTeam ? "card" : "surface"}
+        height={isMyTeam ? LOCAL_LAYOUT.pillHeightActive : LOCAL_LAYOUT.pillHeight}
+        bg={isMyTeam ? 'card' : 'surface'}
         rounded="full"
         px="lg"
         flexDir="row"
@@ -206,7 +190,7 @@ const RankingRow = React.memo(function RankingRow({
           <Typography
             variant="caption"
             weight="bold"
-            color={isMyTeam ? "brand.mint" : "primary"}
+            color={isMyTeam ? 'brand.mint' : 'primary'}
             numberOfLines={1}
             ellipsizeMode="tail"
             style={styles.teamName}
@@ -214,13 +198,7 @@ const RankingRow = React.memo(function RankingRow({
             {meta.name}
           </Typography>
           {isMyTeam ? (
-            <Box
-              bg="brand.mint"
-              px="xs"
-              py="xxs"
-              rounded="sm"
-              style={styles.myBadge}
-            >
+            <Box bg="brand.mint" px="xs" py="xxs" rounded="sm" style={styles.myBadge}>
               <Typography variant="caption" weight="bold" color="card">
                 MY
               </Typography>
@@ -229,20 +207,18 @@ const RankingRow = React.memo(function RankingRow({
         </Box>
 
         {/* Regular Stats (Flex 1) */}
-        {[row.matchCount, row.winCount, row.loseCount, row.drawCount].map(
-          (stat, i) => (
-            <Box key={i} flex={LOCAL_LAYOUT.flexWeights.stat} align="center">
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                numberOfLines={1}
-                style={styles.statText}
-              >
-                {stat}
-              </Typography>
-            </Box>
-          ),
-        )}
+        {[row.matchCount, row.winCount, row.loseCount, row.drawCount].map((stat, i) => (
+          <Box key={i} flex={LOCAL_LAYOUT.flexWeights.stat} align="center">
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              numberOfLines={1}
+              style={styles.statText}
+            >
+              {stat}
+            </Typography>
+          </Box>
+        ))}
 
         {/* Win Rate (Flex 2) */}
         <Box flex={LOCAL_LAYOUT.flexWeights.winRate} align="center">
@@ -279,7 +255,7 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.size.sm,
   },
   teamArea: {
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   teamName: {
     flexShrink: 1,
@@ -288,16 +264,16 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   statText: {
-    textAlign: "center",
+    textAlign: 'center',
   },
   headerText: {
     fontSize: theme.typography.size.xxs,
-    textAlign: "center",
+    textAlign: 'center',
   },
   ctaButton: {
     marginTop: theme.spacing.xl,
-    alignItems: "center",
+    alignItems: 'center',
     minHeight: theme.layout.touch.minTargetSize,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
 });

@@ -1,6 +1,6 @@
-import { PaginatedResponse } from "@/src/shared/types/common";
+import { PaginatedResponse } from '@/src/shared/types/common';
 
-export type ItemCategory = "TICKET" | "GOODS";
+export type ItemCategory = 'TICKET' | 'GOODS';
 
 export interface ItemDto {
   category: ItemCategory;
@@ -59,7 +59,7 @@ export interface Item {
   imageUrls?: string[];
   images?: string[]; // 하위 호환 유지 (imageUrls를 우선 사용)
   desiredItem?: string; // 희망 교환 물품 추가
-  status: "REGISTERED" | "COMPLETED" | "FAILED" | "DELETED";
+  status: 'REGISTERED' | 'COMPLETED' | 'FAILED' | 'DELETED';
   createdAt: string;
   updatedAt: string;
   userId?: number; // 체인을 위한 호환 필드
@@ -82,10 +82,10 @@ export interface Item {
  * 백엔드 스펙 기반 상태값 관리
  */
 export enum ExchangeRequestStatus {
-  PENDING = "PENDING",
-  ACCEPTED = "ACCEPTED",
-  REJECTED = "REJECTED",
-  COMPLETED = "COMPLETED",
+  PENDING = 'PENDING',
+  ACCEPTED = 'ACCEPTED',
+  REJECTED = 'REJECTED',
+  COMPLETED = 'COMPLETED',
 }
 
 /**
@@ -166,7 +166,7 @@ export interface ReceiveExchangeRequest {
    * 수락 후에도 아이템 상태는 REGISTERED로 유지되므로
    * 교환 진행 여부 판단에는 반드시 exchangeStatus를 사용할 것.
    */
-  status: "REGISTERED" | "COMPLETED" | "FAILED" | "DELETED";
+  status: 'REGISTERED' | 'COMPLETED' | 'FAILED' | 'DELETED';
   /**
    * 교환 요청 자체의 진행 상태 (ExchangeStatus 기반)
    * PENDING = 대기 중 (수락/거절 대기)
@@ -185,5 +185,4 @@ export interface ReceiveExchangeRequest {
  * 교환 요청 목록 페이징 응답
  * content 항목은 ReceiveExchangeRequest 구조임
  */
-export type ExchangeRequestListResponse =
-  PaginatedResponse<ReceiveExchangeRequest>;
+export type ExchangeRequestListResponse = PaginatedResponse<ReceiveExchangeRequest>;

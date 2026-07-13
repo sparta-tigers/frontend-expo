@@ -1,22 +1,12 @@
 // src/shared/types/match.ts
 
-import { ForeCastDto, NowCastDto } from "@/src/shared/types/weather";
-import { TeamMeta } from "@/src/utils/team";
+import { ForeCastDto, NowCastDto } from '@/src/shared/types/weather';
+import { TeamMeta } from '@/src/utils/team';
 
-export type MatchStatus =
-  | "READY"
-  | "ONGOING"
-  | "FINISHED"
-  | "CANCELLED"
-  | "POSTPONED";
-export type LiveBoardStatus = "UPCOMING" | "TODAY" | "PAST";
-export type LeagueType =
-  | "REGULAR"
-  | "PRESEASON"
-  | "POST_SEASON"
-  | "DREAM"
-  | "NANUM";
-export type TeamLocation = "H" | "A";
+export type MatchStatus = 'READY' | 'ONGOING' | 'FINISHED' | 'CANCELLED' | 'POSTPONED';
+export type LiveBoardStatus = 'UPCOMING' | 'TODAY' | 'PAST';
+export type LeagueType = 'REGULAR' | 'PRESEASON' | 'POST_SEASON' | 'DREAM' | 'NANUM';
+export type TeamLocation = 'H' | 'A';
 
 export interface MatchTeamInfo {
   code: string;

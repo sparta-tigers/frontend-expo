@@ -1,15 +1,15 @@
-import { useAuth } from "@/context/AuthContext";
-import { Logger } from "@/src/utils/logger";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from '@/context/AuthContext';
+import { Logger } from '@/src/utils/logger';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ticketAlarmCreateAPI,
   ticketAlarmDeleteAPI,
   ticketAlarmGetCountAPI,
   ticketAlarmGetListAPI,
   ticketAlarmUpdateAPI,
-} from "../api";
-import { ticketAlarmKeys } from "../queries";
-import { CreateTicketAlarmRequest, UpdateTicketAlarmRequest } from "../types";
+} from '../api';
+import { ticketAlarmKeys } from '../queries';
+import { CreateTicketAlarmRequest, UpdateTicketAlarmRequest } from '../types';
 
 /**
  * 🚨 앙드레 카파시: 티켓 알림 통합 훅
@@ -60,13 +60,12 @@ export function useTicketAlarmMutation() {
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: (request: CreateTicketAlarmRequest) =>
-      ticketAlarmCreateAPI(request),
+    mutationFn: (request: CreateTicketAlarmRequest) => ticketAlarmCreateAPI(request),
     onSuccess: () => {
       return queryClient.invalidateQueries({ queryKey: ticketAlarmKeys.all });
     },
     onError: (error) => {
-      Logger.error("Failed to create ticket alarm", error);
+      Logger.error('Failed to create ticket alarm', error);
     },
   });
 
@@ -76,23 +75,18 @@ export function useTicketAlarmMutation() {
       return queryClient.invalidateQueries({ queryKey: ticketAlarmKeys.all });
     },
     onError: (error) => {
-      Logger.error("Failed to delete ticket alarm", error);
+      Logger.error('Failed to delete ticket alarm', error);
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({
-      alarmId,
-      request,
-    }: {
-      alarmId: number;
-      request: UpdateTicketAlarmRequest;
-    }) => ticketAlarmUpdateAPI(alarmId, request),
+    mutationFn: ({ alarmId, request }: { alarmId: number; request: UpdateTicketAlarmRequest }) =>
+      ticketAlarmUpdateAPI(alarmId, request),
     onSuccess: () => {
       return queryClient.invalidateQueries({ queryKey: ticketAlarmKeys.all });
     },
     onError: (error) => {
-      Logger.error("Failed to update ticket alarm", error);
+      Logger.error('Failed to update ticket alarm', error);
     },
   });
 

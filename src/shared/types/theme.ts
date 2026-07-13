@@ -1,5 +1,5 @@
-import { theme } from "@/src/styles/theme";
-import { TeamColorToken } from "@/src/utils/team";
+import { theme } from '@/src/styles/theme';
+import { TeamColorToken } from '@/src/utils/team';
 
 /**
  * 객체의 중첩된 키 경로를 문자열 리터럴로 추출하는 유틸리티 타입
@@ -8,7 +8,9 @@ import { TeamColorToken } from "@/src/utils/team";
  */
 type Leaves<T> = T extends object
   ? {
-      [K in keyof T]: `${Exclude<K, symbol>}${Leaves<T[K]> extends never ? "" : `.${Leaves<T[K]>}`}`;
+      [
+        K in keyof T
+      ]: `${Exclude<K, symbol>}${Leaves<T[K]> extends never ? '' : `.${Leaves<T[K]>}`}`;
     }[keyof T]
   : never;
 
@@ -26,18 +28,18 @@ export type ThemeColorPath = Leaves<typeof theme.colors>;
  * @returns 해당 경로의 색상 값 (string) 또는 undefined
  */
 export const getThemeColorByPath = (path: string): string | undefined => {
-  const keys = path.split(".");
+  const keys = path.split('.');
   let current: unknown = theme.colors;
 
   for (const key of keys) {
-    if (current && typeof current === "object" && key in current) {
+    if (current && typeof current === 'object' && key in current) {
       current = (current as Record<string, unknown>)[key];
     } else {
       return undefined;
     }
   }
 
-  return typeof current === "string" ? current : undefined;
+  return typeof current === 'string' ? current : undefined;
 };
 
 /**
@@ -54,7 +56,7 @@ export function isThemeColorPath(path: string): path is ThemeColorPath {
  * 테마 시스템과 구단 시스템 간의 정합성을 보장하기 위함.
  */
 export function getTeamColorPath(token?: TeamColorToken): ThemeColorPath {
-  const path = `team.${token || "fallback"}`;
+  const path = `team.${token || 'fallback'}`;
   // 🚨 앙드레 카파시: 이미 TeamColorToken이 theme.colors.team의 키임이 보장되므로
   // 내부적으로는 단언하되 외부 인터페이스는 깨끗하게 유지함.
   return path as ThemeColorPath;

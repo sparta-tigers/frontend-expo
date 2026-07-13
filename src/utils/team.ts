@@ -1,44 +1,34 @@
-import { theme } from "@/src/styles/theme";
-import { ImageSourcePropType, StyleSheet, TextStyle, ViewStyle } from "react-native";
+import { theme } from '@/src/styles/theme';
+import { ImageSourcePropType, StyleSheet, TextStyle, ViewStyle } from 'react-native';
 
 /**
  * 🛡️ TeamCode: KBO 구단 식별자 유니온 타입
  * Why: 단순 문자열 사용을 지양하고 타입 안정성을 확보하여 Fail-fast를 실현함.
  */
 export type TeamCode =
-  | "KIA"
-  | "LG"
-  | "KT"
-  | "SSG"
-  | "NC"
-  | "DOOSAN"
-  | "LOTTE"
-  | "SAMSUNG"
-  | "HANWHA"
-  | "KIWOOM"
-  | "DEFAULT";
+  | 'KIA'
+  | 'LG'
+  | 'KT'
+  | 'SSG'
+  | 'NC'
+  | 'DOOSAN'
+  | 'LOTTE'
+  | 'SAMSUNG'
+  | 'HANWHA'
+  | 'KIWOOM'
+  | 'DEFAULT';
 
 /**
  * 🆔 DEFAULT_TEAM_ID: 기본 구단 식별자 (매직 스트링 방지)
  */
-export const DEFAULT_TEAM_ID = "DEFAULT";
+export const DEFAULT_TEAM_ID = 'DEFAULT';
 
 /**
  * 🔌 BackendCode: DB 및 API 통신용 구단 식별 유니온 타입
  * Why: 백엔드 스펙과의 오차를 방지하고 타입 안정성을 확보함.
  */
 export type BackendCode =
-  | "HT"
-  | "LG"
-  | "SK"
-  | "WO"
-  | "NC"
-  | "OB"
-  | "LT"
-  | "SS"
-  | "HH"
-  | "KT"
-  | "KBO";
+  'HT' | 'LG' | 'SK' | 'WO' | 'NC' | 'OB' | 'LT' | 'SS' | 'HH' | 'KT' | 'KBO';
 
 /**
  * 🎨 TeamColorToken: 테마 시스템과 연동되는 컬러 토큰 타입
@@ -66,134 +56,134 @@ export interface TeamMeta {
  */
 export const TEAM_DATA: Record<TeamCode, TeamMeta> = {
   KIA: {
-    id: "KIA",
-    name: "KIA 타이거즈",
-    shortName: "KIA",
-    subName: "타이거즈",
-    mascotEmoji: "🐯",
+    id: 'KIA',
+    name: 'KIA 타이거즈',
+    shortName: 'KIA',
+    subName: '타이거즈',
+    mascotEmoji: '🐯',
     color: theme.colors.team.kia,
-    colorToken: "kia",
-    backendCode: "HT",
-    stadium: "광주-기아 챔피언스 필드",
+    colorToken: 'kia',
+    backendCode: 'HT',
+    stadium: '광주-기아 챔피언스 필드',
   },
   LG: {
-    id: "LG",
-    name: "LG 트윈스",
-    shortName: "LG",
-    subName: "트윈스",
-    mascotEmoji: "👯",
+    id: 'LG',
+    name: 'LG 트윈스',
+    shortName: 'LG',
+    subName: '트윈스',
+    mascotEmoji: '👯',
     color: theme.colors.team.lg,
-    colorToken: "lg",
-    backendCode: "LG",
-    stadium: "서울 잠실 야구장",
+    colorToken: 'lg',
+    backendCode: 'LG',
+    stadium: '서울 잠실 야구장',
   },
   KT: {
-    id: "KT",
-    name: "KT 위즈",
-    shortName: "KT",
-    subName: "위즈",
-    mascotEmoji: "🧙",
+    id: 'KT',
+    name: 'KT 위즈',
+    shortName: 'KT',
+    subName: '위즈',
+    mascotEmoji: '🧙',
     color: theme.colors.team.kt,
-    colorToken: "kt",
-    backendCode: "KT",
-    stadium: "수원 KT 위즈 파크",
+    colorToken: 'kt',
+    backendCode: 'KT',
+    stadium: '수원 KT 위즈 파크',
   },
   SSG: {
-    id: "SSG",
-    name: "SSG 랜더스",
-    shortName: "SSG",
-    subName: "랜더스",
-    mascotEmoji: "🛸",
+    id: 'SSG',
+    name: 'SSG 랜더스',
+    shortName: 'SSG',
+    subName: '랜더스',
+    mascotEmoji: '🛸',
     color: theme.colors.team.ssg,
-    colorToken: "ssg",
-    backendCode: "SK",
-    stadium: "인천 SSG 랜더스 필드",
+    colorToken: 'ssg',
+    backendCode: 'SK',
+    stadium: '인천 SSG 랜더스 필드',
   },
   NC: {
-    id: "NC",
-    name: "NC 다이노스",
-    shortName: "NC",
-    subName: "다이노스",
-    mascotEmoji: "🦖",
+    id: 'NC',
+    name: 'NC 다이노스',
+    shortName: 'NC',
+    subName: '다이노스',
+    mascotEmoji: '🦖',
     color: theme.colors.team.nc,
-    colorToken: "nc",
-    backendCode: "NC",
-    stadium: "창원 NC 파크",
+    colorToken: 'nc',
+    backendCode: 'NC',
+    stadium: '창원 NC 파크',
   },
   DOOSAN: {
-    id: "DOOSAN",
-    name: "두산 베어스",
-    shortName: "두산",
-    subName: "베어스",
-    mascotEmoji: "🐻",
+    id: 'DOOSAN',
+    name: '두산 베어스',
+    shortName: '두산',
+    subName: '베어스',
+    mascotEmoji: '🐻',
     color: theme.colors.team.doosan,
-    colorToken: "doosan",
-    backendCode: "OB",
-    stadium: "서울 잠실 야구장",
+    colorToken: 'doosan',
+    backendCode: 'OB',
+    stadium: '서울 잠실 야구장',
   },
   LOTTE: {
-    id: "LOTTE",
-    name: "롯데 자이언츠",
-    shortName: "롯데",
-    subName: "자이언츠",
-    mascotEmoji: "⚓",
+    id: 'LOTTE',
+    name: '롯데 자이언츠',
+    shortName: '롯데',
+    subName: '자이언츠',
+    mascotEmoji: '⚓',
     color: theme.colors.team.lotte,
-    colorToken: "lotte",
-    backendCode: "LT",
-    stadium: "부산 사직 야구장",
+    colorToken: 'lotte',
+    backendCode: 'LT',
+    stadium: '부산 사직 야구장',
   },
   SAMSUNG: {
-    id: "SAMSUNG",
-    name: "삼성 라이온즈",
-    shortName: "삼성",
-    subName: "라이온즈",
-    mascotEmoji: "🦁",
+    id: 'SAMSUNG',
+    name: '삼성 라이온즈',
+    shortName: '삼성',
+    subName: '라이온즈',
+    mascotEmoji: '🦁',
     color: theme.colors.team.samsung,
-    colorToken: "samsung",
-    backendCode: "SS",
-    stadium: "대구 삼성 라이온즈 파크",
+    colorToken: 'samsung',
+    backendCode: 'SS',
+    stadium: '대구 삼성 라이온즈 파크',
   },
   HANWHA: {
-    id: "HANWHA",
-    name: "한화 이글스",
-    shortName: "한화",
-    subName: "이글스",
-    mascotEmoji: "🦅",
+    id: 'HANWHA',
+    name: '한화 이글스',
+    shortName: '한화',
+    subName: '이글스',
+    mascotEmoji: '🦅',
     color: theme.colors.team.hanwha,
-    colorToken: "hanwha",
-    backendCode: "HH",
-    stadium: "한화생명 이글스 파크",
+    colorToken: 'hanwha',
+    backendCode: 'HH',
+    stadium: '한화생명 이글스 파크',
   },
   KIWOOM: {
-    id: "KIWOOM",
-    name: "키움 히어로즈",
-    shortName: "키움",
-    subName: "히어로즈",
-    mascotEmoji: "🦸",
+    id: 'KIWOOM',
+    name: '키움 히어로즈',
+    shortName: '키움',
+    subName: '히어로즈',
+    mascotEmoji: '🦸',
     color: theme.colors.team.kiwoom,
-    colorToken: "kiwoom",
-    backendCode: "WO",
-    stadium: "고척 스카이돔",
+    colorToken: 'kiwoom',
+    backendCode: 'WO',
+    stadium: '고척 스카이돔',
   },
   DEFAULT: {
-    id: "DEFAULT",
-    name: "KBO",
-    shortName: "KBO",
-    subName: "KBO",
-    mascotEmoji: "⚾",
+    id: 'DEFAULT',
+    name: 'KBO',
+    shortName: 'KBO',
+    subName: 'KBO',
+    mascotEmoji: '⚾',
     color: theme.colors.team.fallback,
-    colorToken: "fallback",
-    backendCode: "KBO",
-    stadium: "KBO 야구장",
+    colorToken: 'fallback',
+    backendCode: 'KBO',
+    stadium: 'KBO 야구장',
   },
 } as const;
 
 /**
  * ⚡ O(1) 조회를 위한 내부 매핑 맵 (Internal Lookup Maps)
  */
-const BACKEND_CODE_MAP: Record<string, TeamMeta> = Object.values(
-  TEAM_DATA,
-).reduce<Record<string, TeamMeta>>((acc, team) => {
+const BACKEND_CODE_MAP: Record<string, TeamMeta> = Object.values(TEAM_DATA).reduce<
+  Record<string, TeamMeta>
+>((acc, team) => {
   acc[team.backendCode] = team;
   return acc;
 }, {});
@@ -233,27 +223,22 @@ export function findTeamMeta(identifier: string | null | undefined): TeamMeta {
 const initialTeamStyles: Record<string, ViewStyle | TextStyle> = {};
 
 export const TEAM_STYLES = StyleSheet.create(
-  Object.entries(TEAM_DATA).reduce<Record<string, ViewStyle | TextStyle>>(
-    (acc, [code, meta]) => {
-      const teamCode = code as TeamCode;
-      acc[teamCode] = {
-        backgroundColor: meta.color,
-      };
-      acc[`${teamCode}_TEXT`] = {
-        color: meta.color,
-      };
-      return acc;
-    },
-    initialTeamStyles,
-  ),
+  Object.entries(TEAM_DATA).reduce<Record<string, ViewStyle | TextStyle>>((acc, [code, meta]) => {
+    const teamCode = code as TeamCode;
+    acc[teamCode] = {
+      backgroundColor: meta.color,
+    };
+    acc[`${teamCode}_TEXT`] = {
+      color: meta.color,
+    };
+    return acc;
+  }, initialTeamStyles),
 );
 
 /**
  * 💅 getTeamBgStyle: 구단 배경색 스타일 반환 (하위 호환성용)
  */
-export function getTeamBgStyle(
-  identifier: string | null | undefined,
-): ViewStyle {
+export function getTeamBgStyle(identifier: string | null | undefined): ViewStyle {
   const meta = findTeamMeta(identifier);
   return (TEAM_STYLES[meta.id] || TEAM_STYLES.DEFAULT) as ViewStyle;
 }
@@ -261,15 +246,13 @@ export function getTeamBgStyle(
 /**
  * 📦 TEAM_LIST: 전체 구단 목록 (마스코트 포함)
  */
-export const TEAM_LIST = Object.values(TEAM_DATA).filter(
-  (t) => t.id !== DEFAULT_TEAM_ID,
-);
+export const TEAM_LIST = Object.values(TEAM_DATA).filter((t) => t.id !== DEFAULT_TEAM_ID);
 
 /**
  * ✅ isValidTeamCode: 유효한 팀 코드인지 확인 (Type Guard)
  * Why: 런타임 입력을 unknown으로 받아 타입 안정성을 검증함.
  */
 export function isValidTeamCode(code: unknown): code is TeamCode {
-  if (typeof code !== "string") return false;
+  if (typeof code !== 'string') return false;
   return code in TEAM_DATA && code !== DEFAULT_TEAM_ID;
 }

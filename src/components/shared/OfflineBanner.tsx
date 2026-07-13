@@ -1,6 +1,6 @@
-import { useTheme } from "@/hooks/useTheme";
-import { FONT_SIZE, SPACING } from "@/src/styles/theme";
-import { StyleSheet, Text, View } from "react-native";
+import { useTheme } from '@/hooks/useTheme';
+import { FONT_SIZE, SPACING } from '@/src/styles/theme';
+import { StyleSheet, Text, View } from 'react-native';
 
 /**
  * 오프라인 배너 컴포넌트
@@ -33,12 +33,12 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.SMALL,
     paddingHorizontal: SPACING.COMPONENT,
     borderBottomWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   text: {
     fontSize: FONT_SIZE.SMALL,
-    fontWeight: "600",
-    textAlign: "center",
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });

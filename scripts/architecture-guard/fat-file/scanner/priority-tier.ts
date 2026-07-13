@@ -20,7 +20,7 @@
 //     construction site rather than corrupting downstream Spec / Task stages
 //     silently.
 
-import type { PriorityTier, ScanResult } from "../types.ts";
+import type { PriorityTier, ScanResult } from '../types.ts';
 
 const TOP_THRESHOLD = 1000 as const;
 const REVIEW_THRESHOLD = 500 as const;
@@ -38,8 +38,8 @@ const REVIEW_THRESHOLD = 500 as const;
  * - otherwise              → `null`
  */
 export function priorityTier(loc: number): PriorityTier | null {
-  if (loc >= TOP_THRESHOLD) return "TOP";
-  if (loc >= REVIEW_THRESHOLD) return "REVIEW";
+  if (loc >= TOP_THRESHOLD) return 'TOP';
+  if (loc >= REVIEW_THRESHOLD) return 'REVIEW';
   return null;
 }
 
@@ -69,15 +69,12 @@ export function buildScanResult(args: BuildScanResultArgs): ScanResult | null {
   const tier = priorityTier(args.loc);
   if (tier === null) return null;
 
-  const topBiconditional = args.loc >= TOP_THRESHOLD === (tier === "TOP");
+  const topBiconditional = args.loc >= TOP_THRESHOLD === (tier === 'TOP');
   const reviewBiconditional =
-    (args.loc >= REVIEW_THRESHOLD && args.loc < TOP_THRESHOLD) ===
-    (tier === "REVIEW");
+    (args.loc >= REVIEW_THRESHOLD && args.loc < TOP_THRESHOLD) === (tier === 'REVIEW');
 
   if (!topBiconditional || !reviewBiconditional) {
-    throw new Error(
-      `ScanResult invariant violated: loc=${args.loc}, priorityTier=${tier}`,
-    );
+    throw new Error(`ScanResult invariant violated: loc=${args.loc}, priorityTier=${tier}`);
   }
 
   return {

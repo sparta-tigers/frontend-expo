@@ -1,4 +1,4 @@
-import { TeamColorToken } from "@/src/utils/team";
+import { TeamColorToken } from '@/src/utils/team';
 
 /**
  * 캘린더 경기 정보 데이터 모델
@@ -7,7 +7,7 @@ import { TeamColorToken } from "@/src/utils/team";
  */
 export interface CalendarGameDto {
   day: number;
-  location?: "H" | "A" | undefined;
+  location?: 'H' | 'A' | undefined;
   opponentCode?: string | undefined; // 🚨 팀 식별을 위한 코드 추가
   opponentShort: string;
   timeText?: string | undefined;
@@ -25,7 +25,7 @@ export type CalendarCellModel = {
   matchId?: number | undefined; // 🚨 수정
   hasGame: boolean;
   hasAttendance?: boolean | undefined; // 🚨 수정: 직관 기록 여부
-  location?: "H" | "A" | undefined;
+  location?: 'H' | 'A' | undefined;
   opponentCode?: string | undefined; // 🚨 팀 식별을 위한 코드 추가
   opponentShort: string;
   timeText?: string | undefined;

@@ -1,9 +1,9 @@
 // src/features/user/components/ProfileMenu.tsx
-import { Box } from "@/components/ui/box";
-import { Typography } from "@/components/ui/typography";
-import { styles } from "@/src/features/user/styles/profile.styles";
-import React from "react";
-import { TouchableOpacity } from "react-native";
+import { Box } from '@/components/ui/box';
+import { Typography } from '@/components/ui/typography';
+import { styles } from '@/src/features/user/styles/profile.styles';
+import React from 'react';
+import { TouchableOpacity } from 'react-native';
 
 interface MenuItemProps {
   label: string;
@@ -25,13 +25,8 @@ export function MenuItem({ label, onPress, disabled, isError }: MenuItemProps) {
       disabled={disabled}
       activeOpacity={0.7}
     >
-      <Typography color={isError ? "destructive" : "text.primary"}>
-        {label}
-      </Typography>
-      <Typography
-        color={isError ? "destructive" : "text.secondary"}
-        weight="bold"
-      >
+      <Typography color={isError ? 'destructive' : 'text.primary'}>{label}</Typography>
+      <Typography color={isError ? 'destructive' : 'text.secondary'} weight="bold">
         ›
       </Typography>
     </TouchableOpacity>

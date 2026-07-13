@@ -1,6 +1,6 @@
-import { apiClient } from "@/src/core/client";
-import type { ApiResponse, PaginatedResponse } from "@/src/shared/types/common";
-import { MatchAttendance, TicketOcrResponseDto } from "./types";
+import { apiClient } from '@/src/core/client';
+import type { ApiResponse, PaginatedResponse } from '@/src/shared/types/common';
+import { MatchAttendance, TicketOcrResponseDto } from './types';
 
 /**
  * 🚨 앙드레 카파시: 직관 기록(Match Attendance) API 정의
@@ -19,7 +19,7 @@ export async function attendanceGetMyAPI(
   page: number = 1,
   size: number = 10,
 ): Promise<ApiResponse<PaginatedResponse<MatchAttendance>>> {
-  return apiClient.get("/api/attendances/my", { page, size });
+  return apiClient.get('/api/attendances/my', { page, size });
 }
 
 /**
@@ -50,9 +50,9 @@ export async function attendanceGetDetailAPI(
 export async function attendanceCreateAPI(
   formData: FormData,
 ): Promise<ApiResponse<MatchAttendance>> {
-  return apiClient.post("/api/attendances", formData, {
+  return apiClient.post('/api/attendances', formData, {
     headers: {
-      "Content-Type": "multipart/form-data",
+      'Content-Type': 'multipart/form-data',
     },
     transformRequest: (data) => data, // RN FormData 보존
   });
@@ -67,7 +67,7 @@ export async function attendanceUpdateAPI(
 ): Promise<ApiResponse<MatchAttendance>> {
   return apiClient.patch(`/api/attendances/${attendanceId}`, formData, {
     headers: {
-      "Content-Type": "multipart/form-data",
+      'Content-Type': 'multipart/form-data',
     },
     transformRequest: (data) => data,
   });
@@ -76,9 +76,7 @@ export async function attendanceUpdateAPI(
 /**
  * 직관 기록 삭제 API
  */
-export async function attendanceDeleteAPI(
-  attendanceId: number,
-): Promise<ApiResponse<void>> {
+export async function attendanceDeleteAPI(attendanceId: number): Promise<ApiResponse<void>> {
   return apiClient.delete(`/api/attendances/${attendanceId}`);
 }
 
@@ -88,9 +86,9 @@ export async function attendanceDeleteAPI(
 export async function attendanceOcrAPI(
   formData: FormData,
 ): Promise<ApiResponse<TicketOcrResponseDto>> {
-  return apiClient.post("/api/attendances/ticket", formData, {
+  return apiClient.post('/api/attendances/ticket', formData, {
     headers: {
-      "Content-Type": "multipart/form-data",
+      'Content-Type': 'multipart/form-data',
     },
     transformRequest: (data) => data,
   });
@@ -101,8 +99,6 @@ export async function attendanceOcrAPI(
  *
  * @param year - 조회할 연도 (선택)
  */
-export async function attendanceGetCountAPI(
-  year?: number,
-): Promise<ApiResponse<number>> {
-  return apiClient.get("/api/attendances/count", { year });
+export async function attendanceGetCountAPI(year?: number): Promise<ApiResponse<number>> {
+  return apiClient.get('/api/attendances/count', { year });
 }

@@ -1,7 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
-import { exchangeGetMyRequestsAPI, exchangeUpdateStatusAPI } from "../api";
-import { ExchangeRequestStatus } from "../types";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useState } from 'react';
+import { exchangeGetMyRequestsAPI, exchangeUpdateStatusAPI } from '../api';
+import { ExchangeRequestStatus } from '../types';
 
 /**
  * 🚨 앙드레 카파시: React Query를 이용한 교환 요청 목록 관리 및 상태 업데이트 훅
@@ -11,11 +11,11 @@ import { ExchangeRequestStatus } from "../types";
  *
  * @param role - "receiver" (받은 요청) | "sender" (보낸 요청)
  */
-export const useExchangeRequests = (role: "receiver" | "sender") => {
+export const useExchangeRequests = (role: 'receiver' | 'sender') => {
   const queryClient = useQueryClient();
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["exchangeRequests", role],
+    queryKey: ['exchangeRequests', role],
     queryFn: () => exchangeGetMyRequestsAPI(role, 0, 50),
     staleTime: 1000 * 30, // 30초 동안은 캐시된 데이터 사용
   });
@@ -29,13 +29,13 @@ export const useExchangeRequests = (role: "receiver" | "sender") => {
       const response = await exchangeUpdateStatusAPI(id, {
         status: ExchangeRequestStatus.ACCEPTED,
       });
-      if (response.resultType !== "SUCCESS") {
-        throw new Error(response.error?.message || "수락 처리 실패");
+      if (response.resultType !== 'SUCCESS') {
+        throw new Error(response.error?.message || '수락 처리 실패');
       }
       return response;
     },
     onSuccess: () => {
-      return queryClient.invalidateQueries({ queryKey: ["exchangeRequests"] });
+      return queryClient.invalidateQueries({ queryKey: ['exchangeRequests'] });
     },
   });
 
@@ -44,13 +44,13 @@ export const useExchangeRequests = (role: "receiver" | "sender") => {
       const response = await exchangeUpdateStatusAPI(id, {
         status: ExchangeRequestStatus.REJECTED,
       });
-      if (response.resultType !== "SUCCESS") {
-        throw new Error(response.error?.message || "거절 처리 실패");
+      if (response.resultType !== 'SUCCESS') {
+        throw new Error(response.error?.message || '거절 처리 실패');
       }
       return response;
     },
     onSuccess: () => {
-      return queryClient.invalidateQueries({ queryKey: ["exchangeRequests"] });
+      return queryClient.invalidateQueries({ queryKey: ['exchangeRequests'] });
     },
   });
 

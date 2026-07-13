@@ -15,7 +15,7 @@
  * - 최종 반환되는 분류 순서(CANONICAL_ORDER)는 UI -> Logic -> Type -> Style -> Constant 순으로 통일됨.
  */
 
-import type { Concern_Category } from "../types.ts";
+import type { Concern_Category } from '../types.ts';
 
 // ---------------------------------------------------------------------------
 // Block boundary regex
@@ -36,8 +36,7 @@ import type { Concern_Category } from "../types.ts";
  * `import` is intentionally omitted — design.md treats imports as preamble,
  * not as a block.
  */
-const BLOCK_STARTER =
-  /^\s*(?:export|function|const|let|var|interface|type|enum|class|async)\b/;
+const BLOCK_STARTER = /^\s*(?:export|function|const|let|var|interface|type|enum|class|async)\b/;
 
 // ---------------------------------------------------------------------------
 // Concern rule table
@@ -92,13 +91,7 @@ const CONSTANT_RULES = {
  * Why: 출력되는 관심사의 순서를 항상 UI -> Logic -> Type -> Style -> Constant 로
  *      고정하여, 툴 체인 다운스트림에서 예측 가능한 결과 포맷을 보장함.
  */
-const CANONICAL_ORDER: readonly Concern_Category[] = [
-  "UI",
-  "Logic",
-  "Type",
-  "Style",
-  "Constant",
-];
+const CANONICAL_ORDER: readonly Concern_Category[] = ['UI', 'Logic', 'Type', 'Style', 'Constant'];
 
 // ---------------------------------------------------------------------------
 // splitTopLevelBlocks
@@ -136,9 +129,9 @@ export type TopLevelBlock = {
  *     `[firstBoundaryLine, lines.length]` with no gaps and no overlaps.
  */
 export function splitTopLevelBlocks(source: string): readonly TopLevelBlock[] {
-  if (source === "") return [];
+  if (source === '') return [];
 
-  const lines = source.split("\n");
+  const lines = source.split('\n');
   const blocks: TopLevelBlock[] = [];
 
   let depth = 0;
@@ -150,12 +143,12 @@ export function splitTopLevelBlocks(source: string): readonly TopLevelBlock[] {
     blocks.push({
       startLine: currentStart,
       endLine: endLineInclusive,
-      text: lines.slice(currentStart - 1, endLineInclusive).join("\n"),
+      text: lines.slice(currentStart - 1, endLineInclusive).join('\n'),
     });
   };
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i] ?? "";
+    const line = lines[i] ?? '';
     const lineNum = i + 1;
 
     // (1) Depth-0 boundary check FIRST — before updating depth with this
@@ -206,29 +199,25 @@ export function classifyBlock(block: string): Concern_Category {
   // (1) UI — component shape + return( + JSX tag all three required.
   const hasComponentShape =
     UI_RULES.functionDecl.test(stripped) || UI_RULES.arrowDecl.test(stripped);
-  if (
-    hasComponentShape &&
-    UI_RULES.returnParen.test(stripped) &&
-    UI_RULES.jsxTag.test(stripped)
-  ) {
-    return "UI";
+  if (hasComponentShape && UI_RULES.returnParen.test(stripped) && UI_RULES.jsxTag.test(stripped)) {
+    return 'UI';
   }
 
   // (2) Style — StyleSheet.create(...) or styled.X / styled(...).
-  if (STYLE_RULE.test(stripped)) return "Style";
+  if (STYLE_RULE.test(stripped)) return 'Style';
 
   // (3) Type — primary construct is type/interface/enum.
-  if (TYPE_RULE.test(stripped)) return "Type";
+  if (TYPE_RULE.test(stripped)) return 'Type';
 
   // (4) Constant — export const UPPER_SNAKE = <non-function-call RHS>.
   const declMatch = CONSTANT_RULES.decl.exec(stripped);
   if (declMatch !== null) {
     const afterEq = stripped.slice(declMatch.index + declMatch[0].length);
-    if (!CONSTANT_RULES.functionCallRhs.test(afterEq)) return "Constant";
+    if (!CONSTANT_RULES.functionCallRhs.test(afterEq)) return 'Constant';
   }
 
   // (5) Logic — fallback.
-  return "Logic";
+  return 'Logic';
 }
 
 // ---------------------------------------------------------------------------
@@ -303,14 +292,12 @@ export function classifyConcerns(source: string): ClassifyConcernsResult {
  * String literals are intentionally not tokenized; see module header.
  */
 function stripComments(text: string): string {
-  const noBlock = text.replace(/\/\*[\s\S]*?\*\//g, (match) =>
-    match.replace(/[^\n]/g, " "),
-  );
+  const noBlock = text.replace(/\/\*[\s\S]*?\*\//g, (match) => match.replace(/[^\n]/g, ' '));
   return noBlock
-    .split("\n")
+    .split('\n')
     .map((line) => {
-      const idx = line.indexOf("//");
+      const idx = line.indexOf('//');
       return idx === -1 ? line : line.slice(0, idx);
     })
-    .join("\n");
+    .join('\n');
 }

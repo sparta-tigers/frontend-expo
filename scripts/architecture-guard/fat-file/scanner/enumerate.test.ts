@@ -30,25 +30,21 @@ import {
   property,
   record,
   stringMatching,
-} from "fast-check";
-import { strict as assert } from "node:assert";
-import * as fs from "node:fs";
-import * as os from "node:os";
-import * as path from "node:path";
-import { test } from "node:test";
+} from 'fast-check';
+import { strict as assert } from 'node:assert';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { test } from 'node:test';
 
-import {
-  DEFAULT_EXCLUDE_DIRS,
-  DEFAULT_EXTENSIONS,
-  enumerateSourceFiles,
-} from "./enumerate.ts";
+import { DEFAULT_EXCLUDE_DIRS, DEFAULT_EXTENSIONS, enumerateSourceFiles } from './enumerate.ts';
 
 // ---------------------------------------------------------------------------
 // Arbitraries
 // ---------------------------------------------------------------------------
 
 // The three target top-level directories the scanner is asked to recurse into.
-const TARGETS = ["foo", "bar", "baz"] as const;
+const TARGETS = ['foo', 'bar', 'baz'] as const;
 
 // A segment pool that mixes:
 //   - TARGET top-level names: "foo", "bar", "baz"
@@ -57,22 +53,22 @@ const TARGETS = ["foo", "bar", "baz"] as const;
 //     (should be pruned by (c), at any depth)
 //   - Plain directory names: "a", "b", "c"
 const segmentArb = constantFrom(
-  "foo",
-  "bar",
-  "baz",
-  "qux",
-  "node_modules",
-  ".expo",
-  "dist",
-  "build",
-  ".git",
-  "a",
-  "b",
-  "c",
+  'foo',
+  'bar',
+  'baz',
+  'qux',
+  'node_modules',
+  '.expo',
+  'dist',
+  'build',
+  '.git',
+  'a',
+  'b',
+  'c',
 );
 
 // Mix of source and non-source extensions so completeness is non-trivial.
-const extensionArb = constantFrom(".ts", ".tsx", ".js", ".jsx", ".md", ".json");
+const extensionArb = constantFrom('.ts', '.tsx', '.js', '.jsx', '.md', '.json');
 
 // File base name — short, filesystem-safe, non-empty.
 const baseNameArb = stringMatching(/^[a-z][a-z0-9]{0,5}$/);
@@ -139,17 +135,14 @@ function shouldBeIncluded(relPath: string): boolean {
  * paths is returned so completeness checks can compare against the on-disk
  * reality, not the pre-dedupe generator output.
  */
-function materializeTree(
-  rootDir: string,
-  entries: readonly FileEntry[],
-): Set<string> {
+function materializeTree(rootDir: string, entries: readonly FileEntry[]): Set<string> {
   const uniqueRel = new Set<string>();
   for (const entry of entries) {
     const rel = relPathOf(entry);
     uniqueRel.add(rel);
     const abs = path.join(rootDir, rel);
     fs.mkdirSync(path.dirname(abs), { recursive: true });
-    fs.writeFileSync(abs, "");
+    fs.writeFileSync(abs, '');
   }
   return uniqueRel;
 }
@@ -158,13 +151,11 @@ function materializeTree(
 // Property
 // ---------------------------------------------------------------------------
 
-test("Property 2: enumerateSourceFiles is sound and complete w.r.t. (targets, extensions, excludeDirs)", (t) => {
+test('Property 2: enumerateSourceFiles is sound and complete w.r.t. (targets, extensions, excludeDirs)', (t) => {
   // Per-test parent tmpdir so any accidental leaks are swept by t.after.
   // `realpathSync` canonicalizes symlinked tmpdirs (e.g. /tmp → /private/tmp
   // on macOS) so string comparisons against rootDir are stable.
-  const parentTmp = fs.realpathSync(
-    fs.mkdtempSync(path.join(os.tmpdir(), "fat-file-enum-")),
-  );
+  const parentTmp = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'fat-file-enum-')));
 
   t.after(() => {
     fs.rmSync(parentTmp, { recursive: true, force: true });
@@ -174,7 +165,7 @@ test("Property 2: enumerateSourceFiles is sound and complete w.r.t. (targets, ex
     property(fileTreeArb, (entries) => {
       // Each fc iteration gets its own rootDir under parentTmp and cleans up
       // deterministically, regardless of assertion outcome.
-      const rootDir = fs.mkdtempSync(path.join(parentTmp, "run-"));
+      const rootDir = fs.mkdtempSync(path.join(parentTmp, 'run-'));
       try {
         const createdRel = materializeTree(rootDir, entries);
 
@@ -184,9 +175,7 @@ test("Property 2: enumerateSourceFiles is sound and complete w.r.t. (targets, ex
         });
 
         // Convert absolute paths back to rootDir-relative for assertions.
-        const resultRel = new Set(
-          result.map((abs) => path.relative(rootDir, abs)),
-        );
+        const resultRel = new Set(result.map((abs) => path.relative(rootDir, abs)));
 
         // Soundness: every returned path satisfies (a) ∧ (b) ∧ (c).
         for (const rel of resultRel) {
@@ -198,14 +187,9 @@ test("Property 2: enumerateSourceFiles is sound and complete w.r.t. (targets, ex
 
         // Completeness: every on-disk path satisfying the 3 conditions is
         // in the result.
-        const expectedRel = new Set(
-          [...createdRel].filter((rel) => shouldBeIncluded(rel)),
-        );
+        const expectedRel = new Set([...createdRel].filter((rel) => shouldBeIncluded(rel)));
         for (const rel of expectedRel) {
-          assert.ok(
-            resultRel.has(rel),
-            `completeness violated: ${rel} missing from result`,
-          );
+          assert.ok(resultRel.has(rel), `completeness violated: ${rel} missing from result`);
         }
 
         // Exact-set equality — defense in depth against accidental extras

@@ -11,41 +11,41 @@ import {
   property,
   record,
   string,
-} from "fast-check";
-import { strict as assert } from "node:assert";
-import { test } from "node:test";
-import type { RefactoringSpecEntry } from "../types.ts";
-import { planTask } from "./index.ts";
+} from 'fast-check';
+import { strict as assert } from 'node:assert';
+import { test } from 'node:test';
+import type { RefactoringSpecEntry } from '../types.ts';
+import { planTask } from './index.ts';
 
-test("Property 15: Task_Planner의 결정론적 생성", () => {
+test('Property 15: Task_Planner의 결정론적 생성', () => {
   const specArb = record({
     source: record({
-      absolutePath: constant("/path.ts"),
-      relativePath: constant("path.ts"),
-      extension: constant(".ts"),
-      content: constant(""),
+      absolutePath: constant('/path.ts'),
+      relativePath: constant('path.ts'),
+      extension: constant('.ts'),
+      content: constant(''),
       loc: nat(),
-      priorityTier: constant("TOP"),
-      concerns: array(constantFrom("Logic", "UI")),
+      priorityTier: constant('TOP'),
+      concerns: array(constantFrom('Logic', 'UI')),
       mixed: boolean(),
       anyOccurrences: constant([]),
     }),
     decomposition: array(
       record({
-        path: constant("mod.ts"),
-        concern: constantFrom("Logic", "UI"),
+        path: constant('mod.ts'),
+        concern: constantFrom('Logic', 'UI'),
         expectedLoc: nat(),
         publicApi: array(string()),
       }),
     ),
     typeReplacements: constant([]),
     barrelFile: record({
-      path: constant("index.ts"),
+      path: constant('index.ts'),
       reExports: array(string()),
     }),
     exception: option(
       record({
-        reason: constant("Exception"),
+        reason: constant('Exception'),
         userConfirmationRequired: constant(true as const),
       }),
     ),
@@ -65,16 +65,13 @@ test("Property 15: Task_Planner의 결정론적 생성", () => {
       }
 
       // 1~8 references
-      assert.deepEqual(
-        task.requirementsRefs.slice().sort(),
-        [1, 2, 3, 4, 5, 6, 7, 8],
-      );
+      assert.deepEqual(task.requirementsRefs.slice().sort(), [1, 2, 3, 4, 5, 6, 7, 8]);
 
       // State check
       if (spec.exception) {
-        assert.equal(task.state, "Halted");
+        assert.equal(task.state, 'Halted');
       } else {
-        assert.equal(task.state, "Pending");
+        assert.equal(task.state, 'Pending');
       }
     }),
   );

@@ -1,27 +1,15 @@
-import { Box, Typography } from "@/components/ui";
-import { SafeLayout } from "@/components/ui/safe-layout";
-import {
-  useAttendance,
-  useDeleteAttendance,
-} from "@/src/features/match-attendance/queries";
-import { useFavoriteTeam } from "@/src/features/user/queries";
-import { theme } from "@/src/styles/theme";
-import { calculateMatchResult } from "@/src/utils/match";
-import { findTeamMeta } from "@/src/utils/team";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { Image } from "expo-image";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { AttendanceEmptyState } from "@/src/features/match-attendance/components";
-import {
-  ActivityIndicator,
-  Alert,
-
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
-
-
+import { Box, Typography } from '@/components/ui';
+import { SafeLayout } from '@/components/ui/safe-layout';
+import { useAttendance, useDeleteAttendance } from '@/src/features/match-attendance/queries';
+import { useFavoriteTeam } from '@/src/features/user/queries';
+import { theme } from '@/src/styles/theme';
+import { calculateMatchResult } from '@/src/utils/match';
+import { findTeamMeta } from '@/src/utils/team';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { AttendanceEmptyState } from '@/src/features/match-attendance/components';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
 /**
  * 🚨 [Phase 24] 직관 기록 상세 조회 화면 (개선 버전)
@@ -50,17 +38,17 @@ export default function AttendanceDetailScreen() {
   }
 
   const handleDelete = () => {
-    Alert.alert("삭제 확인", "이 직관 기록을 정말 삭제할까요?", [
-      { text: "닫기", style: "cancel" },
+    Alert.alert('삭제 확인', '이 직관 기록을 정말 삭제할까요?', [
+      { text: '닫기', style: 'cancel' },
       {
-        text: "삭제",
-        style: "destructive",
+        text: '삭제',
+        style: 'destructive',
         onPress: async () => {
           try {
             await deleteMutation.mutateAsync(Number(id));
-            router.replace("/(tabs)/history");
+            router.replace('/(tabs)/history');
           } catch {
-            Alert.alert("알림", "삭제하지 못했어요.");
+            Alert.alert('알림', '삭제하지 못했어요.');
           }
         },
       },
@@ -114,24 +102,15 @@ export default function AttendanceDetailScreen() {
       {/* 🚨 상단 헤더 중복 제거: expo-router의 전역 헤더를 사용하되, 
           필요 시 우측 액션(수정/삭제)만 커스텀으로 배치하거나 별도 툴바 활용 */}
       <Box px="SCREEN" py="sm" flexDir="row" justify="flex-end" gap="md">
-        <TouchableOpacity
-          onPress={() => router.push(`/attendance/${attendance.matchId}`)}
-        >
-          <Ionicons
-            name="create-outline"
-            size={24}
-            color={theme.colors.text.secondary}
-          />
+        <TouchableOpacity onPress={() => router.push(`/attendance/${attendance.matchId}`)}>
+          <Ionicons name="create-outline" size={24} color={theme.colors.text.secondary} />
         </TouchableOpacity>
         <TouchableOpacity onPress={handleDelete}>
           <Ionicons name="trash-outline" size={24} color={theme.colors.error} />
         </TouchableOpacity>
       </Box>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Match Info Card */}
         <Box bg="card" m="SCREEN" p="lg" rounded="xl" style={theme.shadow.card}>
           <Typography variant="caption" color="text.secondary" center mb="sm">
@@ -153,9 +132,7 @@ export default function AttendanceDetailScreen() {
                   { borderColor: homeTeam?.color ?? theme.colors.border.light },
                 ]}
               >
-                <Typography style={styles.mascotEmoji}>
-                  {homeTeam?.mascotEmoji ?? "🏠"}
-                </Typography>
+                <Typography style={styles.mascotEmoji}>{homeTeam?.mascotEmoji ?? '🏠'}</Typography>
               </Box>
               <Typography variant="body2" weight="bold">
                 {attendance.homeTeamName}
@@ -166,13 +143,7 @@ export default function AttendanceDetailScreen() {
               <Typography variant="h1" weight="black" color="text.primary">
                 {attendance.homeScore} : {attendance.awayScore}
               </Typography>
-              <Box
-                bg="brand.mintAlpha10"
-                px="sm"
-                py="xxs"
-                rounded="full"
-                mt="xs"
-              >
+              <Box bg="brand.mintAlpha10" px="sm" py="xxs" rounded="full" mt="xs">
                 <Typography variant="caption" color="brand.mint" weight="bold">
                   VS
                 </Typography>
@@ -193,9 +164,7 @@ export default function AttendanceDetailScreen() {
                   { borderColor: awayTeam?.color ?? theme.colors.border.light },
                 ]}
               >
-                <Typography style={styles.mascotEmoji}>
-                  {awayTeam?.mascotEmoji ?? "🚀"}
-                </Typography>
+                <Typography style={styles.mascotEmoji}>{awayTeam?.mascotEmoji ?? '🚀'}</Typography>
               </Box>
               <Typography variant="body2" weight="bold">
                 {attendance.awayTeamName}
@@ -256,12 +225,8 @@ export default function AttendanceDetailScreen() {
             MEMO
           </Typography>
           <Box bg="card" p="lg" rounded="lg" style={theme.shadow.card}>
-            <Typography
-              variant="body2"
-              color="text.primary"
-              style={styles.memoText}
-            >
-              {attendance.contents || "아직 작성된 내용이 없어요."}
+            <Typography variant="body2" color="text.primary" style={styles.memoText}>
+              {attendance.contents || '아직 작성된 내용이 없어요.'}
             </Typography>
           </Box>
         </Box>
@@ -291,7 +256,7 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.lg,
   },
   fullWidthImage: {
-    width: "100%",
+    width: '100%',
     aspectRatio: 1,
   },
   memoText: {

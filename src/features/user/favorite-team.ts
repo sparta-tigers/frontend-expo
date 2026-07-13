@@ -1,4 +1,4 @@
-import { RequireAtLeastOne } from "@/src/shared/types/common";
+import { RequireAtLeastOne } from '@/src/shared/types/common';
 
 /**
  * 즐겨찾기 팀 관련 타입 정의
@@ -24,7 +24,4 @@ export interface FavoriteTeamRequestBase {
   teamCode?: string;
 }
 
-export type FavoriteTeamRequest = RequireAtLeastOne<
-  FavoriteTeamRequestBase,
-  "teamId" | "teamCode"
->;
+export type FavoriteTeamRequest = RequireAtLeastOne<FavoriteTeamRequestBase, 'teamId' | 'teamCode'>;

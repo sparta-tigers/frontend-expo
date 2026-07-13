@@ -1,5 +1,5 @@
 // src/features/liveboard/types.ts
-import { LineupRowDto } from "@/src/shared/types/lineup";
+import { LineupRowDto } from '@/src/shared/types/lineup';
 import {
   InningTextsDto,
   LiveBoardDataDto,
@@ -7,14 +7,14 @@ import {
   MatchScoreDto,
   PlayerDto,
   PlayerPosition,
-} from "@/src/shared/types/match";
+} from '@/src/shared/types/match';
 import {
   ForeCastDto,
   NowCastDto,
   RainType,
   SkyStatus,
   WeatherApiStatus,
-} from "@/src/shared/types/weather";
+} from '@/src/shared/types/weather';
 
 /**
  * Liveboard 도메인 타입 정의
@@ -38,11 +38,7 @@ export type {
  * 🛰️ BroadcastItem: 구조화된 개별 중계 아이템
  * Why: 매퍼 계층에서 문자열을 파싱하여 UI가 조건 없이 렌더링할 수 있게 함.
  */
-export type BroadcastType =
-  | "BATTER_INFO"
-  | "PITCH_LOG"
-  | "PLAY_RESULT"
-  | "INNING_INFO";
+export type BroadcastType = 'BATTER_INFO' | 'PITCH_LOG' | 'PLAY_RESULT' | 'INNING_INFO';
 
 export interface BroadcastItem {
   id: string; // {inning}-{index}
@@ -62,7 +58,7 @@ export interface LiveboardData {
   homeScore?: number;
   awayScore?: number;
   inning?: number;
-  inningHalf?: "초" | "말" | undefined;
+  inningHalf?: '초' | '말' | undefined;
   ballCount?: number;
   strikeCount?: number;
   outCount?: number;

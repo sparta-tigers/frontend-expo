@@ -3,9 +3,9 @@
  * 백엔드 FavTeamController (/api/users/fav)와 연동
  */
 
-import { apiClient } from "@/src/core/client";
-import type { ApiResponse } from "@/src/shared/types/common";
-import { FavoriteTeam, FavoriteTeamRequest } from "./favorite-team";
+import { apiClient } from '@/src/core/client';
+import type { ApiResponse } from '@/src/shared/types/common';
+import { FavoriteTeam, FavoriteTeamRequest } from './favorite-team';
 
 /**
  * 즐겨찾기 팀 추가 API
@@ -14,7 +14,7 @@ import { FavoriteTeam, FavoriteTeamRequest } from "./favorite-team";
 export async function favoriteTeamAddAPI(
   request: FavoriteTeamRequest,
 ): Promise<ApiResponse<FavoriteTeam>> {
-  return apiClient.post("/api/users/fav", request);
+  return apiClient.post('/api/users/fav', request);
 }
 
 /**
@@ -22,7 +22,7 @@ export async function favoriteTeamAddAPI(
  * GET /api/users/fav
  */
 export async function favoriteTeamGetAPI(): Promise<ApiResponse<FavoriteTeam>> {
-  return apiClient.get("/api/users/fav");
+  return apiClient.get('/api/users/fav');
 }
 
 /**
@@ -32,7 +32,7 @@ export async function favoriteTeamGetAPI(): Promise<ApiResponse<FavoriteTeam>> {
 export async function favoriteTeamUpdateAPI(
   request: FavoriteTeamRequest,
 ): Promise<ApiResponse<FavoriteTeam>> {
-  return apiClient.patch("/api/users/fav", request);
+  return apiClient.patch('/api/users/fav', request);
 }
 
 /**
@@ -40,5 +40,5 @@ export async function favoriteTeamUpdateAPI(
  * DELETE /api/users/fav
  */
 export async function favoriteTeamDeleteAPI(): Promise<ApiResponse<void>> {
-  return apiClient.delete("/api/users/fav");
+  return apiClient.delete('/api/users/fav');
 }

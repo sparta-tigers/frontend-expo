@@ -5,72 +5,71 @@
  * 모든 디자인 토큰을 단일 theme 객체로 통합
  */
 
-import { Dimensions, Platform, StyleSheet } from "react-native";
+import { Dimensions, Platform, StyleSheet } from 'react-native';
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // 🚨 앙드레 카파시: 대시보드 레이아웃 고정 상수 정의
 // Why: 계산식에서 중복 참조되는 값을 변수로 추출하여 undefined 방지 및 가독성 확보
 const DASHBOARD_PADDING_HORIZONTAL = 30;
 const CALENDAR_WIDTH = SCREEN_WIDTH - DASHBOARD_PADDING_HORIZONTAL * 2;
 
-const tintColorLight = "#0a7ea4";
-const tintColorDark = "#fff";
+const tintColorLight = '#0a7ea4';
+const tintColorDark = '#fff';
 
 export const LIGHT_THEME = {
-  background: "#FFFFFF",
-  surface: "#F9FAFB",
-  card: "#FFFFFF",
-  text: "#111827",
-  border: "#E5E7EB",
-  primary: "#3B82F6",
-  secondary: "#6B7280",
-  accent: "#10B981",
-  destructive: "#EF4444",
-  warning: "#F59E0B",
-  info: "#3B82F6",
-  success: "#10B981",
-  muted: "#6B7280",
-  overlay: "rgba(0, 0, 0, 0.5)",
+  background: '#FFFFFF',
+  surface: '#F9FAFB',
+  card: '#FFFFFF',
+  text: '#111827',
+  border: '#E5E7EB',
+  primary: '#3B82F6',
+  secondary: '#6B7280',
+  accent: '#10B981',
+  destructive: '#EF4444',
+  warning: '#F59E0B',
+  info: '#3B82F6',
+  success: '#10B981',
+  muted: '#6B7280',
+  overlay: 'rgba(0, 0, 0, 0.5)',
   tint: tintColorLight,
 } as const;
 
 export const DARK_THEME = {
-  background: "#111827",
-  surface: "#1F2937",
-  card: "#1F2937",
-  text: "#F9FAFB",
-  border: "#374151",
-  primary: "#2563EB",
-  secondary: "#9CA3AF",
-  accent: "#059669",
-  destructive: "#DC2626",
-  warning: "#D97706",
-  info: "#2563EB",
-  success: "#059669",
-  muted: "#9CA3AF",
-  overlay: "rgba(0, 0, 0, 0.7)",
+  background: '#111827',
+  surface: '#1F2937',
+  card: '#1F2937',
+  text: '#F9FAFB',
+  border: '#374151',
+  primary: '#2563EB',
+  secondary: '#9CA3AF',
+  accent: '#059669',
+  destructive: '#DC2626',
+  warning: '#D97706',
+  info: '#2563EB',
+  success: '#059669',
+  muted: '#9CA3AF',
+  overlay: 'rgba(0, 0, 0, 0.7)',
   tint: tintColorDark,
 } as const;
 
 export const Fonts = Platform.select({
   ios: {
-    sans: "system-ui",
-    serif: "ui-serif",
-    rounded: "ui-rounded",
-    mono: "ui-monospace",
+    sans: 'system-ui',
+    serif: 'ui-serif',
+    rounded: 'ui-rounded',
+    mono: 'ui-monospace',
   },
   default: {
-    sans: "normal",
-    serif: "serif",
-    rounded: "normal",
-    mono: "monospace",
+    sans: 'normal',
+    serif: 'serif',
+    rounded: 'normal',
+    mono: 'monospace',
   },
   web: {
     sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
     serif: "Georgia, 'Times New Roman', serif",
-    rounded:
-      "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
+    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   },
 });
@@ -93,17 +92,17 @@ export type ThemePalette = {
   tint: string;
 };
 
-export type ColorSchemeName = "light" | "dark";
+export type ColorSchemeName = 'light' | 'dark';
 
 export const getThemeColors = (scheme: ColorSchemeName): ThemePalette =>
-  scheme === "dark" ? DARK_THEME : LIGHT_THEME;
+  scheme === 'dark' ? DARK_THEME : LIGHT_THEME;
 
 export const theme = {
   colors: {
-    primary: "#000000", // 메인 검정
-    background: "#FFFFFF", // 기본 배경
-    surface: "#F9FAFB", // 카드/입력창 배경 (gray-50)
-    card: "#FFFFFF", // 카드 배경
+    primary: '#000000', // 메인 검정
+    background: '#FFFFFF', // 기본 배경
+    surface: '#F9FAFB', // 카드/입력창 배경 (gray-50)
+    card: '#FFFFFF', // 카드 배경
     /**
      * 브랜드/제품 고유 컬러 토큰
      *
@@ -111,14 +110,14 @@ export const theme = {
      * 화면 단위에서 하드코딩하지 않고 theme로 끌어올려 단일 출처(SSOT)로 관리한다.
      */
     brand: {
-      mint: "#4BBDBD",
+      mint: '#4BBDBD',
       /** 선택 상태 배경(라이브보드 날짜 등) — 민트의 10% 투명도 헥사값 */
-      mintAlpha10: "#4BBDBD1A",
+      mintAlpha10: '#4BBDBD1A',
       /** 선택 상태 배경(라이브보드 날짜 등) — 민트의 밝은 파생 톤 */
-      mintLight: "#DCF5F2",
-      background: "#F8F8FA",
-      subtitle: "#919191",
-      inactive: "#ADADAD",
+      mintLight: '#DCF5F2',
+      background: '#F8F8FA',
+      subtitle: '#919191',
+      inactive: '#ADADAD',
       /**
        * 로그인 배경 그라데이션(아래 → 위 방향)
        *
@@ -126,9 +125,9 @@ export const theme = {
        * 앱에서는 시각적 인상이 크게 달라지지 않는 범위에서 스톱 기반으로 근사한다.
        */
       loginGradientStops: [
-        "rgba(75, 189, 189, 0.39)",
-        "rgba(255, 255, 255, 0.39)",
-        "rgba(165, 222, 222, 0.39)",
+        'rgba(75, 189, 189, 0.39)',
+        'rgba(255, 255, 255, 0.39)',
+        'rgba(165, 222, 222, 0.39)',
       ],
     },
     /**
@@ -144,21 +143,21 @@ export const theme = {
      * 각 화면에서 하드코딩하면 유지보수 불가 → SSOT로 승격.
      */
     team: {
-      kia: "#EA0029",
-      kiaRed: "#EA0029", // 기존 호환 별칭
-      hanwha: "#FF6600",
-      lg: "#C30452",
-      lotte: "#041E42",
-      samsung: "#074CA1",
-      nc: "#315288",
-      ssg: "#CE0E2D",
-      doosan: "#131230",
-      kt: "#000000",
-      kiwoom: "#820024",
-      neutralDark: "#33363F",
-      neutralLight: "#D6D6D6",
+      kia: '#EA0029',
+      kiaRed: '#EA0029', // 기존 호환 별칭
+      hanwha: '#FF6600',
+      lg: '#C30452',
+      lotte: '#041E42',
+      samsung: '#074CA1',
+      nc: '#315288',
+      ssg: '#CE0E2D',
+      doosan: '#131230',
+      kt: '#000000',
+      kiwoom: '#820024',
+      neutralDark: '#33363F',
+      neutralLight: '#D6D6D6',
       /** 팀 매칭 실패 시 기본 컬러 */
-      fallback: "#888888",
+      fallback: '#888888',
     },
     /**
      * 대시보드(`main_0`) 전용 톤 컬러
@@ -167,13 +166,13 @@ export const theme = {
      * theme로 승격해 한 곳에서 관리한다.
      */
     dashboard: {
-      statTonePink: "rgba(234, 0, 41, 0.12)",
-      statToneYellow: "rgba(245, 158, 11, 0.18)",
-      statToneGreen: "rgba(16, 185, 129, 0.18)",
-      statIconPink: "#EA0029",
-      statIconYellow: "#F59E0B",
-      statIconGreen: "#10B981",
-      mascotShadow: "rgba(0, 0, 0, 0.15)",
+      statTonePink: 'rgba(234, 0, 41, 0.12)',
+      statToneYellow: 'rgba(245, 158, 11, 0.18)',
+      statToneGreen: 'rgba(16, 185, 129, 0.18)',
+      statIconPink: '#EA0029',
+      statIconYellow: '#F59E0B',
+      statIconGreen: '#10B981',
+      mascotShadow: 'rgba(0, 0, 0, 0.15)',
     },
     /**
      * 라이브보드(`match_detail`) 전용 시각화 컬러
@@ -182,31 +181,31 @@ export const theme = {
      * 화면에서 하드코딩하지 않고 SSOT로 관리하여 일관성을 유지한다.
      */
     liveboard: {
-      stadiumBg: "#2F5D3F",
-      scoreAway: "rgba(87,5,20,0.7)",
-      scoreHome: "rgba(234,0,41,0.7)",
-      countBoxBg: "rgba(255,255,255,0.38)",
-      baseIdle: "rgba(78,78,78,0.85)",
-      baseActive: "rgba(247,247,247,0.85)",
-      bsoDotIdle: "rgba(255,255,255,0.3)",
-      bsoBall: "#4CAF50",
-      bsoStrike: "#FFC107",
-      bsoOut: "#F44336",
-      defender: "#277F7F",
-      batter: "#333333",
-      runner: "rgba(255,255,255,0.92)",
-      runnerText: "#333333",
+      stadiumBg: '#2F5D3F',
+      scoreAway: 'rgba(87,5,20,0.7)',
+      scoreHome: 'rgba(234,0,41,0.7)',
+      countBoxBg: 'rgba(255,255,255,0.38)',
+      baseIdle: 'rgba(78,78,78,0.85)',
+      baseActive: 'rgba(247,247,247,0.85)',
+      bsoDotIdle: 'rgba(255,255,255,0.3)',
+      bsoBall: '#4CAF50',
+      bsoStrike: '#FFC107',
+      bsoOut: '#F44336',
+      defender: '#277F7F',
+      batter: '#333333',
+      runner: 'rgba(255,255,255,0.92)',
+      runnerText: '#333333',
     },
     text: {
-      primary: "#111827", // 기본 텍스트 (gray-900)
-      secondary: "#6B7280", // 보조 텍스트 (gray-500)
-      tertiary: "#9CA3AF", // 비활성 텍스트 (gray-400)
+      primary: '#111827', // 기본 텍스트 (gray-900)
+      secondary: '#6B7280', // 보조 텍스트 (gray-500)
+      tertiary: '#9CA3AF', // 비활성 텍스트 (gray-400)
     },
     border: {
-      light: "#F3F4F6", // 얇은 선 (gray-100)
-      medium: "#E5E7EB", // 기본 선 (gray-200)
-      dark: "#D1D5DB", // 진한 선 (gray-300)
-      bottom: "#e0e0e0",
+      light: '#F3F4F6', // 얇은 선 (gray-100)
+      medium: '#E5E7EB', // 기본 선 (gray-200)
+      dark: '#D1D5DB', // 진한 선 (gray-300)
+      bottom: '#e0e0e0',
       width: {
         thin: StyleSheet.hairlineWidth,
         light: 1,
@@ -215,15 +214,15 @@ export const theme = {
       },
     },
     // 기존 호환성을 위한 별칭
-    muted: "#6B7280", // 보조 텍스트와 동일
-    overlay: "rgba(0, 0, 0, 0.5)",
+    muted: '#6B7280', // 보조 텍스트와 동일
+    overlay: 'rgba(0, 0, 0, 0.5)',
     // 상태 색상
-    success: "#10B981",
-    warning: "#F59E0B",
-    error: "#EF4444",
-    destructive: "#EF4444",
-    info: "#3B82F6",
-    transparent: "transparent",
+    success: '#10B981',
+    warning: '#F59E0B',
+    error: '#EF4444',
+    destructive: '#EF4444',
+    info: '#3B82F6',
+    transparent: 'transparent',
   },
   spacing: {
     xxs: 2,
@@ -264,12 +263,12 @@ export const theme = {
       TITLE: 28,
     },
     weight: {
-      regular: "400",
-      medium: "500",
-      semibold: "600",
-      bold: "700",
-      extrabold: "800",
-      black: "900",
+      regular: '400',
+      medium: '500',
+      semibold: '600',
+      bold: '700',
+      extrabold: '800',
+      black: '900',
     },
     letterSpacing: {
       tight: -0.2,
@@ -297,14 +296,14 @@ export const theme = {
   },
   shadow: {
     card: {
-      shadowColor: "#000",
+      shadowColor: '#000',
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.1,
       shadowRadius: 2,
       elevation: 2,
     },
     button: {
-      shadowColor: "#000",
+      shadowColor: '#000',
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.15,
       shadowRadius: 3,
@@ -399,9 +398,9 @@ export const theme = {
         mass: 1,
       },
       // Standard bezier curves
-      standard: "cubic-bezier(0.4, 0.0, 0.2, 1)",
-      decelerate: "cubic-bezier(0.0, 0.0, 0.2, 1)", // Entering
-      accelerate: "cubic-bezier(0.4, 0.0, 1, 1)", // Exiting
+      standard: 'cubic-bezier(0.4, 0.0, 0.2, 1)',
+      decelerate: 'cubic-bezier(0.0, 0.0, 0.2, 1)', // Entering
+      accelerate: 'cubic-bezier(0.4, 0.0, 1, 1)', // Exiting
     },
   },
 } as const;

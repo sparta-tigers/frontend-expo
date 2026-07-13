@@ -1,16 +1,16 @@
-import { Tabs } from "expo-router";
-import { useEffect } from "react";
+import { Tabs } from 'expo-router';
+import { useEffect } from 'react';
 
-import { useQuery } from "@tanstack/react-query";
-import { AppState, AppStateStatus } from "react-native";
+import { useQuery } from '@tanstack/react-query';
+import { AppState, AppStateStatus } from 'react-native';
 
-import { HapticTab } from "@/components/haptic-tab";
-import { Box } from "@/components/ui";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import { useTheme } from "@/hooks/useTheme";
-import { exchangeGetMyRequestsAPI } from "@/src/features/exchange/api";
-import { useAuth } from "@/src/hooks/useAuth";
-import { theme } from "@/src/styles/theme";
+import { HapticTab } from '@/components/haptic-tab';
+import { Box } from '@/components/ui';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useTheme } from '@/hooks/useTheme';
+import { exchangeGetMyRequestsAPI } from '@/src/features/exchange/api';
+import { useAuth } from '@/src/hooks/useAuth';
+import { theme } from '@/src/styles/theme';
 
 /**
  * 탭 네비게이션 레이아웃
@@ -23,21 +23,18 @@ export default function TabLayout() {
   const { user } = useAuth();
 
   const { data: receiveResponse, refetch } = useQuery({
-    queryKey: ["exchangeRequests", user?.userId, "receiver", "PENDING"],
-    queryFn: () => exchangeGetMyRequestsAPI("receiver", 0, 1, "PENDING"),
+    queryKey: ['exchangeRequests', user?.userId, 'receiver', 'PENDING'],
+    queryFn: () => exchangeGetMyRequestsAPI('receiver', 0, 1, 'PENDING'),
     enabled: !!user?.userId,
     refetchInterval: 30000,
   });
 
   useEffect(() => {
-    const subscription = AppState.addEventListener(
-      "change",
-      (nextAppState: AppStateStatus) => {
-        if (nextAppState === "active") {
-          refetch().catch(() => {});
-        }
-      },
-    );
+    const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'active') {
+        refetch().catch(() => {});
+      }
+    });
 
     return () => {
       subscription.remove();
@@ -55,7 +52,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: (props) => (
           <HapticTab
-            {...(props as unknown as import("@react-navigation/bottom-tabs").BottomTabBarButtonProps)}
+            {...(props as unknown as import('@react-navigation/bottom-tabs').BottomTabBarButtonProps)}
           />
         ),
       }}
@@ -63,7 +60,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "홈",
+          title: '홈',
           tabBarIcon: ({ color }) => (
             <IconSymbol size={TAB_ICON_SIZE} name="house.fill" color={color} />
           ),
@@ -72,27 +69,19 @@ export default function TabLayout() {
       <Tabs.Screen
         name="liveboard"
         options={{
-          title: "라이브보드",
+          title: '라이브보드',
           tabBarIcon: ({ color }) => (
-            <IconSymbol
-              size={TAB_ICON_SIZE}
-              name="chart.bar.fill"
-              color={color}
-            />
+            <IconSymbol size={TAB_ICON_SIZE} name="chart.bar.fill" color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="exchange"
         options={{
-          title: "교환",
+          title: '교환',
           tabBarIcon: ({ color }) => (
             <Box>
-              <IconSymbol
-                size={TAB_ICON_SIZE}
-                name="arrow.left.arrow.right"
-                color={color}
-              />
+              <IconSymbol size={TAB_ICON_SIZE} name="arrow.left.arrow.right" color={color} />
               {hasNewExchangeRequest ? (
                 <Box
                   position="absolute"
@@ -111,7 +100,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="notification"
         options={{
-          title: "예매알림",
+          title: '예매알림',
           tabBarIcon: ({ color }) => (
             <IconSymbol size={TAB_ICON_SIZE} name="bell.fill" color={color} />
           ),
@@ -120,7 +109,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="history"
         options={{
-          title: "직관일기",
+          title: '직관일기',
           tabBarIcon: ({ color }) => (
             <IconSymbol size={TAB_ICON_SIZE} name="list.bullet" color={color} />
           ),

@@ -1,9 +1,9 @@
-import { RainType, SkyStatus } from "@/src/features/liveboard/types";
-import { fetchMatchRooms, matchKeys } from "@/src/features/match";
-import { MatchRoomDto } from "@/src/shared/types/match";
-import { MaterialIcons } from "@expo/vector-icons";
-import { useQuery } from "@tanstack/react-query";
-import React, { useMemo, useState } from "react";
+import { RainType, SkyStatus } from '@/src/features/liveboard/types';
+import { fetchMatchRooms, matchKeys } from '@/src/features/match';
+import { MatchRoomDto } from '@/src/shared/types/match';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
+import React, { useMemo, useState } from 'react';
 
 // ── 날씨 아이콘/텍스트 매핑 ──────────────────────────────
 type WeatherIconName = keyof typeof MaterialIcons.glyphMap;
@@ -26,28 +26,28 @@ export function getWeatherDisplay(
   skyStatus: SkyStatus | null | undefined,
   rainType: RainType | null | undefined,
 ): WeatherDisplay {
-  if (rainType && rainType !== "NONE") {
+  if (rainType && rainType !== 'NONE') {
     switch (rainType) {
-      case "RAIN":
-      case "RAINDROP":
-        return { text: "비", icon: "umbrella" };
-      case "RAIN_SNOW":
-      case "RAINDROP_SNOW_FLYING":
-        return { text: "비/눈", icon: "ac-unit" };
-      case "SNOW":
-      case "SNOW_FLYING":
-        return { text: "눈", icon: "ac-unit" };
+      case 'RAIN':
+      case 'RAINDROP':
+        return { text: '비', icon: 'umbrella' };
+      case 'RAIN_SNOW':
+      case 'RAINDROP_SNOW_FLYING':
+        return { text: '비/눈', icon: 'ac-unit' };
+      case 'SNOW':
+      case 'SNOW_FLYING':
+        return { text: '눈', icon: 'ac-unit' };
     }
   }
   switch (skyStatus) {
-    case "SUNNY":
-      return { text: "맑음", icon: "wb-sunny" };
-    case "CLOUDY_PARTLY":
-      return { text: "구름많음", icon: "wb-cloudy" };
-    case "CLOUDY":
-      return { text: "흐림", icon: "cloud" };
+    case 'SUNNY':
+      return { text: '맑음', icon: 'wb-sunny' };
+    case 'CLOUDY_PARTLY':
+      return { text: '구름많음', icon: 'wb-cloudy' };
+    case 'CLOUDY':
+      return { text: '흐림', icon: 'cloud' };
     default:
-      return { text: "맑음", icon: "wb-sunny" };
+      return { text: '맑음', icon: 'wb-sunny' };
   }
 }
 
@@ -66,7 +66,7 @@ export interface WeekDayDto {
   anydayKey: string;
 }
 
-const DAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
+const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
 
 /**
  * Date 객체를 YYYYMMDD 문자열로 변환
@@ -74,8 +74,8 @@ const DAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
  */
 export function toAnydayKey(date: Date): string {
   const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
   return `${y}${m}${d}`;
 }
 
@@ -98,9 +98,7 @@ function getWeekStartDate(baseDate: Date, weekOffset: number): Date {
  *      캘린더에 '경기 있음' 도트를 표시할지 결정함.
  */
 function buildWeekDays(weekStart: Date, rooms: MatchRoomDto[]): WeekDayDto[] {
-  const gameDays = new Set(
-    rooms.map((r) => toAnydayKey(new Date(r.matchTime))),
-  );
+  const gameDays = new Set(rooms.map((r) => toAnydayKey(new Date(r.matchTime))));
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(weekStart);
     d.setDate(weekStart.getDate() + i);
@@ -123,8 +121,8 @@ function formatWeekLabel(weekStart: Date): string {
   const year = weekStart.getFullYear();
   const month = weekStart.getMonth() + 1;
   const weekOfMonth = Math.ceil(weekStart.getDate() / 7);
-  const weekLabels = ["첫째", "둘째", "셋째", "넷째", "다섯째"];
-  return `${year}년 ${month}월 ${weekLabels[weekOfMonth - 1] ?? weekOfMonth + "번째"} 주`;
+  const weekLabels = ['첫째', '둘째', '셋째', '넷째', '다섯째'];
+  return `${year}년 ${month}월 ${weekLabels[weekOfMonth - 1] ?? weekOfMonth + '번째'} 주`;
 }
 
 // ── 훅 ──────────────────────────────────────────────────
@@ -150,14 +148,9 @@ interface UseLiveboardReturn {
 export function useLiveboard(): UseLiveboardReturn {
   const today = useMemo(() => new Date(), []);
   const [weekOffset, setWeekOffset] = useState(0);
-  const [selectedAnyday, setSelectedAnyday] = useState<string>(
-    toAnydayKey(today),
-  );
+  const [selectedAnyday, setSelectedAnyday] = useState<string>(toAnydayKey(today));
 
-  const weekStart = useMemo(
-    () => getWeekStartDate(today, weekOffset),
-    [today, weekOffset],
-  );
+  const weekStart = useMemo(() => getWeekStartDate(today, weekOffset), [today, weekOffset]);
 
   const weekAnydayKeys = useMemo(
     () =>
@@ -186,30 +179,22 @@ export function useLiveboard(): UseLiveboardReturn {
           chunk.map(async (key) => ({
             key,
             rooms: await fetchMatchRooms(key),
-          }))
+          })),
         );
         results.push(...chunkResults);
       }
       return Object.fromEntries(
         results.flatMap((result) =>
-          result.status === "fulfilled"
-            ? [[result.value.key, result.value.rooms]]
-            : [],
+          result.status === 'fulfilled' ? [[result.value.key, result.value.rooms]] : [],
         ),
       );
     },
     staleTime: 60_000,
   });
 
-  const allWeekRooms = useMemo(
-    () => Object.values(weekRoomsMap).flat(),
-    [weekRoomsMap],
-  );
+  const allWeekRooms = useMemo(() => Object.values(weekRoomsMap).flat(), [weekRoomsMap]);
 
-  const weekDays = useMemo(
-    () => buildWeekDays(weekStart, allWeekRooms),
-    [weekStart, allWeekRooms],
-  );
+  const weekDays = useMemo(() => buildWeekDays(weekStart, allWeekRooms), [weekStart, allWeekRooms]);
 
   const weekLabel = useMemo(() => formatWeekLabel(weekStart), [weekStart]);
   const selectedDay = weekDays.find((d) => d.anydayKey === selectedAnyday);

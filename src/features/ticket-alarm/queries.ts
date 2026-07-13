@@ -12,15 +12,14 @@
  */
 export const ticketAlarmKeys = {
   /** 알림 도메인 전체를 아우르는 최상위 루트 키 */
-  all: ["ticketAlarm"] as const,
+  all: ['ticketAlarm'] as const,
 
   /** 📑 lists: 페이징이 적용된 알림 목록의 기본 식별자 */
-  lists: () => [...ticketAlarmKeys.all, "list"] as const,
+  lists: () => [...ticketAlarmKeys.all, 'list'] as const,
 
   /** 🔍 list: 페이지 번호와 사이즈별로 구체화된 목록 식별자 */
-  list: (page: number, size: number) =>
-    [...ticketAlarmKeys.lists(), { page, size }] as const,
+  list: (page: number, size: number) => [...ticketAlarmKeys.lists(), { page, size }] as const,
 
   /** 🔢 count: 전체 알림 개수 식별자 */
-  count: () => [...ticketAlarmKeys.all, "count"] as const,
+  count: () => [...ticketAlarmKeys.all, 'count'] as const,
 };

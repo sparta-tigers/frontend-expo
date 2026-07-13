@@ -1,7 +1,7 @@
-import { Logger, maskSensitive } from "@/src/utils/logger";
-import { getItemAsync, setItemAsync, deleteItemAsync } from "expo-secure-store";
+import { Logger, maskSensitive } from '@/src/utils/logger';
+import { getItemAsync, setItemAsync, deleteItemAsync } from 'expo-secure-store';
 
-const authLogger = Logger.category("AUTH");
+const authLogger = Logger.category('AUTH');
 
 /**
  * 중앙 토큰 저장소
@@ -18,8 +18,8 @@ let _accessToken: string | null = null;
 let _refreshToken: string | null = null;
 
 // SecureStore 키 상수
-const ACCESS_TOKEN_KEY = "accessToken";
-const REFRESH_TOKEN_KEY = "refreshToken";
+const ACCESS_TOKEN_KEY = 'accessToken';
+const REFRESH_TOKEN_KEY = 'refreshToken';
 
 /**
  * 액세스 토큰 반환
@@ -39,7 +39,7 @@ export async function getAccessToken(): Promise<string | null> {
     _accessToken = token; // 메모리 캐시 저장
     return token;
   } catch (error) {
-    authLogger.error("Failed to load access token from SecureStore", error);
+    authLogger.error('Failed to load access token from SecureStore', error);
     return null;
   }
 }
@@ -62,7 +62,7 @@ export async function getRefreshToken(): Promise<string | null> {
     _refreshToken = token; // 메모리 캐시 저장
     return token;
   } catch (error) {
-    authLogger.error("Failed to load refresh token from SecureStore", error);
+    authLogger.error('Failed to load refresh token from SecureStore', error);
     return null;
   }
 }
@@ -75,10 +75,7 @@ export async function getRefreshToken(): Promise<string | null> {
  * @param refreshToken - 리프레시 토큰
  * @returns Promise<boolean> 저장 성공 여부
  */
-export async function setTokens(
-  accessToken: string,
-  refreshToken: string,
-): Promise<boolean> {
+export async function setTokens(accessToken: string, refreshToken: string): Promise<boolean> {
   try {
     // 메모리 업데이트
     _accessToken = accessToken;
@@ -92,7 +89,7 @@ export async function setTokens(
 
     return true;
   } catch (error) {
-    authLogger.error("Failed to save tokens to SecureStore", error);
+    authLogger.error('Failed to save tokens to SecureStore', error);
 
     // SecureStore 저장 실패 시 메모리도 롤백
     _accessToken = null;
@@ -115,14 +112,11 @@ export async function clearTokens(): Promise<boolean> {
     _refreshToken = null;
 
     // SecureStore에서 삭제
-    await Promise.all([
-      deleteItemAsync(ACCESS_TOKEN_KEY),
-      deleteItemAsync(REFRESH_TOKEN_KEY),
-    ]);
+    await Promise.all([deleteItemAsync(ACCESS_TOKEN_KEY), deleteItemAsync(REFRESH_TOKEN_KEY)]);
 
     return true;
   } catch (error) {
-    authLogger.error("Failed to clear tokens from SecureStore", error);
+    authLogger.error('Failed to clear tokens from SecureStore', error);
     return false;
   }
 }
@@ -150,7 +144,7 @@ export async function initializeTokenCache(): Promise<void> {
       _refreshToken = refreshToken;
     }
   } catch (error) {
-    authLogger.error("토큰 캐시 초기화 실패", error);
+    authLogger.error('토큰 캐시 초기화 실패', error);
   }
 }
 
@@ -182,15 +176,15 @@ export function validateTokenFormat(token: string | null): boolean {
   if (!token) return false;
 
   // JWT 토큰은 보통 3부분으로 구성 (header.payload.signature)
-  const parts = token.split(".");
+  const parts = token.split('.');
   if (parts.length !== 3) return false;
 
   // 각 부분이 base64url 형식인지 기본 검증
   try {
     parts.forEach((part) => {
       // base64url 디코딩 시도 (실패하면 에러 발생)
-      const padded = part + "=".repeat((4 - (part.length % 4)) % 4);
-      atob(padded.replace(/-/g, "+").replace(/_/g, "/"));
+      const padded = part + '='.repeat((4 - (part.length % 4)) % 4);
+      atob(padded.replace(/-/g, '+').replace(/_/g, '/'));
     });
     return true;
   } catch {

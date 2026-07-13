@@ -1,26 +1,19 @@
-import { Box, SafeLayout, Typography } from "@/components/ui";
-import { IconSymbol, type IconSymbolName } from "@/components/ui/icon-symbol";
-import { useAuth } from "@/src/hooks/useAuth";
-import { theme } from "@/src/styles/theme";
-import { Logger } from "@/src/utils/logger";
-import { getUserMessage } from "@/src/core/errors";
-import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
-import { type Href, useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
-import {
-  Alert,
-  Keyboard,
-  Pressable,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-} from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { Box, SafeLayout, Typography } from '@/components/ui';
+import { IconSymbol, type IconSymbolName } from '@/components/ui/icon-symbol';
+import { useAuth } from '@/src/hooks/useAuth';
+import { theme } from '@/src/styles/theme';
+import { Logger } from '@/src/utils/logger';
+import { getUserMessage } from '@/src/core/errors';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import { type Href, useRouter } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, Keyboard, Pressable, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
-const loginLogo = require("@/assets/images/auth/yaguniv-logo.png");
-const kakaoIcon = require("@/assets/images/auth/kakao.png");
-const appleIcon = require("@/assets/images/auth/apple.png");
+const loginLogo = require('@/assets/images/auth/yaguniv-logo.png');
+const kakaoIcon = require('@/assets/images/auth/kakao.png');
+const appleIcon = require('@/assets/images/auth/apple.png');
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -51,8 +44,8 @@ const LOCAL_LAYOUT = {
 export default function SigninScreen() {
   const { signin, isLoading } = useAuth();
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   // 🚨 앙드레 카파시: 네비게이터 준비 상태 추적
   const navigationReady = useRef(false);
@@ -62,7 +55,7 @@ export default function SigninScreen() {
   useEffect(() => {
     const timer = setTimeout(() => {
       navigationReady.current = true;
-      Logger.debug("[Signin] 네비게이터 준비 완료");
+      Logger.debug('[Signin] 네비게이터 준비 완료');
     }, 100);
 
     return () => {
@@ -77,38 +70,38 @@ export default function SigninScreen() {
   const safeRedirect = (href: Href) => {
     if (!navigationReady.current) {
       redirectTimeoutRef.current = setTimeout(() => {
-        Logger.debug("[Signin] 지연된 리디렉션 실행:", href);
+        Logger.debug('[Signin] 지연된 리디렉션 실행:', href);
         router.replace(href);
       }, 200);
       return;
     }
 
-    Logger.debug("[Signin] 즉시 리디렉션 실행:", href);
+    Logger.debug('[Signin] 즉시 리디렉션 실행:', href);
     router.replace(href);
   };
 
   const handleSignin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert("알림", "이메일과 비밀번호를 입력해주세요");
+      Alert.alert('알림', '이메일과 비밀번호를 입력해주세요');
       return;
     }
 
     try {
       const success = await signin({ email, password });
       if (success) {
-        Alert.alert("성공", "로그인했어요");
-        safeRedirect("/(tabs)");
+        Alert.alert('성공', '로그인했어요');
+        safeRedirect('/(tabs)');
       } else {
-        Alert.alert("알림", "로그인하지 못했어요");
+        Alert.alert('알림', '로그인하지 못했어요');
       }
     } catch (error) {
-      Logger.error("로그인 에러:", error);
-      Alert.alert("알림", getUserMessage(error));
+      Logger.error('로그인 에러:', error);
+      Alert.alert('알림', getUserMessage(error));
     }
   };
 
   return (
-    <SafeLayout style={styles.safeLayout} edges={["top", "left", "right"]}>
+    <SafeLayout style={styles.safeLayout} edges={['top', 'left', 'right']}>
       <KeyboardAwareScrollView
         contentContainerStyle={styles.scrollContent}
         enableOnAndroid={true}
@@ -126,17 +119,11 @@ export default function SigninScreen() {
             justify="space-between"
             bg="background"
           >
-            <Box
-              width={LOCAL_LAYOUT.headerIconBox}
-              height={LOCAL_LAYOUT.headerIconBox}
-            />
+            <Box width={LOCAL_LAYOUT.headerIconBox} height={LOCAL_LAYOUT.headerIconBox} />
             <Typography variant="h3" weight="regular" color="brand.mint" center>
               YAGUNIV
             </Typography>
-            <Box
-              width={LOCAL_LAYOUT.headerIconBox}
-              height={LOCAL_LAYOUT.headerIconBox}
-            />
+            <Box width={LOCAL_LAYOUT.headerIconBox} height={LOCAL_LAYOUT.headerIconBox} />
           </Box>
 
           <LinearGradient
@@ -145,11 +132,7 @@ export default function SigninScreen() {
             style={styles.gradientBody}
           >
             <Box width="100%" align="center" justify="center" mb="xxl">
-              <Image
-                source={loginLogo}
-                style={styles.logo}
-                contentFit="contain"
-              />
+              <Image source={loginLogo} style={styles.logo} contentFit="contain" />
             </Box>
 
             <Box width="100%" align="center" gap="md">
@@ -191,31 +174,21 @@ export default function SigninScreen() {
                 accessibilityLabel="로그인"
                 accessibilityState={{ disabled: isLoading }}
               >
-                <Typography
-                  variant="body2"
-                  weight="regular"
-                  color="background"
-                  center
-                >
+                <Typography variant="body2" weight="regular" color="background" center>
                   LOGIN
                 </Typography>
               </TouchableOpacity>
 
               <TouchableOpacity
                 activeOpacity={0.7}
-                onPress={() => router.push("/(auth)/signup")}
+                onPress={() => router.push('/(auth)/signup')}
                 disabled={isLoading}
                 style={styles.registerButton}
                 accessibilityRole="button"
                 accessibilityLabel="회원가입 페이지로 이동"
                 accessibilityState={{ disabled: isLoading }}
               >
-                <Typography
-                  variant="body2"
-                  weight="medium"
-                  color="brand.subtitle"
-                  center
-                >
+                <Typography variant="body2" weight="medium" color="brand.subtitle" center>
                   Register Now
                 </Typography>
               </TouchableOpacity>
@@ -245,36 +218,24 @@ export default function SigninScreen() {
                   activeOpacity={0.85}
                   style={styles.socialButton}
                   disabled={isLoading}
-                  onPress={() =>
-                    Alert.alert("준비 중", "카카오 로그인은 아직 준비하고 있어요.")
-                  }
+                  onPress={() => Alert.alert('준비 중', '카카오 로그인은 아직 준비하고 있어요.')}
                   accessibilityRole="button"
                   accessibilityLabel="카카오 로그인"
                   accessibilityState={{ disabled: isLoading }}
                 >
-                  <Image
-                    source={kakaoIcon}
-                    style={styles.socialIcon}
-                    contentFit="contain"
-                  />
+                  <Image source={kakaoIcon} style={styles.socialIcon} contentFit="contain" />
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   activeOpacity={0.85}
                   style={styles.socialButton}
                   disabled={isLoading}
-                  onPress={() =>
-                    Alert.alert("준비 중", "Apple 로그인은 아직 준비하고 있어요.")
-                  }
+                  onPress={() => Alert.alert('준비 중', 'Apple 로그인은 아직 준비하고 있어요.')}
                   accessibilityRole="button"
                   accessibilityLabel="애플 로그인"
                   accessibilityState={{ disabled: isLoading }}
                 >
-                  <Image
-                    source={appleIcon}
-                    style={styles.socialIcon}
-                    contentFit="contain"
-                  />
+                  <Image source={appleIcon} style={styles.socialIcon} contentFit="contain" />
                 </TouchableOpacity>
               </Box>
             </Box>
@@ -288,20 +249,14 @@ export default function SigninScreen() {
             style={styles.fakeTabBar}
           >
             <Box flex={1} py="AUTH_TAB">
-              <Box
-                flex={1}
-                flexDir="row"
-                px="xl"
-                justify="space-between"
-                align="center"
-              >
+              <Box flex={1} flexDir="row" px="xl" justify="space-between" align="center">
                 {(
                   [
-                    { name: "house.fill", label: "홈" },
-                    { name: "chart.bar.fill", label: "라이브보드" },
-                    { name: "arrow.left.arrow.right", label: "교환" },
-                    { name: "bell.fill", label: "예매알림" },
-                    { name: "list.bullet", label: "직관기록" },
+                    { name: 'house.fill', label: '홈' },
+                    { name: 'chart.bar.fill', label: '라이브보드' },
+                    { name: 'arrow.left.arrow.right', label: '교환' },
+                    { name: 'bell.fill', label: '예매알림' },
+                    { name: 'list.bullet', label: '직관기록' },
                   ] as const satisfies {
                     readonly name: IconSymbolName;
                     readonly label: string;
@@ -350,15 +305,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: LOCAL_LAYOUT.bodyPaddingHorizontal,
     paddingTop: LOCAL_LAYOUT.bodyPaddingVertical,
     paddingBottom: LOCAL_LAYOUT.bodyPaddingVertical,
-    alignItems: "center",
-    justifyContent: "flex-start",
+    alignItems: 'center',
+    justifyContent: 'flex-start',
   },
   logo: {
     width: LOCAL_LAYOUT.logoWidth,
     height: LOCAL_LAYOUT.logoHeight,
   },
   input: {
-    width: "100%",
+    width: '100%',
     height: LOCAL_LAYOUT.inputHeight,
     minHeight: theme.layout.touch.minTargetSize,
     backgroundColor: theme.colors.card,
@@ -368,20 +323,20 @@ const styles = StyleSheet.create({
     color: theme.colors.text.primary,
   },
   loginButton: {
-    width: "100%",
+    width: '100%',
     height: LOCAL_LAYOUT.inputHeight,
     minHeight: theme.layout.touch.minTargetSize,
     backgroundColor: theme.colors.brand.mint,
     borderRadius: theme.radius.full,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   registerButton: {
     height: LOCAL_LAYOUT.inputHeight,
     minHeight: theme.layout.touch.minTargetSize,
     minWidth: theme.layout.touch.minTargetSize,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   socialButton: {
     width: LOCAL_LAYOUT.socialButtonSize,
@@ -390,8 +345,8 @@ const styles = StyleSheet.create({
     minWidth: theme.layout.touch.minTargetSize,
     borderRadius: theme.radius.lg,
     backgroundColor: theme.colors.card,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   socialIcon: {
     width: LOCAL_LAYOUT.socialIconSize,

@@ -5,9 +5,11 @@ const reactNative = require("eslint-plugin-react-native");
 const tsPlugin = require("@typescript-eslint/eslint-plugin");
 const tsParser = require("@typescript-eslint/parser");
 const reactHooks = require("eslint-plugin-react-hooks");
+const prettier = require("eslint-plugin-prettier/recommended");
 
 module.exports = defineConfig([
   expoConfig,
+  prettier,
   {
     ignores: [
       "dist/*",

@@ -9,7 +9,7 @@
  * - TICKET: 경기 티켓
  * - GOODS: 굿즈/상품
  */
-export type ItemCategory = "TICKET" | "GOODS";
+export type ItemCategory = 'TICKET' | 'GOODS';
 
 /**
  * 아이템 기본 정보 DTO
@@ -66,7 +66,7 @@ export interface ItemUser {
  * - COMPLETED: 교환 완료됨
  * - FAILED: 교환 실패함
  */
-export type ItemStatus = "REGISTERED" | "COMPLETED" | "FAILED";
+export type ItemStatus = 'REGISTERED' | 'COMPLETED' | 'FAILED';
 
 /**
  * 아이템 정보 인터페이스
@@ -113,10 +113,10 @@ export interface UserLocation {
  * 실시간 아이템 업데이트를 위한 메시지 종류
  */
 export type WebSocketMessageType =
-  | "ADD_ITEM" // 아이템 추가
-  | "REFRESH_ITEMS" // 아이템 목록 새로고침
-  | "USER_LOCATION_UPDATE" // 사용자 위치 업데이트
-  | "REMOVE_ITEM"; // 아이템 제거
+  | 'ADD_ITEM' // 아이템 추가
+  | 'REFRESH_ITEMS' // 아이템 목록 새로고침
+  | 'USER_LOCATION_UPDATE' // 사용자 위치 업데이트
+  | 'REMOVE_ITEM'; // 아이템 제거
 
 /**
  * WebSocket 메시지 인터페이스

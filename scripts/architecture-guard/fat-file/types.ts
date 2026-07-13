@@ -33,7 +33,7 @@
 export type SourceFile = {
   readonly absolutePath: string;
   readonly relativePath: string;
-  readonly extension: ".ts" | ".tsx" | ".js" | ".jsx";
+  readonly extension: '.ts' | '.tsx' | '.js' | '.jsx';
   readonly content: string;
 };
 
@@ -50,7 +50,7 @@ export type SourceFile = {
  * - Files with `loc < 500` are filtered out before a `PriorityTier` is ever
  *   assigned, so this type has no `"NONE"` variant by design.
  */
-export type PriorityTier = "TOP" | "REVIEW";
+export type PriorityTier = 'TOP' | 'REVIEW';
 
 /**
  * A file the scanner flagged as a Fat File.
@@ -86,7 +86,7 @@ export type ScanResult = {
  * and `design.md`. It is purposefully not renamed to `ConcernCategory` so
  * greps across spec and implementation stay aligned.
  */
-export type Concern_Category = "UI" | "Logic" | "Type" | "Style" | "Constant";
+export type Concern_Category = 'UI' | 'Logic' | 'Type' | 'Style' | 'Constant';
 
 /**
  * Syntactic context in which an `any` occurrence was detected.
@@ -101,13 +101,7 @@ export type Concern_Category = "UI" | "Logic" | "Type" | "Style" | "Constant";
  * - `Record<_, any>`      → `"record"`.
  */
 export type AnyOccurrenceContext =
-  | "variable"
-  | "parameter"
-  | "return"
-  | "generic"
-  | "assertion"
-  | "array"
-  | "record";
+  'variable' | 'parameter' | 'return' | 'generic' | 'assertion' | 'array' | 'record';
 
 /**
  * A single `any` usage discovered by the Diagnosis Engine.
@@ -172,10 +166,7 @@ export type ModulePlan = {
  * - `"unknown-with-guard"` : type the boundary as `unknown` and add a type
  *                            guard function; `guardFunction` is then required.
  */
-export type TypeReplacementStrategy =
-  | "named-interface"
-  | "named-type"
-  | "unknown-with-guard";
+export type TypeReplacementStrategy = 'named-interface' | 'named-type' | 'unknown-with-guard';
 
 /**
  * A single planned `any` → concrete-type replacement.
@@ -259,12 +250,7 @@ export type RefactoringSpecEntry = {
  *   Halted → Pending    (after user confirmation)
  */
 export type RefactoringTaskState =
-  | "Pending"
-  | "Planned"
-  | "Executed"
-  | "Verified"
-  | "Done"
-  | "Halted";
+  'Pending' | 'Planned' | 'Executed' | 'Verified' | 'Done' | 'Halted';
 
 /**
  * A single task in the refactoring backlog.

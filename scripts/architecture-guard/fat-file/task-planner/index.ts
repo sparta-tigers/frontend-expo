@@ -1,6 +1,6 @@
 // Feature: fat-file-refactoring
-import { createHash } from "node:crypto";
-import type { RefactoringSpecEntry, RefactoringTask } from "../types.ts";
+import { createHash } from 'node:crypto';
+import type { RefactoringSpecEntry, RefactoringTask } from '../types.ts';
 
 /**
  * 단일 태스크 생성기
@@ -14,17 +14,14 @@ import type { RefactoringSpecEntry, RefactoringTask } from "../types.ts";
 export function planTask(spec: RefactoringSpecEntry): RefactoringTask {
   // Req 9.1: 1 Task per 1 Spec
   // Req 9.2: Initial state is Pending or Halted
-  const state = spec.exception ? "Halted" : "Pending";
+  const state = spec.exception ? 'Halted' : 'Pending';
 
   const generatedModules = spec.decomposition.map((m) => m.path);
   const expectedLocs = spec.decomposition.map((m) => m.expectedLoc);
 
   // Why: 동일 파일에 대해 항상 동일한 ID를 보장하는 결정론적 생성.
   //      Date.now() + random 조합은 파이프라인 재실행 시 ID가 달라져 상태 추적을 불가능하게 한다.
-  const hash = createHash("sha256")
-    .update(spec.source.relativePath)
-    .digest("hex")
-    .slice(0, 12);
+  const hash = createHash('sha256').update(spec.source.relativePath).digest('hex').slice(0, 12);
 
   return {
     id: `TASK-${hash}`,
@@ -41,8 +38,6 @@ export function planTask(spec: RefactoringSpecEntry): RefactoringTask {
  *
  * Why: 명세 배열을 순회하며 planTask를 맵핑하여 전체 태스크 목록을 일괄 생성함.
  */
-export function planTasks(
-  specs: readonly RefactoringSpecEntry[],
-): RefactoringTask[] {
+export function planTasks(specs: readonly RefactoringSpecEntry[]): RefactoringTask[] {
   return specs.map(planTask);
 }

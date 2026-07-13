@@ -1,14 +1,14 @@
 // src/features/liveboard/components/LiveSection.tsx
-import { Box } from "@/components/ui/box";
-import { Typography } from "@/components/ui/typography";
-import { styles } from "@/src/features/liveboard/styles/matchId.styles";
-import { LiveboardData } from "@/src/features/liveboard/types";
-import { MatchDetail } from "@/src/shared/types/match";
-import { theme } from "@/src/styles/theme";
-import { MaterialIcons } from "@expo/vector-icons";
-import { Image } from "expo-image";
-import { ActivityIndicator } from "react-native";
-import { FIELD_POSITIONS, isValidFieldRole } from "../constants/fieldPositions";
+import { Box } from '@/components/ui/box';
+import { Typography } from '@/components/ui/typography';
+import { styles } from '@/src/features/liveboard/styles/matchId.styles';
+import { LiveboardData } from '@/src/features/liveboard/types';
+import { MatchDetail } from '@/src/shared/types/match';
+import { theme } from '@/src/styles/theme';
+import { MaterialIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import { ActivityIndicator } from 'react-native';
+import { FIELD_POSITIONS, isValidFieldRole } from '../constants/fieldPositions';
 
 /**
  * PlayerChip — 경기장 위 선수 이름 칩
@@ -20,13 +20,12 @@ const PlayerChip = ({
 }: {
   name: string;
   role: string;
-  kind: "defender" | "batter";
+  kind: 'defender' | 'batter';
 }) => {
   if (!isValidFieldRole(role)) return null;
 
   const pos = FIELD_POSITIONS[role];
-  const tagStyle =
-    kind === "defender" ? styles.playerTagDefender : styles.playerTagBatter;
+  const tagStyle = kind === 'defender' ? styles.playerTagDefender : styles.playerTagBatter;
 
   return (
     <Box style={[styles.playerTag, tagStyle, { top: pos.top, left: pos.left }]}>
@@ -40,15 +39,7 @@ const PlayerChip = ({
 /**
  * BsoLine — B/S/O 각 라인 (label + 점 표시)
  */
-function BsoLine({
-  label,
-  count,
-  max,
-}: {
-  label: string;
-  count: number;
-  max: number;
-}) {
+function BsoLine({ label, count, max }: { label: string; count: number; max: number }) {
   return (
     <Box style={styles.bsoLine}>
       <Typography style={styles.bsoLabel} weight="bold">
@@ -56,10 +47,7 @@ function BsoLine({
       </Typography>
       <Box style={styles.bsoDots}>
         {Array.from({ length: max }).map((_, i) => (
-          <Box
-            key={i}
-            style={[styles.bsoDot, i < count && getBsoDotActiveStyle(label)]}
-          />
+          <Box key={i} style={[styles.bsoDot, i < count && getBsoDotActiveStyle(label)]} />
         ))}
       </Box>
     </Box>
@@ -67,8 +55,8 @@ function BsoLine({
 }
 
 function getBsoDotActiveStyle(label: string) {
-  if (label === "B") return styles.bsoDotBall;
-  if (label === "S") return styles.bsoDotStrike;
+  if (label === 'B') return styles.bsoDotBall;
+  if (label === 'S') return styles.bsoDotStrike;
   return styles.bsoDotOut;
 }
 
@@ -91,11 +79,7 @@ export function LiveSection({
 
   return (
     <Box style={styles.liveSection}>
-      <Image
-        source={require("@/assets/stadium.png")}
-        style={styles.stadiumBg}
-        contentFit="cover"
-      />
+      <Image source={require('@/assets/stadium.png')} style={styles.stadiumBg} contentFit="cover" />
 
       <Box flexDir="row" style={styles.flexWrapper}>
         {/* 좌측 정보 바 (1) */}
@@ -132,19 +116,19 @@ export function LiveSection({
                   name="arrow-drop-up"
                   size={14}
                   color={
-                    liveData?.inningHalf === "초"
+                    liveData?.inningHalf === '초'
                       ? theme.colors.background
                       : theme.colors.transparent
                   }
                 />
                 <Typography style={styles.inningText} weight="semibold">
-                  {liveData?.inning || "-"}
+                  {liveData?.inning || '-'}
                 </Typography>
                 <MaterialIcons
                   name="arrow-drop-down"
                   size={14}
                   color={
-                    liveData?.inningHalf === "말"
+                    liveData?.inningHalf === '말'
                       ? theme.colors.background
                       : theme.colors.transparent
                   }
@@ -183,10 +167,10 @@ export function LiveSection({
 
             <Box style={styles.pitcherBox} align="center">
               <Typography style={styles.pitcherName} weight="medium">
-                {liveData?.pitcherName || "-"}
+                {liveData?.pitcherName || '-'}
               </Typography>
               <Typography style={styles.pitcherPitchLabel}>
-                투구수{" "}
+                투구수{' '}
                 <Typography style={styles.pitcherPitchCount} weight="semibold">
                   {liveData?.pitchCount || 0}
                 </Typography>
@@ -208,44 +192,23 @@ export function LiveSection({
 
           {/* 수비수 배치 */}
           {liveData?.defenders?.map((p) => (
-            <PlayerChip
-              key={`${p.role}-${p.name}`}
-              name={p.name}
-              role={p.role}
-              kind="defender"
-            />
+            <PlayerChip key={`${p.role}-${p.name}`} name={p.name} role={p.role} kind="defender" />
           ))}
 
           {/* 주자 배치 */}
           {liveData?.runner1 ? (
-            <PlayerChip
-              name={liveData.runner1.name}
-              role="runner1"
-              kind="batter"
-            />
+            <PlayerChip name={liveData.runner1.name} role="runner1" kind="batter" />
           ) : null}
           {liveData?.runner2 ? (
-            <PlayerChip
-              name={liveData.runner2.name}
-              role="runner2"
-              kind="batter"
-            />
+            <PlayerChip name={liveData.runner2.name} role="runner2" kind="batter" />
           ) : null}
           {liveData?.runner3 ? (
-            <PlayerChip
-              name={liveData.runner3.name}
-              role="runner3"
-              kind="batter"
-            />
+            <PlayerChip name={liveData.runner3.name} role="runner3" kind="batter" />
           ) : null}
 
           {/* 현재 타자 배치 */}
           {liveData?.batter ? (
-            <PlayerChip
-              name={liveData.batter.name}
-              role="batter"
-              kind="batter"
-            />
+            <PlayerChip name={liveData.batter.name} role="batter" kind="batter" />
           ) : null}
         </Box>
       </Box>

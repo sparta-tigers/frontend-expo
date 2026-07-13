@@ -3,7 +3,7 @@
  * 제네릭을 활용하여 모든 API 응답의 일관된 구조 보장
  */
 export interface ApiResponse<T> {
-  resultType: "SUCCESS" | "ERROR";
+  resultType: 'SUCCESS' | 'ERROR';
   data: T | null;
   error: {
     code: string;
@@ -43,10 +43,7 @@ export interface ApiError {
  * Why: 서버 요청 DTO 등에서 여러 필드 중 최소 하나 이상의 값이 반드시 존재해야 함을 보장하여,
  * 런타임에서의 데이터 누락으로 인한 예기치 못한 API 오류를 컴파일 타임에 예방하기 위함.
  */
-export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<
-  T,
-  Exclude<keyof T, Keys>
-> &
+export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
   {
     [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>;
   }[Keys];
@@ -56,7 +53,7 @@ export type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<
  * 제네릭을 활용하여 모든 비동기 작업의 일관된 상태 관리
  */
 export interface AsyncState<T> {
-  status: "idle" | "loading" | "success" | "error";
+  status: 'idle' | 'loading' | 'success' | 'error';
   data: T | null;
   error: string | null;
   rawError?: unknown; // 🚨 [Senior Architect] 원본 에러 객체 보관 (Zero-Magic 추적용)
@@ -76,7 +73,7 @@ export interface RequestResult<T> {
  * 비동기 상태 생성 유틸리티
  */
 export const createAsyncState = <T>(initialData?: T): AsyncState<T> => ({
-  status: "idle",
+  status: 'idle',
   data: initialData || null,
   error: null,
 });
@@ -85,7 +82,7 @@ export const createAsyncState = <T>(initialData?: T): AsyncState<T> => ({
  * 성공 상태 생성 유틸리티
  */
 export const createSuccessState = <T>(data: T): AsyncState<T> => ({
-  status: "success",
+  status: 'success',
   data,
   error: null,
 });
@@ -94,7 +91,7 @@ export const createSuccessState = <T>(data: T): AsyncState<T> => ({
  * 에러 상태 생성 유틸리티
  */
 export const createErrorState = <T>(error: string): AsyncState<T> => ({
-  status: "error",
+  status: 'error',
   data: null,
   error,
 });
@@ -103,7 +100,7 @@ export const createErrorState = <T>(error: string): AsyncState<T> => ({
  * 로딩 상태 생성 유틸리티
  */
 export const createLoadingState = <T>(previousData?: T): AsyncState<T> => ({
-  status: "loading",
+  status: 'loading',
   data: previousData || null,
   error: null,
 });

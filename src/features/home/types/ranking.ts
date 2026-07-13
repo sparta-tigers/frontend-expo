@@ -1,5 +1,5 @@
 // src/features/home/types/ranking.ts
-import { TeamDto } from "./team";
+import { TeamDto } from './team';
 
 /**
  * 순위표 항목 데이터 모델

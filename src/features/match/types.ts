@@ -7,7 +7,7 @@ import type {
   MatchTeamInfo,
   RankingRowDto,
   RankingUIModel,
-} from "@/src/shared/types/match";
+} from '@/src/shared/types/match';
 
 export type {
   LeagueType,
@@ -28,13 +28,13 @@ export type {
  */
 
 export interface MatchScheduleResponse {
-  resultType: "SUCCESS" | "ERROR";
+  resultType: 'SUCCESS' | 'ERROR';
   data: MatchScheduleDto[];
   message?: string;
 }
 
 export interface TeamRankingResponse {
-  resultType: "SUCCESS" | "ERROR";
+  resultType: 'SUCCESS' | 'ERROR';
   data: RankingRowDto[];
   message?: string;
 }

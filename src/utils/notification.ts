@@ -1,19 +1,19 @@
-import { Logger } from "@/src/utils/logger";
-import * as Device from "expo-device";
-import * as Notifications from "expo-notifications";
-import { Platform } from "react-native";
+import { Logger } from '@/src/utils/logger';
+import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
 
 export async function registerForPushNotificationsAsync() {
-  if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync("default", {
-      name: "default",
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'default',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
     });
   }
 
   if (!Device.isDevice) {
-    Logger.warn("푸시 알림은 실제 기기에서만 동작합니다.");
+    Logger.warn('푸시 알림은 실제 기기에서만 동작합니다.');
     return null;
   }
 
@@ -21,13 +21,13 @@ export async function registerForPushNotificationsAsync() {
 
   let finalStatus = existingStatus;
 
-  if (existingStatus !== "granted") {
+  if (existingStatus !== 'granted') {
     const { status } = await Notifications.requestPermissionsAsync();
     finalStatus = status;
   }
 
-  if (finalStatus !== "granted") {
-    Logger.warn("알림 권한이 거부되었습니다.");
+  if (finalStatus !== 'granted') {
+    Logger.warn('알림 권한이 거부되었습니다.');
     return null;
   }
 

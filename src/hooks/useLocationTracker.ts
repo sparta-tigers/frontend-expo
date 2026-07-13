@@ -1,9 +1,9 @@
-import { useLocationStore } from "@/src/store/useLocationStore";
-import { Logger } from "@/src/utils/logger";
-import * as Location from "expo-location";
-import { useEffect, useState } from "react";
+import { useLocationStore } from '@/src/store/useLocationStore';
+import { Logger } from '@/src/utils/logger';
+import * as Location from 'expo-location';
+import { useEffect, useState } from 'react';
 
-const mapLogger = Logger.category("MAP");
+const mapLogger = Logger.category('MAP');
 
 export const useLocationTracker = () => {
   const { setUserLocation, setPermissionGranted } = useLocationStore();
@@ -16,8 +16,8 @@ export const useLocationTracker = () => {
     const startTracking = async () => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") {
-          setErrorMsg("위치 권한이 거부되었어요.");
+        if (status !== 'granted') {
+          setErrorMsg('위치 권한이 거부되었어요.');
           setPermissionGranted(false);
           return;
         }
@@ -57,8 +57,8 @@ export const useLocationTracker = () => {
           subscriber = null;
         }
       } catch (error) {
-        mapLogger.error("위치 추적 초기화 실패", error);
-        setErrorMsg("위치 추적을 시작할 수 없어요.");
+        mapLogger.error('위치 추적 초기화 실패', error);
+        setErrorMsg('위치 추적을 시작할 수 없어요.');
         setPermissionGranted(false);
       }
     };
@@ -69,7 +69,7 @@ export const useLocationTracker = () => {
       isCancelled = true;
       if (subscriber) {
         subscriber.remove(); // 언마운트 시 구독 해제
-        mapLogger.debug("위치 추적 구독 해제 완료");
+        mapLogger.debug('위치 추적 구독 해제 완료');
       }
     };
   }, [setUserLocation, setPermissionGranted]);

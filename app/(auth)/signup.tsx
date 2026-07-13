@@ -1,12 +1,12 @@
-import { Box, Button, Input, SafeLayout, Typography } from "@/components/ui";
-import { useAuth } from "@/src/hooks/useAuth";
-import { theme } from "@/src/styles/theme";
-import { Logger } from "@/src/utils/logger";
-import { getUserMessage } from "@/src/core/errors";
-import { useRouter } from "expo-router";
-import { useState } from "react";
-import { Alert, StyleSheet } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { Box, Button, Input, SafeLayout, Typography } from '@/components/ui';
+import { useAuth } from '@/src/hooks/useAuth';
+import { theme } from '@/src/styles/theme';
+import { Logger } from '@/src/utils/logger';
+import { getUserMessage } from '@/src/core/errors';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Alert, StyleSheet } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -27,28 +27,28 @@ const LOCAL_LAYOUT = {
 export default function SignupScreen() {
   const { signup, isLoading } = useAuth();
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [nickname, setNickname] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [nickname, setNickname] = useState('');
 
   const validateInputs = () => {
     if (!email.trim() || !password.trim() || !nickname.trim()) {
-      Alert.alert("알림", "모든 필드를 입력해주세요");
+      Alert.alert('알림', '모든 필드를 입력해주세요');
       return false;
     }
 
-    if (!email.includes("@")) {
-      Alert.alert("알림", "올바른 이메일 형식을 입력해주세요");
+    if (!email.includes('@')) {
+      Alert.alert('알림', '올바른 이메일 형식을 입력해주세요');
       return false;
     }
 
     if (password.length < 6) {
-      Alert.alert("알림", "비밀번호는 최소 6자 이상이어야 해요");
+      Alert.alert('알림', '비밀번호는 최소 6자 이상이어야 해요');
       return false;
     }
 
     if (nickname.trim().length < 2) {
-      Alert.alert("알림", "닉네임은 최소 2자 이상이어야 해요");
+      Alert.alert('알림', '닉네임은 최소 2자 이상이어야 해요');
       return false;
     }
 
@@ -63,14 +63,14 @@ export default function SignupScreen() {
     try {
       const success = await signup({ email, password, nickname });
       if (success) {
-        Alert.alert("성공", "회원가입을 완료했어요");
-        router.replace("/(tabs)");
+        Alert.alert('성공', '회원가입을 완료했어요');
+        router.replace('/(tabs)');
       } else {
-        Alert.alert("알림", "회원가입하지 못했어요");
+        Alert.alert('알림', '회원가입하지 못했어요');
       }
     } catch (error) {
-      Logger.error("회원가입 에러:", error);
-      Alert.alert("알림", getUserMessage(error));
+      Logger.error('회원가입 에러:', error);
+      Alert.alert('알림', getUserMessage(error));
     }
   };
 
@@ -83,13 +83,7 @@ export default function SignupScreen() {
         extraScrollHeight={theme.spacing.xl}
       >
         <Box bg="card" p="xl" rounded="lg" style={styles.card}>
-          <Typography
-            variant="h2"
-            weight="bold"
-            color="text.primary"
-            center
-            mb="xl"
-          >
+          <Typography variant="h2" weight="bold" color="text.primary" center mb="xl">
             회원가입
           </Typography>
 
@@ -130,11 +124,7 @@ export default function SignupScreen() {
               회원가입
             </Button>
 
-            <Button
-              onPress={() => router.push("/(auth)/signin")}
-              variant="ghost"
-              fullWidth
-            >
+            <Button onPress={() => router.push('/(auth)/signin')} variant="ghost" fullWidth>
               이미 계정이 있나요? 로그인하기
             </Button>
           </Box>
@@ -150,7 +140,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
     padding: LOCAL_LAYOUT.containerPadding,
   },
   signupButton: {

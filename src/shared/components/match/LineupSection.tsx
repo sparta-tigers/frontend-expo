@@ -1,11 +1,11 @@
-import { Box, Typography } from "@/components/ui";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import { LineupRowDto } from "@/src/shared/types/lineup";
-import { getTeamColorPath } from "@/src/shared/types/theme";
-import { theme } from "@/src/styles/theme";
-import { TeamMeta } from "@/src/utils/team";
-import React from "react";
-import { StyleSheet } from "react-native";
+import { Box, Typography } from '@/components/ui';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { LineupRowDto } from '@/src/shared/types/lineup';
+import { getTeamColorPath } from '@/src/shared/types/theme';
+import { theme } from '@/src/styles/theme';
+import { TeamMeta } from '@/src/utils/team';
+import React from 'react';
+import { StyleSheet } from 'react-native';
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -15,7 +15,7 @@ const LOCAL_LAYOUT = {
   rowHeight: theme.layout.dashboard.lineupRowHeight,
   numberAreaLeft: theme.spacing.lg,
   dividerWidth: StyleSheet.hairlineWidth,
-  dividerHeight: "80%",
+  dividerHeight: '80%',
   /** Empty State 아이콘 박스 크기 (64px) */
   emptyIconBoxSize: theme.spacing.lg * 4,
   /** Empty State 아이콘 크기 (32px) */
@@ -84,14 +84,8 @@ export const LineupSection = React.memo(function LineupSection({
             라인업을 준비 중이에요
           </Typography>
 
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            center
-            mt="xs"
-            mx="xl"
-          >
-            선발 명단이 발표되는 대로{"\n"}가장 먼저 알려드릴게요!
+          <Typography variant="body2" color="text.secondary" center mt="xs" mx="xl">
+            선발 명단이 발표되는 대로{'\n'}가장 먼저 알려드릴게요!
           </Typography>
 
           {/* 하단에 비어있는 슬롯 실루엣 추가하여 "라인업" 섹션임을 암시 */}
@@ -178,12 +172,12 @@ const styles = StyleSheet.create({
     ...theme.shadow.card,
   },
   emptyContainer: {
-    alignSelf: "center",
+    alignSelf: 'center',
   },
   emptySlot: {
     borderWidth: 1,
     borderColor: theme.colors.border.medium,
-    borderStyle: "dashed",
+    borderStyle: 'dashed',
     opacity: 0.6,
   },
 });

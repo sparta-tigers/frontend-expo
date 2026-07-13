@@ -1,25 +1,18 @@
 // app/profile.tsx
 // Why: Expo Router 프로필 라우트 파일. UI와 로직을 하위 모듈로 분리하여 500+ LoC Fat File 문제 해결.
-import { Box, Button, SafeLayout, Typography } from "@/components/ui";
-import { NicknameEditModal } from "@/src/features/user/components/NicknameEditModal";
-import {
-  MenuDivider,
-  MenuItem,
-  MenuSection,
-} from "@/src/features/user/components/ProfileMenu";
-import { TeamSelectSheet } from "@/src/features/user/components/TeamSelectSheet";
-import { useProfile } from "@/src/features/user/hooks/useProfile";
-import {
-  LOCAL_LAYOUT,
-  styles,
-} from "@/src/features/user/styles/profile.styles";
-import { KBO_TEAMS } from "@/src/features/user/types";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { router } from "expo-router";
-import React, { useRef } from "react";
-import { ScrollView, TouchableOpacity } from "react-native";
-import { animateLayout } from "@/src/utils/motion";
-import { theme } from "@/src/styles/theme";
+import { Box, Button, SafeLayout, Typography } from '@/components/ui';
+import { NicknameEditModal } from '@/src/features/user/components/NicknameEditModal';
+import { MenuDivider, MenuItem, MenuSection } from '@/src/features/user/components/ProfileMenu';
+import { TeamSelectSheet } from '@/src/features/user/components/TeamSelectSheet';
+import { useProfile } from '@/src/features/user/hooks/useProfile';
+import { LOCAL_LAYOUT, styles } from '@/src/features/user/styles/profile.styles';
+import { KBO_TEAMS } from '@/src/features/user/types';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { router } from 'expo-router';
+import React, { useRef } from 'react';
+import { ScrollView, TouchableOpacity } from 'react-native';
+import { animateLayout } from '@/src/utils/motion';
+import { theme } from '@/src/styles/theme';
 
 export default function ProfileScreen() {
   const {
@@ -36,23 +29,11 @@ export default function ProfileScreen() {
     handleDeleteFavoriteTeam,
   } = useProfile();
 
-  const handleNavSignIn = React.useCallback(
-    () => router.push("/(auth)/signin"),
-    [],
-  );
-  const handleNavSignUp = React.useCallback(
-    () => router.push("/(auth)/signup"),
-    [],
-  );
-  const handleNavExchange = React.useCallback(
-    () => router.push("/(tabs)/exchange"),
-    [],
-  );
-  const handleNavCreate = React.useCallback(
-    () => router.push("/exchange/create"),
-    [],
-  );
-  const handleNavChat = React.useCallback(() => router.push("/chat/chat"), []);
+  const handleNavSignIn = React.useCallback(() => router.push('/(auth)/signin'), []);
+  const handleNavSignUp = React.useCallback(() => router.push('/(auth)/signup'), []);
+  const handleNavExchange = React.useCallback(() => router.push('/(tabs)/exchange'), []);
+  const handleNavCreate = React.useCallback(() => router.push('/exchange/create'), []);
+  const handleNavChat = React.useCallback(() => router.push('/chat/chat'), []);
   const handleNoOp = React.useCallback(() => {}, []);
 
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -123,8 +104,7 @@ export default function ProfileScreen() {
                 게스트 모드
               </Typography>
               <Typography variant="body2" color="text.secondary" center mb="lg">
-                로그인하면 나만의 야구 일정과{"\n"}다양한 기능을 이용할 수
-                있어요
+                로그인하면 나만의 야구 일정과{'\n'}다양한 기능을 이용할 수 있어요
               </Typography>
 
               <Box gap="md" width="100%">
@@ -164,13 +144,7 @@ export default function ProfileScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* 사용자 정보 */}
-          <Box
-            bg="background"
-            p="lg"
-            rounded="xl"
-            mb="lg"
-            style={theme.shadow.card}
-          >
+          <Box bg="background" p="lg" rounded="xl" mb="lg" style={theme.shadow.card}>
             <Box flexDir="row" align="center">
               <Box
                 bg="brand.mintLight"
@@ -182,21 +156,15 @@ export default function ProfileScreen() {
                 height={LOCAL_LAYOUT.userAvatarSize}
               >
                 <Typography variant="h3" color="brand.mint" weight="bold">
-                  {user?.nickname?.charAt(0).toUpperCase() ?? "U"}
+                  {user?.nickname?.charAt(0).toUpperCase() ?? 'U'}
                 </Typography>
               </Box>
               <Box flex={1}>
                 <Typography variant="h3" weight="bold" mb="xxs">
-                  {user?.nickname ?? user?.email ?? ""}
+                  {user?.nickname ?? user?.email ?? ''}
                 </Typography>
                 <Box flexDir="row" align="center">
-                  <Box
-                    width={8}
-                    height={8}
-                    bg="success"
-                    rounded="full"
-                    mr="xs"
-                  />
+                  <Box width={8} height={8} bg="success" rounded="full" mr="xs" />
                   <Typography variant="caption" color="text.secondary">
                     활성 상태
                   </Typography>
@@ -216,18 +184,9 @@ export default function ProfileScreen() {
 
           {/* 메뉴 그룹 - 계정 관리 */}
           <MenuSection title="계정 관리">
-            <MenuItem
-              label="프로필 수정"
-              onPress={handleEditProfile}
-              disabled={loading}
-            />
+            <MenuItem label="프로필 수정" onPress={handleEditProfile} disabled={loading} />
             <MenuDivider />
-            <MenuItem
-              label="회원 탈퇴"
-              onPress={handleDeleteAccount}
-              disabled={loading}
-              isError
-            />
+            <MenuItem label="회원 탈퇴" onPress={handleDeleteAccount} disabled={loading} isError />
           </MenuSection>
 
           {/* 즐겨찾기 팀 */}
@@ -247,10 +206,7 @@ export default function ProfileScreen() {
                   <Typography weight="semibold" color="brand.mint">
                     {favoriteTeam.teamName}
                   </Typography>
-                  <TouchableOpacity
-                    onPress={onDeleteFavoriteTeam}
-                    style={styles.deleteButton}
-                  >
+                  <TouchableOpacity onPress={onDeleteFavoriteTeam} style={styles.deleteButton}>
                     <Typography variant="caption" color="error" weight="bold">
                       삭제
                     </Typography>
@@ -269,11 +225,7 @@ export default function ProfileScreen() {
 
           {/* 로그아웃 버튼 */}
           <Box mt="md" mb="xl">
-            <Button
-              variant="ghost"
-              style={styles.logoutButton}
-              onPress={handleLogout}
-            >
+            <Button variant="ghost" style={styles.logoutButton} onPress={handleLogout}>
               로그아웃
             </Button>
           </Box>
@@ -281,15 +233,12 @@ export default function ProfileScreen() {
       </Box>
 
       {/* 즐겨찾기 팀 선택 바텀 시트 */}
-      <TeamSelectSheet
-        modalRef={bottomSheetModalRef}
-        onSelectTeam={onSelectTeam}
-      />
+      <TeamSelectSheet modalRef={bottomSheetModalRef} onSelectTeam={onSelectTeam} />
 
       {/* 닉네임 수정 모달 */}
       <NicknameEditModal
         visible={isEditModalVisible}
-        initialNickname={user?.nickname ?? ""}
+        initialNickname={user?.nickname ?? ''}
         loading={loading}
         onClose={() => setIsEditModalVisible(false)}
         onSave={handleSaveNickname}

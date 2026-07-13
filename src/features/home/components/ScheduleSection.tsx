@@ -1,12 +1,12 @@
-import { Box, Typography } from "@/components/ui";
-import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
-import { MatchSummary } from "@/src/shared/types/match";
-import { getTeamColorPath } from "@/src/shared/types/theme";
-import { theme } from "@/src/styles/theme";
-import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import React from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import { Box, Typography } from '@/components/ui';
+import { useCalendarGrid } from '@/src/shared/hooks/useCalendarGrid';
+import { MatchSummary } from '@/src/shared/types/match';
+import { getTeamColorPath } from '@/src/shared/types/theme';
+import { theme } from '@/src/styles/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import React from 'react';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -43,14 +43,7 @@ export const ScheduleSection = React.memo(function ScheduleSection({
   attendanceMatchIds, // 🚨 추가
   isError,
 }: ScheduleSectionProps) {
-  const days = useCalendarGrid(
-    year,
-    month,
-    schedule,
-    today,
-    undefined,
-    attendanceMatchIds,
-  );
+  const days = useCalendarGrid(year, month, schedule, today, undefined, attendanceMatchIds);
 
   return (
     <Box mt="xxxxl" pb="xxl" px="SCREEN_DASHBOARD">
@@ -92,14 +85,12 @@ export const ScheduleSection = React.memo(function ScheduleSection({
               flexDir="row"
               overflow="hidden"
             >
-              {["일", "월", "화", "수", "목", "금", "토"].map((d) => (
+              {['일', '월', '화', '수', '목', '금', '토'].map((d) => (
                 <Box key={d} flex={1} align="center" justify="center">
                   <Typography
                     variant="caption"
                     weight="bold"
-                    color={
-                      d === "일" || d === "토" ? "brand.mint" : "brand.subtitle"
-                    }
+                    color={d === '일' || d === '토' ? 'brand.mint' : 'brand.subtitle'}
                   >
                     {d}
                   </Typography>
@@ -127,9 +118,9 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                     disabled={isEmpty || !cell.hasGame}
                     onPress={() =>
                       router.push({
-                        pathname: "/schedule",
+                        pathname: '/schedule',
                         params: {
-                          view: "day",
+                          view: 'day',
                           day: cell.day.toString(),
                           year: year.toString(),
                           month: month.toString(),
@@ -137,7 +128,7 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                       })
                     }
                     style={[styles.cell, cell.isToday && styles.todayCell]}
-                    accessibilityRole={isEmpty ? undefined : "button"}
+                    accessibilityRole={isEmpty ? undefined : 'button'}
                     accessibilityLabel={
                       isEmpty
                         ? undefined
@@ -148,12 +139,7 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                   >
                     {!isEmpty ? (
                       <>
-                        <Box
-                          flexDir="row"
-                          align="center"
-                          justify="space-between"
-                          width="100%"
-                        >
+                        <Box flexDir="row" align="center" justify="space-between" width="100%">
                           {cell.hasAttendance ? (
                             <Box style={styles.attendanceStamp}>
                               <Ionicons
@@ -165,26 +151,17 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                           ) : null}
                           <Typography
                             variant="caption"
-                            weight={cell.isToday ? "bold" : "medium"}
-                            color={
-                              cell.isToday ? "brand.mint" : "brand.subtitle"
-                            }
+                            weight={cell.isToday ? 'bold' : 'medium'}
+                            color={cell.isToday ? 'brand.mint' : 'brand.subtitle'}
                           >
                             {cell.day}
                           </Typography>
                           {cell.location ? (
-                            <Typography
-                              variant="caption"
-                              weight="bold"
-                              color="brand.mint"
-                            >
+                            <Typography variant="caption" weight="bold" color="brand.mint">
                               {cell.location}
                             </Typography>
                           ) : (
-                            <Box
-                              width={theme.spacing.lg}
-                              height={theme.spacing.lg}
-                            />
+                            <Box width={theme.spacing.lg} height={theme.spacing.lg} />
                           )}
                         </Box>
 
@@ -197,19 +174,13 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                             bg={getTeamColorPath(cell.opponentColorToken)}
                             align="center"
                             justify="center"
-                            borderWidth={
-                              cell.isSelected ? LOCAL_LAYOUT.borderWidth : 0
-                            }
-                            borderColor={
-                              cell.isSelected ? "brand.mint" : "transparent"
-                            }
+                            borderWidth={cell.isSelected ? LOCAL_LAYOUT.borderWidth : 0}
+                            borderColor={cell.isSelected ? 'brand.mint' : 'transparent'}
                           >
                             <Typography
                               variant="caption"
                               weight="bold"
-                              color={
-                                cell.opponentCode ? "card" : "team.neutralDark"
-                              }
+                              color={cell.opponentCode ? 'card' : 'team.neutralDark'}
                               style={styles.opponentText}
                             >
                               {cell.opponentShort}
@@ -253,8 +224,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: LOCAL_LAYOUT.borderWidth,
     borderColor: theme.colors.team.neutralLight,
     padding: theme.spacing.xs,
-    alignItems: "center",
-    justifyContent: "space-between",
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   todayCell: {
     borderWidth: theme.layout.dashboard.rankingMyTeamBorderWidth,
@@ -268,9 +239,9 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.size.xs,
   },
   attendanceStamp: {
-    position: "absolute",
-    top: "10%",
-    left: "10%",
+    position: 'absolute',
+    top: '10%',
+    left: '10%',
     opacity: 0.8,
     zIndex: 1,
   },

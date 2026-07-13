@@ -1,9 +1,9 @@
 // theme imported removed because it's unused
-import * as Haptics from "expo-haptics";
-import { LayoutAnimation, Platform, UIManager } from "react-native";
+import * as Haptics from 'expo-haptics';
+import { LayoutAnimation, Platform, UIManager } from 'react-native';
 
 // Android 환경에서 LayoutAnimation 활성화 (필수)
-if (Platform.OS === "android") {
+if (Platform.OS === 'android') {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
   }

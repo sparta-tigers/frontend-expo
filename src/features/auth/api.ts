@@ -1,14 +1,14 @@
-import { apiClient } from "@/src/core/client";
-import { ApiResponse } from "@/src/shared/types/common";
+import { apiClient } from '@/src/core/client';
+import { ApiResponse } from '@/src/shared/types/common';
 import {
-    AuthSigninRequest,
-    AuthSigninResponse,
-    AuthSignupRequest,
-    AuthSignupResponse,
-    FcmTokenRequest,
-    User,
-    UserProfileUpdateRequest,
-} from "./types";
+  AuthSigninRequest,
+  AuthSigninResponse,
+  AuthSignupRequest,
+  AuthSignupResponse,
+  FcmTokenRequest,
+  User,
+  UserProfileUpdateRequest,
+} from './types';
 
 /**
  * 인증 관련 API 함수 모음
@@ -25,7 +25,7 @@ import {
 export async function authSigninAPI(
   request: AuthSigninRequest,
 ): Promise<ApiResponse<AuthSigninResponse>> {
-  return apiClient.post("/api/auth/login", request);
+  return apiClient.post('/api/auth/login', request);
 }
 
 /**
@@ -38,7 +38,7 @@ export async function authSigninAPI(
 export async function authSignupAPI(
   request: AuthSignupRequest,
 ): Promise<ApiResponse<AuthSignupResponse>> {
-  return apiClient.post("/api/users", request);
+  return apiClient.post('/api/users', request);
 }
 
 /**
@@ -48,10 +48,8 @@ export async function authSignupAPI(
  * @param refreshToken - 리프레시 토큰
  * @returns 로그아웃 성공 응답
  */
-export async function authSignoutAPI(
-  refreshToken: string,
-): Promise<ApiResponse<null>> {
-  return apiClient.post("/api/auth/logout", { refreshToken });
+export async function authSignoutAPI(refreshToken: string): Promise<ApiResponse<null>> {
+  return apiClient.post('/api/auth/logout', { refreshToken });
 }
 
 /**
@@ -66,7 +64,7 @@ export async function authSignoutAPI(
  * @returns 현재 사용자 정보
  */
 export async function usersGetMeAPI(): Promise<ApiResponse<User>> {
-  return apiClient.get("/api/users/me");
+  return apiClient.get('/api/users/me');
 }
 
 /**
@@ -79,7 +77,7 @@ export async function usersGetMeAPI(): Promise<ApiResponse<User>> {
 export async function usersUpdateProfileAPI(
   request: UserProfileUpdateRequest,
 ): Promise<ApiResponse<User>> {
-  return apiClient.patch("/api/users/profile", request);
+  return apiClient.patch('/api/users/profile', request);
 }
 
 /**
@@ -89,11 +87,9 @@ export async function usersUpdateProfileAPI(
  * @returns 탈퇴 처리 결과
  */
 export async function usersDeleteAccountAPI(): Promise<ApiResponse<void>> {
-  return apiClient.delete("/api/users/account");
+  return apiClient.delete('/api/users/account');
 }
 
-export async function fcmTokenCreateAPI(
-  request: FcmTokenRequest,
-): Promise<ApiResponse<null>> {
-  return apiClient.post("/api/users/fcm-token", request);
+export async function fcmTokenCreateAPI(request: FcmTokenRequest): Promise<ApiResponse<null>> {
+  return apiClient.post('/api/users/fcm-token', request);
 }

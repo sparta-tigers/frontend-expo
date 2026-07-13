@@ -1,5 +1,5 @@
-import { useThemeColor } from "@/hooks/useThemeColor";
-import { StyleSheet } from "react-native";
+import { useThemeColor } from '@/hooks/useThemeColor';
+import { StyleSheet } from 'react-native';
 
 /**
  * 테마 색상 타입
@@ -22,17 +22,17 @@ export interface ThemeColors {
  * 테마 색상 훅으로부터 색상 객체 생성
  */
 export const useThemeColors = (): ThemeColors => ({
-  primary: useThemeColor({}, "primary"),
-  background: useThemeColor({}, "background"),
-  card: useThemeColor({}, "card"),
-  text: useThemeColor({}, "text"),
-  border: useThemeColor({}, "border"),
-  muted: useThemeColor({}, "muted"),
-  accent: useThemeColor({}, "accent"),
-  destructive: useThemeColor({}, "destructive"),
-  warning: useThemeColor({}, "warning"),
-  info: useThemeColor({}, "info"),
-  success: useThemeColor({}, "success"),
+  primary: useThemeColor({}, 'primary'),
+  background: useThemeColor({}, 'background'),
+  card: useThemeColor({}, 'card'),
+  text: useThemeColor({}, 'text'),
+  border: useThemeColor({}, 'border'),
+  muted: useThemeColor({}, 'muted'),
+  accent: useThemeColor({}, 'accent'),
+  destructive: useThemeColor({}, 'destructive'),
+  warning: useThemeColor({}, 'warning'),
+  info: useThemeColor({}, 'info'),
+  success: useThemeColor({}, 'success'),
 });
 
 /**
@@ -42,9 +42,9 @@ export const createButtonStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       borderRadius: 8,
-      alignItems: "center",
-      justifyContent: "center",
-      flexDirection: "row",
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
     },
 
     primary: {
@@ -83,7 +83,7 @@ export const createButtonStyles = (colors: ThemeColors) =>
     },
 
     fullWidth: {
-      width: "100%",
+      width: '100%',
     },
 
     disabled: {
@@ -91,8 +91,8 @@ export const createButtonStyles = (colors: ThemeColors) =>
     },
 
     text: {
-      fontWeight: "600",
-      textAlign: "center",
+      fontWeight: '600',
+      textAlign: 'center',
     },
 
     primaryText: {
@@ -123,7 +123,7 @@ export const createInputStyles = (colors: ThemeColors) =>
 
     label: {
       fontSize: 14,
-      fontWeight: "500",
+      fontWeight: '500',
       marginBottom: 6,
       color: colors.text,
     },
@@ -202,9 +202,9 @@ export const createListStyles = (colors: ThemeColors) =>
     },
 
     header: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
       paddingVertical: 16,
       paddingHorizontal: 20,
       borderBottomWidth: 1,
@@ -213,7 +213,7 @@ export const createListStyles = (colors: ThemeColors) =>
 
     headerTitle: {
       fontSize: 20,
-      fontWeight: "bold",
+      fontWeight: 'bold',
       color: colors.text,
     },
 
@@ -250,7 +250,7 @@ export const createListStyles = (colors: ThemeColors) =>
 
     itemTitle: {
       fontSize: 16,
-      fontWeight: "600",
+      fontWeight: '600',
       color: colors.text,
       marginBottom: 4,
     },
@@ -263,7 +263,7 @@ export const createListStyles = (colors: ThemeColors) =>
 
     itemPrice: {
       fontSize: 14,
-      fontWeight: "600",
+      fontWeight: '600',
       color: colors.primary,
     },
 
@@ -274,15 +274,15 @@ export const createListStyles = (colors: ThemeColors) =>
 
     emptyContainer: {
       flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
+      justifyContent: 'center',
+      alignItems: 'center',
       paddingVertical: 40,
     },
 
     emptyText: {
       fontSize: 16,
       color: colors.text,
-      textAlign: "center",
+      textAlign: 'center',
       marginBottom: 16,
     },
 
@@ -292,7 +292,7 @@ export const createListStyles = (colors: ThemeColors) =>
 
     loadingContainer: {
       paddingVertical: 20,
-      alignItems: "center",
+      alignItems: 'center',
     },
 
     loadingText: {

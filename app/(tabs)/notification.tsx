@@ -1,17 +1,17 @@
-import { Box, List, Typography } from "@/components/ui";
-import { SafeLayout } from "@/components/ui/safe-layout";
+import { Box, List, Typography } from '@/components/ui';
+import { SafeLayout } from '@/components/ui/safe-layout';
 import {
   useTicketAlarmMutation,
   useTicketAlarms,
-} from "@/src/features/ticket-alarm/hooks/useTicketAlarm";
-import { TicketAlarm } from "@/src/features/ticket-alarm/types";
-import { theme } from "@/src/styles/theme";
-import { formatToKoreanDateTime } from "@/src/utils/date";
-import { Logger } from "@/src/utils/logger";
-import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
-import React, { useMemo, useCallback } from "react";
-import { Alert, StyleSheet, TouchableOpacity } from "react-native";
+} from '@/src/features/ticket-alarm/hooks/useTicketAlarm';
+import { TicketAlarm } from '@/src/features/ticket-alarm/types';
+import { theme } from '@/src/styles/theme';
+import { formatToKoreanDateTime } from '@/src/utils/date';
+import { Logger } from '@/src/utils/logger';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import React, { useMemo, useCallback } from 'react';
+import { Alert, StyleSheet, TouchableOpacity } from 'react-native';
 
 /**
  * 🔔 NotificationScreen: 사용자가 설정한 모든 티켓 예매 알림을 관리하는 화면입니다.
@@ -26,37 +26,39 @@ export default function NotificationScreen() {
 
   const alarms = useMemo(() => pageResponse?.content || [], [pageResponse]);
 
-  const handleDeleteAlarm = useCallback((alarm: TicketAlarm) => {
-    Alert.alert(
-      "티켓 알림 삭제",
-      `${alarm.stadiumName} - ${formatToKoreanDateTime(alarm.matchTime, false)} 알림을 삭제할까요?`,
-      [
-        { text: "닫기", style: "cancel" },
-        {
-          text: "삭제",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteAlarm(alarm.alarmId);
-              Alert.alert("성공", "티켓 알림을 삭제했어요.");
-            } catch (error) {
-              Logger.error("티켓 알림 삭제 실패", error);
-            }
+  const handleDeleteAlarm = useCallback(
+    (alarm: TicketAlarm) => {
+      Alert.alert(
+        '티켓 알림 삭제',
+        `${alarm.stadiumName} - ${formatToKoreanDateTime(alarm.matchTime, false)} 알림을 삭제할까요?`,
+        [
+          { text: '닫기', style: 'cancel' },
+          {
+            text: '삭제',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await deleteAlarm(alarm.alarmId);
+                Alert.alert('성공', '티켓 알림을 삭제했어요.');
+              } catch (error) {
+                Logger.error('티켓 알림 삭제 실패', error);
+              }
+            },
           },
-        },
-      ],
-    );
-  }, [deleteAlarm]);
+        ],
+      );
+    },
+    [deleteAlarm],
+  );
 
   const keyExtractor = useCallback((item: TicketAlarm) => item.alarmId.toString(), []);
 
-  const renderItem = useCallback(({ item }: { item: TicketAlarm }) => (
-    <AlarmItem
-      item={item}
-      onDelete={handleDeleteAlarm}
-      isDeleting={isDeleting}
-    />
-  ), [handleDeleteAlarm, isDeleting]);
+  const renderItem = useCallback(
+    ({ item }: { item: TicketAlarm }) => (
+      <AlarmItem item={item} onDelete={handleDeleteAlarm} isDeleting={isDeleting} />
+    ),
+    [handleDeleteAlarm, isDeleting],
+  );
 
   return (
     <SafeLayout style={styles.safeLayout}>
@@ -79,12 +81,7 @@ export default function NotificationScreen() {
           onRefresh={refetch}
           ListEmptyComponent={
             <Box flex={1} justify="center" align="center" py="xxl">
-              <Typography
-                variant="body1"
-                weight="semibold"
-                color="text.secondary"
-                mb="xs"
-              >
+              <Typography variant="body1" weight="semibold" color="text.secondary" mb="xs">
                 아직 등록된 알림이 없어요.
               </Typography>
               <Typography variant="body2" color="text.tertiary" center>
@@ -99,7 +96,7 @@ export default function NotificationScreen() {
       <TouchableOpacity
         style={styles.fab}
         activeOpacity={0.8}
-        onPress={() => router.push("/schedule?from=notification")}
+        onPress={() => router.push('/schedule?from=notification')}
       >
         <Ionicons name="add" size={32} color={theme.colors.background} />
       </TouchableOpacity>
@@ -122,27 +119,12 @@ const AlarmItem = React.memo(
     isDeleting: boolean;
   }) => {
     // 💡 [Logic] 알림 완료 여부를 현재 시간과 alarmTime 비교를 통해 동적으로 결정
-    const isNotified = useMemo(
-      () => new Date(item.alarmTime) < new Date(),
-      [item.alarmTime],
-    );
+    const isNotified = useMemo(() => new Date(item.alarmTime) < new Date(), [item.alarmTime]);
 
     return (
-      <Box
-        bg="card"
-        p="SCREEN"
-        rounded="md"
-        mb="sm"
-        flexDir="row"
-        style={styles.alarmItem}
-      >
+      <Box bg="card" p="SCREEN" rounded="md" mb="sm" flexDir="row" style={styles.alarmItem}>
         <Box flex={1}>
-          <Typography
-            variant="body1"
-            weight="semibold"
-            color="text.primary"
-            mb="xs"
-          >
+          <Typography variant="body1" weight="semibold" color="text.primary" mb="xs">
             {item.stadiumName}
           </Typography>
           <Typography variant="caption" color="text.secondary" mb="xs">
@@ -152,16 +134,9 @@ const AlarmItem = React.memo(
             {item.homeTeam} vs {item.awayTeam}
           </Typography>
           <Box align="flex-start">
-            <Box
-              bg={isNotified ? "team.neutralLight" : "brand.mint"}
-              px="sm"
-              py="xs"
-              rounded="sm"
-            >
+            <Box bg={isNotified ? 'team.neutralLight' : 'brand.mint'} px="sm" py="xs" rounded="sm">
               <Typography variant="caption" color="background" weight="bold">
-                {isNotified
-                  ? "알림 완료"
-                  : `${item.minusBefore}분 전 알림 대기`}
+                {isNotified ? '알림 완료' : `${item.minusBefore}분 전 알림 대기`}
               </Typography>
             </Box>
           </Box>
@@ -180,7 +155,7 @@ const AlarmItem = React.memo(
   },
 );
 
-AlarmItem.displayName = "AlarmItem";
+AlarmItem.displayName = 'AlarmItem';
 
 const styles = StyleSheet.create({
   safeLayout: {
@@ -201,18 +176,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xs,
     marginLeft: theme.spacing.sm,
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
   },
   fab: {
-    position: "absolute",
+    position: 'absolute',
     bottom: theme.spacing.SCREEN + theme.layout.tabBar.height,
     right: theme.spacing.SCREEN,
     width: theme.layout.fab.size,
     height: theme.layout.fab.size,
     borderRadius: theme.layout.fab.size / 2,
     backgroundColor: theme.colors.brand.mint,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     ...theme.shadow.card,
   },
 });

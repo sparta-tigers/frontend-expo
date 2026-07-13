@@ -1,11 +1,11 @@
-import { Box, Typography } from "@/components/ui";
-import { SafeLayout } from "@/components/ui/safe-layout";
-import { useAuth } from "@/context/AuthContext";
-import { ThemeColorPath } from "@/src/shared/types/theme";
-import { theme } from "@/src/styles/theme";
-import { TEAM_LIST } from "@/src/utils/team";
-import { Stack, router } from "expo-router";
-import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+import { Box, Typography } from '@/components/ui';
+import { SafeLayout } from '@/components/ui/safe-layout';
+import { useAuth } from '@/context/AuthContext';
+import { ThemeColorPath } from '@/src/shared/types/theme';
+import { theme } from '@/src/styles/theme';
+import { TEAM_LIST } from '@/src/utils/team';
+import { Stack, router } from 'expo-router';
+import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -16,7 +16,7 @@ const LOCAL_LAYOUT = {
   titleWeight: theme.typography.weight.bold,
   titleBottomGap: theme.spacing.sm,
   subtitleFontSize: theme.typography.size.md,
-  cardWidth: "48%",
+  cardWidth: '48%',
   cardRadius: theme.radius.lg,
   cardPadding: theme.spacing.lg,
   cardBottomMargin: theme.spacing.lg,
@@ -52,18 +52,15 @@ export default function ChangeTeamScreen() {
   };
 
   return (
-    <SafeLayout style={styles.container} edges={["top", "left", "right"]}>
+    <SafeLayout style={styles.container} edges={['top', 'left', 'right']}>
       <Stack.Screen
         options={{
-          title: "응원팀 변경",
+          title: '응원팀 변경',
           headerShadowVisible: false,
         }}
       />
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <Box mb="xxl">
           <Typography variant="h3" weight="bold" mb="sm">
             응원하는 팀을 선택해주세요
@@ -99,31 +96,19 @@ export default function ChangeTeamScreen() {
                   bg={colorPath}
                   style={styles.colorBadge}
                 >
-                  <Typography style={styles.mascot}>
-                    {team.mascotEmoji}
-                  </Typography>
+                  <Typography style={styles.mascot}>{team.mascotEmoji}</Typography>
                 </Box>
                 <Typography
                   variant="caption"
-                  weight={isSelected ? "bold" : "semibold"}
+                  weight={isSelected ? 'bold' : 'semibold'}
                   center
-                  color={isSelected ? colorPath : "primary"}
+                  color={isSelected ? colorPath : 'primary'}
                 >
                   {team.name}
                 </Typography>
                 {isSelected ? (
-                  <Box
-                    rounded="sm"
-                    px="xs"
-                    py="xxs"
-                    bg={colorPath}
-                    style={styles.checkBadge}
-                  >
-                    <Typography
-                      color="background"
-                      weight="bold"
-                      style={styles.checkText}
-                    >
+                  <Box rounded="sm" px="xs" py="xxs" bg={colorPath} style={styles.checkBadge}>
+                    <Typography color="background" weight="bold" style={styles.checkText}>
                       선택됨
                     </Typography>
                   </Box>
@@ -151,7 +136,7 @@ const styles = StyleSheet.create({
     borderRadius: LOCAL_LAYOUT.cardRadius,
     padding: LOCAL_LAYOUT.cardPadding,
     marginBottom: LOCAL_LAYOUT.cardBottomMargin,
-    alignItems: "center",
+    alignItems: 'center',
     borderWidth: LOCAL_LAYOUT.cardBorderWidth,
     borderColor: theme.colors.border.light,
   },
@@ -169,7 +154,7 @@ const styles = StyleSheet.create({
     fontSize: LOCAL_LAYOUT.mascotSize,
   },
   checkBadge: {
-    position: "absolute",
+    position: 'absolute',
     top: LOCAL_LAYOUT.checkBadgeTop,
     right: LOCAL_LAYOUT.checkBadgeRight,
   },

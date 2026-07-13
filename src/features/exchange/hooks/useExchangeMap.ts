@@ -4,15 +4,15 @@
  * Why: exchange.tsx(918줄)에서 지도/위치 관련 상태와 핸들러를 분리하여
  * 지도 UI 변경이 아이템 목록/모달 렌더링에 영향을 미치지 않도록 한다.
  */
-import { useLocationTracker } from "@/src/hooks/useLocationTracker";
-import { useLocationStore } from "@/src/store/useLocationStore";
-import { Logger } from "@/src/utils/logger";
-import * as Location from "expo-location";
-import React, { useCallback, useRef, useState } from "react";
-import { Alert } from "react-native";
-import MapView from "react-native-maps";
+import { useLocationTracker } from '@/src/hooks/useLocationTracker';
+import { useLocationStore } from '@/src/store/useLocationStore';
+import { Logger } from '@/src/utils/logger';
+import * as Location from 'expo-location';
+import React, { useCallback, useRef, useState } from 'react';
+import { Alert } from 'react-native';
+import MapView from 'react-native-maps';
 
-const mapLogger = Logger.category("MAP");
+const mapLogger = Logger.category('MAP');
 
 /** 지도 영역 정보 */
 interface MapRegion {
@@ -62,9 +62,7 @@ export interface UseExchangeMapReturn {
  *
  * @param isInitialFetched - 초기 데이터 로딩 완료 여부 (지도 이동 감지 조건)
  */
-export function useExchangeMap(
-  isInitialFetched: boolean,
-): UseExchangeMapReturn {
+export function useExchangeMap(isInitialFetched: boolean): UseExchangeMapReturn {
   const mapRef = useRef<MapView>(null);
 
   // 전역 위치 스토어 연동
@@ -72,9 +70,7 @@ export function useExchangeMap(
   const { errorMsg: locationError } = useLocationTracker();
 
   // 로컬 위치 상태 (초기 마운트 시 설정)
-  const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(
-    null,
-  );
+  const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null);
 
   // 지도 상태
   const [isMapMoved, setIsMapMoved] = useState(false);
@@ -116,10 +112,10 @@ export function useExchangeMap(
       );
     } else {
       Alert.alert(
-        "알림",
+        '알림',
         locationError
-          ? "위치 권한이 거부되었어요.\n설정에서 권한을 허용해주세요."
-          : "현재 위치를 확인하고 있어요.\n잠시 후 다시 시도해주세요.",
+          ? '위치 권한이 거부되었어요.\n설정에서 권한을 허용해주세요.'
+          : '현재 위치를 확인하고 있어요.\n잠시 후 다시 시도해주세요.',
       );
     }
   }, [userLocation, locationError]);
@@ -133,7 +129,7 @@ export function useExchangeMap(
   const initializeLocation = useCallback(async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
+      if (status !== 'granted') {
         return;
       }
 
@@ -157,7 +153,7 @@ export function useExchangeMap(
         );
       }
     } catch (error) {
-      mapLogger.error("초기 위치 가져오기 실패", error);
+      mapLogger.error('초기 위치 가져오기 실패', error);
       // 🚨 [Senior Architect] 초기 위치 설정 실패는 Critical 에러로 간주하여 전파
       throw error;
     }

@@ -1,5 +1,5 @@
-import { ThemeColorPath } from "@/src/shared/types/theme";
-import { findTeamMeta } from "./team";
+import { ThemeColorPath } from '@/src/shared/types/theme';
+import { findTeamMeta } from './team';
 
 /**
  * 경기 결과 정보를 담는 인터페이스
@@ -53,9 +53,9 @@ export const calculateMatchResult = (
   // 응원 팀이 참여한 경기가 아닌 경우
   if (!isHome && !isAway) {
     return {
-      text: "MATCH",
-      color: "text.secondary",
-      emoji: "🏟️",
+      text: 'MATCH',
+      color: 'text.secondary',
+      emoji: '🏟️',
     };
   }
 
@@ -64,23 +64,23 @@ export const calculateMatchResult = (
 
   if (myScore > opponentScore) {
     return {
-      text: "WIN",
-      color: "brand.mint",
-      emoji: "😊",
+      text: 'WIN',
+      color: 'brand.mint',
+      emoji: '😊',
     };
   }
 
   if (myScore < opponentScore) {
     return {
-      text: "LOSE",
-      color: "error",
-      emoji: "😭",
+      text: 'LOSE',
+      color: 'error',
+      emoji: '😭',
     };
   }
 
   return {
-    text: "DRAW",
-    color: "text.secondary",
-    emoji: "😐",
+    text: 'DRAW',
+    color: 'text.secondary',
+    emoji: '😐',
   };
 };

@@ -1,5 +1,5 @@
 // Feature: fat-file-refactoring
-import type { SourceFile } from "../types.ts";
+import type { SourceFile } from '../types.ts';
 
 export interface ZustandGuardrailResult {
   passed: boolean;
@@ -17,13 +17,11 @@ export interface ZustandGuardrailResult {
  * - 주석 내 패턴: `// => [` 오탐 가능
  * - 정확한 검증이 필요하면 AST 파서(@typescript-eslint/typescript-estree) 도입을 검토할 것
  */
-export function checkZustandSelectors(
-  generatedFiles: SourceFile[],
-): ZustandGuardrailResult {
+export function checkZustandSelectors(generatedFiles: SourceFile[]): ZustandGuardrailResult {
   const violations: string[] = [];
 
   for (const file of generatedFiles) {
-    const lines = file.content.split("\n");
+    const lines = file.content.split('\n');
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       // Match useXStore() or useXStore(state => ...)
@@ -38,9 +36,9 @@ export function checkZustandSelectors(
 
         // If it returns an array or object literal without 'shallow'
         // This is a rough heuristic. A proper AST parser handles this better.
-        if (line.includes("=> [") || line.includes("=> ({")) {
+        if (line.includes('=> [') || line.includes('=> ({')) {
           // Check if shallow is passed as a second argument on the same line
-          if (!line.includes("shallow")) {
+          if (!line.includes('shallow')) {
             violations.push(
               `File ${file.relativePath}:${i + 1} - Potential missing 'shallow' equality function for multi-property selector in ${storeMatch[1]}`,
             );

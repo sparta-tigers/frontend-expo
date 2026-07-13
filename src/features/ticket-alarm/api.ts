@@ -1,10 +1,6 @@
-import { apiClient } from "@/src/core/client";
-import type { ApiResponse, PaginatedResponse } from "@/src/shared/types/common";
-import {
-  CreateTicketAlarmRequest,
-  TicketAlarm,
-  UpdateTicketAlarmRequest,
-} from "./types";
+import { apiClient } from '@/src/core/client';
+import type { ApiResponse, PaginatedResponse } from '@/src/shared/types/common';
+import { CreateTicketAlarmRequest, TicketAlarm, UpdateTicketAlarmRequest } from './types';
 
 /**
  * 🚨 앙드레 카파시: 티켓 예매 알림 API 정의
@@ -23,7 +19,7 @@ export async function ticketAlarmGetListAPI(
   page: number = 1,
   size: number = 10,
 ): Promise<ApiResponse<PaginatedResponse<TicketAlarm>>> {
-  return apiClient.get("/api/ticketalarm", { page, size });
+  return apiClient.get('/api/ticketalarm', { page, size });
 }
 
 /**
@@ -35,7 +31,7 @@ export async function ticketAlarmGetListAPI(
 export async function ticketAlarmCreateAPI(
   request: CreateTicketAlarmRequest,
 ): Promise<ApiResponse<TicketAlarm>> {
-  return apiClient.post("/api/ticketalarm", request);
+  return apiClient.post('/api/ticketalarm', request);
 }
 
 /**
@@ -57,9 +53,7 @@ export async function ticketAlarmUpdateAPI(
  * Why: 사용자의 명시적인 알림 취소 액션에 대응하여 서버 자원을 반환하고,
  * 클라이언트 측에서도 해당 알림과 관련된 UI 요소를 제거하여 데이터 정합성을 유지하기 위함입니다.
  */
-export async function ticketAlarmDeleteAPI(
-  alarmId: number,
-): Promise<ApiResponse<void>> {
+export async function ticketAlarmDeleteAPI(alarmId: number): Promise<ApiResponse<void>> {
   return apiClient.delete(`/api/ticketalarm/${alarmId}`);
 }
 
@@ -70,5 +64,5 @@ export async function ticketAlarmDeleteAPI(
  * 전체 목록을 가져와 클라이언트에서 계산하는 것보다 서버에서 count 결과만 받아오는 것이 훨씬 효율적입니다.
  */
 export async function ticketAlarmGetCountAPI(): Promise<ApiResponse<number>> {
-  return apiClient.get("/api/ticketalarm/count");
+  return apiClient.get('/api/ticketalarm/count');
 }

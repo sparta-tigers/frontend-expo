@@ -1,8 +1,8 @@
-import { Box, Typography } from "@/components/ui";
-import { theme } from "@/src/styles/theme";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import { Box, Typography } from '@/components/ui';
+import { theme } from '@/src/styles/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 
 interface AttendanceEmptyStateProps {
   title: string;
@@ -16,9 +16,9 @@ interface AttendanceEmptyStateProps {
 export function AttendanceEmptyState({
   title,
   description,
-  icon = "alert-circle-outline",
+  icon = 'alert-circle-outline',
   iconColor,
-  actionLabel = "이전 화면으로",
+  actionLabel = '이전 화면으로',
   onAction,
 }: AttendanceEmptyStateProps) {
   const router = useRouter();
@@ -27,20 +27,14 @@ export function AttendanceEmptyState({
     if (onAction) {
       onAction();
     } else {
-      router.replace("/(tabs)/history");
+      router.replace('/(tabs)/history');
     }
   };
 
   return (
     <Box flex={1} justify="center" align="center" p="SCREEN">
       <Ionicons name={icon} size={64} color={iconColor || theme.colors.error} />
-      <Typography
-        variant="h3"
-        color="text.primary"
-        weight="bold"
-        center
-        mt="md"
-      >
+      <Typography variant="h3" color="text.primary" weight="bold" center mt="md">
         {title}
       </Typography>
       <Typography variant="body2" color="text.secondary" center mt="sm">

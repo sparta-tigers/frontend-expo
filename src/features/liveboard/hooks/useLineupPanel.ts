@@ -1,13 +1,13 @@
 // app/liveboard/[matchId]/useLineupPanel.ts
-import { useAuth } from "@/context/AuthContext";
-import { fetchMatchLineup } from "@/src/features/liveboard/api";
-import { LineupRowDto } from "@/src/features/liveboard/types";
-import { matchKeys } from "@/src/features/match";
-import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useAuth } from '@/context/AuthContext';
+import { fetchMatchLineup } from '@/src/features/liveboard/api';
+import { LineupRowDto } from '@/src/features/liveboard/types';
+import { matchKeys } from '@/src/features/match';
+import { useQuery } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
 
-type FetchState = "LOADING" | "SUCCESS" | "ERROR";
-type ActiveTeam = "HOME" | "AWAY";
+type FetchState = 'LOADING' | 'SUCCESS' | 'ERROR';
+type ActiveTeam = 'HOME' | 'AWAY';
 
 interface UseLineupPanelReturn {
   activeTeam: ActiveTeam;
@@ -33,7 +33,7 @@ export function useLineupPanel(
   const { user } = useAuth();
   const isLoggedIn = !!user?.userId;
 
-  const [activeTeam, setActiveTeam] = useState<ActiveTeam>("HOME");
+  const [activeTeam, setActiveTeam] = useState<ActiveTeam>('HOME');
 
   const { data, status, refetch } = useQuery({
     queryKey: matchKeys.liveboard.lineup(matchId),
@@ -43,13 +43,13 @@ export function useLineupPanel(
   });
 
   const fetchState: FetchState =
-    status === "pending" ? "LOADING" : status === "error" ? "ERROR" : "SUCCESS";
+    status === 'pending' ? 'LOADING' : status === 'error' ? 'ERROR' : 'SUCCESS';
 
   const homeBatters = useMemo(() => data?.homeBatters ?? [], [data]);
   const awayBatters = useMemo(() => data?.awayBatters ?? [], [data]);
 
-  const currentLineup = activeTeam === "HOME" ? homeBatters : awayBatters;
-  const currentTeamName = activeTeam === "HOME" ? homeTeamName : awayTeamName;
+  const currentLineup = activeTeam === 'HOME' ? homeBatters : awayBatters;
+  const currentTeamName = activeTeam === 'HOME' ? homeTeamName : awayTeamName;
 
   return {
     activeTeam,

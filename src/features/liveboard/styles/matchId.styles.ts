@@ -1,6 +1,6 @@
 // app/liveboard/[matchId]/matchId.styles.ts
-import { theme } from "@/src/styles/theme";
-import { StyleSheet } from "react-native";
+import { theme } from '@/src/styles/theme';
+import { StyleSheet } from 'react-native';
 
 // 디자인 기준 섹션 수치 (Figma)
 export const LIVE_SECTION_HEIGHT = 274;
@@ -15,13 +15,13 @@ export const styles = StyleSheet.create({
 
   // ── 라이브 섹션 (상단) ───────────────────────────────
   liveSection: {
-    width: "100%",
+    width: '100%',
     aspectRatio: 360 / 274,
-    overflow: "hidden",
-    position: "relative",
+    overflow: 'hidden',
+    position: 'relative',
   },
   stadiumBg: {
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
@@ -32,21 +32,21 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   eventBanner: {
-    position: "absolute",
+    position: 'absolute',
     top: 27,
-    alignSelf: "center",
+    alignSelf: 'center',
     paddingHorizontal: 32,
     paddingVertical: 5,
     borderRadius: 9,
     backgroundColor: theme.colors.brand.mint,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 20,
   },
   eventBannerText: {
     fontSize: 11,
     color: theme.colors.background,
-    textAlign: "center",
+    textAlign: 'center',
     letterSpacing: -0.55,
   },
 
@@ -59,15 +59,15 @@ export const styles = StyleSheet.create({
   },
   fieldArea: {
     flex: 5,
-    position: "relative",
+    position: 'relative',
   },
   scoreRow: {
     width: LEFT_BAR_WIDTH,
     height: 30,
     borderRadius: 3,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 8,
   },
   scoreAway: {
@@ -103,20 +103,20 @@ export const styles = StyleSheet.create({
   inningText: {
     fontSize: 16,
     color: theme.colors.background,
-    textAlign: "center",
+    textAlign: 'center',
   },
   baseDiamond: {
-    position: "relative",
+    position: 'relative',
     width: 36,
     height: 36,
     marginLeft: 6,
   },
   base: {
-    position: "absolute",
+    position: 'absolute',
     width: 10,
     height: 10,
     backgroundColor: theme.colors.liveboard.baseIdle,
-    transform: [{ rotate: "45deg" }],
+    transform: [{ rotate: '45deg' }],
   },
   baseSecond: { top: 0, left: 13 },
   baseFirst: { top: 13, left: 22 },
@@ -129,23 +129,23 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 1,
   },
   bsoLine: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    width: "100%",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
     height: 20,
   },
   bsoLabel: {
     fontSize: 12,
     color: theme.colors.background,
     width: 14,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   bsoDots: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 4,
     flex: 1,
-    justifyContent: "flex-start",
+    justifyContent: 'flex-start',
     marginLeft: 8,
   },
   bsoDot: {
@@ -164,12 +164,12 @@ export const styles = StyleSheet.create({
   pitcherName: {
     fontSize: 11,
     color: theme.colors.background,
-    textAlign: "center",
+    textAlign: 'center',
   },
   pitcherPitchLabel: {
     fontSize: 11,
     color: theme.colors.background,
-    textAlign: "center",
+    textAlign: 'center',
   },
   pitcherPitchCount: {
     fontSize: 11,
@@ -178,19 +178,19 @@ export const styles = StyleSheet.create({
 
   // ── 선수 배치 영역 ────────────────────────────────────
   playerArea: {
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
   },
   playerTag: {
-    position: "absolute",
+    position: 'absolute',
     width: 54, // 47 -> 54
     height: 18, // 14 -> 18
     borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: theme.colors.text.primary,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
@@ -209,13 +209,13 @@ export const styles = StyleSheet.create({
   playerName: {
     fontSize: 10, // 9 -> 10
     color: theme.colors.background,
-    textAlign: "center",
+    textAlign: 'center',
     lineHeight: 16, // 13 -> 16
   },
   playerNameRunner: {
     fontSize: 9,
     color: theme.colors.liveboard.runnerText,
-    textAlign: "center",
+    textAlign: 'center',
     lineHeight: 13,
   },
 
@@ -229,18 +229,18 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 2,
-    alignItems: "center",
+    alignItems: 'center',
   },
   tabItem: {
     width: 59,
     height: 30,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tabText: {
     fontSize: 12,
     color: theme.colors.brand.inactive,
-    textAlign: "center",
+    textAlign: 'center',
   },
   tabTextActive: {
     color: theme.colors.brand.mint,
@@ -258,7 +258,7 @@ export const styles = StyleSheet.create({
   },
   bubbleRow: {
     gap: 2,
-    maxWidth: "100%",
+    maxWidth: '100%',
   },
   bubbleColumn: {
     gap: 2,
@@ -311,7 +311,7 @@ export const styles = StyleSheet.create({
     height: 66,
     paddingHorizontal: 12,
     paddingTop: 0,
-    position: "relative",
+    position: 'relative',
   },
   chatInput: {
     height: 39,
@@ -330,15 +330,15 @@ export const styles = StyleSheet.create({
     color: theme.colors.team.neutralDark,
   },
   chatSendBtn: {
-    position: "absolute",
+    position: 'absolute',
     right: 24,
     top: 7,
     width: 25,
     height: 25,
     borderRadius: 12.5,
     backgroundColor: theme.colors.brand.mint,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   // ── 라인업 패널 ──────────────────────────────────────
@@ -353,7 +353,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     minWidth: 80,
-    alignItems: "center",
+    alignItems: 'center',
   },
   chipInactive: {
     backgroundColor: theme.colors.card,
@@ -450,7 +450,7 @@ export const styles = StyleSheet.create({
   broadcastItemInning: {
     backgroundColor: theme.colors.brand.background,
     paddingVertical: 12,
-    alignItems: "center",
+    alignItems: 'center',
     borderBottomWidth: 2,
     borderBottomColor: theme.colors.border.medium,
   },
@@ -467,16 +467,16 @@ export const styles = StyleSheet.create({
   broadcastTextBatter: {
     fontSize: 14,
     color: theme.colors.background,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   broadcastTextInning: {
     fontSize: 15,
     color: theme.colors.brand.mint,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   broadcastEmpty: {
     padding: 40,
-    alignItems: "center",
+    alignItems: 'center',
   },
   broadcastEmptyText: {
     color: theme.colors.text.tertiary,
@@ -488,10 +488,10 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   visible: {
-    display: "flex",
+    display: 'flex',
   },
   hidden: {
-    display: "none",
+    display: 'none',
   },
   keyboardAvoidingView: {
     flex: 1,

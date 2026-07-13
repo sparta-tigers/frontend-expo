@@ -1,4 +1,4 @@
-import { BackendCode, TEAM_LIST } from "@/src/utils/team";
+import { BackendCode, TEAM_LIST } from '@/src/utils/team';
 
 /**
  * 즐겨찾기 팀 관련 타입 정의

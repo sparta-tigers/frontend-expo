@@ -1,18 +1,18 @@
 // src/features/liveboard/components/ChatPanel.tsx
-import { Box } from "@/components/ui/box";
-import { Typography } from "@/components/ui/typography";
-import { styles } from "@/src/features/liveboard/styles/matchId.styles";
-import { theme } from "@/src/styles/theme";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Box } from '@/components/ui/box';
+import { Typography } from '@/components/ui/typography';
+import { styles } from '@/src/features/liveboard/styles/matchId.styles';
+import { theme } from '@/src/styles/theme';
+import { MaterialIcons } from '@expo/vector-icons';
 import {
   KeyboardAvoidingView,
   Platform,
   FlatList,
   TextInput,
   TouchableOpacity,
-} from "react-native";
-import { useCallback, memo } from "react";
-import { ChatBubbleMessage, useChatPanel } from "@/src/features/liveboard/hooks/useChatPanel";
+} from 'react-native';
+import { useCallback, memo } from 'react';
+import { ChatBubbleMessage, useChatPanel } from '@/src/features/liveboard/hooks/useChatPanel';
 
 const ChatBubble = memo(function ChatBubble({
   author,
@@ -29,7 +29,7 @@ const ChatBubble = memo(function ChatBubble({
     <Box
       flexDir="row"
       align="flex-end"
-      justify={mine ? "flex-end" : "flex-start"}
+      justify={mine ? 'flex-end' : 'flex-start'}
       style={styles.bubbleRow}
     >
       {mine ? (
@@ -37,13 +37,11 @@ const ChatBubble = memo(function ChatBubble({
           {time}
         </Typography>
       ) : null}
-      <Box style={styles.bubbleColumn} align={mine ? "flex-end" : "flex-start"}>
+      <Box style={styles.bubbleColumn} align={mine ? 'flex-end' : 'flex-start'}>
         <Typography style={styles.bubbleAuthor} weight="regular">
           {author}
         </Typography>
-        <Box
-          style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleOther]}
-        >
+        <Box style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleOther]}>
           <Typography
             style={mine ? styles.bubbleTextMine : styles.bubbleTextOther}
             weight="semibold"
@@ -73,11 +71,10 @@ const LOCAL_LAYOUT = {
 };
 
 export function ChatPanel({ matchId }: { matchId: string }) {
-  const { messages, draft, setDraft, isConnected, scrollRef, handleSend } =
-    useChatPanel(matchId);
+  const { messages, draft, setDraft, isConnected, scrollRef, handleSend } = useChatPanel(matchId);
 
   const keyExtractor = useCallback((item: ChatBubbleMessage) => item.key, []);
-  
+
   const renderItem = useCallback(({ item }: { item: ChatBubbleMessage }) => {
     const { key, author, text, time, mine } = item;
     return <ChatBubble key={key} author={author} text={text} time={time} mine={mine} />;
@@ -85,10 +82,10 @@ export function ChatPanel({ matchId }: { matchId: string }) {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.keyboardAvoidingView}
       keyboardVerticalOffset={
-        Platform.OS === "ios"
+        Platform.OS === 'ios'
           ? LOCAL_LAYOUT.keyboardVerticalOffsetIos
           : LOCAL_LAYOUT.keyboardVerticalOffsetAndroid
       }
@@ -105,7 +102,7 @@ export function ChatPanel({ matchId }: { matchId: string }) {
           ListEmptyComponent={
             <Box flex={1} align="center" justify="center" py="xxxl">
               <Typography variant="body1" color="text.tertiary" weight="medium">
-                {isConnected ? "첫 메시지를 남겨보세요" : "채팅 연결 중..."}
+                {isConnected ? '첫 메시지를 남겨보세요' : '채팅 연결 중...'}
               </Typography>
             </Box>
           }
@@ -131,11 +128,7 @@ export function ChatPanel({ matchId }: { matchId: string }) {
             accessibilityRole="button"
             accessibilityLabel="전송"
           >
-            <MaterialIcons
-              name="arrow-upward"
-              size={16}
-              color={theme.colors.background}
-            />
+            <MaterialIcons name="arrow-upward" size={16} color={theme.colors.background} />
           </TouchableOpacity>
         </Box>
       </Box>

@@ -1,7 +1,7 @@
-import { itemsUpdateStatusAPI } from "@/src/features/exchange/api";
-import { Item } from "@/src/features/exchange/items";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Alert } from "react-native";
+import { itemsUpdateStatusAPI } from '@/src/features/exchange/api';
+import { Item } from '@/src/features/exchange/items';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Alert } from 'react-native';
 
 /**
  * 아이템 상태 변경 훅
@@ -21,13 +21,13 @@ export const useUpdateItemStatus = (itemId: number) => {
     mutationFn: (newStatus: string) => itemsUpdateStatusAPI(itemId, newStatus),
     onMutate: async (newStatus) => {
       // 관련 쿼리 취소하여 동시성 문제 방지
-      await queryClient.cancelQueries({ queryKey: ["item", itemId] });
+      await queryClient.cancelQueries({ queryKey: ['item', itemId] });
 
       // 이전 데이터 저장 (롤백용)
-      const previousItem = queryClient.getQueryData<Item>(["item", itemId]);
+      const previousItem = queryClient.getQueryData<Item>(['item', itemId]);
 
       // 낙관적 업데이트: UI 즉시 반영
-      queryClient.setQueryData(["item", itemId], (old: Item | undefined) => {
+      queryClient.setQueryData(['item', itemId], (old: Item | undefined) => {
         if (!old) return old;
         return {
           ...old,
@@ -40,17 +40,17 @@ export const useUpdateItemStatus = (itemId: number) => {
     onError: (_, __, context) => {
       // 실패 시 원상 복구
       if (context?.previousItem) {
-        queryClient.setQueryData(["item", itemId], context.previousItem);
+        queryClient.setQueryData(['item', itemId], context.previousItem);
       }
-      Alert.alert("알림", "상태를 변경하지 못했어요.");
+      Alert.alert('알림', '상태를 변경하지 못했어요.');
     },
     onSettled: () => {
       // [Zero Magic] 성공/실패 여부와 상관없이 최종적으로 서버 데이터와 캐시를 동기화함.
       // 프로미스를 반환하여 무효화가 완료될 때까지 뮤테이션을 'settling' 상태로 유지.
       return Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["item", itemId] }),
-        queryClient.invalidateQueries({ queryKey: ["items"] }),
-        queryClient.invalidateQueries({ queryKey: ["myExchanges"] }),
+        queryClient.invalidateQueries({ queryKey: ['item', itemId] }),
+        queryClient.invalidateQueries({ queryKey: ['items'] }),
+        queryClient.invalidateQueries({ queryKey: ['myExchanges'] }),
       ]);
     },
   });

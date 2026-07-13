@@ -1,10 +1,10 @@
-import { Box, Typography } from "@/components/ui";
-import { ThemeColorPath, getTeamColorPath } from "@/src/shared/types/theme";
-import { theme } from "@/src/styles/theme";
-import { TeamMeta } from "@/src/utils/team";
-import { MaterialIcons } from "@expo/vector-icons";
-import { memo } from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import { Box, Typography } from '@/components/ui';
+import { ThemeColorPath, getTeamColorPath } from '@/src/shared/types/theme';
+import { theme } from '@/src/styles/theme';
+import { TeamMeta } from '@/src/utils/team';
+import { MaterialIcons } from '@expo/vector-icons';
+import { memo } from 'react';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 
 // ========================================================
 // 레이아웃 및 디자인 토큰 (LOCAL_LAYOUT)
@@ -53,18 +53,13 @@ const StatSummaryItem = memo(
       <Typography variant="h4" color="text.primary" numberOfLines={1}>
         {value}
       </Typography>
-      <Typography
-        variant="caption"
-        color="text.secondary"
-        mt="xxs"
-        numberOfLines={1}
-      >
+      <Typography variant="caption" color="text.secondary" mt="xxs" numberOfLines={1}>
         {label}
       </Typography>
     </Box>
   ),
 );
-StatSummaryItem.displayName = "StatSummaryItem";
+StatSummaryItem.displayName = 'StatSummaryItem';
 
 // ========================================================
 // 메인 컴포넌트: MyTeamSection
@@ -105,27 +100,27 @@ export const MyTeamSection = memo(
       iconColor: string;
     }[] = [
       {
-        key: "visit",
-        icon: "bar-chart",
+        key: 'visit',
+        icon: 'bar-chart',
         value: `${attendanceCount}회`,
-        label: "올해 직관횟수",
-        toneColor: "dashboard.statTonePink",
+        label: '올해 직관횟수',
+        toneColor: 'dashboard.statTonePink',
         iconColor: theme.colors.dashboard.statIconPink,
       },
       {
-        key: "alarm",
-        icon: "notifications-none",
+        key: 'alarm',
+        icon: 'notifications-none',
         value: `${ticketAlarmCount}개`,
-        label: "예매 알람",
-        toneColor: "dashboard.statToneYellow",
+        label: '예매 알람',
+        toneColor: 'dashboard.statToneYellow',
         iconColor: theme.colors.dashboard.statIconYellow,
       },
       {
-        key: "match",
-        icon: "star-outline",
+        key: 'match',
+        icon: 'star-outline',
         value: `${remainingMatches}경기`,
-        label: "남은 경기수",
-        toneColor: "dashboard.statToneGreen",
+        label: '남은 경기수',
+        toneColor: 'dashboard.statToneGreen',
         iconColor: theme.colors.dashboard.statIconGreen,
       },
     ];
@@ -134,11 +129,7 @@ export const MyTeamSection = memo(
       <Box px="SCREEN_DASHBOARD">
         {/* 섹션 헤더 */}
         <Box flexDir="row" justify="space-between" align="center" mb="md">
-          <Typography
-            variant="label"
-            color="text.secondary"
-            style={styles.headerLabel}
-          >
+          <Typography variant="label" color="text.secondary" style={styles.headerLabel}>
             MY TEAM
           </Typography>
           {onPressChangeTeam ? (
@@ -150,11 +141,7 @@ export const MyTeamSection = memo(
               accessibilityLabel="응원팀 변경"
               accessibilityHint="응원하는 팀을 변경할 수 있습니다"
             >
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                weight="semibold"
-              >
+              <Typography variant="caption" color="text.secondary" weight="semibold">
                 응원팀 변경
               </Typography>
             </TouchableOpacity>
@@ -170,27 +157,17 @@ export const MyTeamSection = memo(
           style={styles.myTeamCard}
         >
           {/* 인사말 영역 */}
-          <Box
-            flexDir="row"
-            align="baseline"
-            mb="lg"
-            style={styles.greetingContainer}
-          >
+          <Box flexDir="row" align="baseline" mb="lg" style={styles.greetingContainer}>
             <Typography variant="h3" weight="bold">
               {userNickname}
             </Typography>
             <Typography variant="h3" weight="bold" ml="xxs">
-              {teamMeta?.mascotEmoji || "⚾"}
+              {teamMeta?.mascotEmoji || '⚾'}
             </Typography>
             <Typography variant="caption" color="text.secondary" ml="xxs">
               님, 입학한지
             </Typography>
-            <Typography
-              variant="h2"
-              weight="black"
-              mx="xs"
-              color="text.primary"
-            >
+            <Typography variant="h2" weight="black" mx="xs" color="text.primary">
               {enrollmentDays}
             </Typography>
             <Typography variant="caption" color="text.secondary">
@@ -215,9 +192,7 @@ export const MyTeamSection = memo(
 
             {/* 입체적인 마스코트 영역 (Absolute Positioning) */}
             <Box style={styles.mascotContainer}>
-              <Typography style={styles.mascotEmoji}>
-                {teamMeta?.mascotEmoji || "⚾"}
-              </Typography>
+              <Typography style={styles.mascotEmoji}>{teamMeta?.mascotEmoji || '⚾'}</Typography>
             </Box>
           </Box>
         </Box>
@@ -225,7 +200,7 @@ export const MyTeamSection = memo(
     );
   },
 );
-MyTeamSection.displayName = "MyTeamSection";
+MyTeamSection.displayName = 'MyTeamSection';
 
 const styles = StyleSheet.create({
   headerLabel: {
@@ -236,15 +211,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     minHeight: theme.layout.touch.minTargetSize,
     minWidth: theme.layout.touch.minTargetSize,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 20,
     borderWidth: 1,
     borderColor: theme.colors.border.medium,
   },
   myTeamCard: {
     borderLeftWidth: LOCAL_LAYOUT.cardBorderLeftWidth,
-    overflow: "visible", // 마스코트가 튀어나오게 설정
+    overflow: 'visible', // 마스코트가 튀어나오게 설정
     ...LOCAL_LAYOUT.cardShadow,
   },
   statItem: {
@@ -252,19 +227,19 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   greetingContainer: {
-    flexWrap: "wrap",
+    flexWrap: 'wrap',
   },
   statGrid: {
     paddingRight: LOCAL_LAYOUT.statSafetyPadding,
   },
   mascotContainer: {
-    position: "absolute",
+    position: 'absolute',
     right: LOCAL_LAYOUT.mascotRightOffset,
     bottom: -10,
     width: LOCAL_LAYOUT.mascotSize,
     height: LOCAL_LAYOUT.mascotSize,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   mascotEmoji: {
     fontSize: theme.typography.size.TITLE * 2, // 64px 근사 (28 * 2 = 56, 32 * 2 = 64) - TITLE(28) 기준 보정

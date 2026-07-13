@@ -4,9 +4,9 @@
  * FAB 버튼 그룹 + 상단 오버레이 버튼 + 재검색 버튼을 캡슐화.
  * 지도 위에 floating으로 표시되는 모든 인터랙션 요소를 담당.
  */
-import { theme } from "@/src/styles/theme";
-import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { theme } from '@/src/styles/theme';
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 /** 오버레이 전용 레이아웃 상수 */
 const OVERLAY_LAYOUT = {
@@ -66,22 +66,11 @@ export const ExchangeMapOverlay = React.memo(
         ) : null}
 
         {/* 상단 오버레이 버튼 (등록하기 + 교환현황) */}
-        <View
-          style={[
-            styles.topOverlayContainer,
-            { top: topInset + theme.spacing.sm },
-          ]}
-        >
-          <TouchableOpacity
-            style={styles.topOverlayButton}
-            onPress={onNavigateToCreate}
-          >
+        <View style={[styles.topOverlayContainer, { top: topInset + theme.spacing.sm }]}>
+          <TouchableOpacity style={styles.topOverlayButton} onPress={onNavigateToCreate}>
             <Text style={styles.topOverlayButtonText}>+ 등록하기</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.topOverlayButton}
-            onPress={onNavigateToRequests}
-          >
+          <TouchableOpacity style={styles.topOverlayButton} onPress={onNavigateToRequests}>
             <Text style={styles.topOverlayButtonText}>💬 교환현황</Text>
           </TouchableOpacity>
         </View>
@@ -89,10 +78,7 @@ export const ExchangeMapOverlay = React.memo(
         {/* 재검색 버튼 (지도 이동 시 표시) */}
         {isMapMoved ? (
           <TouchableOpacity
-            style={[
-              styles.reSearchButton,
-              { top: topInset + OVERLAY_LAYOUT.reSearchOffset },
-            ]}
+            style={[styles.reSearchButton, { top: topInset + OVERLAY_LAYOUT.reSearchOffset }]}
             onPress={onSearchCurrentLocation}
           >
             <Text style={styles.reSearchText}>↻ 현 지도에서 재검색</Text>
@@ -103,25 +89,25 @@ export const ExchangeMapOverlay = React.memo(
   },
 );
 
-ExchangeMapOverlay.displayName = "ExchangeMapOverlay";
+ExchangeMapOverlay.displayName = 'ExchangeMapOverlay';
 
 const styles = StyleSheet.create({
   fabContainer: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 0,
     right: 0,
     elevation: 5,
   },
   fabButton: {
-    position: "absolute",
+    position: 'absolute',
     bottom: theme.spacing.xxl,
     right: theme.spacing.xxl,
     width: OVERLAY_LAYOUT.fabSize,
     height: OVERLAY_LAYOUT.fabSize,
     borderRadius: OVERLAY_LAYOUT.fabSize / 2,
     backgroundColor: theme.colors.primary,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     elevation: 5,
   },
   locationButton: {
@@ -133,11 +119,11 @@ const styles = StyleSheet.create({
     color: theme.colors.background,
   },
   topOverlayContainer: {
-    position: "absolute",
+    position: 'absolute',
     left: 0,
     right: 0,
-    flexDirection: "row",
-    justifyContent: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
     gap: theme.spacing.COMPONENT,
     zIndex: 10,
   },
@@ -146,8 +132,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.COMPONENT,
     paddingVertical: theme.spacing.SMALL,
     borderRadius: OVERLAY_LAYOUT.pillRadius,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     ...theme.shadow.card,
   },
   topOverlayButtonText: {
@@ -156,14 +142,14 @@ const styles = StyleSheet.create({
     color: theme.colors.text.primary,
   },
   reSearchButton: {
-    position: "absolute",
-    alignSelf: "center",
+    position: 'absolute',
+    alignSelf: 'center',
     backgroundColor: theme.colors.primary,
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.sm,
     borderRadius: OVERLAY_LAYOUT.pillRadius,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     ...theme.shadow.button,
     zIndex: 2000,
   },

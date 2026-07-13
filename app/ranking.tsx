@@ -1,20 +1,15 @@
-import { MaterialIcons } from "@expo/vector-icons";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React from "react";
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { MaterialIcons } from '@expo/vector-icons';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import React from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Box, Typography } from "@/components/ui";
-import { useAuth } from "@/context/AuthContext";
-import { useMatchRanking } from "@/src/features/match/hooks/useMatchRanking";
-import { LeagueType, RankingUIModel } from "@/src/features/match/types";
-import { theme } from "@/src/styles/theme";
-import { findTeamMeta } from "@/src/utils/team";
+import { Box, Typography } from '@/components/ui';
+import { useAuth } from '@/context/AuthContext';
+import { useMatchRanking } from '@/src/features/match/hooks/useMatchRanking';
+import { LeagueType, RankingUIModel } from '@/src/features/match/types';
+import { theme } from '@/src/styles/theme';
+import { findTeamMeta } from '@/src/utils/team';
 
 /**
  * 팀 순위 상세 화면 (`ranking_0`)
@@ -29,23 +24,20 @@ export default function RankingScreen() {
 
   // URL 파라미터 추출 (SSOT)
   const params = useLocalSearchParams<{
-    view?: "year" | "day";
+    view?: 'year' | 'day';
     date?: string;
     year?: string;
     type?: string;
   }>();
 
   // 기본값 설정 로직
-  const today = React.useMemo(
-    () => new Date().toISOString().split("T")[0].replace(/-/g, ""),
-    [],
-  );
+  const today = React.useMemo(() => new Date().toISOString().split('T')[0].replace(/-/g, ''), []);
   const currentYear = React.useMemo(() => new Date().getFullYear(), []);
 
-  const viewMode = params.view || "year"; // 기본값 'year'
+  const viewMode = params.view || 'year'; // 기본값 'year'
   const selectedDate = params.date || today;
   const selectedYear = params.year ? parseInt(params.year) : currentYear;
-  const leagueType = (params.type as LeagueType) || "REGULAR";
+  const leagueType = (params.type as LeagueType) || 'REGULAR';
 
   // 데이터 패칭 (TanStack Query) - 🚨 이제 배열을 직접 반환
   const { data: rankings = [], isLoading } = useMatchRanking({
@@ -61,7 +53,7 @@ export default function RankingScreen() {
 
   // 네비게이션 헬퍼 (SSOT 가이드 준수)
   const switchMode = React.useCallback(
-    (mode: "year" | "day") => {
+    (mode: 'year' | 'day') => {
       router.setParams({ view: mode });
     },
     [router],
@@ -89,20 +81,14 @@ export default function RankingScreen() {
         parseInt(selectedDate.slice(6, 8)),
       );
       current.setDate(current.getDate() + days);
-      const newDate = current.toISOString().split("T")[0].replace(/-/g, "");
+      const newDate = current.toISOString().split('T')[0].replace(/-/g, '');
       router.setParams({ date: newDate });
     },
     [router, selectedDate],
   );
 
-  const handleSwitchToDay = React.useCallback(
-    () => switchMode("day"),
-    [switchMode],
-  );
-  const handleSwitchToYear = React.useCallback(
-    () => switchMode("year"),
-    [switchMode],
-  );
+  const handleSwitchToDay = React.useCallback(() => switchMode('day'), [switchMode]);
+  const handleSwitchToYear = React.useCallback(() => switchMode('year'), [switchMode]);
   const handleShiftPrev = React.useCallback(() => shiftDate(-1), [shiftDate]);
   const handleShiftNext = React.useCallback(() => shiftDate(1), [shiftDate]);
   const handleGoBack = React.useCallback(() => router.back(), [router]);
@@ -142,15 +128,13 @@ export default function RankingScreen() {
               onPress={handleSwitchToDay}
               style={[
                 styles.toggleBtn,
-                viewMode === "day"
-                  ? styles.toggleBtnActive
-                  : styles.toggleBtnInactive,
+                viewMode === 'day' ? styles.toggleBtnActive : styles.toggleBtnInactive,
               ]}
             >
               <Typography
                 variant="caption"
-                color={viewMode === "day" ? "card" : "brand.subtitle"}
-                weight={viewMode === "day" ? "bold" : "medium"}
+                color={viewMode === 'day' ? 'card' : 'brand.subtitle'}
+                weight={viewMode === 'day' ? 'bold' : 'medium'}
               >
                 일자별
               </Typography>
@@ -159,15 +143,13 @@ export default function RankingScreen() {
               onPress={handleSwitchToYear}
               style={[
                 styles.toggleBtn,
-                viewMode === "year"
-                  ? styles.toggleBtnActive
-                  : styles.toggleBtnInactive,
+                viewMode === 'year' ? styles.toggleBtnActive : styles.toggleBtnInactive,
               ]}
             >
               <Typography
                 variant="caption"
-                color={viewMode === "year" ? "card" : "brand.subtitle"}
-                weight={viewMode === "year" ? "bold" : "medium"}
+                color={viewMode === 'year' ? 'card' : 'brand.subtitle'}
+                weight={viewMode === 'year' ? 'bold' : 'medium'}
               >
                 연도별
               </Typography>
@@ -178,40 +160,26 @@ export default function RankingScreen() {
 
         <Box align="center" pb="md">
           <Typography variant="h1" style={styles.mascotEmoji}>
-            {team?.mascotEmoji || "⚾"}
+            {team?.mascotEmoji || '⚾'}
           </Typography>
 
           {/* Dynamic Title based on View Mode */}
           <Box flexDir="row" align="center" mt="xs">
-            {viewMode === "day" ? (
-              <TouchableOpacity
-                onPress={handleShiftPrev}
-                style={styles.navArrow}
-              >
-                <MaterialIcons
-                  name="chevron-left"
-                  size={24}
-                  color={theme.colors.brand.subtitle}
-                />
+            {viewMode === 'day' ? (
+              <TouchableOpacity onPress={handleShiftPrev} style={styles.navArrow}>
+                <MaterialIcons name="chevron-left" size={24} color={theme.colors.brand.subtitle} />
               </TouchableOpacity>
             ) : null}
 
             <Typography variant="h2" weight="bold" color="text.primary" mx="sm">
-              {viewMode === "year"
+              {viewMode === 'year'
                 ? `${selectedYear} 시즌 순위`
                 : `${selectedDate.slice(4, 6)}월 ${selectedDate.slice(6, 8)}일 순위`}
             </Typography>
 
-            {viewMode === "day" ? (
-              <TouchableOpacity
-                onPress={handleShiftNext}
-                style={styles.navArrow}
-              >
-                <MaterialIcons
-                  name="chevron-right"
-                  size={24}
-                  color={theme.colors.brand.subtitle}
-                />
+            {viewMode === 'day' ? (
+              <TouchableOpacity onPress={handleShiftNext} style={styles.navArrow}>
+                <MaterialIcons name="chevron-right" size={24} color={theme.colors.brand.subtitle} />
               </TouchableOpacity>
             ) : null}
           </Box>
@@ -219,14 +187,8 @@ export default function RankingScreen() {
       </Box>
 
       {/* Filter Row (Year Selector & League Toggle) */}
-      <Box
-        px="SCREEN"
-        py="sm"
-        flexDir="row"
-        justify="space-between"
-        align="center"
-      >
-        {viewMode === "year" ? (
+      <Box px="SCREEN" py="sm" flexDir="row" justify="space-between" align="center">
+        {viewMode === 'year' ? (
           <Box flexDir="row" gap="xs">
             {[2024, 2025, 2026].map((y) => (
               <YearChip
@@ -243,13 +205,8 @@ export default function RankingScreen() {
         )}
 
         <Box flexDir="row" bg="team.neutralLight" rounded="full" p="xxs">
-          {(["REGULAR", "PRESEASON"] as LeagueType[]).map((type) => (
-            <LeagueChip
-              key={type}
-              type={type}
-              currentType={leagueType}
-              onPress={updateLeague}
-            />
+          {(['REGULAR', 'PRESEASON'] as LeagueType[]).map((type) => (
+            <LeagueChip key={type} type={type} currentType={leagueType} onPress={updateLeague} />
           ))}
         </Box>
       </Box>
@@ -313,11 +270,7 @@ export default function RankingScreen() {
 
             {/* Ranking List */}
             {rankings.map((row) => (
-              <RankingRow
-                key={row.teamCode}
-                row={row}
-                isMyTeam={myTeam === row.teamCode}
-              />
+              <RankingRow key={row.teamCode} row={row} isMyTeam={myTeam === row.teamCode} />
             ))}
           </ScrollView>
         )}
@@ -351,7 +304,7 @@ const YearChip = React.memo(
         <Typography
           variant="caption"
           weight="bold"
-          color={selectedYear === year ? "text.primary" : "brand.subtitle"}
+          color={selectedYear === year ? 'text.primary' : 'brand.subtitle'}
         >
           {year}
         </Typography>
@@ -359,7 +312,7 @@ const YearChip = React.memo(
     );
   },
 );
-YearChip.displayName = "YearChip";
+YearChip.displayName = 'YearChip';
 
 const LeagueChip = React.memo(
   ({
@@ -375,104 +328,93 @@ const LeagueChip = React.memo(
     return (
       <TouchableOpacity
         onPress={handlePress}
-        style={[
-          styles.leagueBtn,
-          currentType === type && { backgroundColor: theme.colors.card },
-        ]}
+        style={[styles.leagueBtn, currentType === type && { backgroundColor: theme.colors.card }]}
       >
         <Typography
           variant="caption"
           weight="bold"
-          color={currentType === type ? "text.primary" : "brand.subtitle"}
+          color={currentType === type ? 'text.primary' : 'brand.subtitle'}
         >
-          {type === "REGULAR" ? "정규리그" : "시범경기"}
+          {type === 'REGULAR' ? '정규리그' : '시범경기'}
         </Typography>
       </TouchableOpacity>
     );
   },
 );
-LeagueChip.displayName = "LeagueChip";
+LeagueChip.displayName = 'LeagueChip';
 
-const RankingRow = React.memo(
-  ({ row, isMyTeam }: { row: RankingUIModel; isMyTeam: boolean }) => {
-    const { meta } = row;
-    return (
-      <Box
-        flexDir="row"
-        height={52}
-        align="center"
-        my="xs"
-        rounded="md"
-        style={isMyTeam ? styles.myTeamRow : styles.normalRow}
-      >
-        <Box width={40} align="center">
-          <Typography
-            variant="h3"
-            weight="bold"
-            color={isMyTeam ? "brand.mint" : "text.secondary"}
-          >
-            {row.rank}
-          </Typography>
+const RankingRow = React.memo(({ row, isMyTeam }: { row: RankingUIModel; isMyTeam: boolean }) => {
+  const { meta } = row;
+  return (
+    <Box
+      flexDir="row"
+      height={52}
+      align="center"
+      my="xs"
+      rounded="md"
+      style={isMyTeam ? styles.myTeamRow : styles.normalRow}
+    >
+      <Box width={40} align="center">
+        <Typography variant="h3" weight="bold" color={isMyTeam ? 'brand.mint' : 'text.secondary'}>
+          {row.rank}
+        </Typography>
+      </Box>
+      <Box flex={2} flexDir="row" align="center">
+        <Box
+          width={32}
+          height={32}
+          rounded="full"
+          bg="team.neutralLight"
+          align="center"
+          justify="center"
+          mr="sm"
+        >
+          <Typography style={styles.teamIconText}>{meta.mascotEmoji}</Typography>
         </Box>
-        <Box flex={2} flexDir="row" align="center">
-          <Box
-            width={32}
-            height={32}
-            rounded="full"
-            bg="team.neutralLight"
-            align="center"
-            justify="center"
-            mr="sm"
-          >
-            <Typography style={styles.teamIconText}>
-              {meta.mascotEmoji}
+        <Typography
+          variant="body2"
+          weight={isMyTeam ? 'bold' : 'medium'}
+          color={isMyTeam ? 'brand.mint' : 'text.primary'}
+        >
+          {meta.name}
+        </Typography>
+        {isMyTeam ? (
+          <Box ml="xs" bg="brand.mint" px="xs" rounded="sm">
+            <Typography variant="caption" color="card" weight="bold">
+              MY
             </Typography>
           </Box>
-          <Typography
-            variant="body2"
-            weight={isMyTeam ? "bold" : "medium"}
-            color={isMyTeam ? "brand.mint" : "text.primary"}
-          >
-            {meta.name}
-          </Typography>
-          {isMyTeam ? (
-            <Box ml="xs" bg="brand.mint" px="xs" rounded="sm">
-              <Typography variant="caption" color="card" weight="bold">
-                MY
-              </Typography>
-            </Box>
-          ) : null}
-        </Box>
-        <Box flex={1} align="center">
-          <Typography variant="caption" color="text.secondary">
-            {row.matchCount}
-          </Typography>
-        </Box>
-        <Box flex={1} align="center">
-          <Typography variant="caption" color="text.secondary">
-            {row.winCount}
-          </Typography>
-        </Box>
-        <Box flex={1} align="center">
-          <Typography variant="caption" color="text.secondary">
-            {row.loseCount}
-          </Typography>
-        </Box>
-        <Box flex={1} align="center">
-          <Typography variant="caption" color="text.secondary">
-            {row.drawCount}
-          </Typography>
-        </Box>
-        <Box flex={1.5} align="center">
-          <Typography variant="caption" weight="bold" color="text.primary">
-            {row.winRate.toFixed(3)}
-          </Typography>
-        </Box>
+        ) : null}
       </Box>
-    );
-  },
-);
-RankingRow.displayName = "RankingRow";
+      <Box flex={1} align="center">
+        <Typography variant="caption" color="text.secondary">
+          {row.matchCount}
+        </Typography>
+      </Box>
+      <Box flex={1} align="center">
+        <Typography variant="caption" color="text.secondary">
+          {row.winCount}
+        </Typography>
+      </Box>
+      <Box flex={1} align="center">
+        <Typography variant="caption" color="text.secondary">
+          {row.loseCount}
+        </Typography>
+      </Box>
+      <Box flex={1} align="center">
+        <Typography variant="caption" color="text.secondary">
+          {row.drawCount}
+        </Typography>
+      </Box>
+      <Box flex={1.5} align="center">
+        <Typography variant="caption" weight="bold" color="text.primary">
+          {row.winRate.toFixed(3)}
+        </Typography>
+      </Box>
+    </Box>
+  );
+});
+RankingRow.displayName = 'RankingRow';
 
 const styles = StyleSheet.create({
   toggleBtn: {
@@ -480,7 +422,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 999,
     minWidth: 70,
-    alignItems: "center",
+    alignItems: 'center',
   },
   toggleBtnActive: {
     backgroundColor: theme.colors.brand.mint,

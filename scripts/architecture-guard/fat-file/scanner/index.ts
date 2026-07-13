@@ -21,14 +21,14 @@
 //
 // Requirements covered: 1.1, 1.4, 1.9.
 
-import * as fs from "node:fs";
-import * as path from "node:path";
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
-import type { ScanResult } from "../types.ts";
-import { countLoC } from "./count-loc.ts";
-import { enumerateSourceFiles } from "./enumerate.ts";
-import { buildScanResult } from "./priority-tier.ts";
-import { sortScanResults } from "./sort.ts";
+import type { ScanResult } from '../types.ts';
+import { countLoC } from './count-loc.ts';
+import { enumerateSourceFiles } from './enumerate.ts';
+import { buildScanResult } from './priority-tier.ts';
+import { sortScanResults } from './sort.ts';
 
 /**
  * Options accepted by {@link scan}.
@@ -83,7 +83,7 @@ export function scan(opts: ScanOptions): ScanResult[] {
 
   const results: ScanResult[] = [];
   for (const absolutePath of absolutePaths) {
-    const source = fs.readFileSync(absolutePath, "utf8");
+    const source = fs.readFileSync(absolutePath, 'utf8');
     const loc = countLoC(source);
     const relativePath = path.relative(opts.rootDir, absolutePath);
 
@@ -104,13 +104,9 @@ export function scan(opts: ScanOptions): ScanResult[] {
 // their original modules — keeps the public surface of the Scanner a single
 // entry point.
 
-export { countLoC } from "./count-loc.ts";
-export {
-  DEFAULT_EXCLUDE_DIRS,
-  DEFAULT_EXTENSIONS,
-  enumerateSourceFiles,
-} from "./enumerate.ts";
-export type { EnumerateOptions } from "./enumerate.ts";
-export { buildScanResult, priorityTier } from "./priority-tier.ts";
-export type { BuildScanResultArgs } from "./priority-tier.ts";
-export { compareScanResult, sortScanResults } from "./sort.ts";
+export { countLoC } from './count-loc.ts';
+export { DEFAULT_EXCLUDE_DIRS, DEFAULT_EXTENSIONS, enumerateSourceFiles } from './enumerate.ts';
+export type { EnumerateOptions } from './enumerate.ts';
+export { buildScanResult, priorityTier } from './priority-tier.ts';
+export type { BuildScanResultArgs } from './priority-tier.ts';
+export { compareScanResult, sortScanResults } from './sort.ts';

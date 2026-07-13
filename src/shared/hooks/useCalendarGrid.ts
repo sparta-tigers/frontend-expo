@@ -1,6 +1,6 @@
-import { CalendarCellModel } from "@/src/features/home/types/calendar";
-import { MatchSummary } from "@/src/features/match/types";
-import { useMemo } from "react";
+import { CalendarCellModel } from '@/src/features/home/types/calendar';
+import { MatchSummary } from '@/src/features/match/types';
+import { useMemo } from 'react';
 
 /**
  * 전역 달력 그리드 생성 엔진 (Deterministic)
@@ -39,7 +39,7 @@ export const useCalendarGrid = (
       daysArray.push({
         day: 0,
         hasGame: false,
-        opponentShort: "",
+        opponentShort: '',
         isSelected: false,
         isToday: false,
       });
@@ -50,25 +50,18 @@ export const useCalendarGrid = (
       const game = dayToGame.get(d);
 
       // 오늘 여부 판별
-      const isToday =
-        today?.year === year && today?.month === month && today?.day === d;
+      const isToday = today?.year === year && today?.month === month && today?.day === d;
 
       // 상대팀 정보 결정 (내 위치에 따라 반대팀 선택)
-      const opponent = game
-        ? game.location === "H"
-          ? game.awayTeam
-          : game.homeTeam
-        : null;
+      const opponent = game ? (game.location === 'H' ? game.awayTeam : game.homeTeam) : null;
 
       daysArray.push({
         day: d,
         matchId: game?.matchId,
         hasGame: !!game,
-        hasAttendance: game?.matchId
-          ? attendanceMatchIds?.has(game.matchId)
-          : false,
+        hasAttendance: game?.matchId ? attendanceMatchIds?.has(game.matchId) : false,
         opponentCode: opponent?.code,
-        opponentShort: opponent?.meta.shortName || "",
+        opponentShort: opponent?.meta.shortName || '',
         isSelected: d === selectedDay,
         isToday: isToday,
         location: game?.location,
@@ -86,7 +79,7 @@ export const useCalendarGrid = (
       daysArray.push({
         day: 0,
         hasGame: false,
-        opponentShort: "",
+        opponentShort: '',
         isSelected: false,
         isToday: false,
       });

@@ -32,7 +32,7 @@
  */
 const JSX_COMMENT_ONLY_LINE = /^\{\/\*[\s\S]*\*\/\}$/;
 
-type LocState = "CODE" | "BLOCK_COMMENT";
+type LocState = 'CODE' | 'BLOCK_COMMENT';
 
 /**
  * Compute the Lines of Code (LoC) for a source string.
@@ -55,25 +55,25 @@ type LocState = "CODE" | "BLOCK_COMMENT";
  * - Depends only on its argument; no I/O, no globals.
  */
 export function countLoC(source: string): number {
-  if (source === "") return 0;
+  if (source === '') return 0;
 
-  const lines = source.split("\n");
-  let state: LocState = "CODE";
+  const lines = source.split('\n');
+  let state: LocState = 'CODE';
   let loc = 0;
 
   for (const rawLine of lines) {
     const trimmed = rawLine.trim();
 
     // 1. blank line
-    if (trimmed === "") continue;
+    if (trimmed === '') continue;
 
     // 2. currently inside a multi-line block comment
-    if (state === "BLOCK_COMMENT") {
-      const closeIdx = trimmed.indexOf("*/");
+    if (state === 'BLOCK_COMMENT') {
+      const closeIdx = trimmed.indexOf('*/');
       if (closeIdx !== -1) {
-        state = "CODE";
+        state = 'CODE';
         const after = trimmed.slice(closeIdx + 2).trim();
-        if (after !== "" && !after.startsWith("//")) {
+        if (after !== '' && !after.startsWith('//')) {
           loc += 1;
         }
       }
@@ -81,24 +81,20 @@ export function countLoC(source: string): number {
     }
 
     // 3. full-line `//` comment
-    if (trimmed.startsWith("//")) continue;
+    if (trimmed.startsWith('//')) continue;
 
     // 4. JSX comment-only line: `{/* ... *\/}`
     if (JSX_COMMENT_ONLY_LINE.test(trimmed)) continue;
 
     // 5. single-line block comment: `/* ... *\/`
     //    length >= 4 guards against malformed 3-char inputs like `/*\/`.
-    if (
-      trimmed.startsWith("/*") &&
-      trimmed.endsWith("*/") &&
-      trimmed.length >= 4
-    ) {
+    if (trimmed.startsWith('/*') && trimmed.endsWith('*/') && trimmed.length >= 4) {
       continue;
     }
 
     // 6. block comment opened on this line with no `*\/` on the same line
-    if (trimmed.startsWith("/*") && !trimmed.includes("*/")) {
-      state = "BLOCK_COMMENT";
+    if (trimmed.startsWith('/*') && !trimmed.includes('*/')) {
+      state = 'BLOCK_COMMENT';
       continue;
     }
 

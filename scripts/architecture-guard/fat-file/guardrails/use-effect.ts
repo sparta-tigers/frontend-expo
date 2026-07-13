@@ -1,5 +1,5 @@
 // Feature: fat-file-refactoring
-import type { SourceFile } from "../types.ts";
+import type { SourceFile } from '../types.ts';
 
 export interface UseEffectGuardrailResult {
   passed: boolean;

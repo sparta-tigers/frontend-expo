@@ -1,5 +1,5 @@
-import { apiClient } from "@/src/core/client";
-import { MatchLineupDto, MatchWeatherDto } from "./types";
+import { apiClient } from '@/src/core/client';
+import { MatchLineupDto, MatchWeatherDto } from './types';
 
 /**
  * 특정 경기의 홈/어웨이 라인업 조회
@@ -9,12 +9,8 @@ import { MatchLineupDto, MatchWeatherDto } from "./types";
  *
  * @param matchId 경기 ID
  */
-export const fetchMatchLineup = async (
-  matchId: string,
-): Promise<MatchLineupDto> => {
-  return await apiClient.get<MatchLineupDto>(
-    `/api/liveboard/${matchId}/lineup`,
-  );
+export const fetchMatchLineup = async (matchId: string): Promise<MatchLineupDto> => {
+  return await apiClient.get<MatchLineupDto>(`/api/liveboard/${matchId}/lineup`);
 };
 
 /**
@@ -25,10 +21,6 @@ export const fetchMatchLineup = async (
  *
  * @param matchId 경기 ID
  */
-export const fetchMatchWeather = async (
-  matchId: string,
-): Promise<MatchWeatherDto> => {
-  return await apiClient.get<MatchWeatherDto>(
-    `/api/liveboard/${matchId}/weather`,
-  );
+export const fetchMatchWeather = async (matchId: string): Promise<MatchWeatherDto> => {
+  return await apiClient.get<MatchWeatherDto>(`/api/liveboard/${matchId}/weather`);
 };

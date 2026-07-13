@@ -1,14 +1,14 @@
 // src/features/exchange/hooks/useExchangeDashboard.ts
-import BottomSheet, { BottomSheetFlatListMethods } from "@gorhom/bottom-sheet";
-import { useRouter } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert } from "react-native";
-import MapViewType from "react-native-maps";
+import BottomSheet, { BottomSheetFlatListMethods } from '@gorhom/bottom-sheet';
+import { useRouter } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert } from 'react-native';
+import MapViewType from 'react-native-maps';
 
-import { useExchangeItems } from "@/src/features/exchange/hooks/useExchangeItems";
-import { useExchangeMap } from "@/src/features/exchange/hooks/useExchangeMap";
-import { useCheckActiveItem } from "@/src/features/exchange/queries";
-import { Logger } from "@/src/utils/logger";
+import { useExchangeItems } from '@/src/features/exchange/hooks/useExchangeItems';
+import { useExchangeMap } from '@/src/features/exchange/hooks/useExchangeMap';
+import { useCheckActiveItem } from '@/src/features/exchange/queries';
+import { Logger } from '@/src/utils/logger';
 
 /**
  * useExchangeDashboard
@@ -54,17 +54,13 @@ export function useExchangeDashboard() {
     setIsMapReady,
   } = useExchangeMap(isInitialFetched);
 
-  const { data: hasActiveItem, isLoading: isCheckingActive } =
-    useCheckActiveItem();
+  const { data: hasActiveItem, isLoading: isCheckingActive } = useCheckActiveItem();
 
   // --- 초기화 로직 ---
   useEffect(() => {
     initializeLocation().catch(() => {
       // mapLogger.error는 initializeLocation 내부에서 이미 수행됨
-      Alert.alert(
-        "알림",
-        "현재 위치를 확인하지 못해 기본 위치로 보여드릴게요.",
-      );
+      Alert.alert('알림', '현재 위치를 확인하지 못해 기본 위치로 보여드릴게요.');
     });
   }, [initializeLocation]);
 
@@ -76,18 +72,10 @@ export function useExchangeDashboard() {
         mapRegion.latitudeDelta,
       ).catch(() => {
         // fetchInitialItems 내부에서 로깅 수행됨
-        Alert.alert(
-          "데이터 로딩 실패",
-          "주변 아이템 목록을 불러오지 못했어요.",
-        );
+        Alert.alert('데이터 로딩 실패', '주변 아이템 목록을 불러오지 못했어요.');
       });
     }
-  }, [
-    userLocation,
-    isInitialFetched,
-    mapRegion.latitudeDelta,
-    fetchInitialItems,
-  ]);
+  }, [userLocation, isInitialFetched, mapRegion.latitudeDelta, fetchInitialItems]);
 
   // --- 핸들러 (명령형 흐름 제어) ---
 
@@ -95,7 +83,6 @@ export function useExchangeDashboard() {
    * 🎯 handleMarkerPress (Zero Magic: No useEffect Chains)
    * Why: 마커 클릭 시 발생하는 UI 변화를 이벤트 핸들러 내부에서 명시적으로 제어.
    */
-
 
   useEffect(() => {
     return () => {
@@ -135,7 +122,7 @@ export function useExchangeDashboard() {
           });
         }, 300);
 
-        Logger.debug("마커 연동 스크롤 완료:", { itemId, index });
+        Logger.debug('마커 연동 스크롤 완료:', { itemId, index });
       } else {
         router.push(`/exchange/${itemId}`);
       }
@@ -146,11 +133,7 @@ export function useExchangeDashboard() {
   const handleSearchCurrentLocation = useCallback(async () => {
     setIsMapMoved(false);
     try {
-      await searchByRegion(
-        mapRegion.latitude,
-        mapRegion.longitude,
-        mapRegion.latitudeDelta,
-      );
+      await searchByRegion(mapRegion.latitude, mapRegion.longitude, mapRegion.latitudeDelta);
     } catch {
       setIsMapMoved(true);
     }
@@ -160,28 +143,18 @@ export function useExchangeDashboard() {
     if (isCheckingActive) return;
 
     if (hasActiveItem === true) {
-      Alert.alert(
-        "등록 제한",
-        "이미 등록한 물건이 있어요. 계정당 하나만 등록할 수 있어요.",
-      );
+      Alert.alert('등록 제한', '이미 등록한 물건이 있어요. 계정당 하나만 등록할 수 있어요.');
       return;
     }
 
-    router.push("/exchange/create");
+    router.push('/exchange/create');
   }, [isCheckingActive, hasActiveItem, router]);
 
   const handleManualRefresh = useCallback(async () => {
     try {
-      await handleRefresh(
-        mapRegion.latitude,
-        mapRegion.longitude,
-        mapRegion.latitudeDelta,
-      );
+      await handleRefresh(mapRegion.latitude, mapRegion.longitude, mapRegion.latitudeDelta);
     } catch {
-      Alert.alert(
-        "새로고침 실패",
-        "네트워크 상태를 확인하고 다시 시도해주세요.",
-      );
+      Alert.alert('새로고침 실패', '네트워크 상태를 확인하고 다시 시도해주세요.');
     }
   }, [handleRefresh, mapRegion]);
 
@@ -193,7 +166,7 @@ export function useExchangeDashboard() {
   );
 
   const navigateToRequests = useCallback(() => {
-    router.push("/exchange/requests");
+    router.push('/exchange/requests');
   }, [router]);
 
   return {

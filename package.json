@@ -17,7 +17,8 @@
     "arch:dep-validate": "depcruise --validate app components context hooks src styles",
     "arch:fat": "tsx scripts/architecture-guard/fat-file/index.ts",
     "arch:fat-typecheck": "tsc -p scripts/architecture-guard/fat-file/tsconfig.json --noEmit",
-    "arch:fat-baseline": "tsx scripts/architecture-guard/fat-file/verifier/capture-baseline.ts scripts/architecture-guard/fat-file/verifier/tsc-baseline.txt"
+    "arch:fat-baseline": "tsx scripts/architecture-guard/fat-file/verifier/capture-baseline.ts scripts/architecture-guard/fat-file/verifier/tsc-baseline.txt",
+    "format": "prettier --write \"**/*.{ts,tsx}\""
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -92,29 +93,37 @@
     "dependency-cruiser": "^17.4.3",
     "eslint": "^9.39.5",
     "eslint-config-expo": "~57.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-native": "^5.0.0",
     "fast-check": "^4.9.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.3.3",
+    "prettier": "^3.9.5",
     "ts-morph": "^28.0.0",
     "tsx": "^4.23.0",
     "typescript": "~6.0.3"
   },
   "lint-staged": {
     "app/**/*.{ts,tsx}": [
+      "prettier --write",
       "eslint --max-warnings=0"
     ],
     "components/**/*.{ts,tsx}": [
+      "prettier --write",
       "eslint --max-warnings=0"
     ],
     "src/**/*.{ts,tsx}": [
+      "prettier --write",
       "eslint --max-warnings=0"
     ],
     "context/**/*.{ts,tsx}": [
+      "prettier --write",
       "eslint --max-warnings=0"
     ],
     "hooks/**/*.{ts,tsx}": [
+      "prettier --write",
       "eslint --max-warnings=0"
     ]
   },

@@ -1,7 +1,7 @@
-import { useTheme as useThemeContext } from "@/context/ThemeContext";
-import { getThemeColors, type ThemePalette } from "@/src/styles/theme";
-import { Logger } from "@/src/utils/logger";
-import { useColorScheme } from "react-native";
+import { useTheme as useThemeContext } from '@/context/ThemeContext';
+import { getThemeColors, type ThemePalette } from '@/src/styles/theme';
+import { Logger } from '@/src/utils/logger';
+import { useColorScheme } from 'react-native';
 
 /**
  * 개선된 테마 훅
@@ -14,14 +14,12 @@ export const useTheme = () => {
   const { theme, toggleTheme } = useThemeContext();
 
   // 사용자가 선택한 테마가 있으면 그것을 사용, 없으면 시스템 테마 사용
-  const currentTheme = (theme || systemColorScheme || "light") as
-    | "light"
-    | "dark";
+  const currentTheme = (theme || systemColorScheme || 'light') as 'light' | 'dark';
   const colors: ThemePalette = getThemeColors(currentTheme);
 
   // 디버깅: theme가 undefined일 경우 로그 출력
   if (!theme) {
-    Logger.debug("useTheme: theme is undefined, using system theme");
+    Logger.debug('useTheme: theme is undefined, using system theme');
   }
 
   return {

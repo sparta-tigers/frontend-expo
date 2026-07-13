@@ -1,7 +1,7 @@
-import { SPACING } from "@/src/styles/theme";
-import React from "react";
-import { Platform, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
-import { SafeAreaView, type Edge } from "react-native-safe-area-context";
+import { SPACING } from '@/src/styles/theme';
+import React from 'react';
+import { Platform, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 
 /**
  * SafeLayout \ucef4\ud3ec\ub10c\ud2b8 Props
@@ -17,7 +17,7 @@ interface SafeLayoutProps {
   /** 반응형 디자인 사용 여부 */
   responsive?: boolean;
   /** 플랫폼별 다른 처리 (iOS/Android) */
-  platform?: "ios" | "android" | "both";
+  platform?: 'ios' | 'android' | 'both';
 }
 
 /**
@@ -47,16 +47,16 @@ interface SafeLayoutProps {
 export function SafeLayout({
   children,
   style,
-  edges = ["left", "right", "bottom"],
+  edges = ['left', 'right', 'bottom'],
   withPadding = false,
   responsive = false,
-  platform = "both",
+  platform = 'both',
 }: SafeLayoutProps) {
   // 플랫폼 필터링
   const shouldRender =
-    platform === "both" ||
-    (platform === "ios" && Platform.OS === "ios") ||
-    (platform === "android" && Platform.OS === "android");
+    platform === 'both' ||
+    (platform === 'ios' && Platform.OS === 'ios') ||
+    (platform === 'android' && Platform.OS === 'android');
 
   if (!shouldRender) {
     return <View style={[styles.container, style]}>{children}</View>;

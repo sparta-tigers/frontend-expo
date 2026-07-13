@@ -14,19 +14,14 @@
 //
 // Requirements covered: 1.1, 1.2, 1.3.
 
-import * as fs from "node:fs";
-import * as path from "node:path";
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 /**
  * Default source-file extensions. Kept in sync with design.md's
  * `Fat_File_Scanner.extensions` and with `requirements.md` Req 1.2.
  */
-export const DEFAULT_EXTENSIONS: readonly string[] = [
-  ".ts",
-  ".tsx",
-  ".js",
-  ".jsx",
-];
+export const DEFAULT_EXTENSIONS: readonly string[] = ['.ts', '.tsx', '.js', '.jsx'];
 
 /**
  * Default directory names excluded from enumeration. Any path segment equal
@@ -34,11 +29,11 @@ export const DEFAULT_EXTENSIONS: readonly string[] = [
  * `Fat_File_Scanner.excludes` and `requirements.md` Req 1.3.
  */
 export const DEFAULT_EXCLUDE_DIRS: readonly string[] = [
-  "node_modules",
-  ".expo",
-  "dist",
-  "build",
-  ".git",
+  'node_modules',
+  '.expo',
+  'dist',
+  'build',
+  '.git',
 ];
 
 /**
@@ -90,7 +85,7 @@ export function enumerateSourceFiles(opts: EnumerateOptions): string[] {
 
     // Why: ../를 포함하거나 절대 경로인 경우 rootDir 바깥을 가리키므로 차단.
     //      path.resolve 단독 사용은 ../을 정상 처리하므로 상대 경로로 변환 후 검증 필수.
-    if (relToRoot.startsWith("..") || path.isAbsolute(relToRoot)) {
+    if (relToRoot.startsWith('..') || path.isAbsolute(relToRoot)) {
       throw new Error(
         `[enumerate] Target '${target}' is outside rootDir '${opts.rootDir}'. Path traversal blocked.`,
       );
@@ -176,14 +171,11 @@ function walk(
  * True if any segment of the POSIX-or-native path equals an excluded name.
  * Split on both separators so callers can pass either style.
  */
-function hasExcludedSegment(
-  p: string,
-  excludeDirs: ReadonlySet<string>,
-): boolean {
-  if (p === "") return false;
+function hasExcludedSegment(p: string, excludeDirs: ReadonlySet<string>): boolean {
+  if (p === '') return false;
   const segments = p.split(/[\\/]+/);
   for (const seg of segments) {
-    if (seg !== "" && excludeDirs.has(seg)) return true;
+    if (seg !== '' && excludeDirs.has(seg)) return true;
   }
   return false;
 }
@@ -194,9 +186,9 @@ function hasExcludedSegment(
  */
 function isEnoent(err: unknown): boolean {
   return (
-    typeof err === "object" &&
+    typeof err === 'object' &&
     err !== null &&
-    "code" in err &&
-    (err as { code?: unknown }).code === "ENOENT"
+    'code' in err &&
+    (err as { code?: unknown }).code === 'ENOENT'
   );
 }

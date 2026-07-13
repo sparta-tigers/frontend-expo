@@ -1,21 +1,16 @@
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from '@/context/AuthContext';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
 import {
-    useInfiniteQuery,
-    useMutation,
-    useQuery,
-    useQueryClient,
-} from "@tanstack/react-query";
-import { isAxiosError } from "axios";
-import {
-    attendanceCreateAPI,
-    attendanceDeleteAPI,
-    attendanceGetCountAPI,
-    attendanceGetDetailAPI,
-    attendanceGetMyAPI,
-    attendanceGetMyByMatchIdAPI,
-    attendanceUpdateAPI,
-} from "./api";
-export type { RNFormDataFile, RNFormDataString } from "./types";
+  attendanceCreateAPI,
+  attendanceDeleteAPI,
+  attendanceGetCountAPI,
+  attendanceGetDetailAPI,
+  attendanceGetMyAPI,
+  attendanceGetMyByMatchIdAPI,
+  attendanceUpdateAPI,
+} from './api';
+export type { RNFormDataFile, RNFormDataString } from './types';
 
 /**
  * 🚨 앙드레 카파시: 직관 기록 관련 TanStack Query 훅 모음
@@ -25,17 +20,14 @@ export type { RNFormDataFile, RNFormDataString } from "./types";
  */
 
 export const attendanceKeys = {
-  all: ["attendances"] as const,
-  lists: () => [...attendanceKeys.all, "list"] as const,
-  my: (page?: number, size?: number) =>
-    [...attendanceKeys.lists(), "my", { page, size }] as const,
-  infinite: (size: number) =>
-    [...attendanceKeys.lists(), "infinite", { size }] as const,
-  details: () => [...attendanceKeys.all, "detail"] as const,
+  all: ['attendances'] as const,
+  lists: () => [...attendanceKeys.all, 'list'] as const,
+  my: (page?: number, size?: number) => [...attendanceKeys.lists(), 'my', { page, size }] as const,
+  infinite: (size: number) => [...attendanceKeys.lists(), 'infinite', { size }] as const,
+  details: () => [...attendanceKeys.all, 'detail'] as const,
   detail: (id: number) => [...attendanceKeys.details(), id] as const,
-  byMatch: (matchId: number) =>
-    [...attendanceKeys.all, "my", "match", matchId] as const,
-  count: (year?: number) => [...attendanceKeys.all, "count", { year }] as const,
+  byMatch: (matchId: number) => [...attendanceKeys.all, 'my', 'match', matchId] as const,
+  count: (year?: number) => [...attendanceKeys.all, 'count', { year }] as const,
 };
 
 /**
@@ -87,8 +79,7 @@ export const useInfiniteMyAttendances = (size: number = 10) => {
   const { isLoggedIn } = useAuth();
   return useInfiniteQuery({
     queryKey: attendanceKeys.infinite(size),
-    queryFn: ({ pageParam = 0 }) =>
-      attendanceGetMyAPI((pageParam as number) + 1, size),
+    queryFn: ({ pageParam = 0 }) => attendanceGetMyAPI((pageParam as number) + 1, size),
     getNextPageParam: (lastPage) => {
       const data = lastPage.data;
       if (!data || data.last) return undefined;

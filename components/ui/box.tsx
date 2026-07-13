@@ -1,6 +1,6 @@
-import { ThemeColorPath, getThemeColorByPath } from "@/src/shared/types/theme";
-import { theme } from "@/src/styles/theme";
-import { View, ViewProps, ViewStyle } from "react-native";
+import { ThemeColorPath, getThemeColorByPath } from '@/src/shared/types/theme';
+import { theme } from '@/src/styles/theme';
+import { View, ViewProps, ViewStyle } from 'react-native';
 
 /**
  * Box 컴포넌트의 커스텀 Props
@@ -43,43 +43,43 @@ interface BoxCustomProps {
   /** 하단 테마 반경 토큰 */
   roundedBottom?: keyof typeof theme.radius | undefined;
   /** 플렉스 */
-  flex?: ViewStyle["flex"];
+  flex?: ViewStyle['flex'];
   /** 가로 크기 */
-  width?: ViewStyle["width"];
+  width?: ViewStyle['width'];
   /** 세로 크기 */
-  height?: ViewStyle["height"];
+  height?: ViewStyle['height'];
   /** 최소 높이 */
-  minHeight?: ViewStyle["minHeight"];
+  minHeight?: ViewStyle['minHeight'];
   /** 플렉스 방향 */
-  flexDir?: ViewStyle["flexDirection"];
+  flexDir?: ViewStyle['flexDirection'];
   /** 플렉스 랩 */
-  flexWrap?: ViewStyle["flexWrap"];
+  flexWrap?: ViewStyle['flexWrap'];
   /** 정렬 */
-  align?: ViewStyle["alignItems"];
+  align?: ViewStyle['alignItems'];
   /** self 정렬 */
-  alignSelf?: ViewStyle["alignSelf"];
+  alignSelf?: ViewStyle['alignSelf'];
   /** justify */
-  justify?: ViewStyle["justifyContent"];
+  justify?: ViewStyle['justifyContent'];
   /** 간격 */
   gap?: keyof typeof theme.spacing | undefined;
   /** 포지션 */
-  position?: ViewStyle["position"];
+  position?: ViewStyle['position'];
   /** 포지션 값 */
-  top?: ViewStyle["top"];
-  bottom?: ViewStyle["bottom"];
-  left?: ViewStyle["left"];
-  right?: ViewStyle["right"];
+  top?: ViewStyle['top'];
+  bottom?: ViewStyle['bottom'];
+  left?: ViewStyle['left'];
+  right?: ViewStyle['right'];
   /** 테두리 */
-  borderWidth?: ViewStyle["borderWidth"];
+  borderWidth?: ViewStyle['borderWidth'];
   borderColor?: ThemeColorPath | undefined;
-  borderTopWidth?: ViewStyle["borderTopWidth"];
-  borderBottomWidth?: ViewStyle["borderBottomWidth"];
-  borderLeftWidth?: ViewStyle["borderLeftWidth"];
-  borderRightWidth?: ViewStyle["borderRightWidth"];
+  borderTopWidth?: ViewStyle['borderTopWidth'];
+  borderBottomWidth?: ViewStyle['borderBottomWidth'];
+  borderLeftWidth?: ViewStyle['borderLeftWidth'];
+  borderRightWidth?: ViewStyle['borderRightWidth'];
   /** 오버플로우 */
-  overflow?: ViewStyle["overflow"];
+  overflow?: ViewStyle['overflow'];
   /** 투명도 */
-  opacity?: ViewStyle["opacity"];
+  opacity?: ViewStyle['opacity'];
 }
 
 export interface BoxProps extends ViewProps, BoxCustomProps {}
@@ -196,11 +196,9 @@ export const Box = ({
 
   if (borderWidth !== undefined) boxStyle.borderWidth = borderWidth;
   if (borderTopWidth !== undefined) boxStyle.borderTopWidth = borderTopWidth;
-  if (borderBottomWidth !== undefined)
-    boxStyle.borderBottomWidth = borderBottomWidth;
+  if (borderBottomWidth !== undefined) boxStyle.borderBottomWidth = borderBottomWidth;
   if (borderLeftWidth !== undefined) boxStyle.borderLeftWidth = borderLeftWidth;
-  if (borderRightWidth !== undefined)
-    boxStyle.borderRightWidth = borderRightWidth;
+  if (borderRightWidth !== undefined) boxStyle.borderRightWidth = borderRightWidth;
   if (borderColor !== undefined) {
     boxStyle.borderColor = getThemeColorByPath(borderColor);
   }

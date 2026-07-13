@@ -8,21 +8,21 @@ import {
   integer,
   property,
   record,
-} from "fast-check";
-import { strict as assert } from "node:assert";
-import { test } from "node:test";
-import type { Diagnosis } from "../types.ts";
-import { planModules } from "./plan-modules.ts";
+} from 'fast-check';
+import { strict as assert } from 'node:assert';
+import { test } from 'node:test';
+import type { Diagnosis } from '../types.ts';
+import { planModules } from './plan-modules.ts';
 
-test("Property 8: 모듈 레이아웃과 예외 발생", () => {
+test('Property 8: 모듈 레이아웃과 예외 발생', () => {
   const diagnosisArb = record({
-    absolutePath: constant("/dummy/path.tsx"),
-    relativePath: constant("components/WeatherIcon.tsx"),
-    extension: constant(".tsx"),
-    content: constant(""),
-    priorityTier: constant("REVIEW"),
+    absolutePath: constant('/dummy/path.tsx'),
+    relativePath: constant('components/WeatherIcon.tsx'),
+    extension: constant('.tsx'),
+    content: constant(''),
+    priorityTier: constant('REVIEW'),
     loc: integer({ min: 500, max: 2000 }),
-    concerns: array(constantFrom("UI", "Logic", "Type", "Style", "Constant"), {
+    concerns: array(constantFrom('UI', 'Logic', 'Type', 'Style', 'Constant'), {
       minLength: 1,
       maxLength: 5,
     }),
@@ -42,9 +42,7 @@ test("Property 8: 모듈 레이아웃과 예외 발생", () => {
       );
 
       // 2. Exception 발생 시점
-      const expectedLocPerConcern = Math.ceil(
-        diagnosis.loc / diagnosis.concerns.length,
-      );
+      const expectedLocPerConcern = Math.ceil(diagnosis.loc / diagnosis.concerns.length);
       if (expectedLocPerConcern > 300) {
         assert.ok(plan.exception);
         assert.equal(plan.exception.userConfirmationRequired, true);
@@ -56,7 +54,7 @@ test("Property 8: 모듈 레이아웃과 예외 발생", () => {
       }
 
       // 3. Barrel file
-      assert.ok(plan.barrelFile.path.endsWith("index.ts"));
+      assert.ok(plan.barrelFile.path.endsWith('index.ts'));
     }),
   );
 });

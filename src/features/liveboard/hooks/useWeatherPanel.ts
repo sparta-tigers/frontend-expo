@@ -1,16 +1,12 @@
 // app/liveboard/[matchId]/useWeatherPanel.ts
-import { useAuth } from "@/context/AuthContext";
-import { fetchMatchWeather } from "@/src/features/liveboard/api";
-import {
-  ForeCastDto,
-  NowCastDto,
-  WeatherApiStatus,
-} from "@/src/features/liveboard/types";
-import { matchKeys } from "@/src/features/match";
-import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useAuth } from '@/context/AuthContext';
+import { fetchMatchWeather } from '@/src/features/liveboard/api';
+import { ForeCastDto, NowCastDto, WeatherApiStatus } from '@/src/features/liveboard/types';
+import { matchKeys } from '@/src/features/match';
+import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
-type FetchState = "LOADING" | "SUCCESS" | "ERROR";
+type FetchState = 'LOADING' | 'SUCCESS' | 'ERROR';
 
 interface UseWeatherPanelReturn {
   fetchState: FetchState;
@@ -40,10 +36,10 @@ export function useWeatherPanel(matchId: string): UseWeatherPanelReturn {
   });
 
   const fetchState: FetchState =
-    status === "pending" ? "LOADING" : status === "error" ? "ERROR" : "SUCCESS";
+    status === 'pending' ? 'LOADING' : status === 'error' ? 'ERROR' : 'SUCCESS';
 
   const stadiumName = data?.stadiumName ?? null;
-  const weatherStatus = data?.status ?? "SUCCESS";
+  const weatherStatus = data?.status ?? 'SUCCESS';
   const nowCast = data?.nowCast ?? null;
   const foreCast = useMemo(() => data?.foreCast ?? [], [data]);
 

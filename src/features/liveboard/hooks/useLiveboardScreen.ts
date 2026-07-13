@@ -1,23 +1,23 @@
-import { useLiveboardData } from "@/src/features/liveboard/hooks/useLiveboardData";
-import { LiveboardMapper } from "@/src/features/liveboard/mapper";
-import { useMatchDetail } from "@/src/features/match";
-import { useAuth } from "@/src/hooks/useAuth";
-import { useWebSocket } from "@/src/hooks/useWebSocket";
-import { Logger } from "@/src/utils/logger";
-import { isValidTeamCode } from "@/src/utils/team";
-import { useQueryClient } from "@tanstack/react-query";
-import { useLocalSearchParams } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useLiveboardData } from '@/src/features/liveboard/hooks/useLiveboardData';
+import { LiveboardMapper } from '@/src/features/liveboard/mapper';
+import { useMatchDetail } from '@/src/features/match';
+import { useAuth } from '@/src/hooks/useAuth';
+import { useWebSocket } from '@/src/hooks/useWebSocket';
+import { Logger } from '@/src/utils/logger';
+import { isValidTeamCode } from '@/src/utils/team';
+import { useQueryClient } from '@tanstack/react-query';
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 
-const liveboardLogger = Logger.category("CHAT");
+const liveboardLogger = Logger.category('CHAT');
 
-export type TabKey = "chat" | "text" | "lineup" | "weather";
+export type TabKey = 'chat' | 'text' | 'lineup' | 'weather';
 
 export const TABS: { key: TabKey; label: string }[] = [
-  { key: "chat", label: "라이브채팅" },
-  { key: "text", label: "텍스트 중계" },
-  { key: "lineup", label: "선수 라인업" },
-  { key: "weather", label: "구장날씨" },
+  { key: 'chat', label: '라이브채팅' },
+  { key: 'text', label: '텍스트 중계' },
+  { key: 'lineup', label: '선수 라인업' },
+  { key: 'weather', label: '구장날씨' },
 ];
 
 /**
@@ -34,7 +34,7 @@ export const useLiveboardScreen = () => {
   // 1. [SSOT] URL 파라미터 추출 및 유효성 검사
   const { matchId } = useLocalSearchParams<{ matchId: string }>();
   const isValidMatchId = useMemo(
-    () => typeof matchId === "string" && /^\d+$/.test(matchId),
+    () => typeof matchId === 'string' && /^\d+$/.test(matchId),
     [matchId],
   );
   const idNum = useMemo(
@@ -59,13 +59,13 @@ export const useLiveboardScreen = () => {
   const queryClient = useQueryClient();
   const { status: wsStatus, client: wsClient } = useWebSocket(
     isValidMatchId ? idNum : undefined,
-    "liveboard",
+    'liveboard',
   );
 
   useEffect(() => {
     let subscription: { unsubscribe: () => void } | undefined;
 
-    if (wsStatus === "CONNECTED" && wsClient && isValidMatchId) {
+    if (wsStatus === 'CONNECTED' && wsClient && isValidMatchId) {
       const destination = `/server/liveboard/room/${idNum}/match`;
       subscription = wsClient.subscribe(destination, (message) => {
         try {
@@ -74,9 +74,9 @@ export const useLiveboardScreen = () => {
           const mappedData = LiveboardMapper.toLiveboardData(rawData);
 
           // 캐시 강제 주입으로 실시간 동기화 완료 (No HTTP Polling overhead)
-          queryClient.setQueryData(["liveboard", "data", idNum], mappedData);
+          queryClient.setQueryData(['liveboard', 'data', idNum], mappedData);
         } catch (err) {
-          liveboardLogger.error("Failed to parse liveboard STOMP message", err);
+          liveboardLogger.error('Failed to parse liveboard STOMP message', err);
         }
       });
     }
@@ -89,13 +89,13 @@ export const useLiveboardScreen = () => {
   }, [wsStatus, wsClient, idNum, isValidMatchId, queryClient]);
 
   // 4. UI 상태 관리 (Tabs)
-  const [activeTab, setActiveTab] = useState<TabKey>("chat");
+  const [activeTab, setActiveTab] = useState<TabKey>('chat');
 
   // 5. 통합 로딩/에러 상태
   const isInitialLoading = isMatchLoading && !match;
 
   return {
-    matchId: matchId || "",
+    matchId: matchId || '',
     match,
     liveData,
     activeTab,

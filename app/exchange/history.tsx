@@ -1,18 +1,15 @@
-import { Box, List, Typography } from "@/components/ui";
-import { SafeLayout } from "@/components/ui/safe-layout";
-import { exchangeGetMyRequestsAPI } from "@/src/features/exchange/api";
-import {
-  ExchangeRequestStatus,
-  ReceiveExchangeRequest,
-} from "@/src/features/exchange/types";
-import { theme } from "@/src/styles/theme";
-import { exchangeKeys } from "@/src/features/exchange/keys";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import { useState, useCallback } from "react";
-import { ActivityIndicator, StyleSheet, TouchableOpacity } from "react-native";
-import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
+import { Box, List, Typography } from '@/components/ui';
+import { SafeLayout } from '@/components/ui/safe-layout';
+import { exchangeGetMyRequestsAPI } from '@/src/features/exchange/api';
+import { ExchangeRequestStatus, ReceiveExchangeRequest } from '@/src/features/exchange/types';
+import { theme } from '@/src/styles/theme';
+import { exchangeKeys } from '@/src/features/exchange/keys';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useState, useCallback } from 'react';
+import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
+import { useQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
 
 /**
  * 교환 완료 내역 화면
@@ -29,10 +26,10 @@ export default function ExchangeHistoryScreen() {
     isError,
     refetch: loadHistory,
   } = useQuery({
-    queryKey: exchangeKeys.requests("receiver"),
+    queryKey: exchangeKeys.requests('receiver'),
     queryFn: async () => {
-      const response = await exchangeGetMyRequestsAPI("receiver", 0, 50);
-      if (response.resultType === "SUCCESS" && response.data) {
+      const response = await exchangeGetMyRequestsAPI('receiver', 0, 50);
+      if (response.resultType === 'SUCCESS' && response.data) {
         return response.data.content.filter(
           (item) => item.exchangeStatus !== ExchangeRequestStatus.PENDING,
         );
@@ -65,18 +62,18 @@ export default function ExchangeHistoryScreen() {
             rounded="full"
             bg={
               item.exchangeStatus === ExchangeRequestStatus.ACCEPTED
-                ? "success"
+                ? 'success'
                 : item.exchangeStatus === ExchangeRequestStatus.REJECTED
-                  ? "error"
-                  : "text.tertiary"
+                  ? 'error'
+                  : 'text.tertiary'
             }
           >
             <Typography variant="label" weight="bold" color="card">
               {item.exchangeStatus === ExchangeRequestStatus.ACCEPTED
-                ? "승낙"
+                ? '승낙'
                 : item.exchangeStatus === ExchangeRequestStatus.REJECTED
-                  ? "거절"
-                  : "완료"}
+                  ? '거절'
+                  : '완료'}
             </Typography>
           </Box>
           <Typography variant="caption" color="text.tertiary">
@@ -88,7 +85,7 @@ export default function ExchangeHistoryScreen() {
           {item.title}
         </Typography>
         <Typography variant="body2" weight="semibold" color="primary" mb="sm">
-          카테고리: {item.category === "TICKET" ? "티켓" : "굿즈"}
+          카테고리: {item.category === 'TICKET' ? '티켓' : '굿즈'}
         </Typography>
 
         <Box pt="md" borderTopWidth={1} style={styles.itemFooter}>
@@ -127,29 +124,11 @@ export default function ExchangeHistoryScreen() {
   return (
     <SafeLayout style={styles.safeLayout}>
       <Box flex={1}>
-        <Box
-          flexDir="row"
-          align="center"
-          justify="space-between"
-          mb="md"
-          px="md"
-        >
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backButton}
-          >
-            <Ionicons
-              name="chevron-back"
-              size={24}
-              color={theme.colors.text.primary}
-            />
+        <Box flexDir="row" align="center" justify="space-between" mb="md" px="md">
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color={theme.colors.text.primary} />
           </TouchableOpacity>
-          <Typography
-            variant="h2"
-            weight="bold"
-            center
-            style={styles.headerTitle}
-          >
+          <Typography variant="h2" weight="bold" center style={styles.headerTitle}>
             교환 내역
           </Typography>
           <Box width={40} />

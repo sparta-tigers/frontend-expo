@@ -7,15 +7,8 @@
  * 3. 런타임 성능 및 프로덕션 안정성 확보
  */
 
-export type LogDomain =
-  | "AUTH"
-  | "API"
-  | "CHAT"
-  | "MAP"
-  | "PUSH"
-  | "SYSTEM"
-  | "APP";
-export type LogLevel = "debug" | "info" | "warn" | "error";
+export type LogDomain = 'AUTH' | 'API' | 'CHAT' | 'MAP' | 'PUSH' | 'SYSTEM' | 'APP';
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 export interface LogOptions {
   domain?: LogDomain;
@@ -26,10 +19,10 @@ export interface LogOptions {
 // 🚨 시니어 아키텍트 지침: 환경 변수는 초기 로드 시 한 번만 파싱하여 캐싱
 const LOG_CONFIG = {
   // EXPO_PUBLIC_LOG_LEVEL: debug | info | warn | error
-  minLevel: (process.env.EXPO_PUBLIC_LOG_LEVEL as LogLevel) || "info",
+  minLevel: (process.env.EXPO_PUBLIC_LOG_LEVEL as LogLevel) || 'info',
   // EXPO_PUBLIC_LOG_DOMAINS: AUTH,API,CHAT... (쉼표 구분)
   enabledDomains: process.env.EXPO_PUBLIC_LOG_DOMAINS
-    ? new Set(process.env.EXPO_PUBLIC_LOG_DOMAINS.split(","))
+    ? new Set(process.env.EXPO_PUBLIC_LOG_DOMAINS.split(','))
     : null, // null이면 모든 도메인 허용 (기본값)
 };
 
@@ -43,15 +36,14 @@ const LEVEL_PRIORITY: Record<LogLevel, number> = {
 /**
  * 로그 출력 가능 여부 판단
  */
-const shouldLog = (level: LogLevel, domain: LogDomain = "APP"): boolean => {
-  if (!__DEV__ && level !== "error") return false;
+const shouldLog = (level: LogLevel, domain: LogDomain = 'APP'): boolean => {
+  if (!__DEV__ && level !== 'error') return false;
 
   // 레벨 필터링
   if (LEVEL_PRIORITY[level] < LEVEL_PRIORITY[LOG_CONFIG.minLevel]) return false;
 
   // 도메인 필터링 (빌드 타임 주입된 설정 기준)
-  if (LOG_CONFIG.enabledDomains && !LOG_CONFIG.enabledDomains.has(domain))
-    return false;
+  if (LOG_CONFIG.enabledDomains && !LOG_CONFIG.enabledDomains.has(domain)) return false;
 
   return true;
 };
@@ -60,99 +52,71 @@ const shouldLog = (level: LogLevel, domain: LogDomain = "APP"): boolean => {
  * 민감 정보 마스킹 유틸리티
  */
 export const maskSensitive = (sensitive?: string | null): string => {
-  if (!sensitive) return "null/undefined";
-  if (sensitive.length < 10) return "***";
+  if (!sensitive) return 'null/undefined';
+  if (sensitive.length < 10) return '***';
   return `${sensitive.substring(0, 6)}...${sensitive.substring(sensitive.length - 4)}`;
 };
 
 export const Logger = {
-  debug: (
-    message: string,
-    optionsOrArg?: LogOptions | unknown,
-    ...args: unknown[]
-  ) => {
-    let domain: LogDomain = "APP";
+  debug: (message: string, optionsOrArg?: LogOptions | unknown, ...args: unknown[]) => {
+    let domain: LogDomain = 'APP';
     let extraArgs = [];
 
-    if (
-      optionsOrArg &&
-      typeof optionsOrArg === "object" &&
-      "domain" in optionsOrArg
-    ) {
-      domain = (optionsOrArg as LogOptions).domain || "APP";
+    if (optionsOrArg && typeof optionsOrArg === 'object' && 'domain' in optionsOrArg) {
+      domain = (optionsOrArg as LogOptions).domain || 'APP';
       extraArgs = args;
     } else {
       extraArgs = optionsOrArg !== undefined ? [optionsOrArg, ...args] : args;
     }
 
-    if (!shouldLog("debug", domain)) return;
+    if (!shouldLog('debug', domain)) return;
     console.debug(`🐛 [${domain}] ${message}`, ...extraArgs);
   },
 
-  info: (
-    message: string,
-    optionsOrArg?: LogOptions | unknown,
-    ...args: unknown[]
-  ) => {
-    let domain: LogDomain = "APP";
+  info: (message: string, optionsOrArg?: LogOptions | unknown, ...args: unknown[]) => {
+    let domain: LogDomain = 'APP';
     let extraArgs = [];
 
-    if (
-      optionsOrArg &&
-      typeof optionsOrArg === "object" &&
-      "domain" in optionsOrArg
-    ) {
-      domain = (optionsOrArg as LogOptions).domain || "APP";
+    if (optionsOrArg && typeof optionsOrArg === 'object' && 'domain' in optionsOrArg) {
+      domain = (optionsOrArg as LogOptions).domain || 'APP';
       extraArgs = args;
     } else {
       extraArgs = optionsOrArg !== undefined ? [optionsOrArg, ...args] : args;
     }
 
-    if (!shouldLog("info", domain)) return;
+    if (!shouldLog('info', domain)) return;
     console.info(`💡 [${domain}] ${message}`, ...extraArgs);
   },
 
-  warn: (
-    message: string,
-    optionsOrArg?: LogOptions | unknown,
-    ...args: unknown[]
-  ) => {
-    let domain: LogDomain = "APP";
+  warn: (message: string, optionsOrArg?: LogOptions | unknown, ...args: unknown[]) => {
+    let domain: LogDomain = 'APP';
     let extraArgs = [];
 
-    if (
-      optionsOrArg &&
-      typeof optionsOrArg === "object" &&
-      "domain" in optionsOrArg
-    ) {
-      domain = (optionsOrArg as LogOptions).domain || "APP";
+    if (optionsOrArg && typeof optionsOrArg === 'object' && 'domain' in optionsOrArg) {
+      domain = (optionsOrArg as LogOptions).domain || 'APP';
       extraArgs = args;
     } else {
       extraArgs = optionsOrArg !== undefined ? [optionsOrArg, ...args] : args;
     }
 
-    if (!shouldLog("warn", domain)) return;
+    if (!shouldLog('warn', domain)) return;
     console.warn(`⚠️ [${domain}] ${message}`, ...extraArgs);
   },
 
   /**
    * 에러 로깅 (Stack Trace 포함)
    */
-  error: (
-    message: string,
-    error?: unknown,
-    options: LogOptions = { domain: "APP" },
-  ) => {
-    if (!shouldLog("error", options.domain)) return;
+  error: (message: string, error?: unknown, options: LogOptions = { domain: 'APP' }) => {
+    if (!shouldLog('error', options.domain)) return;
 
-    const prefix = `🚨 [${options.domain || "APP"}] ${message}`;
+    const prefix = `🚨 [${options.domain || 'APP'}] ${message}`;
 
     // 🚨 [Senior Architect Constraint] AxiosError 전용 포맷팅 및 안전한 출력
     let displayError: unknown = error;
     if (
       error &&
-      typeof error === "object" &&
-      "isAxiosError" in error &&
+      typeof error === 'object' &&
+      'isAxiosError' in error &&
       (error as { isAxiosError: boolean }).isAxiosError
     ) {
       const axiosError = error as unknown as {
@@ -162,7 +126,7 @@ export const Logger = {
         code?: string;
       };
       displayError = {
-        name: "AxiosError",
+        name: 'AxiosError',
         message: axiosError.message,
         url: axiosError.config?.url,
         method: axiosError.config?.method?.toUpperCase(),
@@ -178,12 +142,12 @@ export const Logger = {
       try {
         // 순환 참조 방지 및 가독성을 위한 제한적 직렬화 (거대 객체 생략)
         const summary =
-          typeof displayError === "object" && displayError !== null
+          typeof displayError === 'object' && displayError !== null
             ? JSON.stringify(
                 displayError,
                 (key, value) => {
-                  if (["request", "response", "config"].includes(key))
-                    return "[Fat Object Snipped]";
+                  if (['request', 'response', 'config'].includes(key))
+                    return '[Fat Object Snipped]';
                   return value;
                 },
                 2,
@@ -194,12 +158,7 @@ export const Logger = {
 
         // 원본 객체도 함께 넘겨서 디버거에서 상세 확인 가능하게 함
         if (options.context) {
-          console.error(
-            "[Full Context]",
-            options.context,
-            "\n[Raw Error]",
-            error,
-          );
+          console.error('[Full Context]', options.context, '\n[Raw Error]', error);
         }
       } catch {
         // 직렬화 실패 시 기본 출력으로 대체
@@ -214,13 +173,13 @@ export const Logger = {
    * 네트워크 전용 에러 로깅
    */
   networkError: (message: string, error?: unknown) => {
-    if (!shouldLog("error", "API")) return;
+    if (!shouldLog('error', 'API')) return;
 
     const context: Record<string, unknown> = {};
     try {
-      if (error && typeof error === "object" && error !== null) {
+      if (error && typeof error === 'object' && error !== null) {
         const errObj = error as Record<string, unknown>;
-        if ("code" in errObj) context.code = errObj.code;
+        if ('code' in errObj) context.code = errObj.code;
 
         const response = errObj.response as Record<string, unknown> | undefined;
         if (response?.status) context.status = response.status;
@@ -232,7 +191,7 @@ export const Logger = {
       // Probing 실패 시 무시
     }
 
-    Logger.error(`🌐 [NETWORK] ${message}`, error, { domain: "API", context });
+    Logger.error(`🌐 [NETWORK] ${message}`, error, { domain: 'API', context });
   },
 
   /**
@@ -240,12 +199,9 @@ export const Logger = {
    * Why: 매번 { domain: 'AUTH' }를 넘기는 번거로움을 제거하고 가독성 확보
    */
   category: (domain: LogDomain) => ({
-    debug: (msg: string, ...args: unknown[]) =>
-      Logger.debug(msg, { domain }, ...args),
-    info: (msg: string, ...args: unknown[]) =>
-      Logger.info(msg, { domain }, ...args),
-    warn: (msg: string, ...args: unknown[]) =>
-      Logger.warn(msg, { domain }, ...args),
+    debug: (msg: string, ...args: unknown[]) => Logger.debug(msg, { domain }, ...args),
+    info: (msg: string, ...args: unknown[]) => Logger.info(msg, { domain }, ...args),
+    warn: (msg: string, ...args: unknown[]) => Logger.warn(msg, { domain }, ...args),
     error: (msg: string, err?: unknown, ctx?: Record<string, unknown>) =>
       Logger.error(msg, err, { domain, context: ctx }),
   }),

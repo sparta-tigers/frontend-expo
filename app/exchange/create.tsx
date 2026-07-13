@@ -1,9 +1,9 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { exchangeKeys } from "@/src/features/exchange/keys";
-import * as ImagePicker from "expo-image-picker";
-import * as Location from "expo-location";
-import { router } from "expo-router";
-import React from "react";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { exchangeKeys } from '@/src/features/exchange/keys';
+import * as ImagePicker from 'expo-image-picker';
+import * as Location from 'expo-location';
+import { router } from 'expo-router';
+import React from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -12,17 +12,17 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-} from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+} from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
-import { Box, Typography } from "@/components/ui";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import { SafeLayout } from "@/components/ui/safe-layout";
-import { createExchangeItem } from "@/src/features/exchange/api";
-import { useCheckActiveItem } from "@/src/features/exchange/queries";
-import { ItemCategory, LocationDto } from "@/src/features/exchange/types";
-import { theme } from "@/src/styles/theme";
-import { Logger } from "@/src/utils/logger";
+import { Box, Typography } from '@/components/ui';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { SafeLayout } from '@/components/ui/safe-layout';
+import { createExchangeItem } from '@/src/features/exchange/api';
+import { useCheckActiveItem } from '@/src/features/exchange/queries';
+import { ItemCategory, LocationDto } from '@/src/features/exchange/types';
+import { theme } from '@/src/styles/theme';
+import { Logger } from '@/src/utils/logger';
 
 interface ReactNativeFile {
   uri: string;
@@ -34,15 +34,15 @@ export default function CreateItemScreen() {
   const queryClient = useQueryClient();
 
   const [formData, setFormData] = React.useState({
-    title: "",
-    desiredItem: "",
-    content: "",
-    itemCategory: "TICKET" as ItemCategory,
+    title: '',
+    desiredItem: '',
+    content: '',
+    itemCategory: 'TICKET' as ItemCategory,
   });
 
   const [errors, setErrors] = React.useState({
-    title: "",
-    content: "",
+    title: '',
+    content: '',
   });
 
   const [selectedImages, setSelectedImages] = React.useState<string[]>([]);
@@ -50,7 +50,7 @@ export default function CreateItemScreen() {
   const [currentLocation, setCurrentLocation] = React.useState<LocationDto>({
     latitude: 37.5665,
     longitude: 126.978,
-    address: "서울특별시",
+    address: '서울특별시',
   });
   const [locationLoading, setLocationLoading] = React.useState(false);
 
@@ -62,7 +62,7 @@ export default function CreateItemScreen() {
         category: data.itemCategory,
         title: data.title.trim(),
         description: data.content.trim(),
-        desiredItem: data.desiredItem?.trim() || "",
+        desiredItem: data.desiredItem?.trim() || '',
         location: {
           latitude: currentLocation.latitude,
           longitude: currentLocation.longitude,
@@ -70,12 +70,12 @@ export default function CreateItemScreen() {
         },
       };
 
-      requestFormData.append("itemRequest", JSON.stringify(requestData));
+      requestFormData.append('itemRequest', JSON.stringify(requestData));
 
       selectedImages.forEach((uri, index) => {
-        const filename = uri.split("/").pop() || `image_${index}.jpg`;
+        const filename = uri.split('/').pop() || `image_${index}.jpg`;
         const match = /\.(\w+)$/.exec(filename);
-        const type = match ? `image/${match[1]}` : "image/jpeg";
+        const type = match ? `image/${match[1]}` : 'image/jpeg';
 
         const file: ReactNativeFile = {
           uri: uri,
@@ -83,49 +83,45 @@ export default function CreateItemScreen() {
           type,
         };
 
-        requestFormData.append("images", file as unknown as Blob);
+        requestFormData.append('images', file as unknown as Blob);
       });
 
       return createExchangeItem(requestFormData);
     },
     onSuccess: async () => {
-      Alert.alert("성공", "아이템을 등록했어요.");
+      Alert.alert('성공', '아이템을 등록했어요.');
       await queryClient.invalidateQueries({ queryKey: exchangeKeys.items() });
       if (router.canGoBack()) {
         router.back();
       } else {
-        router.replace("/(tabs)/exchange");
+        router.replace('/(tabs)/exchange');
       }
     },
     onError: (error: Error & { response?: { status?: number } }) => {
-      let errorMessage = "게시글을 등록하지 못했어요.";
+      let errorMessage = '게시글을 등록하지 못했어요.';
       const status = error?.response?.status;
 
       if (status === 409) {
-        errorMessage =
-          "이미 등록한 아이템이 있어요. 계정당 하나의 아이템만 등록할 수 있어요.";
-        Logger.warn("아이템 중복 등록 시도 차단 (409)");
+        errorMessage = '이미 등록한 아이템이 있어요. 계정당 하나의 아이템만 등록할 수 있어요.';
+        Logger.warn('아이템 중복 등록 시도 차단 (409)');
       } else {
-        Logger.error(
-          "아이템 생성 실패:",
-          error instanceof Error ? error.message : String(error),
-        );
+        Logger.error('아이템 생성 실패:', error instanceof Error ? error.message : String(error));
       }
 
-      Alert.alert("알림", errorMessage);
+      Alert.alert('알림', errorMessage);
     },
   });
 
   const handleSubmit = () => {
     let hasError = false;
-    const newErrors = { title: "", content: "" };
+    const newErrors = { title: '', content: '' };
 
     if (!formData.title.trim()) {
-      newErrors.title = "제목을 입력해주세요.";
+      newErrors.title = '제목을 입력해주세요.';
       hasError = true;
     }
     if (!formData.content.trim()) {
-      newErrors.content = "내용을 입력해주세요.";
+      newErrors.content = '내용을 입력해주세요.';
       hasError = true;
     }
 
@@ -142,8 +138,8 @@ export default function CreateItemScreen() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
 
-      if (status !== "granted") {
-        Alert.alert("권한 필요", "위치 정보를 사용하려면 권한을 허용해주세요.");
+      if (status !== 'granted') {
+        Alert.alert('권한 필요', '위치 정보를 사용하려면 권한을 허용해주세요.');
         setLocationLoading(false);
         return;
       }
@@ -162,21 +158,18 @@ export default function CreateItemScreen() {
         longitude: location.coords.longitude,
         address:
           address?.formattedAddress ||
-          `${address?.city || ""} ${address?.district || ""}`.trim() ||
-          "위치 정보 없음",
+          `${address?.city || ''} ${address?.district || ''}`.trim() ||
+          '위치 정보 없음',
       };
 
       setCurrentLocation(locationData);
     } catch (error) {
-      Logger.error("위치 정보 가져오기 실패:", error);
-      Alert.alert(
-        "알림",
-        "위치 정보를 가져올 수 없어 기본 위치(서울)로 설정할게요.",
-      );
+      Logger.error('위치 정보 가져오기 실패:', error);
+      Alert.alert('알림', '위치 정보를 가져올 수 없어 기본 위치(서울)로 설정할게요.');
       const defaultLocation: LocationDto = {
         latitude: 37.5665,
         longitude: 126.978,
-        address: "서울특별시",
+        address: '서울특별시',
       };
       setCurrentLocation(defaultLocation);
     } finally {
@@ -188,31 +181,27 @@ export default function CreateItemScreen() {
 
   React.useEffect(() => {
     const timerId = setTimeout(() => {
-      getCurrentLocation().catch((err) =>
-        Logger.error("[Create] Location init failed", err),
-      );
+      getCurrentLocation().catch((err) => Logger.error('[Create] Location init failed', err));
     }, 0);
     return () => clearTimeout(timerId);
   }, []);
 
   React.useEffect(() => {
     if (hasActiveItem === true) {
-      Alert.alert(
-        "접근 제한",
-        "이미 등록한 아이템이 있어서 지금은 새로 작성할 수 없어요.",
-        [{ text: "확인", onPress: () => router.back() }],
-      );
+      Alert.alert('접근 제한', '이미 등록한 아이템이 있어서 지금은 새로 작성할 수 없어요.', [
+        { text: '확인', onPress: () => router.back() },
+      ]);
     }
   }, [hasActiveItem]);
 
   const handleImagePicker = async () => {
     if (selectedImages.length >= 5) {
-      Alert.alert("알림", "이미지는 최대 5장까지 선택할 수 있어요.");
+      Alert.alert('알림', '이미지는 최대 5장까지 선택할 수 있어요.');
       return;
     }
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
+        mediaTypes: ['images'],
         quality: 0.8,
         allowsMultipleSelection: true,
         selectionLimit: 5 - selectedImages.length,
@@ -224,18 +213,15 @@ export default function CreateItemScreen() {
           (a) => a.fileSize != null && a.fileSize > MAX_FILE_SIZE_BYTES,
         );
         if (oversized.length > 0) {
-          Alert.alert(
-            "알림",
-            "이미지 파일은 각 10MB 이하만 업로드할 수 있어요.",
-          );
+          Alert.alert('알림', '이미지 파일은 각 10MB 이하만 업로드할 수 있어요.');
           return;
         }
-        const newImages = result.assets.map((asset) => asset.uri || "");
+        const newImages = result.assets.map((asset) => asset.uri || '');
         const updatedImages = [...selectedImages, ...newImages].slice(0, 5);
         setSelectedImages(updatedImages);
       }
     } catch {
-      Alert.alert("알림", "이미지를 선택하지 못했어요.");
+      Alert.alert('알림', '이미지를 선택하지 못했어요.');
     }
   };
 
@@ -245,7 +231,7 @@ export default function CreateItemScreen() {
   };
 
   return (
-    <SafeLayout edges={["top", "bottom"]} style={styles.container}>
+    <SafeLayout edges={['top', 'bottom']} style={styles.container}>
       <Box
         flexDir="row"
         justify="space-between"
@@ -255,23 +241,10 @@ export default function CreateItemScreen() {
         borderBottomWidth={1}
         borderColor="border.medium"
       >
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <IconSymbol
-            name="chevron.left"
-            size={24}
-            color={theme.colors.text.primary}
-          />
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <IconSymbol name="chevron.left" size={24} color={theme.colors.text.primary} />
         </TouchableOpacity>
-        <Typography
-          variant="h2"
-          weight="bold"
-          color="text.primary"
-          flex={1}
-          center
-        >
+        <Typography variant="h2" weight="bold" color="text.primary" flex={1} center>
           교환글 쓰기
         </Typography>
         <TouchableOpacity onPress={handleSubmit} disabled={isPending}>
@@ -280,7 +253,7 @@ export default function CreateItemScreen() {
             color="primary"
             style={isPending ? styles.submitButtonDisabled : undefined}
           >
-            {isPending ? "등록 중..." : "등록"}
+            {isPending ? '등록 중...' : '등록'}
           </Typography>
         </TouchableOpacity>
       </Box>
@@ -300,10 +273,7 @@ export default function CreateItemScreen() {
         >
           <Box flexDir="row" p="lg" gap="sm">
             {selectedImages.length < 5 ? (
-              <TouchableOpacity
-                style={styles.imageAddButton}
-                onPress={handleImagePicker}
-              >
+              <TouchableOpacity style={styles.imageAddButton} onPress={handleImagePicker}>
                 <Typography variant="h1" color="text.tertiary">
                   📷
                 </Typography>
@@ -315,19 +285,9 @@ export default function CreateItemScreen() {
 
             {selectedImages.map((imageUri, index) => (
               <Box key={index} style={styles.imageItemWrapper}>
-                <Image
-                  source={{ uri: imageUri }}
-                  style={styles.imageThumbnail}
-                />
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => removeImage(index)}
-                >
-                  <Typography
-                    variant="caption"
-                    weight="bold"
-                    color="background"
-                  >
+                <Image source={{ uri: imageUri }} style={styles.imageThumbnail} />
+                <TouchableOpacity style={styles.deleteButton} onPress={() => removeImage(index)}>
+                  <Typography variant="caption" weight="bold" color="background">
                     ×
                   </Typography>
                 </TouchableOpacity>
@@ -341,12 +301,9 @@ export default function CreateItemScreen() {
             <Typography variant="body1" weight="bold" color="text.primary">
               📍 위치 정보
             </Typography>
-            <TouchableOpacity
-              onPress={getCurrentLocation}
-              disabled={locationLoading}
-            >
+            <TouchableOpacity onPress={getCurrentLocation} disabled={locationLoading}>
               <Typography variant="caption" color="primary">
-                {locationLoading ? "로딩 중..." : "🔄 새로고침"}
+                {locationLoading ? '로딩 중...' : '🔄 새로고침'}
               </Typography>
             </TouchableOpacity>
           </Box>
@@ -366,34 +323,20 @@ export default function CreateItemScreen() {
 
         <Box px="lg">
           <Box py="md" borderBottomWidth={1} borderColor="border.medium">
-            <Typography
-              variant="body1"
-              weight="bold"
-              color="text.primary"
-              mb="sm"
-            >
+            <Typography variant="body1" weight="bold" color="text.primary" mb="sm">
               카테고리
             </Typography>
             <Box flexDir="row" gap="sm">
               <TouchableOpacity
                 style={[
                   styles.categoryButton,
-                  formData.itemCategory === "TICKET" &&
-                    styles.categoryButtonActive,
+                  formData.itemCategory === 'TICKET' && styles.categoryButtonActive,
                 ]}
-                onPress={() =>
-                  setFormData({ ...formData, itemCategory: "TICKET" })
-                }
+                onPress={() => setFormData({ ...formData, itemCategory: 'TICKET' })}
               >
                 <Typography
-                  weight={
-                    formData.itemCategory === "TICKET" ? "bold" : "medium"
-                  }
-                  color={
-                    formData.itemCategory === "TICKET"
-                      ? "background"
-                      : "text.secondary"
-                  }
+                  weight={formData.itemCategory === 'TICKET' ? 'bold' : 'medium'}
+                  color={formData.itemCategory === 'TICKET' ? 'background' : 'text.secondary'}
                 >
                   티켓
                 </Typography>
@@ -401,20 +344,13 @@ export default function CreateItemScreen() {
               <TouchableOpacity
                 style={[
                   styles.categoryButton,
-                  formData.itemCategory === "GOODS" &&
-                    styles.categoryButtonActive,
+                  formData.itemCategory === 'GOODS' && styles.categoryButtonActive,
                 ]}
-                onPress={() =>
-                  setFormData({ ...formData, itemCategory: "GOODS" })
-                }
+                onPress={() => setFormData({ ...formData, itemCategory: 'GOODS' })}
               >
                 <Typography
-                  weight={formData.itemCategory === "GOODS" ? "bold" : "medium"}
-                  color={
-                    formData.itemCategory === "GOODS"
-                      ? "background"
-                      : "text.secondary"
-                  }
+                  weight={formData.itemCategory === 'GOODS' ? 'bold' : 'medium'}
+                  color={formData.itemCategory === 'GOODS' ? 'background' : 'text.secondary'}
                 >
                   굿즈
                 </Typography>
@@ -428,7 +364,7 @@ export default function CreateItemScreen() {
             value={formData.title}
             onChangeText={(text) => {
               setFormData({ ...formData, title: text });
-              if (text.trim()) setErrors((prev) => ({ ...prev, title: "" }));
+              if (text.trim()) setErrors((prev) => ({ ...prev, title: '' }));
             }}
             placeholderTextColor={theme.colors.text.tertiary}
           />
@@ -442,23 +378,18 @@ export default function CreateItemScreen() {
             placeholder="희망 아이템 (선택)"
             style={styles.desiredItemInput}
             value={formData.desiredItem}
-            onChangeText={(text) =>
-              setFormData({ ...formData, desiredItem: text })
-            }
+            onChangeText={(text) => setFormData({ ...formData, desiredItem: text })}
             placeholderTextColor={theme.colors.text.tertiary}
           />
 
           <TextInput
             placeholder="내용을 입력하세요."
             multiline
-            style={[
-              styles.contentInput,
-              errors.content ? styles.inputError : null,
-            ]}
+            style={[styles.contentInput, errors.content ? styles.inputError : null]}
             value={formData.content}
             onChangeText={(text) => {
               setFormData({ ...formData, content: text });
-              if (text.trim()) setErrors((prev) => ({ ...prev, content: "" }));
+              if (text.trim()) setErrors((prev) => ({ ...prev, content: '' }));
             }}
             placeholderTextColor={theme.colors.text.tertiary}
           />
@@ -487,15 +418,15 @@ const styles = StyleSheet.create({
   backButton: {
     width: 40,
     height: 40,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   imageScrollContent: {
     borderBottomWidth: 1,
     borderColor: theme.colors.border.medium,
   },
   imageItemWrapper: {
-    position: "relative",
+    position: 'relative',
   },
   imageAddButton: {
     width: 72,
@@ -503,8 +434,8 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.md,
     borderWidth: 1,
     borderColor: theme.colors.border.medium,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: theme.colors.surface,
   },
   imageThumbnail: {
@@ -513,15 +444,15 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.md,
   },
   deleteButton: {
-    position: "absolute",
+    position: 'absolute',
     top: -8,
     right: -8,
     width: 20,
     height: 20,
     borderRadius: theme.spacing.md / 2 + 4, // 10
     backgroundColor: theme.colors.error,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   categoryButton: {
     flex: 1,
@@ -530,7 +461,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.border.medium,
     backgroundColor: theme.colors.background,
-    alignItems: "center",
+    alignItems: 'center',
   },
   categoryButtonActive: {
     backgroundColor: theme.colors.primary,
@@ -556,7 +487,7 @@ const styles = StyleSheet.create({
     minHeight: 200,
     fontSize: theme.typography.size.md,
     paddingTop: theme.spacing.lg,
-    textAlignVertical: "top",
+    textAlignVertical: 'top',
     borderBottomWidth: 1,
     borderColor: theme.colors.border.medium,
     color: theme.colors.text.primary,

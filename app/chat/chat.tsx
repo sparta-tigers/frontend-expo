@@ -1,16 +1,13 @@
-import { Button } from "@/components/ui/button";
-import { SafeLayout } from "@/components/ui/safe-layout";
-import { useTheme } from "@/hooks/useTheme";
-import { chatroomsGetListAPI } from "@/src/features/chat/api";
-import {
-  DirectRoomListResponse,
-  DirectRoomResponse,
-} from "@/src/features/chat/types";
-import { ApiResponse } from "@/src/shared/types/common";
-import { BORDER_RADIUS, FONT_SIZE, SPACING, theme } from "@/src/styles/theme";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback } from "react";
+import { Button } from '@/components/ui/button';
+import { SafeLayout } from '@/components/ui/safe-layout';
+import { useTheme } from '@/hooks/useTheme';
+import { chatroomsGetListAPI } from '@/src/features/chat/api';
+import { DirectRoomListResponse, DirectRoomResponse } from '@/src/features/chat/types';
+import { ApiResponse } from '@/src/shared/types/common';
+import { BORDER_RADIUS, FONT_SIZE, SPACING, theme } from '@/src/styles/theme';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -18,7 +15,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
+} from 'react-native';
 
 // 정적 스타일 정의
 const chatStyles = StyleSheet.create({
@@ -26,7 +23,7 @@ const chatStyles = StyleSheet.create({
     padding: SPACING.SMALL,
   },
   chatRoomItem: {
-    flexDirection: "row",
+    flexDirection: 'row',
     padding: SPACING.COMPONENT,
     borderBottomWidth: 1,
     borderRadius: BORDER_RADIUS.CARD,
@@ -38,20 +35,20 @@ const chatStyles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: SPACING.COMPONENT,
   },
   avatarText: {
     fontSize: FONT_SIZE.BODY,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   chatInfo: {
     flex: 1,
   },
   nickname: {
     fontSize: FONT_SIZE.BODY,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: SPACING.TINY,
   },
   itemTitle: {
@@ -59,7 +56,7 @@ const chatStyles = StyleSheet.create({
   },
   date: {
     fontSize: FONT_SIZE.CAPTION,
-    position: "absolute",
+    position: 'absolute',
     top: SPACING.COMPONENT,
     right: SPACING.COMPONENT,
   },
@@ -67,46 +64,46 @@ const chatStyles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    position: "absolute",
+    position: 'absolute',
     bottom: 0,
     right: 0,
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingVertical: 40,
   },
   emptyText: {
     fontSize: FONT_SIZE.BODY,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: SPACING.SMALL,
   },
   emptySubText: {
     fontSize: FONT_SIZE.SMALL,
-    textAlign: "center",
+    textAlign: 'center',
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingVertical: 40,
   },
   loadingText: {
     marginTop: SPACING.SMALL,
     fontSize: FONT_SIZE.BODY,
-    textAlign: "center",
+    textAlign: 'center',
   },
   errorContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingVertical: 40,
   },
   errorText: {
     fontSize: FONT_SIZE.BODY,
     marginBottom: SPACING.COMPONENT,
-    textAlign: "center",
+    textAlign: 'center',
   },
   retryButton: {
     minWidth: 120,
@@ -125,17 +122,14 @@ export default function ChatListScreen() {
   // 🚨 앙드레 카파시: useAsyncState 폐기 및 React Query(useQuery) 도입
   // 탭 전환 시 매번 로딩 스피너를 보여주는 대신 캐시를 활용하여 즉시 렌더링
   const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
-    queryKey: ["chatRooms"],
+    queryKey: ['chatRooms'],
     queryFn: async (): Promise<DirectRoomResponse[]> => {
-      const response: ApiResponse<DirectRoomListResponse> =
-        await chatroomsGetListAPI(0, 50); // 임시 페이지네이션
-      if (response.resultType === "SUCCESS" && response.data) {
+      const response: ApiResponse<DirectRoomListResponse> = await chatroomsGetListAPI(0, 50); // 임시 페이지네이션
+      if (response.resultType === 'SUCCESS' && response.data) {
         // DirectRoomListResponse.rooms가 실제 배열임
         return response.data.rooms || [];
       }
-      throw new Error(
-        response.error?.message || "채팅방 목록을 불러오지 못했어요.",
-      );
+      throw new Error(response.error?.message || '채팅방 목록을 불러오지 못했어요.');
     },
     staleTime: 1000 * 60 * 1, // 1분간 캐시 유지
   });
@@ -143,9 +137,7 @@ export default function ChatListScreen() {
   // 탭이 포커스될 때마다 캐시를 무효화하여 백그라운드에서 조용히 갱신 (로딩 스피너 방지)
   useFocusEffect(
     useCallback(() => {
-      queryClient
-        .invalidateQueries({ queryKey: ["chatRooms"] })
-        .catch(() => {});
+      queryClient.invalidateQueries({ queryKey: ['chatRooms'] }).catch(() => {});
     }, [queryClient]),
   );
 
@@ -169,23 +161,14 @@ export default function ChatListScreen() {
             {item.opponentNickname.charAt(0).toUpperCase()}
           </Text>
           {item.opponentOnline ? (
-            <View
-              style={[
-                chatStyles.onlineIndicator,
-                { backgroundColor: colors.primary },
-              ]}
-            />
+            <View style={[chatStyles.onlineIndicator, { backgroundColor: colors.primary }]} />
           ) : null}
         </View>
 
         {/* 채팅 정보 */}
         <View style={chatStyles.chatInfo}>
-          <Text style={[chatStyles.nickname, { color: colors.text }]}>
-            {item.opponentNickname}
-          </Text>
-          <Text style={[chatStyles.itemTitle, { color: colors.muted }]}>
-            {item.itemTitle}
-          </Text>
+          <Text style={[chatStyles.nickname, { color: colors.text }]}>{item.opponentNickname}</Text>
+          <Text style={[chatStyles.itemTitle, { color: colors.muted }]}>{item.itemTitle}</Text>
         </View>
 
         {/* 시간 */}
@@ -200,12 +183,7 @@ export default function ChatListScreen() {
   // 로딩 상태 (캐시가 없을 때만 보여줌)
   if (isLoading && (!data || (data as DirectRoomResponse[]).length === 0)) {
     return (
-      <View
-        style={[
-          chatStyles.loadingContainer,
-          { backgroundColor: colors.surface },
-        ]}
-      >
+      <View style={[chatStyles.loadingContainer, { backgroundColor: colors.surface }]}>
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={[chatStyles.loadingText, { color: colors.text }]}>
           채팅방 목록을 불러오는 중...
@@ -217,11 +195,9 @@ export default function ChatListScreen() {
   // 에러 상태 (캐시가 없을 때만 보여줌)
   if (isError && (!data || (data as DirectRoomResponse[]).length === 0)) {
     return (
-      <View
-        style={[chatStyles.errorContainer, { backgroundColor: colors.surface }]}
-      >
+      <View style={[chatStyles.errorContainer, { backgroundColor: colors.surface }]}>
         <Text style={[chatStyles.errorText, { color: colors.destructive }]}>
-          {error?.message || "문제가 생겼어요."}
+          {error?.message || '문제가 생겼어요.'}
         </Text>
         <Button onPress={() => refetch()} style={chatStyles.retryButton}>
           다시 시도
@@ -233,12 +209,8 @@ export default function ChatListScreen() {
   // 빈 상태
   if (!data || (data as DirectRoomResponse[]).length === 0) {
     return (
-      <View
-        style={[chatStyles.emptyContainer, { backgroundColor: colors.surface }]}
-      >
-        <Text style={[chatStyles.emptyText, { color: colors.text }]}>
-          아직 채팅방이 없어요
-        </Text>
+      <View style={[chatStyles.emptyContainer, { backgroundColor: colors.surface }]}>
+        <Text style={[chatStyles.emptyText, { color: colors.text }]}>아직 채팅방이 없어요</Text>
         <Text style={[chatStyles.emptySubText, { color: colors.muted }]}>
           아이템 교환을 시작해보세요
         </Text>

@@ -1,11 +1,11 @@
 // app/profile/profile.styles.ts
-import { theme } from "@/src/styles/theme";
-import { StyleSheet } from "react-native";
+import { theme } from '@/src/styles/theme';
+import { StyleSheet } from 'react-native';
 
 export const LOCAL_LAYOUT = {
   profileAvatarSize: 80,
   userAvatarSize: 60,
-  bottomSheetSnapPoints: ["60%"],
+  bottomSheetSnapPoints: ['60%'],
   scrollBottomPadding: theme.spacing.xxxxl,
 } as const;
 
@@ -18,9 +18,9 @@ export const styles = StyleSheet.create({
     paddingBottom: LOCAL_LAYOUT.scrollBottomPadding,
   },
   menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingVertical: theme.spacing.md,
     paddingHorizontal: theme.spacing.xl,
   },

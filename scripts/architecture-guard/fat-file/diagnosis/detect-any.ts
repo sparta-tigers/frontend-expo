@@ -32,7 +32,7 @@
 // 멀티라인 함수 시그니처의 정밀 분류는 design 이 best-effort 라벨을
 // 허용한 범위에 해당한다.
 
-import type { AnyOccurrence, AnyOccurrenceContext } from "../types.ts";
+import type { AnyOccurrence, AnyOccurrenceContext } from '../types.ts';
 
 const JSX_COMMENT_ONLY_LINE = /^\{\/\*[\s\S]*\*\/\}$/;
 
@@ -51,10 +51,10 @@ type PatternSpec = {
 // Ordered highest → lowest specificity. An `any` token already claimed by a
 // higher-priority pattern is skipped by every lower-priority one below.
 const PATTERNS: readonly PatternSpec[] = [
-  { regex: /Record<\s*[^,>]+,\s*any\s*>/g, context: "record" },
-  { regex: /\bas\s+any\b/g, context: "assertion" },
-  { regex: /\bany\s*\[\s*\]/g, context: "array" },
-  { regex: /<\s*any\s*>/g, context: "generic" },
+  { regex: /Record<\s*[^,>]+,\s*any\s*>/g, context: 'record' },
+  { regex: /\bas\s+any\b/g, context: 'assertion' },
+  { regex: /\bany\s*\[\s*\]/g, context: 'array' },
+  { regex: /<\s*any\s*>/g, context: 'generic' },
   { regex: /:\s*any\b/g, context: classifyColonContext },
 ];
 
@@ -118,28 +118,28 @@ type MatchHit = {
  * it as code.
  */
 function collectEligibleLines(source: string): EligibleLine[] {
-  if (source === "") return [];
+  if (source === '') return [];
 
-  const lines = source.split("\n");
-  let state: "CODE" | "BLOCK_COMMENT" = "CODE";
+  const lines = source.split('\n');
+  let state: 'CODE' | 'BLOCK_COMMENT' = 'CODE';
   const out: EligibleLine[] = [];
 
   for (let i = 0; i < lines.length; i++) {
-    const raw = lines[i] ?? "";
+    const raw = lines[i] ?? '';
     const trimmed = raw.trim();
     const lineNumber = i + 1;
 
     // 1. blank line
-    if (trimmed === "") continue;
+    if (trimmed === '') continue;
 
     // 2. inside a multi-line block comment
-    if (state === "BLOCK_COMMENT") {
-      const closeIdx = raw.indexOf("*/");
+    if (state === 'BLOCK_COMMENT') {
+      const closeIdx = raw.indexOf('*/');
       if (closeIdx !== -1) {
-        state = "CODE";
+        state = 'CODE';
         const after = raw.slice(closeIdx + 2);
         const afterTrim = after.trim();
-        if (afterTrim !== "" && !afterTrim.startsWith("//")) {
+        if (afterTrim !== '' && !afterTrim.startsWith('//')) {
           // Only scan the trailing code — the comment body must not leak.
           out.push({ lineNumber, scannable: after, snippet: afterTrim });
         }
@@ -148,23 +148,19 @@ function collectEligibleLines(source: string): EligibleLine[] {
     }
 
     // 3. full-line `//` comment
-    if (trimmed.startsWith("//")) continue;
+    if (trimmed.startsWith('//')) continue;
 
     // 4. JSX comment-only line: `{/* ... *\/}`
     if (JSX_COMMENT_ONLY_LINE.test(trimmed)) continue;
 
     // 5. single-line block comment: `/* ... *\/`
-    if (
-      trimmed.startsWith("/*") &&
-      trimmed.endsWith("*/") &&
-      trimmed.length >= 4
-    ) {
+    if (trimmed.startsWith('/*') && trimmed.endsWith('*/') && trimmed.length >= 4) {
       continue;
     }
 
     // 6. block comment opened on this line with no `*\/` on the same line
-    if (trimmed.startsWith("/*") && !trimmed.includes("*/")) {
-      state = "BLOCK_COMMENT";
+    if (trimmed.startsWith('/*') && !trimmed.includes('*/')) {
+      state = 'BLOCK_COMMENT';
       continue;
     }
 
@@ -201,9 +197,7 @@ function matchLine(line: string): MatchHit[] {
       if (!claimed.has(anyIndex)) {
         claimed.add(anyIndex);
         const context =
-          typeof spec.context === "function"
-            ? spec.context(line, anyIndex)
-            : spec.context;
+          typeof spec.context === 'function' ? spec.context(line, anyIndex) : spec.context;
         hits.push({ anyIndex, context });
       }
 
@@ -229,27 +223,24 @@ function matchLine(line: string): MatchHit[] {
  * Bracket depth is counted from the line start up to the `any` index so
  * we can tell parameter lists apart from plain variable annotations.
  */
-function classifyColonContext(
-  line: string,
-  anyIndex: number,
-): AnyOccurrenceContext {
+function classifyColonContext(line: string, anyIndex: number): AnyOccurrenceContext {
   // Walk left from the `any` token to find the `:` that fired this match.
   let colonIdx = anyIndex - 1;
   while (colonIdx >= 0 && /\s/.test(line.charAt(colonIdx))) colonIdx--;
-  if (colonIdx < 0 || line.charAt(colonIdx) !== ":") return "variable";
+  if (colonIdx < 0 || line.charAt(colonIdx) !== ':') return 'variable';
 
   // Is `)` the first non-whitespace char to the left of the `:` ?
   let before = colonIdx - 1;
   while (before >= 0 && /\s/.test(line.charAt(before))) before--;
-  if (before >= 0 && line.charAt(before) === ")") return "return";
+  if (before >= 0 && line.charAt(before) === ')') return 'return';
 
   // Count unbalanced `(` up to the `any` index. A positive depth means we
   // are inside a parameter list on this line.
   let depth = 0;
   for (let k = 0; k < anyIndex; k++) {
     const ch = line.charAt(k);
-    if (ch === "(") depth++;
-    else if (ch === ")") depth--;
+    if (ch === '(') depth++;
+    else if (ch === ')') depth--;
   }
-  return depth > 0 ? "parameter" : "variable";
+  return depth > 0 ? 'parameter' : 'variable';
 }

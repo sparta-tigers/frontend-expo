@@ -1,5 +1,5 @@
 // src/features/home/types/team.ts
-import { TeamMeta } from "@/src/utils/team";
+import { TeamMeta } from '@/src/utils/team';
 
 /**
  * 팀(구단) 정보 데이터 모델

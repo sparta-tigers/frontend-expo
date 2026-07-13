@@ -1,16 +1,11 @@
-import { Logger, maskSensitive } from "@/src/utils/logger";
-import {
-  clearTokens,
-  getAccessToken,
-  getRefreshToken,
-  setTokens,
-} from "@/src/utils/tokenStore";
-import { AxiosError, AxiosInstance, AxiosRequestConfig, create as createAxios } from "axios";
-import { Platform } from "react-native";
-import { z } from "zod";
-import { ApiError, NetworkError } from "./errors";
+import { Logger, maskSensitive } from '@/src/utils/logger';
+import { clearTokens, getAccessToken, getRefreshToken, setTokens } from '@/src/utils/tokenStore';
+import { AxiosError, AxiosInstance, AxiosRequestConfig, create as createAxios } from 'axios';
+import { Platform } from 'react-native';
+import { z } from 'zod';
+import { ApiError, NetworkError } from './errors';
 
-const apiLogger = Logger.category("API");
+const apiLogger = Logger.category('API');
 
 /**
  * Mutex 상태 변수 (Race Condition 방지)
@@ -48,13 +43,13 @@ const getDynamicBaseURL = (): string => {
   const envBaseURL = process.env.EXPO_PUBLIC_API_BASE_URL;
 
   // 개발 환경의 안드로이드 에뮬레이터용 핫픽스
-  if (__DEV__ && Platform.OS === "android") {
+  if (__DEV__ && Platform.OS === 'android') {
     // 환경 변수가 설정되어 있다면 그것을 우선 사용, 없으면 에뮬레이터 IP 사용
-    return envBaseURL || "http://10.0.2.2:8080";
+    return envBaseURL || 'http://10.0.2.2:8080';
   }
 
   // 그 외 환경 (iOS 실기기, 웹 등)에서는 환경 변수 또는 127.0.0.1 사용
-  return envBaseURL || "http://127.0.0.1:8080";
+  return envBaseURL || 'http://127.0.0.1:8080';
 };
 
 /**
@@ -65,7 +60,7 @@ const bareAxios = createAxios({
   baseURL: getDynamicBaseURL(),
   timeout: 10000,
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
 });
 
@@ -77,7 +72,7 @@ export const axiosInstance: AxiosInstance = createAxios({
   baseURL: getDynamicBaseURL(),
   timeout: 10000,
   headers: {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   },
 });
 
@@ -94,19 +89,19 @@ const TOKEN_CACHE_MAX_SIZE = 100;
  * @returns 형식 유효 여부
  */
 export const validateTokenFormat = (token: string): boolean => {
-  if (!token || typeof token !== "string") return false;
+  if (!token || typeof token !== 'string') return false;
 
   try {
     // JWT 기본 구조 검증 (header.payload.signature)
-    const parts = token.split(".");
+    const parts = token.split('.');
     if (parts.length !== 3) return false;
 
     // 각 부분이 base64url 인코딩되었는지 검증
     parts.forEach((part) => {
       // base64url 패딩 추가
-      const padded = part + "=".repeat((4 - (part.length % 4)) % 4);
+      const padded = part + '='.repeat((4 - (part.length % 4)) % 4);
       // base64url -> base64 변환 후 디코딩 테스트
-      const base64 = padded.replace(/-/g, "+").replace(/_/g, "/");
+      const base64 = padded.replace(/-/g, '+').replace(/_/g, '/');
       atob(base64);
     });
 
@@ -148,7 +143,7 @@ const validateTokenFormatCached = (token: string): boolean => {
 const shouldLogTokenValidation = (url?: string): boolean => {
   if (!url) return false;
 
-  const criticalEndpoints = ["/api/auth/", "/api/items", "/api/users/me"];
+  const criticalEndpoints = ['/api/auth/', '/api/items', '/api/users/me'];
 
   return criticalEndpoints.some((endpoint) => url.includes(endpoint));
 };
@@ -162,24 +157,21 @@ axiosInstance.interceptors.request.use(
         const isTokenValid = validateTokenFormatCached(accessToken);
 
         if (!isTokenValid) {
-          apiLogger.error(
-            "비정상 형식의 토큰 (Invalid Token Format)",
-            maskSensitive(accessToken),
-          );
+          apiLogger.error('비정상 형식의 토큰 (Invalid Token Format)', maskSensitive(accessToken));
           // 토큰 형식이 비정상이면 요청 중단 및 토큰 클리어
           await clearTokens();
-          return Promise.reject(new Error("Invalid token format"));
+          return Promise.reject(new Error('Invalid token format'));
         }
 
         config.headers.Authorization = `Bearer ${accessToken}`;
       } else {
         // 🚨 토큰 없음 경고 (중요 API 호출 시만)
         if (__DEV__ && shouldLogTokenValidation(config.url)) {
-          apiLogger.warn("액세스 토큰이 없어요 (Token Missing)");
+          apiLogger.warn('액세스 토큰이 없어요 (Token Missing)');
         }
       }
     } catch (error) {
-      apiLogger.error("토큰 조회 실패", error);
+      apiLogger.error('토큰 조회 실패', error);
       return Promise.reject(error);
     }
     return config;
@@ -196,7 +188,7 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     // 🚨 네트워크 에러 즉시 로깅
-    Logger.networkError("API 응답 에러 발생", error);
+    Logger.networkError('API 응답 에러 발생', error);
 
     const originalRequest = error.config as AxiosRequestConfig & {
       _retry?: boolean;
@@ -206,7 +198,7 @@ axiosInstance.interceptors.response.use(
       error.response?.status === 401 &&
       originalRequest &&
       !originalRequest._retry &&
-      !originalRequest.url?.includes("/auth/refresh")
+      !originalRequest.url?.includes('/auth/refresh')
     ) {
       originalRequest._retry = true;
 
@@ -230,27 +222,21 @@ axiosInstance.interceptors.response.use(
       try {
         const refreshToken = await getRefreshToken();
         if (!refreshToken) {
-          throw new Error("No refresh token available");
+          throw new Error('No refresh token available');
         }
 
         // bare axios로 갱신 요청 (순환 의존성 방지)
-        const refreshResponse = await bareAxios.post("/api/auth/refresh", {
+        const refreshResponse = await bareAxios.post('/api/auth/refresh', {
           refreshToken,
         });
 
-        if (
-          refreshResponse.data?.resultType === "SUCCESS" &&
-          refreshResponse.data?.data
-        ) {
+        if (refreshResponse.data?.resultType === 'SUCCESS' && refreshResponse.data?.data) {
           const tokenData = refreshResponse.data.data;
 
           // TokenStore에 새 토큰 저장
-          const success = await setTokens(
-            tokenData.accessToken,
-            tokenData.refreshToken,
-          );
+          const success = await setTokens(tokenData.accessToken, tokenData.refreshToken);
           if (!success) {
-            throw new Error("Failed to save new tokens");
+            throw new Error('Failed to save new tokens');
           }
 
           // 대기 중인 요청들 처리
@@ -262,10 +248,10 @@ axiosInstance.interceptors.response.use(
           }
           return axiosInstance(originalRequest);
         } else {
-          throw new Error("Refresh token response invalid");
+          throw new Error('Refresh token response invalid');
         }
       } catch (refreshError) {
-        apiLogger.error("토큰 갱신 실패", refreshError);
+        apiLogger.error('토큰 갱신 실패', refreshError);
 
         // 토큰 삭제
         await clearTokens();
@@ -285,14 +271,14 @@ axiosInstance.interceptors.response.use(
 
     const responseData = error.response.data as Record<string, unknown> | undefined;
     const body = (responseData?.error as Record<string, unknown> | undefined) || responseData;
-    
+
     return Promise.reject(
       new ApiError(
         (body?.message as string) ?? error.message,
         error.response.status,
-        (body?.code as string) ?? "UNKNOWN_ERROR",
-        body?.details
-      )
+        (body?.code as string) ?? 'UNKNOWN_ERROR',
+        body?.details,
+      ),
     );
   },
 );
@@ -316,10 +302,7 @@ export const apiClient = {
       if (schema) {
         const result = schema.safeParse(data);
         if (!result.success) {
-          apiLogger.error(
-            `데이터 검증 실패 (Zod Validation Failed) GET ${url}`,
-            result.error,
-          );
+          apiLogger.error(`데이터 검증 실패 (Zod Validation Failed) GET ${url}`, result.error);
           throw new Error(`Data validation failed for GET ${url}`);
         }
         return result.data;
@@ -347,10 +330,7 @@ export const apiClient = {
       if (config?.schema) {
         const result = config.schema.safeParse(responseData);
         if (!result.success) {
-          apiLogger.error(
-            `데이터 검증 실패 (Zod Validation Failed) POST ${url}`,
-            result.error,
-          );
+          apiLogger.error(`데이터 검증 실패 (Zod Validation Failed) POST ${url}`, result.error);
           throw new Error(`Data validation failed for POST ${url}`);
         }
         return result.data;
@@ -366,11 +346,7 @@ export const apiClient = {
   /**
    * PUT 요청
    */
-  put: async <T = unknown>(
-    url: string,
-    data?: unknown,
-    schema?: z.ZodType<T>,
-  ): Promise<T> => {
+  put: async <T = unknown>(url: string, data?: unknown, schema?: z.ZodType<T>): Promise<T> => {
     try {
       const response = await axiosInstance.put(url, data);
       const responseData = response.data;
@@ -378,10 +354,7 @@ export const apiClient = {
       if (schema) {
         const result = schema.safeParse(responseData);
         if (!result.success) {
-          apiLogger.error(
-            `데이터 검증 실패 (Zod Validation Failed) PUT ${url}`,
-            result.error,
-          );
+          apiLogger.error(`데이터 검증 실패 (Zod Validation Failed) PUT ${url}`, result.error);
           throw new Error(`Data validation failed for PUT ${url}`);
         }
         return result.data;
@@ -397,10 +370,7 @@ export const apiClient = {
   /**
    * DELETE 요청
    */
-  delete: async <T = unknown>(
-    url: string,
-    schema?: z.ZodType<T>,
-  ): Promise<T> => {
+  delete: async <T = unknown>(url: string, schema?: z.ZodType<T>): Promise<T> => {
     try {
       const response = await axiosInstance.delete(url);
       const responseData = response.data;
@@ -408,10 +378,7 @@ export const apiClient = {
       if (schema) {
         const result = schema.safeParse(responseData);
         if (!result.success) {
-          apiLogger.error(
-            `데이터 검증 실패 (Zod Validation Failed) DELETE ${url}`,
-            result.error,
-          );
+          apiLogger.error(`데이터 검증 실패 (Zod Validation Failed) DELETE ${url}`, result.error);
           throw new Error(`Data validation failed for DELETE ${url}`);
         }
         return result.data;
@@ -439,10 +406,7 @@ export const apiClient = {
       if (config?.schema) {
         const result = config.schema.safeParse(responseData);
         if (!result.success) {
-          apiLogger.error(
-            `데이터 검증 실패 (Zod Validation Failed) PATCH ${url}`,
-            result.error,
-          );
+          apiLogger.error(`데이터 검증 실패 (Zod Validation Failed) PATCH ${url}`, result.error);
           throw new Error(`Data validation failed for PATCH ${url}`);
         }
         return result.data;

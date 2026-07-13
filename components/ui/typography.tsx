@@ -1,17 +1,9 @@
-import { ThemeColorPath, getThemeColorByPath } from "@/src/shared/types/theme";
-import { theme } from "@/src/styles/theme";
-import { Text, TextProps, TextStyle } from "react-native";
+import { ThemeColorPath, getThemeColorByPath } from '@/src/shared/types/theme';
+import { theme } from '@/src/styles/theme';
+import { Text, TextProps, TextStyle } from 'react-native';
 
 export type TypographyVariant =
-  | "h1"
-  | "h2"
-  | "h3"
-  | "h4"
-  | "h5"
-  | "body1"
-  | "body2"
-  | "caption"
-  | "label";
+  'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'body1' | 'body2' | 'caption' | 'label';
 
 /**
  * Typography 컴포넌트의 커스텀 Props
@@ -40,9 +32,9 @@ interface TypographyCustomProps {
   /** 수직 마진 */
   my?: keyof typeof theme.spacing;
   /** 플렉스 */
-  flex?: TextStyle["flex"];
+  flex?: TextStyle['flex'];
   /** 최소 높이 */
-  minHeight?: TextStyle["minHeight"];
+  minHeight?: TextStyle['minHeight'];
 }
 
 export interface TypographyProps extends TextProps, TypographyCustomProps {}
@@ -54,7 +46,7 @@ export interface TypographyProps extends TextProps, TypographyCustomProps {}
  * TextProps를 상속받아 numberOfLines, onLayout 등을 그대로 사용할 수 있음.
  */
 export const Typography = ({
-  variant = "body1",
+  variant = 'body1',
   weight,
   color,
   center,
@@ -82,14 +74,10 @@ export const Typography = ({
     : theme.colors.text.primary;
 
   const customStyle: TextStyle = {
-    fontWeight: weight
-      ? theme.typography.weight[weight]
-      : variantStyle.fontWeight,
-    letterSpacing: letterSpacing
-      ? theme.typography.letterSpacing[letterSpacing]
-      : undefined,
+    fontWeight: weight ? theme.typography.weight[weight] : variantStyle.fontWeight,
+    letterSpacing: letterSpacing ? theme.typography.letterSpacing[letterSpacing] : undefined,
     color: resolvedColor,
-    textAlign: center ? "center" : undefined,
+    textAlign: center ? 'center' : undefined,
     marginTop: getSpacing(mt),
     marginBottom: getSpacing(mb),
     marginLeft: getSpacing(ml),

@@ -1,17 +1,17 @@
-import React from "react";
-import { StyleSheet, View } from "react-native";
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
 
-import { Typography } from "@/components/ui/typography";
-import { WeatherIcon } from "@/src/features/liveboard/components/WeatherIcon";
-import { ForeCastDto } from "@/src/features/liveboard/types";
+import { Typography } from '@/components/ui/typography';
+import { WeatherIcon } from '@/src/features/liveboard/components/WeatherIcon';
+import { ForeCastDto } from '@/src/features/liveboard/types';
 import {
   formatHour,
   formatPercent,
   formatRainAmountCell,
   formatRainType,
   formatTemperatureCelsius,
-} from "@/src/features/liveboard/utils/weatherFormat";
-import { theme } from "@/src/styles/theme";
+} from '@/src/features/liveboard/utils/weatherFormat';
+import { theme } from '@/src/styles/theme';
 
 interface ForeCastTableProps {
   /** 이미 현재 시각 이후 + 상위 N개로 필터링된 예보 배열 */
@@ -26,18 +26,11 @@ interface ForeCastTableProps {
  * - 빈 배열이면 Empty State.
  * - 컬럼 수는 foreCast.length만큼 렌더.
  */
-export const ForeCastTable = React.memo(function ForeCastTable({
-  foreCast,
-}: ForeCastTableProps) {
+export const ForeCastTable = React.memo(function ForeCastTable({ foreCast }: ForeCastTableProps) {
   if (!foreCast || foreCast.length === 0) {
     return (
       <View style={styles.emptyCard}>
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          weight="medium"
-          center
-        >
+        <Typography variant="body2" color="text.secondary" weight="medium" center>
           남은 예보가 없어요
         </Typography>
       </View>
@@ -70,17 +63,9 @@ export const ForeCastTable = React.memo(function ForeCastTable({
 // 내부 컴포넌트
 // ========================================================
 
-function LabelCell({
-  text,
-  isIconRow = false,
-}: {
-  text: string;
-  isIconRow?: boolean;
-}) {
+function LabelCell({ text, isIconRow = false }: { text: string; isIconRow?: boolean }) {
   return (
-    <View
-      style={[styles.labelCell, isIconRow ? styles.rowIcon : styles.rowDefault]}
-    >
+    <View style={[styles.labelCell, isIconRow ? styles.rowIcon : styles.rowDefault]}>
       <Typography style={styles.labelText} weight="regular">
         {text}
       </Typography>
@@ -102,11 +87,7 @@ function ForeCastColumn({ item }: { item: ForeCastDto }) {
 
       {/* 하늘 아이콘 */}
       <View style={[styles.cell, styles.rowIcon]}>
-        <WeatherIcon
-          skyStatus={item.skyStatus}
-          rainType={item.rainType}
-          size="md"
-        />
+        <WeatherIcon skyStatus={item.skyStatus} rainType={item.rainType} size="md" />
       </View>
 
       {/* 기온 (하단 hairline 포함) */}
@@ -151,7 +132,7 @@ const COLUMN_MIN_WIDTH = 56;
 
 const styles = StyleSheet.create({
   wrapper: {
-    flexDirection: "row",
+    flexDirection: 'row',
     marginTop: 10,
     marginHorizontal: 14,
     marginBottom: 30,
@@ -163,11 +144,11 @@ const styles = StyleSheet.create({
   },
   labelCol: {
     width: LABEL_WIDTH,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   labelCell: {
     paddingLeft: 10,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   labelText: {
     fontSize: 11,
@@ -175,23 +156,23 @@ const styles = StyleSheet.create({
   },
   dataArea: {
     flex: 1,
-    flexDirection: "row",
+    flexDirection: 'row',
   },
   column: {
     flex: 1,
     minWidth: COLUMN_MIN_WIDTH,
-    alignItems: "center",
+    alignItems: 'center',
   },
   cell: {
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cellWithDivider: {
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: theme.colors.team.neutralLight,
     marginHorizontal: 6,
-    width: "85%",
+    width: '85%',
   },
   hourPill: {
     paddingHorizontal: 10,
@@ -221,8 +202,8 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
     borderRadius: 14,
     backgroundColor: theme.colors.background,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     ...theme.shadow.card,
   },
 });

@@ -1,7 +1,7 @@
-import React from "react";
-import { ViewProps } from "react-native";
-import { Box } from "./box";
-import { Typography } from "./typography";
+import React from 'react';
+import { ViewProps } from 'react-native';
+import { Box } from './box';
+import { Typography } from './typography';
 
 interface SectionProps extends ViewProps {
   /** 섹션 제목 */
@@ -32,7 +32,7 @@ export const Section = ({
           flexDir="row"
           align="center"
           justify="space-between"
-          mb={hasTitleMargin ? "md" : undefined}
+          mb={hasTitleMargin ? 'md' : undefined}
         >
           <Typography variant="h2">{title}</Typography>
           {rightElement}

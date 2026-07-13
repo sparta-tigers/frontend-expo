@@ -1,5 +1,5 @@
-import { theme } from "@/src/styles/theme";
-import React from "react";
+import { theme } from '@/src/styles/theme';
+import React from 'react';
 import {
   GestureResponderEvent,
   StyleProp,
@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
   ViewStyle,
-} from "react-native";
+} from 'react-native';
 
 /**
  * Button 컴포넌트 속성
@@ -24,17 +24,17 @@ interface ButtonProps {
   /** 로딩 상태 표시 */
   loading?: boolean;
   /** 버튼 스타일 변형 */
-  variant?: "primary" | "secondary" | "outline" | "ghost";
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
   /** 버튼 크기 */
-  size?: "sm" | "md" | "lg";
+  size?: 'sm' | 'md' | 'lg';
   /** 전체 너비 차지 */
   fullWidth?: boolean;
   /** 커스텀 스타일 */
   style?: StyleProp<ViewStyle>;
   /** 텍스트 스타일 */
   textStyle?: StyleProp<TextStyle>;
-  /** 
-   * 접근성 라벨 
+  /**
+   * 접근성 라벨
    * @note 문자열이 아닌 복잡한 children(예: 아이콘 + 텍스트)을 사용할 경우 반드시 명시적으로 주입해야 합니다.
    */
   accessibilityLabel?: string;
@@ -55,8 +55,8 @@ export const Button: React.FC<ButtonProps> = ({
   onPress,
   disabled = false,
   loading = false,
-  variant = "primary",
-  size = "md",
+  variant = 'primary',
+  size = 'md',
   fullWidth = false,
   style,
   textStyle,
@@ -69,11 +69,11 @@ export const Button: React.FC<ButtonProps> = ({
   // 내부 구현만 테마 토큰 기반으로 리팩토링.
   const getSizeStyle = () => {
     switch (size) {
-      case "sm":
+      case 'sm':
         return { minHeight: 48, paddingHorizontal: theme.spacing.md };
-      case "md":
+      case 'md':
         return { minHeight: 48, paddingHorizontal: theme.spacing.lg };
-      case "lg":
+      case 'lg':
         return { minHeight: 56, paddingHorizontal: theme.spacing.xxl };
       default:
         return { minHeight: 48, paddingHorizontal: theme.spacing.lg };
@@ -91,25 +91,25 @@ export const Button: React.FC<ButtonProps> = ({
 
     let variantStyle: ViewStyle = {};
     switch (variant) {
-      case "primary":
+      case 'primary':
         variantStyle = { backgroundColor: theme.colors.brand.mint };
         break;
-      case "secondary":
+      case 'secondary':
         variantStyle = {
           backgroundColor: theme.colors.surface,
           borderWidth: 1,
           borderColor: theme.colors.border.medium,
         };
         break;
-      case "outline":
+      case 'outline':
         variantStyle = {
-          backgroundColor: "transparent",
+          backgroundColor: 'transparent',
           borderWidth: 1,
           borderColor: theme.colors.brand.mint,
         };
         break;
-      case "ghost":
-        variantStyle = { backgroundColor: "transparent" };
+      case 'ghost':
+        variantStyle = { backgroundColor: 'transparent' };
         break;
       default:
         variantStyle = { backgroundColor: theme.colors.brand.mint };
@@ -124,14 +124,14 @@ export const Button: React.FC<ButtonProps> = ({
 
     let variantTextStyle: TextStyle = {};
     switch (variant) {
-      case "primary":
+      case 'primary':
         variantTextStyle = { color: theme.colors.background };
         break;
-      case "secondary":
+      case 'secondary':
         variantTextStyle = { color: theme.colors.text.primary };
         break;
-      case "outline":
-      case "ghost":
+      case 'outline':
+      case 'ghost':
         variantTextStyle = { color: theme.colors.brand.mint };
         break;
       default:
@@ -148,13 +148,13 @@ export const Button: React.FC<ButtonProps> = ({
       disabled={disabled || loading}
       activeOpacity={0.7}
       accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel || (typeof children === "string" ? children : undefined)}
+      accessibilityLabel={
+        accessibilityLabel || (typeof children === 'string' ? children : undefined)
+      }
       accessibilityHint={accessibilityHint}
     >
       <View style={styles.content}>
-        {loading && (
-          <Text style={[styles.loadingText, getTextStyle()]}>...</Text>
-        )}
+        {loading && <Text style={[styles.loadingText, getTextStyle()]}>...</Text>}
         <Text style={getTextStyle()}>{children}</Text>
       </View>
     </TouchableOpacity>
@@ -164,23 +164,23 @@ export const Button: React.FC<ButtonProps> = ({
 const styles = StyleSheet.create({
   button: {
     borderRadius: theme.radius.BUTTON,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   content: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   text: {
     fontWeight: theme.typography.weight.semibold,
-    textAlign: "center",
+    textAlign: 'center',
     fontSize: theme.typography.size.md,
   },
   loadingText: {
     marginRight: theme.spacing.xs,
   },
   fullWidth: {
-    width: "100%",
+    width: '100%',
   },
 });

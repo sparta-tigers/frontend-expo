@@ -1,5 +1,5 @@
-import { apiClient } from "@/src/core/client";
-import type { ApiResponse, PaginatedResponse } from "@/src/shared/types/common";
+import { apiClient } from '@/src/core/client';
+import type { ApiResponse, PaginatedResponse } from '@/src/shared/types/common';
 import {
   CreateExchangeDto,
   ExchangeRequestListResponse,
@@ -8,7 +8,7 @@ import {
   UpdateExchangeStatusDto,
   UpdateItemRequest,
   UserLocation,
-} from "./types";
+} from './types';
 
 export type ExchangeRoomResponseDto = {
   roomId?: number;
@@ -50,7 +50,7 @@ export async function itemsGetListAPI(
   }
 
   // try-catch 제거하고 바로 리턴
-  return apiClient.get("/api/items", params);
+  return apiClient.get('/api/items', params);
 }
 
 /**
@@ -60,9 +60,7 @@ export async function itemsGetListAPI(
  * @param itemId - 아이템 고유 ID
  * @returns 아이템 상세 정보
  */
-export async function itemsGetDetailAPI(
-  itemId: number,
-): Promise<ApiResponse<Item>> {
+export async function itemsGetDetailAPI(itemId: number): Promise<ApiResponse<Item>> {
   return apiClient.get(`/api/items/${itemId}`);
 }
 
@@ -73,12 +71,10 @@ export async function itemsGetDetailAPI(
  * @param formData - FormData 인스턴스 (JSON 데이터 + 이미지 파일)
  * @returns 생성된 아이템 정보
  */
-export async function createExchangeItem(
-  formData: FormData,
-): Promise<ApiResponse<Item>> {
-  return apiClient.post<ApiResponse<Item>>("/api/items", formData, {
+export async function createExchangeItem(formData: FormData): Promise<ApiResponse<Item>> {
+  return apiClient.post<ApiResponse<Item>>('/api/items', formData, {
     headers: {
-      "Content-Type": "multipart/form-data",
+      'Content-Type': 'multipart/form-data',
     },
     transformRequest: (data: unknown) => {
       // Axios가 React Native의 FormData 객체를 문자열로 파괴하는 것을 방지
@@ -109,9 +105,7 @@ export async function itemsUpdateAPI(
  * @param itemId - 아이템 고유 ID
  * @returns 삭제 처리 결과
  */
-export async function itemsDeleteAPI(
-  itemId: number,
-): Promise<ApiResponse<void>> {
+export async function itemsDeleteAPI(itemId: number): Promise<ApiResponse<void>> {
   return apiClient.delete(`/api/items/${itemId}`);
 }
 
@@ -127,7 +121,7 @@ export async function itemsGetMyItemsAPI(
   page: number = 0,
   size: number = 20,
 ): Promise<ApiResponse<PaginatedResponse<Item>>> {
-  return apiClient.get("/api/items/my", { page, size });
+  return apiClient.get('/api/items/my', { page, size });
 }
 
 /**
@@ -144,7 +138,7 @@ export async function itemsSearchAPI(
   page: number = 0,
   size: number = 20,
 ): Promise<ApiResponse<PaginatedResponse<Item>>> {
-  return apiClient.get("/api/items/search", { keyword, page, size });
+  return apiClient.get('/api/items/search', { keyword, page, size });
 }
 
 /**
@@ -154,10 +148,8 @@ export async function itemsSearchAPI(
  * @param location - 사용자 위치 정보
  * @returns 위치 업데이트 결과
  */
-export async function itemsUpdateLocationAPI(
-  location: UserLocation,
-): Promise<ApiResponse<void>> {
-  return apiClient.post("/api/items/location", location);
+export async function itemsUpdateLocationAPI(location: UserLocation): Promise<ApiResponse<void>> {
+  return apiClient.post('/api/items/location', location);
 }
 
 /**
@@ -175,7 +167,7 @@ export async function itemsUpdateLocationAPI(
 export async function exchangeCreateAPI(
   request: CreateExchangeDto,
 ): Promise<ApiResponse<ExchangeRoomResponseDto>> {
-  return apiClient.post("/api/exchanges", request);
+  return apiClient.post('/api/exchanges', request);
 }
 
 /**
@@ -190,7 +182,7 @@ export async function exchangeGetReceivedAPI(
   page: number = 0,
   size: number = 20,
 ): Promise<ApiResponse<ExchangeRequestListResponse>> {
-  return apiClient.get("/api/exchanges/receive", { page, size });
+  return apiClient.get('/api/exchanges/receive', { page, size });
 }
 
 /**
@@ -203,14 +195,14 @@ export async function exchangeGetReceivedAPI(
  * @param status - (옵션) 상태 필터 문자열
  */
 export async function exchangeGetMyRequestsAPI(
-  role: "sender" | "receiver",
+  role: 'sender' | 'receiver',
   page: number = 0,
   size: number = 20,
   status?: string,
 ): Promise<ApiResponse<ExchangeRequestListResponse>> {
   const params: Record<string, string | number> = { role, page, size };
   if (status) params.status = status;
-  return apiClient.get("/api/exchanges/my", params);
+  return apiClient.get('/api/exchanges/my', params);
 }
 
 /**
@@ -250,5 +242,5 @@ export async function itemsUpdateStatusAPI(
  * @returns 활성 아이템 존재 여부 (true/false)
  */
 export async function checkHasActiveItemAPI(): Promise<ApiResponse<boolean>> {
-  return apiClient.get("/api/items/check-active");
+  return apiClient.get('/api/items/check-active');
 }

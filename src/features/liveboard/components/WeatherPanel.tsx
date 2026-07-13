@@ -1,15 +1,15 @@
 // src/features/liveboard/components/WeatherPanel.tsx
-import { Box } from "@/components/ui/box";
-import { Typography } from "@/components/ui/typography";
-import { ForeCastTable } from "@/src/features/liveboard/components/ForeCastTable";
-import { NowCastCard } from "@/src/features/liveboard/components/NowCastCard";
-import { useWeatherPanel } from "@/src/features/liveboard/hooks/useWeatherPanel";
-import { styles } from "@/src/features/liveboard/styles/matchId.styles";
-import { WeatherApiStatus } from "@/src/features/liveboard/types";
-import { filterUpcomingForeCast } from "@/src/features/liveboard/utils/weatherFormat";
-import { theme } from "@/src/styles/theme";
-import { MaterialIcons } from "@expo/vector-icons";
-import { ActivityIndicator, ScrollView, TouchableOpacity } from "react-native";
+import { Box } from '@/components/ui/box';
+import { Typography } from '@/components/ui/typography';
+import { ForeCastTable } from '@/src/features/liveboard/components/ForeCastTable';
+import { NowCastCard } from '@/src/features/liveboard/components/NowCastCard';
+import { useWeatherPanel } from '@/src/features/liveboard/hooks/useWeatherPanel';
+import { styles } from '@/src/features/liveboard/styles/matchId.styles';
+import { WeatherApiStatus } from '@/src/features/liveboard/types';
+import { filterUpcomingForeCast } from '@/src/features/liveboard/utils/weatherFormat';
+import { theme } from '@/src/styles/theme';
+import { MaterialIcons } from '@expo/vector-icons';
+import { ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
 
 /**
  * WeatherStatusBanner
@@ -18,24 +18,15 @@ import { ActivityIndicator, ScrollView, TouchableOpacity } from "react-native";
  */
 function WeatherStatusBanner({ status }: { status: WeatherApiStatus }) {
   const message =
-    status === "NO_DATA"
-      ? "기상청 데이터 준비 중이에요 (발표 전 또는 점검 중)"
-      : status === "UPSTREAM_ERROR"
-        ? "기상청 서버 점검 중이에요. 잠시 후 다시 확인해주세요"
-        : "날씨 데이터를 불러오는 중 문제가 생겼어요";
+    status === 'NO_DATA'
+      ? '기상청 데이터 준비 중이에요 (발표 전 또는 점검 중)'
+      : status === 'UPSTREAM_ERROR'
+        ? '기상청 서버 점검 중이에요. 잠시 후 다시 확인해주세요'
+        : '날씨 데이터를 불러오는 중 문제가 생겼어요';
 
   return (
-    <Box
-      style={styles.weatherStatusBanner}
-      flexDir="row"
-      align="center"
-      gap="sm"
-    >
-      <MaterialIcons
-        name="info-outline"
-        size={16}
-        color={theme.colors.brand.mint}
-      />
+    <Box style={styles.weatherStatusBanner} flexDir="row" align="center" gap="sm">
+      <MaterialIcons name="info-outline" size={16} color={theme.colors.brand.mint} />
       <Typography style={styles.weatherStatusText} weight="medium">
         {message}
       </Typography>
@@ -49,17 +40,10 @@ function WeatherStatusBanner({ status }: { status: WeatherApiStatus }) {
  * Why: 라이브보드 룸의 "구장날씨" 탭 콘텐츠. 로직은 useWeatherPanel에 위임.
  */
 export function WeatherPanel({ matchId }: { matchId: string }) {
-  const {
-    fetchState,
-    stadiumName,
-    weatherStatus,
-    nowCast,
-    foreCast,
-    isLoggedIn,
-    handleRetry,
-  } = useWeatherPanel(matchId);
+  const { fetchState, stadiumName, weatherStatus, nowCast, foreCast, isLoggedIn, handleRetry } =
+    useWeatherPanel(matchId);
 
-  if (fetchState === "LOADING") {
+  if (fetchState === 'LOADING') {
     return (
       <Box flex={1} align="center" justify="center" gap="md">
         <ActivityIndicator size="small" color={theme.colors.brand.mint} />
@@ -70,18 +54,12 @@ export function WeatherPanel({ matchId }: { matchId: string }) {
     );
   }
 
-  if (fetchState === "ERROR") {
-    const errorMessage = !isLoggedIn
-      ? "로그인이 필요해요"
-      : "날씨를 불러오지 못했어요";
+  if (fetchState === 'ERROR') {
+    const errorMessage = !isLoggedIn ? '로그인이 필요해요' : '날씨를 불러오지 못했어요';
 
     return (
       <Box flex={1} align="center" justify="center" gap="md">
-        <MaterialIcons
-          name="cloud-off"
-          size={40}
-          color={theme.colors.text.tertiary}
-        />
+        <MaterialIcons name="cloud-off" size={40} color={theme.colors.text.tertiary} />
         <Typography variant="body1" color="text.secondary" weight="medium">
           {errorMessage}
         </Typography>
@@ -109,9 +87,7 @@ export function WeatherPanel({ matchId }: { matchId: string }) {
       contentContainerStyle={styles.weatherContent}
       showsVerticalScrollIndicator={false}
     >
-      {weatherStatus !== "SUCCESS" ? (
-        <WeatherStatusBanner status={weatherStatus} />
-      ) : null}
+      {weatherStatus !== 'SUCCESS' ? <WeatherStatusBanner status={weatherStatus} /> : null}
       <NowCastCard stadiumName={stadiumName} nowCast={nowCast} />
       <ForeCastTable foreCast={upcoming} />
     </ScrollView>

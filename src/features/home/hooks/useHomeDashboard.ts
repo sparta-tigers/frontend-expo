@@ -1,20 +1,12 @@
-import { useAuth } from "@/context/AuthContext";
-import { useDashboardSummary } from "@/src/features/home/hooks/useDashboardSummary";
-import { useMatchRanking, useMatchSchedule } from "@/src/features/match";
-import {
-  useAttendanceCount,
-  useInfiniteMyAttendances,
-} from "@/src/features/match-attendance";
-import { useTicketAlarmCount } from "@/src/features/ticket-alarm";
-import {
-  getCurrentDay,
-  getCurrentMonth,
-  getCurrentYear,
-  getTodayString,
-} from "@/src/utils/date";
-import { findTeamMeta, TeamCode } from "@/src/utils/team";
-import { router } from "expo-router";
-import { useCallback, useMemo } from "react";
+import { useAuth } from '@/context/AuthContext';
+import { useDashboardSummary } from '@/src/features/home/hooks/useDashboardSummary';
+import { useMatchRanking, useMatchSchedule } from '@/src/features/match';
+import { useAttendanceCount, useInfiniteMyAttendances } from '@/src/features/match-attendance';
+import { useTicketAlarmCount } from '@/src/features/ticket-alarm';
+import { getCurrentDay, getCurrentMonth, getCurrentYear, getTodayString } from '@/src/utils/date';
+import { findTeamMeta, TeamCode } from '@/src/utils/team';
+import { router } from 'expo-router';
+import { useCallback, useMemo } from 'react';
 
 /**
  * 🏠 useHomeDashboard
@@ -48,9 +40,9 @@ export function useHomeDashboard() {
 
   // 2. 순위 데이터 (오늘 날짜 기준)
   const rankingQuery = useMatchRanking({
-    viewMode: "day",
+    viewMode: 'day',
     date: todayInfo.todayString,
-    leagueType: "REGULAR",
+    leagueType: 'REGULAR',
   });
 
   // 3. 대시보드 요약 (닉네임, 잔여 경기 등)
@@ -86,8 +78,7 @@ export function useHomeDashboard() {
   }, [rankingQuery.data, myTeamId]);
 
   const attendanceMatchIds = useMemo(() => {
-    const firstPageContent =
-      attendanceInfiniteQuery.data?.pages[0]?.data?.content ?? [];
+    const firstPageContent = attendanceInfiniteQuery.data?.pages[0]?.data?.content ?? [];
     return new Set(firstPageContent.map((a) => a.matchId));
   }, [attendanceInfiniteQuery.data]);
 
@@ -96,12 +87,12 @@ export function useHomeDashboard() {
   // ========================================================
 
   const handlePressChangeTeam = useCallback(() => {
-    router.push("/change-team");
+    router.push('/change-team');
   }, []);
 
   return {
     user: {
-      nickname: summaryQuery.data?.data?.nickname ?? "팬",
+      nickname: summaryQuery.data?.data?.nickname ?? '팬',
       myTeam,
       myTeamId: myTeamId as TeamCode | null,
     },

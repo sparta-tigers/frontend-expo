@@ -1,11 +1,11 @@
-import { apiClient } from "@/src/core/client";
-import { ApiResponse } from "@/src/shared/types/common";
+import { apiClient } from '@/src/core/client';
+import { ApiResponse } from '@/src/shared/types/common';
 import {
-    ChatMessageListResponse,
-    CreateDirectRoomRequest,
-    DirectRoomCreateResponse,
-    DirectRoomListResponse,
-} from "./types";
+  ChatMessageListResponse,
+  CreateDirectRoomRequest,
+  DirectRoomCreateResponse,
+  DirectRoomListResponse,
+} from './types';
 
 /**
  * 채팅방 관련 API 함수 모음
@@ -24,7 +24,7 @@ export async function chatroomsGetListAPI(
   page: number = 0,
   size: number = 10,
 ): Promise<ApiResponse<DirectRoomListResponse>> {
-  return apiClient.get("/api/direct-rooms", { page, size });
+  return apiClient.get('/api/direct-rooms', { page, size });
 }
 
 /**
@@ -37,7 +37,7 @@ export async function chatroomsGetListAPI(
 export async function chatroomsCreateDirectRoomAPI(
   request: CreateDirectRoomRequest,
 ): Promise<ApiResponse<DirectRoomCreateResponse>> {
-  return apiClient.post("/api/direct-rooms", request);
+  return apiClient.post('/api/direct-rooms', request);
 }
 
 /**

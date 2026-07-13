@@ -1,5 +1,5 @@
-import { useAuth } from "@/src/hooks/useAuth";
-import { Redirect, Stack } from "expo-router";
+import { useAuth } from '@/src/hooks/useAuth';
+import { Redirect, Stack } from 'expo-router';
 
 /**
  * 인증 레이아웃

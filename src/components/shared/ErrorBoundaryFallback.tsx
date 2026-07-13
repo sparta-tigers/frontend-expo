@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/button";
-import { useTheme } from "@/hooks/useTheme";
-import { BORDER_RADIUS, FONT_SIZE, SPACING } from "@/src/styles/theme";
-import { StyleSheet, Text, View } from "react-native";
+import { Button } from '@/components/ui/button';
+import { useTheme } from '@/hooks/useTheme';
+import { BORDER_RADIUS, FONT_SIZE, SPACING } from '@/src/styles/theme';
+import { StyleSheet, Text, View } from 'react-native';
 
 /**
  * Error Boundary Fallback 컴포넌트
@@ -14,10 +14,7 @@ interface ErrorBoundaryFallbackProps {
   resetErrorBoundary: () => void;
 }
 
-export function ErrorBoundaryFallback({
-  error,
-  resetErrorBoundary,
-}: ErrorBoundaryFallbackProps) {
+export function ErrorBoundaryFallback({ error, resetErrorBoundary }: ErrorBoundaryFallbackProps) {
   const { colors } = useTheme();
 
   // error를 Error 타입으로 안전하게 변환
@@ -26,20 +23,15 @@ export function ErrorBoundaryFallback({
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.destructive }]}>
-          치명적인 문제가 생겼어요
-        </Text>
+        <Text style={[styles.title, { color: colors.destructive }]}>치명적인 문제가 생겼어요</Text>
 
         <Text style={[styles.message, { color: colors.text }]}>
-          앱 실행 중 문제가 생겼어요. 아래 버튼을 눌러 앱을 다시
-          시작해주세요.
+          앱 실행 중 문제가 생겼어요. 아래 버튼을 눌러 앱을 다시 시작해주세요.
         </Text>
 
         {__DEV__ ? (
           <View style={[styles.debugInfo, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.errorTitle, { color: colors.muted }]}>
-              개발자 정보:
-            </Text>
+            <Text style={[styles.errorTitle, { color: colors.muted }]}>개발자 정보:</Text>
             <Text style={[styles.errorText, { color: colors.muted }]}>
               {errorObj.name}: {errorObj.message}
             </Text>
@@ -50,9 +42,7 @@ export function ErrorBoundaryFallback({
           onPress={resetErrorBoundary}
           style={[styles.retryButton, { backgroundColor: colors.primary }]}
         >
-          <Text style={[styles.retryButtonText, { color: colors.background }]}>
-            앱 다시 시작
-          </Text>
+          <Text style={[styles.retryButtonText, { color: colors.background }]}>앱 다시 시작</Text>
         </Button>
       </View>
     </View>
@@ -63,40 +53,40 @@ export function ErrorBoundaryFallback({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: SPACING.SECTION,
   },
   content: {
     maxWidth: 400,
-    alignItems: "center",
+    alignItems: 'center',
   },
   title: {
     fontSize: FONT_SIZE.TITLE,
-    fontWeight: "bold",
-    textAlign: "center",
+    fontWeight: 'bold',
+    textAlign: 'center',
     marginBottom: SPACING.COMPONENT,
   },
   message: {
     fontSize: FONT_SIZE.BODY,
-    textAlign: "center",
+    textAlign: 'center',
     lineHeight: 24,
     marginBottom: SPACING.COMPONENT,
   },
   debugInfo: {
-    width: "100%",
+    width: '100%',
     padding: SPACING.SMALL,
     borderRadius: BORDER_RADIUS.CARD,
     marginBottom: SPACING.COMPONENT,
   },
   errorTitle: {
     fontSize: FONT_SIZE.SMALL,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: SPACING.TINY,
   },
   errorText: {
     fontSize: FONT_SIZE.CAPTION,
-    fontFamily: "monospace",
+    fontFamily: 'monospace',
   },
   retryButton: {
     paddingHorizontal: SPACING.SECTION * 2,
@@ -105,6 +95,6 @@ const styles = StyleSheet.create({
   },
   retryButtonText: {
     fontSize: FONT_SIZE.BODY,
-    fontWeight: "600",
+    fontWeight: '600',
   },
 });

@@ -1,9 +1,9 @@
-import { TeamCode } from "@/src/utils/team";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { fetchMatchSchedule } from "../api";
-import { MatchMapper } from "../mapper";
-import { matchKeys } from "../queries";
-import { LeagueType } from "../types";
+import { TeamCode } from '@/src/utils/team';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { fetchMatchSchedule } from '../api';
+import { MatchMapper } from '../mapper';
+import { matchKeys } from '../queries';
+import { LeagueType } from '../types';
 
 /**
  * 경기 일정 조회 커스텀 훅
@@ -25,22 +25,15 @@ export const useMatchSchedule = (
   return useQuery({
     queryKey: matchKeys.list({ teamId, year, month, leagueType }),
     queryFn: async () => {
-      if (!teamId) throw new Error("팀 정보가 없어요.");
-      const response = await fetchMatchSchedule(
-        teamId,
-        year,
-        month,
-        leagueType,
-      );
+      if (!teamId) throw new Error('팀 정보가 없어요.');
+      const response = await fetchMatchSchedule(teamId, year, month, leagueType);
 
-      if (response.resultType === "SUCCESS") {
+      if (response.resultType === 'SUCCESS') {
         // DTO 리스트를 MatchSummary UI 모델 리스트로 변환 (TeamMeta 바인딩)
         return response.data.map((dto) => MatchMapper.toSummary(dto, teamId));
       }
 
-      throw new Error(
-        response.message || "경기 일정을 불러오지 못했어요.",
-      );
+      throw new Error(response.message || '경기 일정을 불러오지 못했어요.');
     },
     staleTime: 1000 * 60 * 5,
     enabled: !!teamId,

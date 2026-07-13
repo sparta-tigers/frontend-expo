@@ -1,4 +1,4 @@
-import { ForeCastDto, RainType } from "@/src/features/liveboard/types";
+import { ForeCastDto, RainType } from '@/src/features/liveboard/types';
 
 /**
  * 날씨 포맷터 유틸리티 (순수 함수)
@@ -13,11 +13,8 @@ import { ForeCastDto, RainType } from "@/src/features/liveboard/types";
  * Why: 소수점 자릿수를 유연하게 조절하면서도, 데이터 부재 시 일관된 placeholder("--°")를
  * 제공하여 UI의 레이아웃 깨짐을 방지한다.
  */
-export function formatTemperature(
-  value: number | null | undefined,
-  fractionDigits = 0,
-): string {
-  if (value == null || Number.isNaN(value)) return "--°";
+export function formatTemperature(value: number | null | undefined, fractionDigits = 0): string {
+  if (value == null || Number.isNaN(value)) return '--°';
   return `${value.toFixed(fractionDigits)}°`;
 }
 
@@ -27,10 +24,8 @@ export function formatTemperature(
  * Why: 예보 테이블처럼 좁은 공간에서는 반올림된 정수와 "°C" 단위를 사용하여
  * 정보 밀도를 높이고 시독성을 확보한다.
  */
-export function formatTemperatureCelsius(
-  value: number | null | undefined,
-): string {
-  if (value == null || Number.isNaN(value)) return "--";
+export function formatTemperatureCelsius(value: number | null | undefined): string {
+  if (value == null || Number.isNaN(value)) return '--';
   return `${Math.round(value)}°C`;
 }
 
@@ -40,7 +35,7 @@ export function formatTemperatureCelsius(
  * Why: 강수확률 등 0~100 범위의 지표를 소수점 없이 정수로 일관되게 표현한다.
  */
 export function formatPercent(value: number | null | undefined): string {
-  if (value == null || Number.isNaN(value)) return "--%";
+  if (value == null || Number.isNaN(value)) return '--%';
   return `${Math.round(value)}%`;
 }
 
@@ -51,7 +46,7 @@ export function formatPercent(value: number | null | undefined): string {
  * 사용자에게 강수 없음 상태를 확신시키는 디자인 정책을 따른다.
  */
 export function formatRainAmount(value: number | null | undefined): string {
-  if (value == null || Number.isNaN(value)) return "0mm";
+  if (value == null || Number.isNaN(value)) return '0mm';
   return `${value}mm`;
 }
 
@@ -62,7 +57,7 @@ export function formatRainAmount(value: number | null | undefined): string {
  * "0mm" 대신 placeholder("--")를 사용하여 유효 데이터만 강조한다.
  */
 export function formatRainAmountCell(value: number | null | undefined): string {
-  if (value == null || Number.isNaN(value)) return "--";
+  if (value == null || Number.isNaN(value)) return '--';
   return `${value}mm`;
 }
 
@@ -74,24 +69,24 @@ export function formatRainAmountCell(value: number | null | undefined): string {
  */
 function windDirectionToKorean(code: string): string {
   const map: Record<string, string> = {
-    N: "북풍",
-    NNE: "북풍",
-    NE: "북동풍",
-    ENE: "북동풍",
-    E: "동풍",
-    ESE: "동풍",
-    SE: "남동풍",
-    SSE: "남동풍",
-    S: "남풍",
-    SSW: "남풍",
-    SW: "남서풍",
-    WSW: "남서풍",
-    W: "서풍",
-    WNW: "서풍",
-    NW: "북서풍",
-    NNW: "북서풍",
+    N: '북풍',
+    NNE: '북풍',
+    NE: '북동풍',
+    ENE: '북동풍',
+    E: '동풍',
+    ESE: '동풍',
+    SE: '남동풍',
+    SSE: '남동풍',
+    S: '남풍',
+    SSW: '남풍',
+    SW: '남서풍',
+    WSW: '남서풍',
+    W: '서풍',
+    WNW: '서풍',
+    NW: '북서풍',
+    NNW: '북서풍',
   };
-  return map[code] ?? "-";
+  return map[code] ?? '-';
 }
 
 /**
@@ -105,7 +100,7 @@ export function formatWind(
   windSpeed: number | null | undefined,
 ): string {
   if (windDirection == null || windSpeed == null || Number.isNaN(windSpeed)) {
-    return "-";
+    return '-';
   }
   const koDir = windDirectionToKorean(windDirection);
   return `${koDir} ${windSpeed}m/s`;
@@ -118,16 +113,16 @@ export function formatWind(
  * NONE 상태를 명시적으로 "-"로 처리하여 불필요한 텍스트 노출을 줄인다.
  */
 export function formatRainType(rainType: RainType | null | undefined): string {
-  if (rainType == null || rainType === "NONE") return "-";
-  const map: Record<Exclude<RainType, "NONE">, string> = {
-    RAIN: "비",
-    RAIN_SNOW: "비/눈",
-    SNOW: "눈",
-    RAINDROP: "빗방울",
-    RAINDROP_SNOW_FLYING: "빗방울눈날림",
-    SNOW_FLYING: "눈날림",
+  if (rainType == null || rainType === 'NONE') return '-';
+  const map: Record<Exclude<RainType, 'NONE'>, string> = {
+    RAIN: '비',
+    RAIN_SNOW: '비/눈',
+    SNOW: '눈',
+    RAINDROP: '빗방울',
+    RAINDROP_SNOW_FLYING: '빗방울눈날림',
+    SNOW_FLYING: '눈날림',
   };
-  return map[rainType] ?? "-";
+  return map[rainType] ?? '-';
 }
 
 /**
@@ -137,10 +132,10 @@ export function formatRainType(rainType: RainType | null | undefined): string {
  * 테이블의 수평 공간을 효율적으로 사용하기 위한 정적 포맷이다.
  */
 export function formatHour(castTime: string | null | undefined): string {
-  if (!castTime) return "--:--";
+  if (!castTime) return '--:--';
   const date = new Date(castTime);
-  if (Number.isNaN(date.getTime())) return "--:--";
-  const hh = String(date.getHours()).padStart(2, "0");
+  if (Number.isNaN(date.getTime())) return '--:--';
+  const hh = String(date.getHours()).padStart(2, '0');
   return `${hh}:00`;
 }
 
@@ -161,7 +156,7 @@ export function filterUpcomingForeCast(
 ): ForeCastDto[] {
   if (!foreCast || foreCast.length === 0) return [];
   const nowMs = now.getTime();
-  
+
   return foreCast
     .map((item) => ({
       item,

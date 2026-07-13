@@ -1,13 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
-import { isAxiosError } from "axios";
-import { favoriteTeamGetAPI } from "./favorite-team-api";
+import { useQuery } from '@tanstack/react-query';
+import { isAxiosError } from 'axios';
+import { favoriteTeamGetAPI } from './favorite-team-api';
 
 /**
  * 즐겨찾기 팀 관련 쿼리 키
  */
 export const favoriteTeamKeys = {
-  all: ["favoriteTeam"] as const,
-  mine: () => [...favoriteTeamKeys.all, "mine"] as const,
+  all: ['favoriteTeam'] as const,
+  mine: () => [...favoriteTeamKeys.all, 'mine'] as const,
 };
 
 /**
@@ -26,7 +26,7 @@ export const useFavoriteTeam = () => {
 
         // 🚨 [Zero Magic] 백엔드 ApiResponse 구조 상
         // 데이터가 없는 경우(404 등)를 명시적으로 null 처리하여 타입 안정성 확보.
-        if (response.resultType === "SUCCESS") {
+        if (response.resultType === 'SUCCESS') {
           return response.data ?? null;
         }
 

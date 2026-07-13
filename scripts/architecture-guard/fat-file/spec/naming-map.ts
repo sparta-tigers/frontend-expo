@@ -1,13 +1,13 @@
 // Feature: fat-file-refactoring
-import type { Concern_Category } from "../types.ts";
+import type { Concern_Category } from '../types.ts';
 
 /**
  * Convert PascalCase to kebab-case.
  */
 export function pascalToKebab(str: string): string {
   return str
-    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
-    .replace(/([A-Z])([A-Z][a-z])/g, "$1-$2")
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
     .toLowerCase();
 }
 
@@ -16,9 +16,9 @@ export function pascalToKebab(str: string): string {
  */
 export function kebabToPascal(str: string): string {
   return str
-    .split("-")
+    .split('-')
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join("");
+    .join('');
 }
 
 /**
@@ -33,7 +33,7 @@ export function kebabToCamel(str: string): string {
  * Convert kebab-case to SCREAMING_SNAKE_CASE.
  */
 export function kebabToScreamingSnake(str: string): string {
-  return str.replace(/-/g, "_").toUpperCase();
+  return str.replace(/-/g, '_').toUpperCase();
 }
 
 export interface NamingMapResult {
@@ -47,49 +47,44 @@ export interface NamingMapResult {
  *
  * Validates: Requirements 5.1, 5.2, 5.3, 5.4, 5.5
  */
-export function namingMap(
-  concern: Concern_Category,
-  featureId: string,
-): NamingMapResult {
+export function namingMap(concern: Concern_Category, featureId: string): NamingMapResult {
   // Normalize featureId to kebab-case
   let kebabFeature = featureId;
-  if (!featureId.includes("-") && /^[A-Z]/.test(featureId)) {
+  if (!featureId.includes('-') && /^[A-Z]/.test(featureId)) {
     kebabFeature = pascalToKebab(featureId);
   }
 
   const pascalFeature = kebabToPascal(kebabFeature);
 
   switch (concern) {
-    case "Logic":
+    case 'Logic':
       return {
         filename: `use-${kebabFeature}.ts`,
         symbol: `use${pascalFeature}`,
       };
-    case "UI":
+    case 'UI':
       return {
         filename: `${pascalFeature}.tsx`,
         symbol: pascalFeature,
       };
-    case "Constant":
+    case 'Constant':
       return {
         filename: `constants/${kebabFeature}.ts`,
         symbol: kebabToScreamingSnake(kebabFeature),
       };
-    case "Type":
+    case 'Type':
       return {
         filename: `${kebabFeature}.types.ts`,
         symbol: pascalFeature,
       };
-    case "Style":
+    case 'Style':
       return {
         filename: `${kebabFeature}.styles.ts`,
-        symbol: "styles",
+        symbol: 'styles',
       };
     default:
       // Why: TypeScript exhaustiveness check는 컴파일 타임에만 동작함.
       //      런타임에서 예상 범위를 벗어난 값이 들어오면 즉시 에러를 던져 조기 발견한다.
-      throw new Error(
-        `[naming-map] Unknown concern category: '${concern as string}'`,
-      );
+      throw new Error(`[naming-map] Unknown concern category: '${concern as string}'`);
   }
 }

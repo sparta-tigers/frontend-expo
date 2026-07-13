@@ -1,8 +1,8 @@
 // app/liveboard/[matchId]/useChatPanel.ts
-import { useAuth } from "@/context/AuthContext";
-import { useWebSocket } from "@/src/hooks/useWebSocket";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, FlatList } from "react-native";
+import { useAuth } from '@/context/AuthContext';
+import { useWebSocket } from '@/src/hooks/useWebSocket';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, FlatList } from 'react-native';
 
 let messageCounter = 0;
 
@@ -31,15 +31,12 @@ interface StompChatMessage {
   senderNickname: string;
   content: string;
   sentAt: string; // ISO
-  domain: "LIVEBOARD" | "EXCHANGE" | "LOCATION";
+  domain: 'LIVEBOARD' | 'EXCHANGE' | 'LOCATION';
   favTeamSymbolUrl?: string | null;
   tempId?: string;
 }
 
-function toBubbleMessage(
-  msg: StompChatMessage,
-  myUserId: number | undefined,
-): ChatBubbleMessage {
+function toBubbleMessage(msg: StompChatMessage, myUserId: number | undefined): ChatBubbleMessage {
   const time = new Date(msg.sentAt).toTimeString().slice(0, 5);
   return {
     key: `${msg.senderId}-${msg.sentAt}-${msg.content}`,
@@ -70,58 +67,46 @@ interface UseChatPanelReturn {
 export function useChatPanel(matchId: string): UseChatPanelReturn {
   const { user } = useAuth();
   const roomId = `LIVEBOARD_${matchId}`;
-  const { client, status } = useWebSocket(
-    roomId,
-    "liveboard",
-    process.env.EXPO_PUBLIC_WS_BASE_URL,
-  );
-  const isConnected = status === "CONNECTED";
+  const { client, status } = useWebSocket(roomId, 'liveboard', process.env.EXPO_PUBLIC_WS_BASE_URL);
+  const isConnected = status === 'CONNECTED';
 
   const [messages, setMessages] = useState<ChatBubbleMessage[]>([]);
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = useState('');
   const scrollRef = useRef<FlatList<ChatBubbleMessage> | null>(null);
 
   // 구독: 새 메시지 수신 시 목록에 추가 + optimistic 대체
   useEffect(() => {
     if (!client || !isConnected) return;
 
-    const subscription = client.subscribe(
-      `/server/liveboard/room/${roomId}`,
-      (frame) => {
-        try {
-          const parsed = JSON.parse(frame.body) as StompChatMessage;
-          const bubble = toBubbleMessage(parsed, user?.userId);
+    const subscription = client.subscribe(`/server/liveboard/room/${roomId}`, (frame) => {
+      try {
+        const parsed = JSON.parse(frame.body) as StompChatMessage;
+        const bubble = toBubbleMessage(parsed, user?.userId);
 
-          setMessages((prev) => {
-            const parsedTime = new Date(parsed.sentAt).getTime();
-            const withoutOptimistic = bubble.mine
-              ? prev.filter(
-                  (m) =>
-                    !(
-                      (
-                        m.key.startsWith("local-") &&
-                        (m.tempId === bubble.tempId ||
-                          (m.senderId === bubble.senderId &&
-                            m.text === bubble.text &&
-                            Math.abs(
-                              parsedTime -
-                                (m.localTimestamp ?? 0),
-                            ) < 10000))
-                      ) // 30초 -> 10초로 단축
-                    ),
-                )
-              : prev;
+        setMessages((prev) => {
+          const parsedTime = new Date(parsed.sentAt).getTime();
+          const withoutOptimistic = bubble.mine
+            ? prev.filter(
+                (m) =>
+                  !(
+                    m.key.startsWith('local-') &&
+                    (m.tempId === bubble.tempId ||
+                      (m.senderId === bubble.senderId &&
+                        m.text === bubble.text &&
+                        Math.abs(parsedTime - (m.localTimestamp ?? 0)) < 10000)) // 30초 -> 10초로 단축
+                  ),
+              )
+            : prev;
 
-            if (withoutOptimistic.some((m) => m.key === bubble.key)) {
-              return withoutOptimistic;
-            }
-            return [...withoutOptimistic, bubble];
-          });
-        } catch {
-          // 파싱 실패한 메시지는 무시
-        }
-      },
-    );
+          if (withoutOptimistic.some((m) => m.key === bubble.key)) {
+            return withoutOptimistic;
+          }
+          return [...withoutOptimistic, bubble];
+        });
+      } catch {
+        // 파싱 실패한 메시지는 무시
+      }
+    });
 
     return () => {
       subscription.unsubscribe();
@@ -138,15 +123,12 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
     if (!content) return;
 
     if (!client || !isConnected) {
-      Alert.alert(
-        "알림",
-        "서버 연결이 불안정해요. 잠시 후 다시 시도해주세요.",
-      );
+      Alert.alert('알림', '서버 연결이 불안정해요. 잠시 후 다시 시도해주세요.');
       return;
     }
 
     if (!user?.userId) {
-      Alert.alert("알림", "메시지를 보내려면 로그인이 필요해요.");
+      Alert.alert('알림', '메시지를 보내려면 로그인이 필요해요.');
       return;
     }
 
@@ -155,7 +137,7 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
     const optimistic: ChatBubbleMessage = {
       key: localKey,
       senderId: user.userId,
-      author: user.nickname ?? "나",
+      author: user.nickname ?? '나',
       text: content,
       time: new Date().toTimeString().slice(0, 5),
       mine: true,
@@ -163,16 +145,16 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
       tempId,
     };
     setMessages((prev) => [...prev, optimistic]);
-    setDraft("");
+    setDraft('');
 
     try {
       client.publish({
-        destination: "/client/liveboard/send",
+        destination: '/client/liveboard/send',
         body: JSON.stringify({ roomId, content, tempId }),
       });
     } catch {
       setMessages((prev) => prev.filter((m) => m.key !== localKey));
-      Alert.alert("알림", "메시지를 보내지 못했어요.");
+      Alert.alert('알림', '메시지를 보내지 못했어요.');
     }
   }, [client, draft, isConnected, roomId, user]);
 

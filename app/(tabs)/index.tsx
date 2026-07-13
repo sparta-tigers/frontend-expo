@@ -1,14 +1,14 @@
-import { SafeLayout } from "@/components/ui";
-import { MyTeamSection } from "@/src/features/home/components/MyTeamSection";
-import { RankingSkeleton } from "@/src/features/home/components/RankingSkeleton";
-import { RankingSummarySection } from "@/src/features/home/components/RankingSummarySection";
-import { ScheduleSection } from "@/src/features/home/components/ScheduleSection";
-import { ScheduleSkeleton } from "@/src/features/home/components/ScheduleSkeleton";
-import { commonStyles as styles } from "@/src/features/home/components/common.styles";
-import { useHomeDashboard } from "@/src/features/home/hooks/useHomeDashboard";
-import { LineupSection } from "@/src/shared/components/match/LineupSection";
-import { ScrollView } from "react-native";
-import Head from "expo-router/head";
+import { SafeLayout } from '@/components/ui';
+import { MyTeamSection } from '@/src/features/home/components/MyTeamSection';
+import { RankingSkeleton } from '@/src/features/home/components/RankingSkeleton';
+import { RankingSummarySection } from '@/src/features/home/components/RankingSummarySection';
+import { ScheduleSection } from '@/src/features/home/components/ScheduleSection';
+import { ScheduleSkeleton } from '@/src/features/home/components/ScheduleSkeleton';
+import { commonStyles as styles } from '@/src/features/home/components/common.styles';
+import { useHomeDashboard } from '@/src/features/home/hooks/useHomeDashboard';
+import { LineupSection } from '@/src/shared/components/match/LineupSection';
+import { ScrollView } from 'react-native';
+import Head from 'expo-router/head';
 
 /**
  * 홈 화면 (`main_0`)
@@ -20,7 +20,7 @@ export default function HomeScreen() {
   const { user, stats, content, status, today, handlers } = useHomeDashboard();
 
   return (
-    <SafeLayout style={styles.safeLayout} edges={["top", "left", "right"]}>
+    <SafeLayout style={styles.safeLayout} edges={['top', 'left', 'right']}>
       <Head>
         <title>홈 | 스파르타타이거즈</title>
         <meta
@@ -46,10 +46,7 @@ export default function HomeScreen() {
         {status.isRankingLoading ? (
           <RankingSkeleton />
         ) : (
-          <RankingSummarySection
-            ranking={content.ranking}
-            myTeamCode={user.myTeamId}
-          />
+          <RankingSummarySection ranking={content.ranking} myTeamCode={user.myTeamId} />
         )}
 
         <LineupSection lineup={content.lineup} teamMeta={user.myTeam} />
@@ -57,12 +54,7 @@ export default function HomeScreen() {
         {status.isScheduleLoading ? (
           <ScheduleSkeleton />
         ) : status.isScheduleError ? (
-          <ScheduleSection
-            schedule={[]}
-            year={today.year}
-            month={today.month}
-            isError={true}
-          />
+          <ScheduleSection schedule={[]} year={today.year} month={today.month} isError={true} />
         ) : (
           <ScheduleSection
             schedule={content.schedule}

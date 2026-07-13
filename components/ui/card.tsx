@@ -1,11 +1,6 @@
-import React from "react";
-import {
-  GestureResponderEvent,
-  StyleProp,
-  StyleSheet,
-  ViewStyle,
-} from "react-native";
-import { Card as PaperCard } from "react-native-paper";
+import React from 'react';
+import { GestureResponderEvent, StyleProp, StyleSheet, ViewStyle } from 'react-native';
+import { Card as PaperCard } from 'react-native-paper';
 
 /**
  * Card 컴포넌트 속성
@@ -16,7 +11,7 @@ interface CardProps {
   /** 카드 클릭 핸들러 */
   onPress?: (e: GestureResponderEvent) => void;
   /** 카드 변형 */
-  variant?: "default" | "outlined" | "elevated";
+  variant?: 'default' | 'outlined' | 'elevated';
   /** 전체 너비 차지 */
   fullWidth?: boolean;
   /** 커스텀 스타일 */
@@ -34,27 +29,25 @@ interface CardProps {
 export const Card: React.FC<CardProps> = ({
   children,
   onPress,
-  variant = "default",
+  variant = 'default',
   fullWidth = false,
   style,
 }) => {
   const getCardMode = () => {
     switch (variant) {
-      case "outlined":
-        return "outlined";
-      case "elevated":
-        return "elevated";
+      case 'outlined':
+        return 'outlined';
+      case 'elevated':
+        return 'elevated';
       default:
-        return "elevated";
+        return 'elevated';
     }
   };
 
   return (
     <PaperCard
       mode={getCardMode()}
-      style={
-        [fullWidth ? styles.fullWidth : null, style] as StyleProp<ViewStyle>
-      }
+      style={[fullWidth ? styles.fullWidth : null, style] as StyleProp<ViewStyle>}
       {...(onPress ? { onPress } : {})}
     >
       {children}
@@ -64,6 +57,6 @@ export const Card: React.FC<CardProps> = ({
 
 const styles = StyleSheet.create({
   fullWidth: {
-    width: "100%",
+    width: '100%',
   },
 });

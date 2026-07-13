@@ -1,6 +1,6 @@
 // app/exchange/chat/[roomId]/roomId.styles.ts
-import { BORDER_RADIUS, FONT_SIZE, SPACING, theme } from "@/src/styles/theme";
-import { StyleSheet } from "react-native";
+import { BORDER_RADIUS, FONT_SIZE, SPACING, theme } from '@/src/styles/theme';
+import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   container: {
@@ -9,14 +9,14 @@ export const styles = StyleSheet.create({
   },
   errorContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: SPACING.SCREEN,
     backgroundColor: theme.colors.background,
   },
   errorText: {
     fontSize: FONT_SIZE.BODY,
-    textAlign: "center",
+    textAlign: 'center',
     color: theme.colors.text.primary,
   },
   itemHeader: {
@@ -27,7 +27,7 @@ export const styles = StyleSheet.create({
   },
   itemTitle: {
     fontSize: FONT_SIZE.BODY,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: SPACING.TINY,
     color: theme.colors.text.primary,
   },
@@ -38,12 +38,12 @@ export const styles = StyleSheet.create({
   },
   itemStatus: {
     fontSize: FONT_SIZE.SMALL,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: SPACING.SMALL,
     color: theme.colors.primary,
   },
   statusButtons: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: SPACING.SMALL,
   },
   statusButton: {
@@ -66,18 +66,18 @@ export const styles = StyleSheet.create({
   },
   statusButtonText: {
     fontSize: FONT_SIZE.SMALL,
-    fontWeight: "600",
-    textAlign: "center",
+    fontWeight: '600',
+    textAlign: 'center',
     color: theme.colors.background,
   },
   loadingText: {
     fontSize: FONT_SIZE.BODY,
-    textAlign: "center",
+    textAlign: 'center',
     color: theme.colors.text.tertiary,
   },
   connectionStatus: {
     paddingVertical: SPACING.TINY,
-    alignItems: "center",
+    alignItems: 'center',
   },
   connectionStatusConnected: {
     backgroundColor: theme.colors.success,
@@ -87,7 +87,7 @@ export const styles = StyleSheet.create({
   },
   connectionStatusText: {
     fontSize: FONT_SIZE.CAPTION,
-    fontWeight: "600",
+    fontWeight: '600',
     color: theme.colors.background,
   },
   messageListContent: {
@@ -95,18 +95,18 @@ export const styles = StyleSheet.create({
     paddingVertical: SPACING.SMALL,
   },
   messageBubble: {
-    maxWidth: "80%",
+    maxWidth: '80%',
     paddingHorizontal: SPACING.COMPONENT,
     paddingVertical: SPACING.SMALL,
     borderRadius: BORDER_RADIUS.CARD,
     marginVertical: SPACING.TINY,
   },
   myBubble: {
-    alignSelf: "flex-end",
+    alignSelf: 'flex-end',
     backgroundColor: theme.colors.primary,
   },
   otherBubble: {
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
     backgroundColor: theme.colors.surface,
   },
   messageText: {
@@ -120,17 +120,17 @@ export const styles = StyleSheet.create({
   },
   senderName: {
     fontSize: FONT_SIZE.SMALL,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: SPACING.TINY,
     color: theme.colors.text.tertiary,
   },
   paginationLoading: {
     paddingVertical: SPACING.SMALL,
-    alignItems: "center",
+    alignItems: 'center',
   },
   inputBar: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: SPACING.COMPONENT,
     paddingVertical: SPACING.SMALL,
     borderTopWidth: 1,
@@ -159,7 +159,7 @@ export const styles = StyleSheet.create({
   },
   sendButtonText: {
     fontSize: FONT_SIZE.SMALL,
-    fontWeight: "600",
+    fontWeight: '600',
     color: theme.colors.background,
   },
   processingButton: {

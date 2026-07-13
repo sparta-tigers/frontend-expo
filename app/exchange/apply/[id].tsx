@@ -1,28 +1,23 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { exchangeKeys } from "@/src/features/exchange/keys";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { exchangeKeys } from '@/src/features/exchange/keys';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import { ActivityIndicator, Alert, StyleSheet, TouchableOpacity } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Box, Typography } from "@/components/ui";
-import { Input } from "@/components/ui/input";
-import { SafeLayout } from "@/components/ui/safe-layout";
+import { Box, Typography } from '@/components/ui';
+import { Input } from '@/components/ui/input';
+import { SafeLayout } from '@/components/ui/safe-layout';
 import {
   ExchangeRoomResponseDto,
   exchangeCreateAPI,
   itemsGetDetailAPI,
-} from "@/src/features/exchange/api";
-import { CreateExchangeDto } from "@/src/features/exchange/types";
-import { useAuth } from "@/src/hooks/useAuth";
-import { theme } from "@/src/styles/theme";
-import { Logger } from "@/src/utils/logger";
+} from '@/src/features/exchange/api';
+import { CreateExchangeDto } from '@/src/features/exchange/types';
+import { useAuth } from '@/src/hooks/useAuth';
+import { theme } from '@/src/styles/theme';
+import { Logger } from '@/src/utils/logger';
 
 const LOCAL_LAYOUT = {
   contentPaddingBottom: theme.layout.common.bottomPadding,
@@ -42,8 +37,8 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   loadingWrapper: {
     flex: 1,
@@ -89,10 +84,10 @@ const styles = StyleSheet.create({
   },
   haveInput: {
     minHeight: LOCAL_LAYOUT.haveInputMinHeight,
-    textAlignVertical: "top",
+    textAlignVertical: 'top',
   },
   bottomContainer: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
@@ -111,8 +106,8 @@ const styles = StyleSheet.create({
   applyButton: {
     height: LOCAL_LAYOUT.buttonHeight,
     borderRadius: theme.radius.md,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: theme.colors.primary,
   },
   applyButtonDisabled: {
@@ -138,11 +133,10 @@ export default function ApplyExchangeScreen() {
   const { user, isLoading: isAuthLoading } = useAuth();
 
   const targetItemId = Number(id);
-  const isTargetItemIdValid =
-    !!id && Number.isFinite(targetItemId) && targetItemId > 0;
+  const isTargetItemIdValid = !!id && Number.isFinite(targetItemId) && targetItemId > 0;
 
   /** 내가 제안하는 교환 물건 설명 (필수, 백엔드 have 필드) */
-  const [have, setHave] = useState("");
+  const [have, setHave] = useState('');
 
   // [EB-1] 마운트 시 유효성 검사 및 딥링크 비로그인 접근 차단
   React.useEffect(() => {
@@ -151,17 +145,17 @@ export default function ApplyExchangeScreen() {
 
     // 1. 로그인 상태 체크
     if (user === null) {
-      Alert.alert("알림", "로그인 후 이용해주세요.", [
-        { text: "확인", onPress: () => router.back() },
+      Alert.alert('알림', '로그인 후 이용해주세요.', [
+        { text: '확인', onPress: () => router.back() },
       ]);
       return;
     }
 
     // 2. ID 유효성 체크 (Early Return)
     if (!isTargetItemIdValid) {
-      Logger.error("[ExchangeApply] 유효하지 않은 아이템 ID:", id);
-      Alert.alert("알림", "올바르지 않은 요청이에요.", [
-        { text: "확인", onPress: () => router.back() },
+      Logger.error('[ExchangeApply] 유효하지 않은 아이템 ID:', id);
+      Alert.alert('알림', '올바르지 않은 요청이에요.', [
+        { text: '확인', onPress: () => router.back() },
       ]);
     }
   }, [user, isAuthLoading, router, isTargetItemIdValid, id]);
@@ -175,15 +169,14 @@ export default function ApplyExchangeScreen() {
 
   const { mutate: requestExchange, isPending } = useMutation({
     mutationFn: async () => {
-      const receiverId =
-        targetItem?.data?.user?.userId ?? targetItem?.data?.userId;
+      const receiverId = targetItem?.data?.user?.userId ?? targetItem?.data?.userId;
 
       if (!receiverId) {
-        throw new Error("상대방 정보를 확인하지 못했어요.");
+        throw new Error('상대방 정보를 확인하지 못했어요.');
       }
 
       if (!have.trim()) {
-        throw new Error("교환 제안 물건 설명을 입력해주세요.");
+        throw new Error('교환 제안 물건 설명을 입력해주세요.');
       }
 
       const payload: CreateExchangeDto = {
@@ -192,14 +185,12 @@ export default function ApplyExchangeScreen() {
         have: have.trim(),
       };
 
-      Logger.debug("[교환 제안] payload:", payload);
+      Logger.debug('[교환 제안] payload:', payload);
 
       const response = await exchangeCreateAPI(payload);
-      if (response.resultType !== "SUCCESS") {
+      if (response.resultType !== 'SUCCESS') {
         throw new Error(
-          typeof response.error === "string"
-            ? response.error
-            : "교환을 신청하지 못했어요.",
+          typeof response.error === 'string' ? response.error : '교환을 신청하지 못했어요.',
         );
       }
       return response.data;
@@ -209,31 +200,27 @@ export default function ApplyExchangeScreen() {
 
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: exchangeKeys.item(id) }),
-        queryClient.invalidateQueries({ queryKey: ["exchangeRequests"] }),
+        queryClient.invalidateQueries({ queryKey: ['exchangeRequests'] }),
       ]);
 
       if (roomId) {
-        Alert.alert("성공", "교환 제안을 전달했어요!");
+        Alert.alert('성공', '교환 제안을 전달했어요!');
         router.replace(`/exchange/chat/${roomId}`);
       } else {
-        Alert.alert(
-          "성공",
-          "교환 제안을 전달했어요. 상대가 수락하면 채팅이 시작돼요.",
-        );
+        Alert.alert('성공', '교환 제안을 전달했어요. 상대가 수락하면 채팅이 시작돼요.');
         router.back();
       }
     },
     onError: (error) => {
-      const msg =
-        error instanceof Error ? error.message : "교환을 신청하지 못했어요.";
-      Alert.alert("알림", msg);
-      Logger.error("교환 신청 실패:", error);
+      const msg = error instanceof Error ? error.message : '교환을 신청하지 못했어요.';
+      Alert.alert('알림', msg);
+      Logger.error('교환 신청 실패:', error);
     },
   });
 
   const handleSubmit = useCallback(() => {
     if (!have.trim()) {
-      Alert.alert("입력 필요", "교환을 제안할 물건을 설명해주세요.");
+      Alert.alert('입력 필요', '교환을 제안할 물건을 설명해주세요.');
       return;
     }
     requestExchange();
@@ -268,7 +255,7 @@ export default function ApplyExchangeScreen() {
           headerShown: false,
         }}
       />
-      <SafeLayout edges={["top", "bottom"]} style={styles.container}>
+      <SafeLayout edges={['top', 'bottom']} style={styles.container}>
         <KeyboardAwareScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.content}
@@ -303,8 +290,7 @@ export default function ApplyExchangeScreen() {
           {/* have 입력 폼 (필수) */}
           <Box style={styles.inputContainer}>
             <Typography variant="body1" style={styles.inputLabel}>
-              교환 물건 설명{" "}
-              <Typography style={styles.requiredMark}>*</Typography>
+              교환 물건 설명 <Typography style={styles.requiredMark}>*</Typography>
             </Typography>
             <Input
               placeholder="예: BTS 콘서트 포토카드 세트, 상태 최상 / 스타필드 팝업 굿즈"
@@ -327,15 +313,12 @@ export default function ApplyExchangeScreen() {
           ]}
         >
           <TouchableOpacity
-            style={[
-              styles.applyButton,
-              (!have.trim() || isPending) && styles.applyButtonDisabled,
-            ]}
+            style={[styles.applyButton, (!have.trim() || isPending) && styles.applyButtonDisabled]}
             onPress={handleSubmit}
             disabled={!have.trim() || isPending}
           >
             <Typography style={styles.submitButtonText}>
-              {isPending ? "신청 중..." : "제안 보내기"}
+              {isPending ? '신청 중...' : '제안 보내기'}
             </Typography>
           </TouchableOpacity>
         </Box>

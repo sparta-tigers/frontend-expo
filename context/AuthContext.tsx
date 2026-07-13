@@ -1,7 +1,7 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useQueryClient } from "@tanstack/react-query";
-import * as Device from "expo-device";
-import * as Notifications from "expo-notifications";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useQueryClient } from '@tanstack/react-query';
+import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
 import {
   ReactNode,
   createContext,
@@ -10,38 +10,30 @@ import {
   useState,
   useMemo,
   useCallback,
-} from "react";
-import { Alert } from "react-native";
+} from 'react';
+import { Alert } from 'react-native';
 
 import {
   authSigninAPI,
   authSignoutAPI,
   authSignupAPI,
   fcmTokenCreateAPI,
-} from "@/src/features/auth/api";
-import {
-  AuthSigninRequest,
-  AuthSignupRequest,
-} from "@/src/features/auth/types";
+} from '@/src/features/auth/api';
+import { AuthSigninRequest, AuthSignupRequest } from '@/src/features/auth/types';
 import {
   favoriteTeamAddAPI,
   favoriteTeamGetAPI,
   favoriteTeamUpdateAPI,
-} from "@/src/features/user/favorite-team-api";
-import { Logger, maskSensitive } from "@/src/utils/logger";
-import { TEAM_DATA, isValidTeamCode } from "@/src/utils/team";
-import {
-  clearTokens,
-  getAccessToken,
-  getRefreshToken,
-  setTokens,
-} from "@/src/utils/tokenStore";
-import { AppError } from "@/src/core/errors";
+} from '@/src/features/user/favorite-team-api';
+import { Logger, maskSensitive } from '@/src/utils/logger';
+import { TEAM_DATA, isValidTeamCode } from '@/src/utils/team';
+import { clearTokens, getAccessToken, getRefreshToken, setTokens } from '@/src/utils/tokenStore';
+import { AppError } from '@/src/core/errors';
 
-const authLogger = Logger.category("AUTH");
+const authLogger = Logger.category('AUTH');
 
 const getMyTeamKey = (userId?: number) =>
-  userId ? `yaguniv_my_team_${userId}` : "yaguniv_my_team_guest";
+  userId ? `yaguniv_my_team_${userId}` : 'yaguniv_my_team_guest';
 
 /**
  * 단순화된 토큰 타입
@@ -58,11 +50,11 @@ interface SimpleToken {
 
 const decodeJwtPayload = (token: string): Record<string, unknown> | null => {
   try {
-    const parts = token.split(".");
+    const parts = token.split('.');
     if (parts.length !== 3) return null;
     const base64Url = parts[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
     const json = atob(padded);
     const parsed = JSON.parse(json) as Record<string, unknown>;
     return parsed;
@@ -73,30 +65,29 @@ const decodeJwtPayload = (token: string): Record<string, unknown> | null => {
 
 const getTokenClaimFromAccessToken = (
   accessToken: string,
-): Pick<SimpleToken, "userId" | "email" | "nickname"> => {
+): Pick<SimpleToken, 'userId' | 'email' | 'nickname'> => {
   const payload = decodeJwtPayload(accessToken);
   if (!payload) return {};
 
   const userIdRaw = payload.userId;
   const userId =
-    typeof userIdRaw === "number"
+    typeof userIdRaw === 'number'
       ? userIdRaw
-      : typeof userIdRaw === "string"
+      : typeof userIdRaw === 'string'
         ? Number(userIdRaw)
         : undefined;
 
-  const email = typeof payload.email === "string" ? payload.email : undefined;
-  const nickname =
-    typeof payload.nickname === "string" ? payload.nickname : undefined;
+  const email = typeof payload.email === 'string' ? payload.email : undefined;
+  const nickname = typeof payload.nickname === 'string' ? payload.nickname : undefined;
 
-  const result: Pick<SimpleToken, "userId" | "email" | "nickname"> = {};
-  if (typeof userId === "number" && Number.isFinite(userId)) {
+  const result: Pick<SimpleToken, 'userId' | 'email' | 'nickname'> = {};
+  if (typeof userId === 'number' && Number.isFinite(userId)) {
     result.userId = userId;
   }
-  if (typeof email === "string") {
+  if (typeof email === 'string') {
     result.email = email;
   }
-  if (typeof nickname === "string") {
+  if (typeof nickname === 'string') {
     result.nickname = nickname;
   }
   return result;
@@ -136,7 +127,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
+    throw new Error('useAuth must be used within AuthProvider');
   }
   return context;
 };
@@ -146,10 +137,9 @@ export const useAuth = () => {
  *
  * Why: 매번 Object.entries를 순회하며 찾는 비용을 절감하기 위해 모듈 스코프에 한 번만 생성하여 O(1) 조회를 보장한다.
  */
-const BACKEND_TO_FRONTEND_TEAM_CODE: Record<string, string> =
-  Object.fromEntries(
-    Object.entries(TEAM_DATA).map(([fe, data]) => [data.backendCode, fe]),
-  );
+const BACKEND_TO_FRONTEND_TEAM_CODE: Record<string, string> = Object.fromEntries(
+  Object.entries(TEAM_DATA).map(([fe, data]) => [data.backendCode, fe]),
+);
 
 /**
  * AuthProvider 컴포넌트
@@ -157,9 +147,7 @@ const BACKEND_TO_FRONTEND_TEAM_CODE: Record<string, string> =
  *
  * @param children - 자식 컴포넌트들
  */
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const queryClient = useQueryClient();
   const [user, setUser] = useState<SimpleToken | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -183,7 +171,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       const accessToken = await getAccessToken();
 
       if (__DEV__) {
-        authLogger.debug("[AuthContext] 토큰 로딩 중...");
+        authLogger.debug('[AuthContext] 토큰 로딩 중...');
       }
 
       if (accessToken) {
@@ -206,11 +194,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           // 🚨 [Data Sync] 1. 백엔드에서 응원팀 정보 우선 조회
           try {
             const teamRes = await favoriteTeamGetAPI();
-            if (teamRes.resultType === "SUCCESS" && teamRes.data) {
+            if (teamRes.resultType === 'SUCCESS' && teamRes.data) {
               const backendTeamCode = teamRes.data.teamCode;
               // 백엔드 코드(HT) -> 프론트엔드 코드(KIA) 역매핑 찾기
-              const frontendTeamCode =
-                BACKEND_TO_FRONTEND_TEAM_CODE[backendTeamCode];
+              const frontendTeamCode = BACKEND_TO_FRONTEND_TEAM_CODE[backendTeamCode];
 
               if (frontendTeamCode) {
                 setMyTeam(frontendTeamCode);
@@ -220,16 +207,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
                 // 따라서 주요 인증/인가(Token)는 expo-secure-store에 저장하며,
                 // 응원팀 정보는 UX 최적화(빠른 폴백) 목적으로만 캐싱하고
                 // 항상 백엔드(teamRes)를 SSOT(Single Source of Truth)로 덮어씌웁니다.
-                await AsyncStorage.setItem(
-                  getMyTeamKey(tokenPayload.userId),
-                  frontendTeamCode,
-                );
+                await AsyncStorage.setItem(getMyTeamKey(tokenPayload.userId), frontendTeamCode);
               }
             } else {
               // 백엔드에 없으면 로컬 스토리지 확인
-              const savedTeam = await AsyncStorage.getItem(
-                getMyTeamKey(tokenPayload.userId),
-              );
+              const savedTeam = await AsyncStorage.getItem(getMyTeamKey(tokenPayload.userId));
               if (savedTeam) {
                 setMyTeam(savedTeam);
                 // 🚨 [Data Sync] 백엔드에 자동 등록 시도
@@ -240,31 +222,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
                   const addRes = await favoriteTeamAddAPI({
                     teamCode: backendCode,
                   });
-                  if (addRes.resultType !== "SUCCESS") {
-                    Logger.warn(
-                      "[AuthContext] 백엔드 자동 등록 실패:",
-                      addRes.error?.message,
-                    );
+                  if (addRes.resultType !== 'SUCCESS') {
+                    Logger.warn('[AuthContext] 백엔드 자동 등록 실패:', addRes.error?.message);
                   }
                 }
               }
             }
           } catch (error) {
-            Logger.warn(
-              "[AuthContext] 응원팀 동기화 중 오류 발생 (로컬 폴백 진행):",
-              error,
-            );
+            Logger.warn('[AuthContext] 응원팀 동기화 중 오류 발생 (로컬 폴백 진행):', error);
             // API 실패 시 로컬 스토리지로 폴백
-            const savedTeam = await AsyncStorage.getItem(
-              getMyTeamKey(tokenPayload.userId),
-            );
+            const savedTeam = await AsyncStorage.getItem(getMyTeamKey(tokenPayload.userId));
             if (savedTeam) {
               setMyTeam(savedTeam);
             }
           }
 
           if (__DEV__) {
-            authLogger.info("✅ [AuthContext] 인증 정보 복원 성공");
+            authLogger.info('✅ [AuthContext] 인증 정보 복원 성공');
           }
         } else {
           await clearTokens();
@@ -276,11 +250,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           setMyTeam(guestTeam);
         }
         if (__DEV__) {
-          Logger.info("ℹ️ [AuthContext] 저장된 토큰 없음 - 비로그인 상태");
+          Logger.info('ℹ️ [AuthContext] 저장된 토큰 없음 - 비로그인 상태');
         }
       }
     } catch (error) {
-      Logger.error("[AuthContext] 토큰 로드 실패:", error);
+      Logger.error('[AuthContext] 토큰 로드 실패:', error);
       await clearTokens();
     } finally {
       setIsLoading(false);
@@ -289,28 +263,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const getFcmToken = useCallback(async (): Promise<string | null> => {
     if (!Device.isDevice) {
-      Logger.warn("FCM 토큰은 실제 기기에서만 발급됩니다.");
+      Logger.warn('FCM 토큰은 실제 기기에서만 발급됩니다.');
       return null;
     }
 
-    const { status: existingStatus } =
-      await Notifications.getPermissionsAsync();
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
 
-    if (existingStatus !== "granted") {
+    if (existingStatus !== 'granted') {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
     }
 
-    if (finalStatus !== "granted") {
-      Logger.warn("푸시 알림 권한이 거부되었습니다.");
+    if (finalStatus !== 'granted') {
+      Logger.warn('푸시 알림 권한이 거부되었습니다.');
       return null;
     }
 
     const token = await Notifications.getDevicePushTokenAsync();
 
-    if (token.type !== "android") {
-      Logger.warn("FCM 토큰 등록은 Android 디바이스에서만 수행됩니다.");
+    if (token.type !== 'android') {
+      Logger.warn('FCM 토큰 등록은 Android 디바이스에서만 수행됩니다.');
       return null;
     }
 
@@ -324,86 +297,79 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
    * @param credentials - 로그인 정보 (이메일, 비밀번호)
    * @returns 로그인 성공 여부
    */
-  const signin = useCallback(async (credentials: AuthSigninRequest): Promise<boolean> => {
-    try {
-      setIsLoading(true);
+  const signin = useCallback(
+    async (credentials: AuthSigninRequest): Promise<boolean> => {
+      try {
+        setIsLoading(true);
 
-      // 🚨 3단계: 로그인 페이로드 정제 (trim 처리)
-      const trimmedCredentials = {
-        email: credentials.email.trim(),
-        password: credentials.password.trim(),
-      };
+        // 🚨 3단계: 로그인 페이로드 정제 (trim 처리)
+        const trimmedCredentials = {
+          email: credentials.email.trim(),
+          password: credentials.password.trim(),
+        };
 
-      const response = await authSigninAPI(trimmedCredentials);
+        const response = await authSigninAPI(trimmedCredentials);
 
-      // 🚨 방어 로직 추가: 통신 실패나 네트워크 에러로 undefined가 들어왔을 때 크래시 방지
-      if (!response) {
-        Logger.error(
-          "로그인 실패: 서버로부터 응답을 받지 못했어요 (API 에러 로그 확인).",
-        );
-        throw new AppError("서버로부터 응답을 받지 못했습니다.", "NETWORK_ERROR");
-      }
-
-      if (response.resultType === "SUCCESS" && response.data) {
-        const tokenData = response.data;
-
-        if (!tokenData.accessToken || !tokenData.refreshToken) {
-          Logger.error("🚨 [파싱 실패] 토큰 정보가 불완전합니다.");
-          throw new AppError("로그인 토큰 정보가 불완전합니다.", "AUTH_FAILED");
+        // 🚨 방어 로직 추가: 통신 실패나 네트워크 에러로 undefined가 들어왔을 때 크래시 방지
+        if (!response) {
+          Logger.error('로그인 실패: 서버로부터 응답을 받지 못했어요 (API 에러 로그 확인).');
+          throw new AppError('서버로부터 응답을 받지 못했습니다.', 'NETWORK_ERROR');
         }
 
-        // TokenStore에 토큰 저장
-        const success = await setTokens(
-          tokenData.accessToken,
-          tokenData.refreshToken,
-        );
-        if (!success) {
-          Logger.error("토큰 저장 실패");
-          throw new AppError("로그인 토큰을 저장하지 못했습니다.", "AUTH_FAILED");
-        }
+        if (response.resultType === 'SUCCESS' && response.data) {
+          const tokenData = response.data;
 
-        try {
-          const fcmToken = await getFcmToken();
-
-          if (fcmToken) {
-            await fcmTokenCreateAPI({ fcmToken });
+          if (!tokenData.accessToken || !tokenData.refreshToken) {
+            Logger.error('🚨 [파싱 실패] 토큰 정보가 불완전합니다.');
+            throw new AppError('로그인 토큰 정보가 불완전합니다.', 'AUTH_FAILED');
           }
-        } catch (error) {
-          Logger.warn("FCM 토큰 저장 실패: ", error);
+
+          // TokenStore에 토큰 저장
+          const success = await setTokens(tokenData.accessToken, tokenData.refreshToken);
+          if (!success) {
+            Logger.error('토큰 저장 실패');
+            throw new AppError('로그인 토큰을 저장하지 못했습니다.', 'AUTH_FAILED');
+          }
+
+          try {
+            const fcmToken = await getFcmToken();
+
+            if (fcmToken) {
+              await fcmTokenCreateAPI({ fcmToken });
+            }
+          } catch (error) {
+            Logger.warn('FCM 토큰 저장 실패: ', error);
+          }
+
+          // 디버깅 로그: 토큰 저장 상태 확인
+          authLogger.debug('✅ [AuthContext] 토큰 저장 성공', maskSensitive(tokenData.accessToken));
+
+          // 상태 업데이트
+          const claim = getTokenClaimFromAccessToken(tokenData.accessToken);
+          setUser({
+            accessToken: tokenData.accessToken,
+            refreshToken: tokenData.refreshToken,
+            ...claim,
+          });
+
+          if (__DEV__) {
+            authLogger.debug('✅ [AuthContext] 사용자 상태 업데이트 완료 - 로그인 성공');
+          }
+
+          return true;
+        } else {
+          Logger.error('로그인 실패:', response.error?.message);
+          throw new AppError(response.error?.message || '로그인 실패', 'AUTH_FAILED');
         }
-
-        // 디버깅 로그: 토큰 저장 상태 확인
-        authLogger.debug(
-          "✅ [AuthContext] 토큰 저장 성공",
-          maskSensitive(tokenData.accessToken),
-        );
-
-        // 상태 업데이트
-        const claim = getTokenClaimFromAccessToken(tokenData.accessToken);
-        setUser({
-          accessToken: tokenData.accessToken,
-          refreshToken: tokenData.refreshToken,
-          ...claim,
-        });
-
-        if (__DEV__) {
-          authLogger.debug(
-            "✅ [AuthContext] 사용자 상태 업데이트 완료 - 로그인 성공",
-          );
-        }
-
-        return true;
-      } else {
-        Logger.error("로그인 실패:", response.error?.message);
-        throw new AppError(response.error?.message || "로그인 실패", "AUTH_FAILED");
+      } catch (error) {
+        Logger.error('로그인 에러:', error);
+        throw error;
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      Logger.error("로그인 에러:", error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [getFcmToken]);
+    },
+    [getFcmToken],
+  );
 
   /**
    * 회원가입 함수
@@ -412,43 +378,44 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
    * @param userData - 회원가입 정보 (이메일, 닉네임, 비밀번호)
    * @returns 회원가입 성공 여부
    */
-  const signup = useCallback(async (userData: AuthSignupRequest): Promise<boolean> => {
-    try {
-      setIsLoading(true);
-      const response = await authSignupAPI(userData);
+  const signup = useCallback(
+    async (userData: AuthSignupRequest): Promise<boolean> => {
+      try {
+        setIsLoading(true);
+        const response = await authSignupAPI(userData);
 
-      // 🚨 방어 로직 추가: 통신 실패나 네트워크 에러로 undefined가 들어왔을 때 크래시 방지
-      if (!response) {
-        Logger.error(
-          "API 통신 실패: 응답이 없어요. 네트워크 연결을 확인해주세요.",
-        );
-        throw new AppError("네트워크 연결을 확인하세요.", "NETWORK_ERROR");
-      }
-
-      if (response.resultType === "SUCCESS" && response.data) {
-        // 회원가입 성공 후 자동 로그인
-        const loginSuccess = await signin({
-          email: userData.email,
-          password: userData.password,
-        });
-
-        if (loginSuccess) {
-          return true;
-        } else {
-          Logger.error("회원가입 후 자동 로그인 실패");
-          throw new AppError("회원가입 후 자동 로그인에 실패했습니다.", "AUTH_FAILED");
+        // 🚨 방어 로직 추가: 통신 실패나 네트워크 에러로 undefined가 들어왔을 때 크래시 방지
+        if (!response) {
+          Logger.error('API 통신 실패: 응답이 없어요. 네트워크 연결을 확인해주세요.');
+          throw new AppError('네트워크 연결을 확인하세요.', 'NETWORK_ERROR');
         }
-      } else {
-        Logger.error("회원가입 실패:", response.error?.message);
-        throw new AppError(response.error?.message || "회원가입 실패", "AUTH_FAILED");
+
+        if (response.resultType === 'SUCCESS' && response.data) {
+          // 회원가입 성공 후 자동 로그인
+          const loginSuccess = await signin({
+            email: userData.email,
+            password: userData.password,
+          });
+
+          if (loginSuccess) {
+            return true;
+          } else {
+            Logger.error('회원가입 후 자동 로그인 실패');
+            throw new AppError('회원가입 후 자동 로그인에 실패했습니다.', 'AUTH_FAILED');
+          }
+        } else {
+          Logger.error('회원가입 실패:', response.error?.message);
+          throw new AppError(response.error?.message || '회원가입 실패', 'AUTH_FAILED');
+        }
+      } catch (error) {
+        Logger.error('회원가입 에러:', error);
+        throw error;
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      Logger.error("회원가입 에러:", error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [signin]);
+    },
+    [signin],
+  );
 
   /**
    * 로그아웃 함수
@@ -461,7 +428,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         await authSignoutAPI(currentRefreshToken);
       }
     } catch (error) {
-      Logger.error("서버 로그아웃 통보 실패:", error);
+      Logger.error('서버 로그아웃 통보 실패:', error);
     } finally {
       // 🚨 [Auth Stability] 1. React Query 캐시 즉시 초기화 (이전 사용자 데이터 제거)
       queryClient.clear();
@@ -482,87 +449,73 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
    *
    * @param teamName - 변경할 팀 명칭
    */
-  const updateMyTeam = useCallback(async (teamName: string): Promise<void> => {
-    const previousTeam = myTeam;
-    try {
-      // 1. 로그인 상태라면 백엔드와 동기화 시도
-      if (isLoggedIn && user?.userId) {
-        const backendCode = isValidTeamCode(teamName)
-          ? TEAM_DATA[teamName]?.backendCode
-          : null;
-        if (!backendCode) {
-          Logger.warn(
-            `[AuthContext] backendCode 누락 - 동기화 스킵: ${teamName}`,
-          );
-        } else {
-          let teamExists = false;
-          try {
-            const checkRes = await favoriteTeamGetAPI();
-            teamExists = checkRes.resultType === "SUCCESS" && !!checkRes.data;
-          } catch {
-            teamExists = false;
-          }
-
-          if (teamExists) {
-            const updateRes = await favoriteTeamUpdateAPI({
-              teamCode: backendCode,
-            });
-            if (updateRes.resultType !== "SUCCESS") {
-              throw new Error(
-                updateRes.error?.message ??
-                  "응원팀 정보를 업데이트하지 못했어요.",
-              );
-            }
+  const updateMyTeam = useCallback(
+    async (teamName: string): Promise<void> => {
+      const previousTeam = myTeam;
+      try {
+        // 1. 로그인 상태라면 백엔드와 동기화 시도
+        if (isLoggedIn && user?.userId) {
+          const backendCode = isValidTeamCode(teamName) ? TEAM_DATA[teamName]?.backendCode : null;
+          if (!backendCode) {
+            Logger.warn(`[AuthContext] backendCode 누락 - 동기화 스킵: ${teamName}`);
           } else {
-            const addRes = await favoriteTeamAddAPI({ teamCode: backendCode });
-            if (addRes.resultType !== "SUCCESS") {
-              throw new Error(
-                addRes.error?.message ?? "응원팀을 등록하지 못했어요.",
-              );
+            let teamExists = false;
+            try {
+              const checkRes = await favoriteTeamGetAPI();
+              teamExists = checkRes.resultType === 'SUCCESS' && !!checkRes.data;
+            } catch {
+              teamExists = false;
             }
-          }
 
-          // 🚨 [ID Sync] 최신 teamId 확보 (단일 출처 유지를 위해 재조회 수행)
-          const teamRes = await favoriteTeamGetAPI();
-          if (teamRes.resultType === "SUCCESS" && teamRes.data) {
-            setMyTeamId(teamRes.data.teamId);
-          } else {
-            throw new Error(
-              teamRes.error?.message ??
-                "최신 팀 정보를 불러오지 못했어요.",
-            );
+            if (teamExists) {
+              const updateRes = await favoriteTeamUpdateAPI({
+                teamCode: backendCode,
+              });
+              if (updateRes.resultType !== 'SUCCESS') {
+                throw new Error(updateRes.error?.message ?? '응원팀 정보를 업데이트하지 못했어요.');
+              }
+            } else {
+              const addRes = await favoriteTeamAddAPI({ teamCode: backendCode });
+              if (addRes.resultType !== 'SUCCESS') {
+                throw new Error(addRes.error?.message ?? '응원팀을 등록하지 못했어요.');
+              }
+            }
+
+            // 🚨 [ID Sync] 최신 teamId 확보 (단일 출처 유지를 위해 재조회 수행)
+            const teamRes = await favoriteTeamGetAPI();
+            if (teamRes.resultType === 'SUCCESS' && teamRes.data) {
+              setMyTeamId(teamRes.data.teamId);
+            } else {
+              throw new Error(teamRes.error?.message ?? '최신 팀 정보를 불러오지 못했어요.');
+            }
           }
         }
+
+        // 🚨 [State Sync] 백엔드 호출 성공 후 상태 업데이트 및 쿼리 무효화
+        // Why: 상태 업데이트가 먼저 일어나야 HomeScreen에서 구독 중인 myTeamId가 변경되고,
+        // 그에 따라 리액트 쿼리가 새로운 teamId를 포함한 키로 패칭을 시작하는 자연스러운 흐름이 완성됨.
+
+        // 2. UI 및 로컬 스토리지 업데이트
+        setMyTeam(teamName);
+        await AsyncStorage.setItem(getMyTeamKey(user?.userId), teamName);
+
+        // 3. 쿼리 무효화 (안전장치)
+        await queryClient.invalidateQueries({
+          queryKey: ['matches', 'schedule'],
+        });
+        await queryClient.invalidateQueries({ queryKey: ['home', 'dashboard'] });
+
+        if (__DEV__) {
+          authLogger.debug(`✅ [AuthContext] 응원팀 변경 및 데이터 동기화 완료: ${teamName}`);
+        }
+      } catch (error) {
+        Logger.error('[AuthContext] 응원팀 변경 실패:', error);
+        setMyTeam(previousTeam);
+        Alert.alert('알림', '팀 정보를 저장하는 중 문제가 생겼어요. 다시 시도해주세요.');
       }
-
-      // 🚨 [State Sync] 백엔드 호출 성공 후 상태 업데이트 및 쿼리 무효화
-      // Why: 상태 업데이트가 먼저 일어나야 HomeScreen에서 구독 중인 myTeamId가 변경되고,
-      // 그에 따라 리액트 쿼리가 새로운 teamId를 포함한 키로 패칭을 시작하는 자연스러운 흐름이 완성됨.
-
-      // 2. UI 및 로컬 스토리지 업데이트
-      setMyTeam(teamName);
-      await AsyncStorage.setItem(getMyTeamKey(user?.userId), teamName);
-
-      // 3. 쿼리 무효화 (안전장치)
-      await queryClient.invalidateQueries({
-        queryKey: ["matches", "schedule"],
-      });
-      await queryClient.invalidateQueries({ queryKey: ["home", "dashboard"] });
-
-      if (__DEV__) {
-        authLogger.debug(
-          `✅ [AuthContext] 응원팀 변경 및 데이터 동기화 완료: ${teamName}`,
-        );
-      }
-    } catch (error) {
-      Logger.error("[AuthContext] 응원팀 변경 실패:", error);
-      setMyTeam(previousTeam);
-      Alert.alert(
-        "알림",
-        "팀 정보를 저장하는 중 문제가 생겼어요. 다시 시도해주세요.",
-      );
-    }
-  }, [isLoggedIn, myTeam, queryClient, user]);
+    },
+    [isLoggedIn, myTeam, queryClient, user],
+  );
 
   /**
    * 사용자 정보 부분 업데이트 함수
@@ -580,38 +533,46 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     });
 
     if (__DEV__) {
-      authLogger.debug(
-        "✅ [AuthContext] 사용자 정보 부분 업데이트 완료",
-        partialUser,
-      );
+      authLogger.debug('✅ [AuthContext] 사용자 정보 부분 업데이트 완료', partialUser);
     }
   }, []);
 
   // 컴포넌트 마운트 시 토큰 로드
   useEffect(() => {
     const timerId = setTimeout(() => {
-      loadToken().catch((err) =>
-        authLogger.error("[Auth] loadToken failed", err),
-      );
+      loadToken().catch((err) => authLogger.error('[Auth] loadToken failed', err));
     }, 0);
     return () => clearTimeout(timerId);
   }, [loadToken]);
 
-  const contextValue = useMemo<AuthContextType>(() => ({
-    user,
-    isLoading,
-    isLoggedIn,
-    myTeam,
-    myTeamId,
-    signin,
-    signup,
-    signout,
-    loadToken,
-    updateMyTeam,
-    updateUser,
-  }), [user, isLoading, isLoggedIn, myTeam, myTeamId, signin, signup, signout, loadToken, updateMyTeam, updateUser]);
-
-  return (
-    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
+  const contextValue = useMemo<AuthContextType>(
+    () => ({
+      user,
+      isLoading,
+      isLoggedIn,
+      myTeam,
+      myTeamId,
+      signin,
+      signup,
+      signout,
+      loadToken,
+      updateMyTeam,
+      updateUser,
+    }),
+    [
+      user,
+      isLoading,
+      isLoggedIn,
+      myTeam,
+      myTeamId,
+      signin,
+      signup,
+      signout,
+      loadToken,
+      updateMyTeam,
+      updateUser,
+    ],
   );
+
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };

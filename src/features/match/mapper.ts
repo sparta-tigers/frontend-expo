@@ -1,4 +1,4 @@
-import { findTeamMeta } from "@/src/utils/team";
+import { findTeamMeta } from '@/src/utils/team';
 import {
   MatchDetail,
   MatchRoomDto,
@@ -7,7 +7,7 @@ import {
   MatchTeamInfo,
   RankingRowDto,
   RankingUIModel,
-} from "./types";
+} from './types';
 
 /**
  * 🏛️ MatchMapper: API DTO를 UI 친화적인 모델로 변환하는 중앙 로직
@@ -22,12 +22,12 @@ export class MatchMapper {
    * 📋 일정 DTO를 요약 UI 모델로 변환
    */
   static toSummary(dto: MatchScheduleDto, myTeamCode: string): MatchSummary {
-    const isHome = dto.location === "H";
+    const isHome = dto.location === 'H';
     const homeBackendCode = isHome ? myTeamCode : dto.opponentCode;
     const awayBackendCode = isHome ? dto.opponentCode : myTeamCode;
 
-    const homeMeta = findTeamMeta(homeBackendCode) || findTeamMeta("DEFAULT");
-    const awayMeta = findTeamMeta(awayBackendCode) || findTeamMeta("DEFAULT");
+    const homeMeta = findTeamMeta(homeBackendCode) || findTeamMeta('DEFAULT');
+    const awayMeta = findTeamMeta(awayBackendCode) || findTeamMeta('DEFAULT');
 
     const homeTeam: MatchTeamInfo = {
       code: homeBackendCode,
@@ -58,8 +58,8 @@ export class MatchMapper {
    * 🔬 경기 상세 DTO를 상세 UI 모델로 변환
    */
   static toDetail(dto: MatchRoomDto, myTeamCode?: string): MatchDetail {
-    const homeMeta = findTeamMeta(dto.homeTeamCode) || findTeamMeta("DEFAULT");
-    const awayMeta = findTeamMeta(dto.awayTeamCode) || findTeamMeta("DEFAULT");
+    const homeMeta = findTeamMeta(dto.homeTeamCode) || findTeamMeta('DEFAULT');
+    const awayMeta = findTeamMeta(dto.awayTeamCode) || findTeamMeta('DEFAULT');
 
     const homeTeam: MatchTeamInfo = {
       code: dto.homeTeamCode,
@@ -73,37 +73,31 @@ export class MatchMapper {
       meta: awayMeta,
     };
 
-    const isLive = dto.liveBoardStatus === "TODAY";
-    const displayStatus = isLive
-      ? "경기중"
-      : dto.liveBoardStatus === "PAST"
-        ? "종료"
-        : "예정";
+    const isLive = dto.liveBoardStatus === 'TODAY';
+    const displayStatus = isLive ? '경기중' : dto.liveBoardStatus === 'PAST' ? '종료' : '예정';
 
     return {
       matchId: dto.matchId,
       day: (() => {
-        if (!dto.matchTime.includes("T")) {
+        if (!dto.matchTime.includes('T')) {
           throw new Error(
             `[MatchMapper] Invalid matchTime format: ${dto.matchTime}. Expected ISO format (YYYY-MM-DDTHH:mm:ss)`,
           );
         }
-        const datePart = dto.matchTime.split("T")[0];
-        const dateSegments = datePart.split("-");
+        const datePart = dto.matchTime.split('T')[0];
+        const dateSegments = datePart.split('-');
         if (dateSegments.length < 3) {
-          throw new Error(
-            `[MatchMapper] Invalid date format in matchTime: ${dto.matchTime}`,
-          );
+          throw new Error(`[MatchMapper] Invalid date format in matchTime: ${dto.matchTime}`);
         }
         return parseInt(dateSegments[2]);
       })(),
       startTime: (() => {
-        if (!dto.matchTime.includes("T")) {
+        if (!dto.matchTime.includes('T')) {
           throw new Error(
             `[MatchMapper] Invalid matchTime format: ${dto.matchTime}. Expected ISO format (YYYY-MM-DDTHH:mm:ss)`,
           );
         }
-        return dto.matchTime.split("T")[1].substring(0, 5);
+        return dto.matchTime.split('T')[1].substring(0, 5);
       })(),
       homeTeam,
       awayTeam,
@@ -111,7 +105,7 @@ export class MatchMapper {
       isLive,
       displayStatus,
       displayResult: dto.matchResult || null,
-      location: myTeamCode === dto.homeTeamCode ? "H" : "A",
+      location: myTeamCode === dto.homeTeamCode ? 'H' : 'A',
       liveBoardStatus: dto.liveBoardStatus,
     };
   }
@@ -123,7 +117,7 @@ export class MatchMapper {
   static toRanking(dto: RankingRowDto): RankingUIModel {
     return {
       ...dto,
-      meta: findTeamMeta(dto.teamCode) || findTeamMeta("DEFAULT"),
+      meta: findTeamMeta(dto.teamCode) || findTeamMeta('DEFAULT'),
     };
   }
 
@@ -132,7 +126,7 @@ export class MatchMapper {
    * Why: 경기와 무관한 단순 팀 정보 표시(내 응원팀 등) 시에도 SSOT 메타데이터를 보장함.
    */
   static toTeamInfo(teamCode: string, teamName?: string): MatchTeamInfo {
-    const meta = findTeamMeta(teamCode) || findTeamMeta("DEFAULT");
+    const meta = findTeamMeta(teamCode) || findTeamMeta('DEFAULT');
     return {
       code: teamCode,
       name: teamName || meta.name,

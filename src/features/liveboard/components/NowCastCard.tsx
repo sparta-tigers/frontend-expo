@@ -1,18 +1,18 @@
-import { MaterialIcons } from "@expo/vector-icons";
-import React from "react";
-import { StyleSheet, View } from "react-native";
+import { MaterialIcons } from '@expo/vector-icons';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
 
-import { Box } from "@/components/ui/box";
-import { Typography } from "@/components/ui/typography";
-import { WeatherIcon } from "@/src/features/liveboard/components/WeatherIcon";
-import { NowCastDto } from "@/src/features/liveboard/types";
+import { Box } from '@/components/ui/box';
+import { Typography } from '@/components/ui/typography';
+import { WeatherIcon } from '@/src/features/liveboard/components/WeatherIcon';
+import { NowCastDto } from '@/src/features/liveboard/types';
 import {
   formatPercent,
   formatRainAmount,
   formatTemperature,
   formatWind,
-} from "@/src/features/liveboard/utils/weatherFormat";
-import { theme } from "@/src/styles/theme";
+} from '@/src/features/liveboard/utils/weatherFormat';
+import { theme } from '@/src/styles/theme';
 
 interface NowCastCardProps {
   stadiumName: string | null;
@@ -33,17 +33,8 @@ export const NowCastCard = React.memo(function NowCastCard({
   if (!nowCast) {
     return (
       <Box style={styles.card} align="center" justify="center" py="xxxxl">
-        <MaterialIcons
-          name="cloud-off"
-          size={36}
-          color={theme.colors.text.tertiary}
-        />
-        <Typography
-          variant="body1"
-          color="text.secondary"
-          weight="medium"
-          mt="sm"
-        >
+        <MaterialIcons name="cloud-off" size={36} color={theme.colors.text.tertiary} />
+        <Typography variant="body1" color="text.secondary" weight="medium" mt="sm">
           현재 날씨 정보를 불러오지 못했어요
         </Typography>
       </Box>
@@ -59,17 +50,13 @@ export const NowCastCard = React.memo(function NowCastCard({
     <Box style={styles.card}>
       {/* 구장명 (위치 핀 + 민트 텍스트) */}
       <View style={styles.stadiumRow}>
-        <MaterialIcons
-          name="location-on"
-          size={14}
-          color={theme.colors.brand.mint}
-        />
+        <MaterialIcons name="location-on" size={14} color={theme.colors.brand.mint} />
         <Typography
           style={styles.stadiumText}
           weight="medium"
-          accessibilityLabel={`구장 ${stadiumName ?? "미지정"}`}
+          accessibilityLabel={`구장 ${stadiumName ?? '미지정'}`}
         >
-          {stadiumName ?? "-"}
+          {stadiumName ?? '-'}
         </Typography>
       </View>
 
@@ -86,11 +73,7 @@ export const NowCastCard = React.memo(function NowCastCard({
         </View>
 
         <View style={styles.iconBox}>
-          <WeatherIcon
-            skyStatus={nowCast.skyStatus}
-            rainType={nowCast.rainType}
-            size="xl"
-          />
+          <WeatherIcon skyStatus={nowCast.skyStatus} rainType={nowCast.rainType} size="xl" />
         </View>
       </View>
 
@@ -112,7 +95,7 @@ export const NowCastCard = React.memo(function NowCastCard({
           iconName="air"
           label="풍향 풍속"
           value={windText}
-          accessibilityLabel={windText === "-" ? "풍향 정보 없음" : windText}
+          accessibilityLabel={windText === '-' ? '풍향 정보 없음' : windText}
         />
       </View>
     </Box>
@@ -123,7 +106,7 @@ export const NowCastCard = React.memo(function NowCastCard({
 // 내부: 지표 행
 // ========================================================
 
-type IconName = "umbrella" | "water-drop" | "air";
+type IconName = 'umbrella' | 'water-drop' | 'air';
 
 function MetricRow({
   iconName,
@@ -137,11 +120,7 @@ function MetricRow({
   accessibilityLabel: string;
 }) {
   return (
-    <View
-      style={styles.metricRow}
-      accessible
-      accessibilityLabel={accessibilityLabel}
-    >
+    <View style={styles.metricRow} accessible accessibilityLabel={accessibilityLabel}>
       <MaterialIcons
         name={iconName}
         size={16}
@@ -167,8 +146,8 @@ const styles = StyleSheet.create({
     paddingBottom: 22,
   },
   stadiumRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 4,
   },
   stadiumText: {
@@ -177,9 +156,9 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   mainRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginTop: 6,
   },
   tempBox: {
@@ -192,16 +171,16 @@ const styles = StyleSheet.create({
     letterSpacing: -2,
   },
   iconBox: {
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   metricsBlock: {
     marginTop: 4,
     gap: 6,
   },
   metricRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
   metricValue: {

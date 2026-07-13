@@ -1,14 +1,14 @@
-import { Box, Button, Input, Typography } from "@/components/ui";
-import { SafeLayout } from "@/components/ui/safe-layout";
-import { useAuth } from "@/context/AuthContext";
-import { useTicketAlarmMutation } from "@/src/features/ticket-alarm/hooks/useTicketAlarm";
-import { theme } from "@/src/styles/theme";
-import { Logger } from "@/src/utils/logger";
-import Slider from "@react-native-community/slider";
-import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
-import { Alert, ScrollView, StyleSheet } from "react-native";
-import { animateLayout } from "@/src/utils/motion";
+import { Box, Button, Input, Typography } from '@/components/ui';
+import { SafeLayout } from '@/components/ui/safe-layout';
+import { useAuth } from '@/context/AuthContext';
+import { useTicketAlarmMutation } from '@/src/features/ticket-alarm/hooks/useTicketAlarm';
+import { theme } from '@/src/styles/theme';
+import { Logger } from '@/src/utils/logger';
+import Slider from '@react-native-community/slider';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
+import { Alert, ScrollView, StyleSheet } from 'react-native';
+import { animateLayout } from '@/src/utils/motion';
 
 /**
  * 🔔 TicketAlarmFormScreen: 티켓 예매 알림 설정 화면
@@ -25,15 +25,15 @@ export default function TicketAlarmFormScreen() {
   const { myTeamId } = useAuth();
 
   const [preAlarmTime, setPreAlarmTime] = useState(30); // 기본 30분 전
-  const [membership, setMembership] = useState("");
-  const [errorText, setErrorText] = useState("");
+  const [membership, setMembership] = useState('');
+  const [errorText, setErrorText] = useState('');
   const { createAlarm, isCreating } = useTicketAlarmMutation();
 
   const onChangeMembership = (text: string) => {
     setMembership(text);
     if (errorText) {
       animateLayout();
-      setErrorText("");
+      setErrorText('');
     }
   };
 
@@ -43,18 +43,18 @@ export default function TicketAlarmFormScreen() {
    */
   const handleSave = async () => {
     if (!matchId || Number.isNaN(matchIdNumber) || myTeamId == null) {
-      Logger.error("Missing or invalid matchId or teamId", {
+      Logger.error('Missing or invalid matchId or teamId', {
         matchId,
         matchIdNumber,
         myTeamId,
       });
-      Alert.alert("알림", "필수 정보가 누락되었거나 유효하지 않아요.");
+      Alert.alert('알림', '필수 정보가 누락되었거나 유효하지 않아요.');
       return;
     }
 
     if (membership.trim().length > 20) {
       animateLayout();
-      setErrorText("멤버십 정보는 20자 이내로 입력해주세요.");
+      setErrorText('멤버십 정보는 20자 이내로 입력해주세요.');
       return;
     }
 
@@ -66,13 +66,13 @@ export default function TicketAlarmFormScreen() {
         ...(membership.trim() ? { membership: membership.trim() } : {}),
       });
 
-      Alert.alert("성공", "예매 알림을 설정했어요.", [
+      Alert.alert('성공', '예매 알림을 설정했어요.', [
         {
-          text: "확인",
+          text: '확인',
           onPress: () => {
-            if (from === "notification") {
+            if (from === 'notification') {
               // 🔄 알림 관리 페이지에서 온 경우, 스케줄을 건너뛰고 즉시 복귀
-              router.replace("/(tabs)/notification");
+              router.replace('/(tabs)/notification');
             } else {
               router.back();
             }
@@ -80,7 +80,7 @@ export default function TicketAlarmFormScreen() {
         },
       ]);
     } catch (error) {
-      Logger.error("Failed to create alarm", { error });
+      Logger.error('Failed to create alarm', { error });
       // 에러는 Mutation Hook 내부에서 이미 Alert 처리됨
     }
   };
@@ -97,14 +97,7 @@ export default function TicketAlarmFormScreen() {
           </Typography>
         </Box>
 
-        <Box
-          mb="xxl"
-          p="lg"
-          bg="surface"
-          rounded="lg"
-          borderWidth={1}
-          borderColor="border.medium"
-        >
+        <Box mb="xxl" p="lg" bg="surface" rounded="lg" borderWidth={1} borderColor="border.medium">
           <Box flexDir="row" justify="space-between" align="center" mb="md">
             <Typography variant="body1" weight="bold">
               알림 시점
@@ -152,24 +145,14 @@ export default function TicketAlarmFormScreen() {
               {errorText}
             </Typography>
           ) : (
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              mt="xs"
-              ml="xs"
-            >
+            <Typography variant="caption" color="text.secondary" mt="xs" ml="xs">
               선예매 멤버십이 있다면 기록해두세요.
             </Typography>
           )}
         </Box>
 
         <Box mt="xl" pt="xl">
-          <Button
-            onPress={handleSave}
-            disabled={isCreating}
-            loading={isCreating}
-            size="lg"
-          >
+          <Button onPress={handleSave} disabled={isCreating} loading={isCreating} size="lg">
             알림 신청하기
           </Button>
         </Box>
@@ -187,7 +170,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   slider: {
-    width: "100%",
+    width: '100%',
     height: 40,
   },
   input: {

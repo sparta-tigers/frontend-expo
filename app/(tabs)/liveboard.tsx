@@ -1,21 +1,18 @@
 // app/(tabs)/liveboard.tsx
 // Why: Expo Router 탭 라우트 파일. 로직은 liveboard/ 하위 모듈에 위임.
-import { Box, SafeLayout, Typography } from "@/components/ui";
+import { Box, SafeLayout, Typography } from '@/components/ui';
 import {
   WeekDayDto,
   getWeatherDisplay,
   useLiveboard,
-} from "@/src/features/liveboard/hooks/useLiveboard";
-import {
-  LOCAL_LAYOUT,
-  styles,
-} from "@/src/features/liveboard/styles/liveboard.styles";
-import { theme } from "@/src/styles/theme";
-import { getTeamBgStyle } from "@/src/utils/team";
-import { MaterialIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import Head from "expo-router/head";
-import { ActivityIndicator, ScrollView, TouchableOpacity } from "react-native";
+} from '@/src/features/liveboard/hooks/useLiveboard';
+import { LOCAL_LAYOUT, styles } from '@/src/features/liveboard/styles/liveboard.styles';
+import { theme } from '@/src/styles/theme';
+import { getTeamBgStyle } from '@/src/utils/team';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import Head from 'expo-router/head';
+import { ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
 
 /**
  * 라이브보드 화면
@@ -39,7 +36,7 @@ export default function LiveboardScreen() {
   } = useLiveboard();
 
   return (
-    <SafeLayout edges={["top", "left", "right"]} style={styles.safeLayout}>
+    <SafeLayout edges={['top', 'left', 'right']} style={styles.safeLayout}>
       <Head>
         <title>라이브보드 | 스파르타타이거즈</title>
         <meta
@@ -56,11 +53,7 @@ export default function LiveboardScreen() {
           accessibilityRole="button"
           accessibilityLabel="이전 주"
         >
-          <MaterialIcons
-            name="chevron-left"
-            size={28}
-            color={theme.colors.team.neutralDark}
-          />
+          <MaterialIcons name="chevron-left" size={28} color={theme.colors.team.neutralDark} />
         </TouchableOpacity>
         <Typography variant="h4" weight="bold" center>
           {weekLabel}
@@ -72,11 +65,7 @@ export default function LiveboardScreen() {
           accessibilityRole="button"
           accessibilityLabel="다음 주"
         >
-          <MaterialIcons
-            name="chevron-right"
-            size={28}
-            color={theme.colors.team.neutralDark}
-          />
+          <MaterialIcons name="chevron-right" size={28} color={theme.colors.team.neutralDark} />
         </TouchableOpacity>
       </Box>
 
@@ -86,11 +75,7 @@ export default function LiveboardScreen() {
         <Box flexDir="row" justify="space-between" mb="xxs">
           {weekDays.map((day: WeekDayDto) => (
             <Box key={day.anydayKey} style={styles.calendarCell} align="center">
-              <Typography
-                style={styles.dayOfWeekText}
-                weight="regular"
-                color="text.tertiary"
-              >
+              <Typography style={styles.dayOfWeekText} weight="regular" color="text.tertiary">
                 {day.dayOfWeek}
               </Typography>
             </Box>
@@ -108,23 +93,17 @@ export default function LiveboardScreen() {
                 onPress={() => setSelectedAnyday(day.anydayKey)}
                 activeOpacity={0.7}
                 accessibilityRole="button"
-                accessibilityLabel={`${day.date}일 ${day.dayOfWeek}요일 ${day.hasGame ? "경기 있음" : "경기 없음"}`}
+                accessibilityLabel={`${day.date}일 ${day.dayOfWeek}요일 ${day.hasGame ? '경기 있음' : '경기 없음'}`}
               >
                 <Box
                   width={LOCAL_LAYOUT.dateCircleSize}
                   height={LOCAL_LAYOUT.dateCircleSize}
                   align="center"
                   justify="center"
-                  style={[
-                    styles.dateCircle,
-                    isSelected && styles.selectedDateCircle,
-                  ]}
+                  style={[styles.dateCircle, isSelected && styles.selectedDateCircle]}
                 >
                   <Typography
-                    style={[
-                      styles.dateText,
-                      isSelected && styles.selectedDateText,
-                    ]}
+                    style={[styles.dateText, isSelected && styles.selectedDateText]}
                     weight="bold"
                   >
                     {day.date}
@@ -140,11 +119,7 @@ export default function LiveboardScreen() {
           {weekDays.map((day: WeekDayDto) => {
             const isSelected = day.anydayKey === selectedAnyday;
             return (
-              <Box
-                key={day.anydayKey}
-                style={styles.calendarCell}
-                align="center"
-              >
+              <Box key={day.anydayKey} style={styles.calendarCell} align="center">
                 <Box
                   width={LOCAL_LAYOUT.dotSize}
                   height={LOCAL_LAYOUT.dotSize}
@@ -166,11 +141,7 @@ export default function LiveboardScreen() {
       {/* 매치 리스트 */}
       {isError ? (
         <Box flex={1} align="center" justify="center" gap="md">
-          <MaterialIcons
-            name="error-outline"
-            size={40}
-            color={theme.colors.error}
-          />
+          <MaterialIcons name="error-outline" size={40} color={theme.colors.error} />
           <Typography variant="body1" color="text.secondary" weight="medium">
             경기 정보를 불러오지 못했어요
           </Typography>
@@ -192,37 +163,24 @@ export default function LiveboardScreen() {
         </Box>
       ) : selectedDayRooms.length === 0 ? (
         <Box flex={1} align="center" justify="center" gap="sm">
-          <MaterialIcons
-            name="sports-baseball"
-            size={40}
-            color={theme.colors.text.secondary}
-          />
+          <MaterialIcons name="sports-baseball" size={40} color={theme.colors.text.secondary} />
           <Typography variant="body1" color="text.secondary" weight="medium">
             {selectedDay
               ? `${selectedDay.date}일에는 경기가 없어요. 다른 날짜를 확인해보세요.`
-              : "경기 정보를 찾지 못했어요. 다른 날짜를 확인해보세요."}
+              : '경기 정보를 찾지 못했어요. 다른 날짜를 확인해보세요.'}
           </Typography>
         </Box>
       ) : (
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.matchList}
-        >
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.matchList}>
           {selectedDayRooms.map((room) => {
             const matchDate = new Date(room.matchTime);
-            const timeText = `${String(matchDate.getHours()).padStart(2, "0")}:${String(matchDate.getMinutes()).padStart(2, "0")}`;
+            const timeText = `${String(matchDate.getHours()).padStart(2, '0')}:${String(matchDate.getMinutes()).padStart(2, '0')}`;
 
             const weather =
-              room.liveBoardStatus === "TODAY" && room.nowCast
-                ? getWeatherDisplay(
-                    room.nowCast.skyStatus,
-                    room.nowCast.rainType,
-                  )
+              room.liveBoardStatus === 'TODAY' && room.nowCast
+                ? getWeatherDisplay(room.nowCast.skyStatus, room.nowCast.rainType)
                 : room.foreCast?.[0]
-                  ? getWeatherDisplay(
-                      room.foreCast[0].skyStatus,
-                      room.foreCast[0].rainType,
-                    )
+                  ? getWeatherDisplay(room.foreCast[0].skyStatus, room.foreCast[0].rainType)
                   : null;
 
             return (
@@ -231,23 +189,18 @@ export default function LiveboardScreen() {
                 activeOpacity={0.8}
                 onPress={() =>
                   router.push({
-                    pathname: "/liveboard/[matchId]",
+                    pathname: '/liveboard/[matchId]',
                     params: {
                       matchId: String(room.matchId),
                       awayTeamName: room.awayTeamName,
                       homeTeamName: room.homeTeamName,
-                      stadium: room.stadium ?? "",
+                      stadium: room.stadium ?? '',
                       matchTime: room.matchTime,
                     },
                   })
                 }
               >
-                <Box
-                  bg="card"
-                  flexDir="row"
-                  align="center"
-                  style={styles.matchCard}
-                >
+                <Box bg="card" flexDir="row" align="center" style={styles.matchCard}>
                   {/* 어웨이 팀 */}
                   <Box align="center" justify="center" style={styles.teamBlock}>
                     <Box
@@ -256,16 +209,9 @@ export default function LiveboardScreen() {
                       rounded="full"
                       align="center"
                       justify="center"
-                      style={[
-                        styles.teamLogo,
-                        getTeamBgStyle(room.awayTeamName),
-                      ]}
+                      style={[styles.teamLogo, getTeamBgStyle(room.awayTeamName)]}
                     >
-                      <Typography
-                        variant="caption"
-                        color="background"
-                        weight="black"
-                      >
+                      <Typography variant="caption" color="background" weight="black">
                         {room.awayTeamName}
                       </Typography>
                     </Box>
@@ -275,17 +221,13 @@ export default function LiveboardScreen() {
                   </Box>
 
                   {/* 경기 정보 (중앙) */}
-                  <Box
-                    align="center"
-                    justify="center"
-                    style={styles.centerBlock}
-                  >
+                  <Box align="center" justify="center" style={styles.centerBlock}>
                     <Box align="center" style={styles.timeStadiumBlock}>
                       <Typography style={styles.timeText} weight="semibold">
                         {timeText}
                       </Typography>
                       <Typography style={styles.stadiumText} weight="medium">
-                        {room.stadium ?? "-"}
+                        {room.stadium ?? '-'}
                       </Typography>
                     </Box>
                     {weather ? (
@@ -310,16 +252,9 @@ export default function LiveboardScreen() {
                       rounded="full"
                       align="center"
                       justify="center"
-                      style={[
-                        styles.teamLogo,
-                        getTeamBgStyle(room.homeTeamName),
-                      ]}
+                      style={[styles.teamLogo, getTeamBgStyle(room.homeTeamName)]}
                     >
-                      <Typography
-                        variant="caption"
-                        color="background"
-                        weight="black"
-                      >
+                      <Typography variant="caption" color="background" weight="black">
                         {room.homeTeamName}
                       </Typography>
                     </Box>

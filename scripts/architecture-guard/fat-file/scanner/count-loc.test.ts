@@ -25,10 +25,10 @@ import {
   nat,
   oneof,
   property,
-} from "fast-check";
-import { strict as assert } from "node:assert";
-import { test } from "node:test";
-import { countLoC } from "./count-loc.ts";
+} from 'fast-check';
+import { strict as assert } from 'node:assert';
+import { test } from 'node:test';
+import { countLoC } from './count-loc.ts';
 
 /**
  * One logical chunk contributed to a source file.
@@ -39,10 +39,8 @@ type Item = { readonly lines: readonly string[]; readonly count: number };
 
 // Body text that is safe inside any comment or code line: no `*`, `/`, `{`,
 // `}` so we never accidentally form `*/`, `/*`, `//`, or `{/*...*/}`.
-const SAFE_CHAR = constantFrom("a", "b", "c", "x", "y", "1", "2", "3", " ");
-const safeBody = array(SAFE_CHAR, { maxLength: 20 }).map((chars) =>
-  chars.join(""),
-);
+const SAFE_CHAR = constantFrom('a', 'b', 'c', 'x', 'y', '1', '2', '3', ' ');
+const safeBody = array(SAFE_CHAR, { maxLength: 20 }).map((chars) => chars.join(''));
 
 // --- Item arbitraries ------------------------------------------------------
 
@@ -55,7 +53,7 @@ const codeItem: Arbitrary<Item> = nat({ max: 9_999 }).map((n) => ({
 
 // Blank line: empty or whitespace-only (both trim to "").
 const blankItem: Arbitrary<Item> = nat({ max: 4 }).map((spaces) => ({
-  lines: [" ".repeat(spaces)],
+  lines: [' '.repeat(spaces)],
   count: 0,
 }));
 
@@ -79,12 +77,10 @@ const singleBlockItem: Arbitrary<Item> = safeBody.map((body) => ({
 
 // Multi-line block comment: opening `/*`, 0..N interior lines that never
 // contain `*/`, closing ` */`.
-const multiBlockItem: Arbitrary<Item> = array(safeBody, { maxLength: 4 }).map(
-  (interiors) => ({
-    lines: ["/*", ...interiors.map((b) => ` * ${b}`), " */"],
-    count: 0,
-  }),
-);
+const multiBlockItem: Arbitrary<Item> = array(safeBody, { maxLength: 4 }).map((interiors) => ({
+  lines: ['/*', ...interiors.map((b) => ` * ${b}`), ' */'],
+  count: 0,
+}));
 
 const anyItem: Arbitrary<Item> = oneof(
   codeItem,
@@ -97,11 +93,11 @@ const anyItem: Arbitrary<Item> = oneof(
 
 // --- Property 3 ------------------------------------------------------------
 
-test("Property 3: countLoC ignores blanks and all comment shapes under arbitrary shuffling", () => {
+test('Property 3: countLoC ignores blanks and all comment shapes under arbitrary shuffling', () => {
   fcAssert(
     property(array(anyItem, { maxLength: 40 }), (items) => {
       const expected = items.reduce((sum, item) => sum + item.count, 0);
-      const source = items.flatMap((item) => item.lines).join("\n");
+      const source = items.flatMap((item) => item.lines).join('\n');
       assert.equal(countLoC(source), expected);
     }),
   );
@@ -110,24 +106,24 @@ test("Property 3: countLoC ignores blanks and all comment shapes under arbitrary
 // --- Edge-case examples called out by the task ----------------------------
 
 test("countLoC('') === 0", () => {
-  assert.equal(countLoC(""), 0);
+  assert.equal(countLoC(''), 0);
 });
 
-test("source composed solely of blank/comment lines has LoC 0", () => {
+test('source composed solely of blank/comment lines has LoC 0', () => {
   const source = [
-    "",
-    "   ",
-    "// line comment",
-    "/* single-line block */",
-    "{/* jsx comment */}",
-    "/*",
-    " * multi-line",
-    " * block comment",
-    " */",
-  ].join("\n");
+    '',
+    '   ',
+    '// line comment',
+    '/* single-line block */',
+    '{/* jsx comment */}',
+    '/*',
+    ' * multi-line',
+    ' * block comment',
+    ' */',
+  ].join('\n');
   assert.equal(countLoC(source), 0);
 });
 
-test("code line followed by /* ... */ on the same line counts as 1", () => {
-  assert.equal(countLoC("const x = 1; /* trailing */"), 1);
+test('code line followed by /* ... */ on the same line counts as 1', () => {
+  assert.equal(countLoC('const x = 1; /* trailing */'), 1);
 });

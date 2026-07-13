@@ -1,5 +1,5 @@
-import { Box, Typography } from "@/components/ui";
-import React from "react";
+import { Box, Typography } from '@/components/ui';
+import React from 'react';
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)

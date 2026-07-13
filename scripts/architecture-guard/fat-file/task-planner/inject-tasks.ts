@@ -1,28 +1,20 @@
-import { readFileSync, writeFileSync } from "fs";
+import { readFileSync, writeFileSync } from 'fs';
 
-const tasksPath = "scripts/architecture-guard/fat-file/tasks.md";
-const tasksMd = readFileSync(tasksPath, "utf-8");
+const tasksPath = 'scripts/architecture-guard/fat-file/tasks.md';
+const tasksMd = readFileSync(tasksPath, 'utf-8');
 
 const genTasks = JSON.parse(
-  readFileSync(
-    "scripts/architecture-guard/fat-file/reports/generated-tasks.json",
-    "utf-8",
-  ),
+  readFileSync('scripts/architecture-guard/fat-file/reports/generated-tasks.json', 'utf-8'),
 );
 const scanResult = JSON.parse(
-  readFileSync(
-    "scripts/architecture-guard/fat-file/reports/scan-result.json",
-    "utf-8",
-  ),
+  readFileSync('scripts/architecture-guard/fat-file/reports/scan-result.json', 'utf-8'),
 );
 
-let injection = "";
+let injection = '';
 genTasks.forEach((task: any, i: number) => {
-  const loc =
-    scanResult.find((s: any) => s.relativePath === task.targetFile)?.loc || 0;
+  const loc = scanResult.find((s: any) => s.relativePath === task.targetFile)?.loc || 0;
   const tier =
-    scanResult.find((s: any) => s.relativePath === task.targetFile)
-      ?.priorityTier || "REVIEW";
+    scanResult.find((s: any) => s.relativePath === task.targetFile)?.priorityTier || 'REVIEW';
 
   injection += `- [ ] 12.${i + 1} Refactor ${task.targetFile} (Priority: ${tier}, LoC: ${loc})\n`;
   injection += `  - Generated modules:\n`;
@@ -38,17 +30,17 @@ genTasks.forEach((task: any, i: number) => {
   injection += `  - _Validates: Property 8, 9, 10, 11, 12, 13, 14, 16_\n\n`;
 });
 
-const startTag = "- [ ] 12. (메타-작업) Phase C: Fat File 별 리팩토링 실행";
-const endTag = "- [ ] 13. 최종 검증 및 리포트";
+const startTag = '- [ ] 12. (메타-작업) Phase C: Fat File 별 리팩토링 실행';
+const endTag = '- [ ] 13. 최종 검증 및 리포트';
 
 const startIndex = tasksMd.indexOf(startTag);
 const endIndex = tasksMd.indexOf(endTag);
 
 const newContent =
   tasksMd.substring(0, startIndex) +
-  "- [ ] 12. Phase C: Fat File 별 리팩토링 실행\n\n" +
+  '- [ ] 12. Phase C: Fat File 별 리팩토링 실행\n\n' +
   injection +
   tasksMd.substring(endIndex);
 
-writeFileSync(tasksPath, newContent, "utf-8");
-console.log("Injected tasks into tasks.md");
+writeFileSync(tasksPath, newContent, 'utf-8');
+console.log('Injected tasks into tasks.md');

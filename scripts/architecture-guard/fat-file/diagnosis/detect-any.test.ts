@@ -27,19 +27,12 @@
 //     가지지만 본 테스트는 `variable` 경로만 사용한다(현재 구현 계약을
 //     그대로 반영).
 
-import {
-  Arbitrary,
-  array,
-  assert as fcAssert,
-  nat,
-  oneof,
-  property,
-} from "fast-check";
-import { strict as assert } from "node:assert";
-import { test } from "node:test";
-import { detectAnyOccurrences } from "./detect-any.ts";
+import { Arbitrary, array, assert as fcAssert, nat, oneof, property } from 'fast-check';
+import { strict as assert } from 'node:assert';
+import { test } from 'node:test';
+import { detectAnyOccurrences } from './detect-any.ts';
 
-type Kind = "variable" | "assertion" | "array" | "generic" | "record";
+type Kind = 'variable' | 'assertion' | 'array' | 'generic' | 'record';
 type Injection = { readonly kind: Kind; readonly line: string };
 
 // --- generators ------------------------------------------------------------
@@ -47,27 +40,27 @@ type Injection = { readonly kind: Kind; readonly line: string };
 // Each injection arbitrary yields exactly one `any` token in a shape that
 // the detector classifies into a single context (see "Zero Magic" note).
 const variableInjection: Arbitrary<Injection> = nat({ max: 999 }).map((n) => ({
-  kind: "variable",
+  kind: 'variable',
   line: `let v${n}: any = 1`,
 }));
 
 const assertionInjection: Arbitrary<Injection> = nat({ max: 999 }).map((n) => ({
-  kind: "assertion",
+  kind: 'assertion',
   line: `const a${n} = x as any`,
 }));
 
 const arrayInjection: Arbitrary<Injection> = nat({ max: 999 }).map((n) => ({
-  kind: "array",
+  kind: 'array',
   line: `const arr${n}: any[] = []`,
 }));
 
 const genericInjection: Arbitrary<Injection> = nat({ max: 999 }).map((n) => ({
-  kind: "generic",
+  kind: 'generic',
   line: `const g${n} = foo<any>()`,
 }));
 
 const recordInjection: Arbitrary<Injection> = nat({ max: 999 }).map((n) => ({
-  kind: "record",
+  kind: 'record',
   line: `const r${n}: Record<string, any> = {}`,
 }));
 
@@ -81,29 +74,27 @@ const injectionArb: Arbitrary<Injection> = oneof(
 
 // Safe base line: ASCII only, never contains `any`, always evaluated as a
 // real code line by the detector's comment state machine.
-const baseLineArb: Arbitrary<string> = nat({ max: 9_999 }).map(
-  (n) => `const b${n} = ${n}`,
-);
+const baseLineArb: Arbitrary<string> = nat({ max: 9_999 }).map((n) => `const b${n} = ${n}`);
 
 type Chunk =
-  | { readonly kind: "base"; readonly line: string }
-  | { readonly kind: "injection"; readonly injection: Injection };
+  | { readonly kind: 'base'; readonly line: string }
+  | { readonly kind: 'injection'; readonly injection: Injection };
 
 const chunkArb: Arbitrary<Chunk> = oneof(
-  baseLineArb.map((line): Chunk => ({ kind: "base", line })),
-  injectionArb.map((injection): Chunk => ({ kind: "injection", injection })),
+  baseLineArb.map((line): Chunk => ({ kind: 'base', line })),
+  injectionArb.map((injection): Chunk => ({ kind: 'injection', injection })),
 ) as Arbitrary<Chunk>;
 
 // --- Property 5 ------------------------------------------------------------
 
-test("Property 5: detectAnyOccurrences recovers every injected any with correct line and context", () => {
+test('Property 5: detectAnyOccurrences recovers every injected any with correct line and context', () => {
   fcAssert(
     property(array(chunkArb, { maxLength: 40 }), (chunks) => {
       const lines: string[] = [];
       const expected: { line: number; context: Kind }[] = [];
 
       for (const chunk of chunks) {
-        if (chunk.kind === "base") {
+        if (chunk.kind === 'base') {
           lines.push(chunk.line);
         } else {
           lines.push(chunk.injection.line);
@@ -116,7 +107,7 @@ test("Property 5: detectAnyOccurrences recovers every injected any with correct 
         }
       }
 
-      const source = lines.join("\n");
+      const source = lines.join('\n');
       const got = detectAnyOccurrences(source);
 
       // 1) cardinality
@@ -138,35 +129,35 @@ test("Property 5: detectAnyOccurrences recovers every injected any with correct 
 
 // --- Unit tests: comment-line exclusion -----------------------------------
 
-test("line comments and block comments never produce any occurrences", () => {
+test('line comments and block comments never produce any occurrences', () => {
   const source = [
-    "// let x: any = 1",
-    "/* single-line any block */",
-    "/*",
-    " * let y: any = 2",
-    " */",
-    "{/* jsx any stuff */}",
-  ].join("\n");
+    '// let x: any = 1',
+    '/* single-line any block */',
+    '/*',
+    ' * let y: any = 2',
+    ' */',
+    '{/* jsx any stuff */}',
+  ].join('\n');
 
   assert.deepEqual(detectAnyOccurrences(source), []);
 });
 
 // --- Unit tests: contract edges ------------------------------------------
 
-test("empty source yields no occurrences", () => {
-  assert.deepEqual(detectAnyOccurrences(""), []);
+test('empty source yields no occurrences', () => {
+  assert.deepEqual(detectAnyOccurrences(''), []);
 });
 
-test("multiple `any` tokens on one line are each reported with the right context", () => {
+test('multiple `any` tokens on one line are each reported with the right context', () => {
   // `(x: any, y: any) => any`:
   //   - two `: any` inside the parameter list → "parameter"
   //   - one `: any` preceded by `)`           → "return"
-  const source = "const f = (x: any, y: any): any => x";
+  const source = 'const f = (x: any, y: any): any => x';
   const got = detectAnyOccurrences(source);
 
   assert.equal(got.length, 3);
   assert.ok(got.every((o) => o.line === 1));
 
   const contexts = got.map((o) => o.context).sort();
-  assert.deepEqual(contexts, ["parameter", "parameter", "return"]);
+  assert.deepEqual(contexts, ['parameter', 'parameter', 'return']);
 });

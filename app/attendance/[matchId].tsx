@@ -1,25 +1,22 @@
-import { Box, Typography } from "@/components/ui";
-import { SafeLayout } from "@/components/ui/safe-layout";
-import type {
-  RNFormDataFile,
-  RNFormDataString,
-} from "@/src/features/match-attendance/queries";
+import { Box, Typography } from '@/components/ui';
+import { SafeLayout } from '@/components/ui/safe-layout';
+import type { RNFormDataFile, RNFormDataString } from '@/src/features/match-attendance/queries';
 import {
   attendanceKeys,
   useCreateAttendance,
   useMyAttendanceByMatchId,
   useUpdateAttendance,
-} from "@/src/features/match-attendance/queries";
-import { theme } from "@/src/styles/theme";
-import { Logger } from "@/src/utils/logger";
-import { Ionicons } from "@expo/vector-icons";
-import { useQueryClient } from "@tanstack/react-query";
-import { Image } from "expo-image";
-import * as ImageManipulator from "expo-image-manipulator";
-import * as ImagePicker from "expo-image-picker";
-import { router, useLocalSearchParams } from "expo-router";
-import { AttendanceEmptyState } from "@/src/features/match-attendance/components";
-import { useState } from "react";
+} from '@/src/features/match-attendance/queries';
+import { theme } from '@/src/styles/theme';
+import { Logger } from '@/src/utils/logger';
+import { Ionicons } from '@expo/vector-icons';
+import { useQueryClient } from '@tanstack/react-query';
+import { Image } from 'expo-image';
+import * as ImageManipulator from 'expo-image-manipulator';
+import * as ImagePicker from 'expo-image-picker';
+import { router, useLocalSearchParams } from 'expo-router';
+import { AttendanceEmptyState } from '@/src/features/match-attendance/components';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -29,7 +26,7 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-} from "react-native";
+} from 'react-native';
 
 /**
  * 레이아웃 고정 상수
@@ -51,7 +48,7 @@ const LOCAL_LAYOUT = {
 export default function AttendanceFormScreen() {
   const { matchId } = useLocalSearchParams<{ matchId: string }>();
   const matchIdNumber = Number(matchId);
-  const logger = Logger.category("APP");
+  const logger = Logger.category('APP');
 
   const { data: attendance, isLoading: isAttendanceLoading } =
     useMyAttendanceByMatchId(matchIdNumber);
@@ -59,8 +56,8 @@ export default function AttendanceFormScreen() {
   const updateAttendanceMutation = useUpdateAttendance();
   const queryClient = useQueryClient();
 
-  const [contents, setContents] = useState("");
-  const [seat, setSeat] = useState("");
+  const [contents, setContents] = useState('');
+  const [seat, setSeat] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [existingId, setExistingId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,19 +67,17 @@ export default function AttendanceFormScreen() {
   if (attendance && attendance.id !== prevAttendanceId) {
     setPrevAttendanceId(attendance.id);
     setExistingId(attendance.id);
-    setContents(attendance.contents || "");
-    setSeat(attendance.seat || "");
+    setContents(attendance.contents || '');
+    setSeat(attendance.seat || '');
     // 🛡️ [Senior Architect] images 필드 유무 및 타입 체크 강화
-    const safeImages = Array.isArray(attendance.images)
-      ? attendance.images
-      : [];
+    const safeImages = Array.isArray(attendance.images) ? attendance.images : [];
     setImages(safeImages.map((img) => img.imageUrl));
   } else if (!attendance && !isAttendanceLoading && prevAttendanceId !== null) {
     // 🎯 [Phase 36] 결정론적 상태 리셋: 데이터 부재 시(기록 없음 등) 폼 초기화
     setPrevAttendanceId(null);
     setExistingId(null);
-    setContents("");
-    setSeat("");
+    setContents('');
+    setSeat('');
     setImages([]);
   }
 
@@ -117,7 +112,7 @@ export default function AttendanceFormScreen() {
    */
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
+      mediaTypes: ['images'],
       allowsMultipleSelection: true,
       selectionLimit: 5 - images.length,
       quality: 1,
@@ -143,7 +138,7 @@ export default function AttendanceFormScreen() {
    */
   const handleSubmit = async () => {
     if (!seat.trim()) {
-      Alert.alert("알림", "좌석 정보를 입력해주세요.");
+      Alert.alert('알림', '좌석 정보를 입력해주세요.');
       return;
     }
 
@@ -156,13 +151,13 @@ export default function AttendanceFormScreen() {
       const requestDto = existingId
         ? {
             seat: seat.trim(),
-            contents: contents?.trim() || "",
-            oldImageUrls: images.filter((img) => img.startsWith("http")),
+            contents: contents?.trim() || '',
+            oldImageUrls: images.filter((img) => img.startsWith('http')),
           }
         : {
             matchId: matchIdNumber,
             seat: seat.trim(),
-            contents: contents?.trim() || "",
+            contents: contents?.trim() || '',
           };
 
       /**
@@ -170,10 +165,10 @@ export default function AttendanceFormScreen() {
        * FormData.append()가 자동으로 문자열을 Blob으로 변환함
        */
       const requestPart: RNFormDataString = JSON.stringify(requestDto);
-      formData.append("request", requestPart as unknown as Blob);
+      formData.append('request', requestPart as unknown as Blob);
 
       // New Image Processing
-      const newImages = images.filter((img) => !img.startsWith("http"));
+      const newImages = images.filter((img) => !img.startsWith('http'));
       for (const uri of newImages) {
         const manipulatedImage = await ImageManipulator.manipulateAsync(
           uri,
@@ -187,10 +182,10 @@ export default function AttendanceFormScreen() {
         const imagePart: RNFormDataFile = {
           uri: manipulatedImage.uri,
           name: filename,
-          type: "image/jpeg",
+          type: 'image/jpeg',
         };
 
-        formData.append("images", imagePart as unknown as Blob);
+        formData.append('images', imagePart as unknown as Blob);
       }
 
       if (existingId) {
@@ -207,15 +202,15 @@ export default function AttendanceFormScreen() {
       // 사용자가 Alert을 확인하는 동안 갱신이 진행되도록 await 대신 void 사용.
       queryClient
         .invalidateQueries({ queryKey: attendanceKeys.byMatch(matchIdNumber) })
-        .catch((err) => logger.error("Invalidate failed", err));
+        .catch((err) => logger.error('Invalidate failed', err));
 
-      Alert.alert("성공", "직관 기록을 저장했어요.", [
-        { text: "확인", onPress: () => router.replace("/(tabs)/history") },
+      Alert.alert('성공', '직관 기록을 저장했어요.', [
+        { text: '확인', onPress: () => router.replace('/(tabs)/history') },
       ]);
     } catch (error) {
       // 🚨 [Phase 37] 관측성 확보: 운영 환경 디버깅을 위해 에러 로깅 추가 (UX용 Alert는 유지)
-      logger.error("save failed", error);
-      Alert.alert("알림", "기록을 저장하지 못했어요.");
+      logger.error('save failed', error);
+      Alert.alert('알림', '기록을 저장하지 못했어요.');
     } finally {
       setIsSubmitting(false);
     }
@@ -224,7 +219,7 @@ export default function AttendanceFormScreen() {
   return (
     <SafeLayout style={styles.safeLayout}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.flex1}
       >
         <ScrollView contentContainerStyle={styles.container}>
@@ -275,11 +270,7 @@ export default function AttendanceFormScreen() {
                   style={[styles.imagePickerButton, localStyles.noMargin]}
                   onPress={pickImage}
                 >
-                  <Ionicons
-                    name="camera-outline"
-                    size={32}
-                    color={theme.colors.text.secondary}
-                  />
+                  <Ionicons name="camera-outline" size={32} color={theme.colors.text.secondary} />
                   <Typography variant="caption" color="text.secondary" mt="xs">
                     {images.length}/5
                   </Typography>
@@ -288,20 +279,9 @@ export default function AttendanceFormScreen() {
 
               {images.map((uri, index) => (
                 <Box key={uri} position="relative">
-                  <Image
-                    source={{ uri }}
-                    style={styles.thumbnail}
-                    contentFit="cover"
-                  />
-                  <TouchableOpacity
-                    style={styles.removeButton}
-                    onPress={() => removeImage(index)}
-                  >
-                    <Ionicons
-                      name="close"
-                      size={14}
-                      color={theme.colors.background}
-                    />
+                  <Image source={{ uri }} style={styles.thumbnail} contentFit="cover" />
+                  <TouchableOpacity style={styles.removeButton} onPress={() => removeImage(index)}>
+                    <Ionicons name="close" size={14} color={theme.colors.background} />
                   </TouchableOpacity>
                 </Box>
               ))}
@@ -362,10 +342,10 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.md,
     backgroundColor: theme.colors.surface,
     borderWidth: theme.colors.border.width.light,
-    borderStyle: "dashed",
+    borderStyle: 'dashed',
     borderColor: theme.colors.border.medium,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: theme.spacing.sm,
   },
   thumbnail: {
@@ -374,15 +354,15 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius.md,
   },
   removeButton: {
-    position: "absolute",
+    position: 'absolute',
     top: -theme.spacing.xs,
     right: -theme.spacing.xs,
     backgroundColor: theme.colors.error,
     width: LOCAL_LAYOUT.removeButtonSize,
     height: LOCAL_LAYOUT.removeButtonSize,
     borderRadius: theme.radius.full,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: theme.colors.border.width.medium,
     borderColor: theme.colors.background,
   },
@@ -390,8 +370,8 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.brand.mint,
     height: LOCAL_LAYOUT.submitButtonHeight,
     borderRadius: theme.radius.lg,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: theme.spacing.md,
     marginBottom: theme.spacing.xxl,
   },
@@ -402,7 +382,7 @@ const styles = StyleSheet.create({
 
 const localStyles = StyleSheet.create({
   imageWrap: {
-    flexWrap: "wrap",
+    flexWrap: 'wrap',
     gap: theme.spacing.sm,
   },
   noMargin: {

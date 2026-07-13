@@ -1,7 +1,7 @@
-import { theme } from "@/src/styles/theme";
-import React, { ComponentProps } from "react";
-import { StyleProp, TextStyle } from "react-native";
-import { TextInput } from "react-native-paper";
+import { theme } from '@/src/styles/theme';
+import React, { ComponentProps } from 'react';
+import { StyleProp, TextStyle } from 'react-native';
+import { TextInput } from 'react-native-paper';
 
 /**
  * Input 컴포넌트 속성
@@ -20,7 +20,7 @@ interface InputProps {
   /** 에러 상태 */
   error?: boolean;
   /** 키보드 타입 */
-  keyboardType?: "default" | "email-address" | "numeric" | "phone-pad";
+  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
   /** 전체 너비 차지 */
   fullWidth?: boolean;
   /** 커스텀 스타일 */
@@ -53,7 +53,7 @@ export const Input: React.FC<InputProps> = ({
   secureTextEntry = false,
   disabled = false,
   error = false,
-  keyboardType = "default",
+  keyboardType = 'default',
   fullWidth = false,
   style,
   label,
@@ -68,7 +68,7 @@ export const Input: React.FC<InputProps> = ({
     secureTextEntry,
     disabled,
     error,
-    mode: "outlined",
+    mode: 'outlined',
     keyboardType,
     multiline,
     outlineColor: theme.colors.border.medium,
@@ -80,7 +80,7 @@ export const Input: React.FC<InputProps> = ({
         backgroundColor: theme.colors.surface,
         fontSize: theme.typography.size.md,
       },
-      fullWidth ? { width: "100%" } : null,
+      fullWidth ? { width: '100%' } : null,
       style,
     ] as StyleProp<TextStyle>,
     theme: {

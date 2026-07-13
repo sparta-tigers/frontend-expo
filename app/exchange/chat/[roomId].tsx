@@ -1,13 +1,13 @@
 // app/exchange/chat/[roomId].tsx
-import { styles } from "@/src/features/chat/chatRoom.styles";
-import { ChatMessage, useChatRoom } from "@/src/features/chat/useChatRoom";
-import { itemsUpdateStatusAPI } from "@/src/features/exchange/api";
-import { useAuth } from "@/src/hooks/useAuth";
-import { theme } from "@/src/styles/theme";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { exchangeKeys } from "@/src/features/exchange/keys";
-import { useLocalSearchParams } from "expo-router";
-import { useCallback } from "react";
+import { styles } from '@/src/features/chat/chatRoom.styles';
+import { ChatMessage, useChatRoom } from '@/src/features/chat/useChatRoom';
+import { itemsUpdateStatusAPI } from '@/src/features/exchange/api';
+import { useAuth } from '@/src/hooks/useAuth';
+import { theme } from '@/src/styles/theme';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { exchangeKeys } from '@/src/features/exchange/keys';
+import { useLocalSearchParams } from 'expo-router';
+import { useCallback } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -18,7 +18,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from "react-native";
+} from 'react-native';
 
 /**
  * ChatRoomScreen (Orchestrator)
@@ -34,16 +34,10 @@ export default function ChatRoomScreen() {
 
   // 🛠️ 거래 상태 변경 뮤테이션 (상위 레이어로 이동)
   const { mutateAsync: updateStatus } = useMutation({
-    mutationFn: async ({
-      itemId,
-      status,
-    }: {
-      itemId: number;
-      status: "COMPLETE" | "CANCEL";
-    }) => {
+    mutationFn: async ({ itemId, status }: { itemId: number; status: 'COMPLETE' | 'CANCEL' }) => {
       const response = await itemsUpdateStatusAPI(itemId, status);
-      if (response.resultType !== "SUCCESS") {
-        throw new Error(response.error?.message || "Update failed");
+      if (response.resultType !== 'SUCCESS') {
+        throw new Error(response.error?.message || 'Update failed');
       }
       return response;
     },
@@ -51,26 +45,24 @@ export default function ChatRoomScreen() {
       // 🔄 전역 캐시 동기화 (Zero Magic: 도메인 지식이 상위 레이어에 응집됨)
       const invalidations = [
         queryClient.invalidateQueries({
-          queryKey: ["exchangeItem", roomIdNumber],
+          queryKey: ['exchangeItem', roomIdNumber],
           exact: true,
         }),
         queryClient.invalidateQueries({ queryKey: exchangeKeys.items() }),
-        queryClient.invalidateQueries({ queryKey: ["myExchanges"] }),
+        queryClient.invalidateQueries({ queryKey: ['myExchanges'] }),
       ];
 
-      invalidations.push(
-        queryClient.invalidateQueries({ queryKey: exchangeKeys.myItems() }),
-      );
+      invalidations.push(queryClient.invalidateQueries({ queryKey: exchangeKeys.myItems() }));
 
       // 🛡️ Fail-safe: 개별 무효화 실패가 전체 UI 흐름(성공 알람)을 방해하지 않도록 보장
       await Promise.allSettled(invalidations);
-      Alert.alert("성공", "거래 상태를 변경했어요.");
+      Alert.alert('성공', '거래 상태를 변경했어요.');
     },
   });
 
   // 🔗 콜백 핸들러 정의
   const handleUpdateStatus = useCallback(
-    async (status: "COMPLETE" | "CANCEL", itemId: number) => {
+    async (status: 'COMPLETE' | 'CANCEL', itemId: number) => {
       await updateStatus({ itemId, status });
     },
     [updateStatus],
@@ -97,26 +89,22 @@ export default function ChatRoomScreen() {
 
   const keyExtractor = useCallback((item: ChatMessage) => String(item.id), []);
 
-  const renderItem = useCallback(({ item }: { item: ChatMessage }) => (
-    <View
-      style={[
-        styles.messageBubble,
-        item.isMine ? styles.myBubble : styles.otherBubble,
-      ]}
-    >
-      {!item.isMine ? (
-        <Text style={styles.senderName}>{item.senderName}</Text>
-      ) : null}
-      <Text
-        style={[
-          styles.messageText,
-          item.isMine ? styles.messageTextMine : styles.messageTextOther,
-        ]}
-      >
-        {item.content}
-      </Text>
-    </View>
-  ), []);
+  const renderItem = useCallback(
+    ({ item }: { item: ChatMessage }) => (
+      <View style={[styles.messageBubble, item.isMine ? styles.myBubble : styles.otherBubble]}>
+        {!item.isMine ? <Text style={styles.senderName}>{item.senderName}</Text> : null}
+        <Text
+          style={[
+            styles.messageText,
+            item.isMine ? styles.messageTextMine : styles.messageTextOther,
+          ]}
+        >
+          {item.content}
+        </Text>
+      </View>
+    ),
+    [],
+  );
 
   const handleEndReached = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
@@ -135,8 +123,8 @@ export default function ChatRoomScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
       {/* 아이템 헤더 */}
       <View style={styles.itemHeader}>
@@ -145,44 +133,34 @@ export default function ChatRoomScreen() {
         ) : exchangeItem ? (
           <View>
             <Text style={styles.itemTitle}>{exchangeItem.title}</Text>
-            <Text style={styles.itemDescription}>
-              {exchangeItem.description}
-            </Text>
+            <Text style={styles.itemDescription}>{exchangeItem.description}</Text>
             <Text style={styles.itemStatus}>
-              상태:{" "}
-              {exchangeItem.status === "REGISTERED"
-                ? "등록됨"
-                : exchangeItem.status === "COMPLETED"
-                  ? "교환 완료"
-                  : "교환 취소"}
+              상태:{' '}
+              {exchangeItem.status === 'REGISTERED'
+                ? '등록됨'
+                : exchangeItem.status === 'COMPLETED'
+                  ? '교환 완료'
+                  : '교환 취소'}
             </Text>
 
-            {exchangeItem.status === "REGISTERED" ? (
+            {exchangeItem.status === 'REGISTERED' ? (
               <View style={styles.statusButtons}>
                 {exchangeItem.ownerId === user?.userId ? (
                   <>
                     <TouchableOpacity
-                      onPress={() => handleStatusChange("COMPLETE")}
-                      style={[
-                        styles.statusButton,
-                        isProcessing && styles.processingButton,
-                      ]}
+                      onPress={() => handleStatusChange('COMPLETE')}
+                      style={[styles.statusButton, isProcessing && styles.processingButton]}
                       disabled={isProcessing}
                     >
                       {isProcessing ? (
                         <ActivityIndicator size="small" color="white" />
                       ) : (
-                        <Text style={styles.statusButtonText}>
-                          교환 완료하기
-                        </Text>
+                        <Text style={styles.statusButtonText}>교환 완료하기</Text>
                       )}
                     </TouchableOpacity>
                     <TouchableOpacity
-                      onPress={() => handleStatusChange("CANCEL")}
-                      style={[
-                        styles.statusButtonError,
-                        isProcessing && styles.processingButton,
-                      ]}
+                      onPress={() => handleStatusChange('CANCEL')}
+                      style={[styles.statusButtonError, isProcessing && styles.processingButton]}
                       disabled={isProcessing}
                     >
                       {isProcessing ? (
@@ -207,14 +185,10 @@ export default function ChatRoomScreen() {
       <View
         style={[
           styles.connectionStatus,
-          isConnected
-            ? styles.connectionStatusConnected
-            : styles.connectionStatusDisconnected,
+          isConnected ? styles.connectionStatusConnected : styles.connectionStatusDisconnected,
         ]}
       >
-        <Text style={styles.connectionStatusText}>
-          {isConnected ? "연결됨" : "연결 끊김"}
-        </Text>
+        <Text style={styles.connectionStatusText}>{isConnected ? '연결됨' : '연결 끊김'}</Text>
       </View>
 
       <FlatList
@@ -234,13 +208,13 @@ export default function ChatRoomScreen() {
           value={messageText}
           onChangeText={setMessageText}
           placeholder={
-            exchangeItem?.exchangeStatus === "PENDING"
-              ? "아직 수락 대기 중인 교환 요청이에요"
-              : exchangeItem?.exchangeStatus === "REJECTED"
-                ? "거절된 교환 요청이에요"
+            exchangeItem?.exchangeStatus === 'PENDING'
+              ? '아직 수락 대기 중인 교환 요청이에요'
+              : exchangeItem?.exchangeStatus === 'REJECTED'
+                ? '거절된 교환 요청이에요'
                 : isInputDisabled
-                  ? "종료된 교환이에요"
-                  : "메시지를 입력하세요"
+                  ? '종료된 교환이에요'
+                  : '메시지를 입력하세요'
           }
           placeholderTextColor={theme.colors.text.tertiary}
           editable={!isInputDisabled}
@@ -251,8 +225,7 @@ export default function ChatRoomScreen() {
           disabled={isInputDisabled || !messageText.trim()}
           style={[
             styles.sendButton,
-            (isInputDisabled || !messageText.trim()) &&
-              styles.sendButtonDisabled,
+            (isInputDisabled || !messageText.trim()) && styles.sendButtonDisabled,
           ]}
         >
           <Text style={styles.sendButtonText}>전송</Text>

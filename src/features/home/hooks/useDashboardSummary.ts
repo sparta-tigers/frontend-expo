@@ -1,6 +1,6 @@
-import { useAuth } from "@/context/AuthContext";
-import { useQuery } from "@tanstack/react-query";
-import { fetchDashboardSummary } from "../api";
+import { useAuth } from '@/context/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { fetchDashboardSummary } from '../api';
 
 /**
  * 홈 대시보드 요약 데이터를 가져오는 커스텀 훅
@@ -12,7 +12,7 @@ export const useDashboardSummary = () => {
   const { isLoggedIn } = useAuth();
 
   return useQuery({
-    queryKey: ["home", "dashboard", "summary"],
+    queryKey: ['home', 'dashboard', 'summary'],
     queryFn: fetchDashboardSummary,
     enabled: isLoggedIn, // 🚨 로그인 상태일 때만 쿼리 활성화
     staleTime: 1000 * 60 * 5, // 5분간 데이터 유지

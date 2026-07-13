@@ -1,25 +1,22 @@
-import { Box } from "@/components/ui/box";
-import { SafeLayout } from "@/components/ui/safe-layout";
-import { Typography } from "@/components/ui/typography";
-import { ChatPanel } from "@/src/features/liveboard/components/ChatPanel";
-import { LineupPanel } from "@/src/features/liveboard/components/LineupPanel";
-import { LiveSection } from "@/src/features/liveboard/components/LiveSection";
-import { TextBroadcastPanel } from "@/src/features/liveboard/components/TextBroadcastPanel";
-import { WeatherPanel } from "@/src/features/liveboard/components/WeatherPanel";
-import {
-  TABS,
-  useLiveboardScreen,
-} from "@/src/features/liveboard/hooks/useLiveboardScreen";
-import { styles } from "@/src/features/liveboard/styles/matchId.styles";
-import { theme } from "@/src/styles/theme";
-import { useEffect, useState } from "react";
+import { Box } from '@/components/ui/box';
+import { SafeLayout } from '@/components/ui/safe-layout';
+import { Typography } from '@/components/ui/typography';
+import { ChatPanel } from '@/src/features/liveboard/components/ChatPanel';
+import { LineupPanel } from '@/src/features/liveboard/components/LineupPanel';
+import { LiveSection } from '@/src/features/liveboard/components/LiveSection';
+import { TextBroadcastPanel } from '@/src/features/liveboard/components/TextBroadcastPanel';
+import { WeatherPanel } from '@/src/features/liveboard/components/WeatherPanel';
+import { TABS, useLiveboardScreen } from '@/src/features/liveboard/hooks/useLiveboardScreen';
+import { styles } from '@/src/features/liveboard/styles/matchId.styles';
+import { theme } from '@/src/styles/theme';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
   TouchableOpacity,
   useWindowDimensions,
   StyleSheet,
-} from "react-native";
+} from 'react-native';
 
 /**
  * 라이브보드 상세 화면
@@ -29,16 +26,8 @@ import {
  * 뷰는 오직 렌더링에만 집중하며, 복잡한 로직이나 useEffect 체인을 포함하지 않음.
  */
 export default function LiveboardDetailScreen() {
-  const {
-    matchId,
-    match,
-    liveData,
-    activeTab,
-    setActiveTab,
-    isLoading,
-    isError,
-    isValidMatchId,
-  } = useLiveboardScreen();
+  const { matchId, match, liveData, activeTab, setActiveTab, isLoading, isError, isValidMatchId } =
+    useLiveboardScreen();
 
   const { width } = useWindowDimensions();
   const tabIndex = TABS.findIndex((t) => t.key === activeTab);
@@ -56,7 +45,7 @@ export default function LiveboardDetailScreen() {
   // 🚨 Step 1: matchId 유효성 검사 (Fail-fast)
   if (!isValidMatchId) {
     return (
-      <SafeLayout style={styles.container} edges={["left", "right"]}>
+      <SafeLayout style={styles.container} edges={['left', 'right']}>
         <Box flex={1} justify="center" align="center" px="xl">
           <Typography color="error" variant="h3" weight="bold" center>
             잘못된 접근이에요.
@@ -72,7 +61,7 @@ export default function LiveboardDetailScreen() {
   // 🚀 Step 2: 정적 경기 정보(match) 로드 실패 시에만 전체 에러 화면 표시
   if (isError.match && !match) {
     return (
-      <SafeLayout style={styles.container} edges={["left", "right"]}>
+      <SafeLayout style={styles.container} edges={['left', 'right']}>
         <Box flex={1} justify="center" align="center" px="xl">
           <Typography color="error" variant="h3" weight="bold">
             경기 정보를 불러오지 못했어요
@@ -86,19 +75,11 @@ export default function LiveboardDetailScreen() {
   }
 
   return (
-    <SafeLayout style={styles.container} edges={["left", "right"]}>
+    <SafeLayout style={styles.container} edges={['left', 'right']}>
       {match ? (
-        <LiveSection
-          match={match}
-          liveData={liveData}
-          isLiveLoading={isLoading.live}
-        />
+        <LiveSection match={match} liveData={liveData} isLiveLoading={isLoading.live} />
       ) : (
-        <Box
-          align="center"
-          justify="center"
-          style={localStyles.loaderContainer}
-        >
+        <Box align="center" justify="center" style={localStyles.loaderContainer}>
           <ActivityIndicator color={theme.colors.brand.mint} />
         </Box>
       )}
@@ -114,10 +95,7 @@ export default function LiveboardDetailScreen() {
               accessibilityRole="button"
               accessibilityLabel={tab.label}
             >
-              <Typography
-                style={[styles.tabText, isActive && styles.tabTextActive]}
-                weight="bold"
-              >
+              <Typography style={[styles.tabText, isActive && styles.tabTextActive]} weight="bold">
                 {tab.label}
               </Typography>
             </TouchableOpacity>
@@ -136,7 +114,7 @@ export default function LiveboardDetailScreen() {
                   translateX: slideAnim.interpolate({
                     inputRange: TABS.map((_, i) => i),
                     outputRange: TABS.map((_, i) => -width * i),
-                    extrapolate: "clamp",
+                    extrapolate: 'clamp',
                   }),
                 },
               ],
@@ -145,37 +123,37 @@ export default function LiveboardDetailScreen() {
         >
           <Box
             style={[localStyles.tabPanel, { width }]}
-            accessibilityElementsHidden={activeTab !== "chat"}
-            importantForAccessibility={activeTab !== "chat" ? "no-hide-descendants" : "auto"}
+            accessibilityElementsHidden={activeTab !== 'chat'}
+            importantForAccessibility={activeTab !== 'chat' ? 'no-hide-descendants' : 'auto'}
           >
-            {activeTab === "chat" && <ChatPanel matchId={matchId} />}
+            {activeTab === 'chat' && <ChatPanel matchId={matchId} />}
           </Box>
 
           <Box
             style={[localStyles.tabPanel, { width }]}
-            accessibilityElementsHidden={activeTab !== "text"}
-            importantForAccessibility={activeTab !== "text" ? "no-hide-descendants" : "auto"}
+            accessibilityElementsHidden={activeTab !== 'text'}
+            importantForAccessibility={activeTab !== 'text' ? 'no-hide-descendants' : 'auto'}
           >
             <TextBroadcastPanel
               inningTexts={liveData?.inningTexts}
-              isVisible={activeTab === "text"}
+              isVisible={activeTab === 'text'}
             />
           </Box>
 
           <Box
             style={[localStyles.tabPanel, { width }]}
-            accessibilityElementsHidden={activeTab !== "lineup"}
-            importantForAccessibility={activeTab !== "lineup" ? "no-hide-descendants" : "auto"}
+            accessibilityElementsHidden={activeTab !== 'lineup'}
+            importantForAccessibility={activeTab !== 'lineup' ? 'no-hide-descendants' : 'auto'}
           >
-            {activeTab === "lineup" && match && <LineupPanel match={match} />}
+            {activeTab === 'lineup' && match && <LineupPanel match={match} />}
           </Box>
 
           <Box
             style={[localStyles.tabPanel, { width }]}
-            accessibilityElementsHidden={activeTab !== "weather"}
-            importantForAccessibility={activeTab !== "weather" ? "no-hide-descendants" : "auto"}
+            accessibilityElementsHidden={activeTab !== 'weather'}
+            importantForAccessibility={activeTab !== 'weather' ? 'no-hide-descendants' : 'auto'}
           >
-            {activeTab === "weather" && <WeatherPanel matchId={matchId} />}
+            {activeTab === 'weather' && <WeatherPanel matchId={matchId} />}
           </Box>
         </Animated.View>
       </Box>
@@ -185,12 +163,12 @@ export default function LiveboardDetailScreen() {
 
 const localStyles = StyleSheet.create({
   loaderContainer: {
-    width: "100%",
+    width: '100%',
     aspectRatio: 360 / 274,
   },
   animatedContainer: {
     flex: 1,
-    flexDirection: "row",
+    flexDirection: 'row',
   },
   tabPanel: {
     flex: 1,

@@ -23,9 +23,9 @@
 //
 // Requirements covered: 2.1, 2.2, 2.3, 2.4.
 
-import type { Diagnosis, ScanResult } from "../types.ts";
-import { classifyConcerns } from "./classify-concern.ts";
-import { detectAnyOccurrences } from "./detect-any.ts";
+import type { Diagnosis, ScanResult } from '../types.ts';
+import { classifyConcerns } from './classify-concern.ts';
+import { detectAnyOccurrences } from './detect-any.ts';
 
 /**
  * Diagnose a single Fat File.
@@ -82,14 +82,6 @@ export function diagnoseAll(
 // reference `scripts/fat-file/diagnosis`. The original modules remain
 // importable directly for co-located tests.
 
-export {
-  classifyBlock,
-  classifyConcerns,
-  splitTopLevelBlocks,
-} from "./classify-concern.ts";
-export type {
-  ClassifiedBlock,
-  ClassifyConcernsResult,
-  TopLevelBlock,
-} from "./classify-concern.ts";
-export { detectAnyOccurrences } from "./detect-any.ts";
+export { classifyBlock, classifyConcerns, splitTopLevelBlocks } from './classify-concern.ts';
+export type { ClassifiedBlock, ClassifyConcernsResult, TopLevelBlock } from './classify-concern.ts';
+export { detectAnyOccurrences } from './detect-any.ts';

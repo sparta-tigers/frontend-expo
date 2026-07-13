@@ -1,23 +1,19 @@
-import { Logger } from "@/src/utils/logger";
-import * as Notifications from "expo-notifications";
-import { useEffect, useRef } from "react";
+import { Logger } from '@/src/utils/logger';
+import * as Notifications from 'expo-notifications';
+import { useEffect, useRef } from 'react';
 
 export function useNotificationListeners() {
-  const notificationListener = useRef<Notifications.EventSubscription | null>(
-    null,
-  );
+  const notificationListener = useRef<Notifications.EventSubscription | null>(null);
   const responseListener = useRef<Notifications.EventSubscription | null>(null);
 
   useEffect(() => {
-    notificationListener.current =
-      Notifications.addNotificationReceivedListener((notification) => {
-        Logger.info("알림 수신: ", notification);
-      });
+    notificationListener.current = Notifications.addNotificationReceivedListener((notification) => {
+      Logger.info('알림 수신: ', notification);
+    });
 
-    responseListener.current =
-      Notifications.addNotificationResponseReceivedListener((response) => {
-        Logger.info("알림 클릭: ", response);
-      });
+    responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
+      Logger.info('알림 클릭: ', response);
+    });
 
     return () => {
       if (notificationListener.current) {

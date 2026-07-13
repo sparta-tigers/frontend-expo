@@ -1,7 +1,7 @@
 // Feature: fat-file-refactoring
-import { writeFileSync, existsSync, mkdirSync } from "node:fs";
-import { pathToFileURL } from "node:url";
-import { runTsc } from "./tsc-diff.ts";
+import { writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
+import { runTsc } from './tsc-diff.ts';
 
 /**
  * TypeScript 컴파일 오류를 파일로 저장합니다 (베이스라인 캡처).
@@ -13,17 +13,14 @@ import { runTsc } from "./tsc-diff.ts";
  */
 export function captureBaseline(outputPath: string): void {
   const errors = runTsc();
-  writeFileSync(outputPath, errors.join("\n"), "utf-8");
+  writeFileSync(outputPath, errors.join('\n'), 'utf-8');
   console.log(`Captured ${errors.length} TS errors into ${outputPath}`);
 }
 
 // Allow running from CLI
 // Why: 문자열 템플릿 조합은 Windows 경로 등 특수 환경을 올바르게 처리하지 못함.
 //      pathToFileURL은 표준화된 URL 형식을 제공한다.
-if (
-  process.argv[1] &&
-  import.meta.url === pathToFileURL(process.argv[1]).href
-) {
-  const target = process.argv[2] || "tsc-baseline.txt";
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const target = process.argv[2] || 'tsc-baseline.txt';
   captureBaseline(target);
 }

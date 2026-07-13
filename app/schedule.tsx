@@ -1,15 +1,15 @@
-import { Box, Typography } from "@/components/ui";
-import { ScheduleSkeleton } from "@/src/features/home/components/ScheduleSkeleton";
-import { useScheduleScreen } from "@/src/features/schedule/hooks/useScheduleScreen";
-import { LeagueType } from "@/src/shared/types/match";
-import { ThemeColorPath } from "@/src/shared/types/theme";
-import { theme } from "@/src/styles/theme";
-import { findTeamMeta, TeamMeta } from "@/src/utils/team";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { router, Stack } from "expo-router";
-import React from "react";
-import { Pressable, StyleSheet, TouchableOpacity } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Box, Typography } from '@/components/ui';
+import { ScheduleSkeleton } from '@/src/features/home/components/ScheduleSkeleton';
+import { useScheduleScreen } from '@/src/features/schedule/hooks/useScheduleScreen';
+import { LeagueType } from '@/src/shared/types/match';
+import { ThemeColorPath } from '@/src/shared/types/theme';
+import { theme } from '@/src/styles/theme';
+import { findTeamMeta, TeamMeta } from '@/src/utils/team';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { router, Stack } from 'expo-router';
+import React from 'react';
+import { Pressable, StyleSheet, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // ========================================================
 // 레이아웃 상수 (LOCAL_LAYOUT)
@@ -36,30 +36,17 @@ const BrandingHeader = React.memo<{ team: TeamMeta }>(({ team }) => {
       borderBottomWidth={StyleSheet.hairlineWidth}
       borderColor="team.neutralLight"
     >
-      <Box
-        height={LOCAL_LAYOUT.headerHeight}
-        flexDir="row"
-        align="center"
-        justify="space-between"
-      >
+      <Box height={LOCAL_LAYOUT.headerHeight} flexDir="row" align="center" justify="space-between">
         <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
-          <MaterialIcons
-            name="arrow-back-ios"
-            size={24}
-            color={theme.colors.brand.subtitle}
-          />
+          <MaterialIcons name="arrow-back-ios" size={24} color={theme.colors.brand.subtitle} />
         </TouchableOpacity>
 
         <Box flexDir="row" align="center">
           <Typography variant="h2" weight="bold" color="text.primary" mr="xs">
-            {team?.shortName?.toUpperCase() || "KBO"}
+            {team?.shortName?.toUpperCase() || 'KBO'}
           </Typography>
-          <Typography
-            variant="h2"
-            weight="bold"
-            color={`team.${team?.colorToken || "fallback"}`}
-          >
-            {team?.subName?.toUpperCase() || "TEAM"}
+          <Typography variant="h2" weight="bold" color={`team.${team?.colorToken || 'fallback'}`}>
+            {team?.subName?.toUpperCase() || 'TEAM'}
           </Typography>
         </Box>
 
@@ -68,20 +55,20 @@ const BrandingHeader = React.memo<{ team: TeamMeta }>(({ team }) => {
 
       <Box align="center" pb="md">
         <Typography variant="h1" style={styles.mascotEmoji}>
-          {team?.mascotEmoji || "⚾"}
+          {team?.mascotEmoji || '⚾'}
         </Typography>
       </Box>
     </Box>
   );
 });
-BrandingHeader.displayName = "BrandingHeader";
+BrandingHeader.displayName = 'BrandingHeader';
 
 const leagueLabelMap: Record<LeagueType, string> = {
-  PRESEASON: "시범경기",
-  REGULAR: "정규리그",
-  POST_SEASON: "포스트시즌",
-  DREAM: "드림리그",
-  NANUM: "나눔리그",
+  PRESEASON: '시범경기',
+  REGULAR: '정규리그',
+  POST_SEASON: '포스트시즌',
+  DREAM: '드림리그',
+  NANUM: '나눔리그',
 };
 
 /**
@@ -99,13 +86,7 @@ export default function ScheduleScreen() {
     league: { type: leagueType, isDropdownOpen },
     calendar: { days, isFetching },
     maps: { attendanceMap, ticketAlarmMap },
-    handlers: {
-      handleMoveMonth,
-      handleSelectLeague,
-      toggleDropdown,
-      closeDropdown,
-      goToday,
-    },
+    handlers: { handleMoveMonth, handleSelectLeague, toggleDropdown, closeDropdown, goToday },
     isLoading,
     from,
   } = useScheduleScreen();
@@ -125,9 +106,7 @@ export default function ScheduleScreen() {
 
       {activeTeam ? <BrandingHeader team={activeTeam} /> : null}
 
-      {isDropdownOpen ? (
-        <Pressable style={styles.overlay} onPress={closeDropdown} />
-      ) : null}
+      {isDropdownOpen ? <Pressable style={styles.overlay} onPress={closeDropdown} /> : null}
 
       <Box style={styles.contentContainer}>
         <Box style={styles.dropdownContainer}>
@@ -141,11 +120,7 @@ export default function ScheduleScreen() {
               },
             ]}
           >
-            <Typography
-              variant="caption"
-              color={activeTeamColorPath}
-              weight="bold"
-            >
+            <Typography variant="caption" color={activeTeamColorPath} weight="bold">
               {leagueLabelMap[leagueType]} ∨
             </Typography>
           </TouchableOpacity>
@@ -166,8 +141,8 @@ export default function ScheduleScreen() {
                 >
                   <Typography
                     variant="body2"
-                    color={leagueType === type ? "brand.mint" : "text.primary"}
-                    weight={leagueType === type ? "bold" : "medium"}
+                    color={leagueType === type ? 'brand.mint' : 'text.primary'}
+                    weight={leagueType === type ? 'bold' : 'medium'}
                   >
                     {leagueLabelMap[type]}
                   </Typography>
@@ -178,46 +153,27 @@ export default function ScheduleScreen() {
         </Box>
 
         <Box flexDir="row" align="center" mb="xl">
-          <TouchableOpacity
-            onPress={() => handleMoveMonth(-1)}
-            style={styles.arrowBtn}
-          >
-            <MaterialIcons
-              name="chevron-left"
-              size={32}
-              color={theme.colors.text.secondary}
-            />
+          <TouchableOpacity onPress={() => handleMoveMonth(-1)} style={styles.arrowBtn}>
+            <MaterialIcons name="chevron-left" size={32} color={theme.colors.text.secondary} />
           </TouchableOpacity>
 
           <Typography variant="h3" weight="bold" mx="lg">
             {year}년 {month}월
           </Typography>
 
-          <TouchableOpacity
-            onPress={() => handleMoveMonth(1)}
-            style={styles.arrowBtn}
-          >
-            <MaterialIcons
-              name="chevron-right"
-              size={32}
-              color={theme.colors.text.secondary}
-            />
+          <TouchableOpacity onPress={() => handleMoveMonth(1)} style={styles.arrowBtn}>
+            <MaterialIcons name="chevron-right" size={32} color={theme.colors.text.secondary} />
           </TouchableOpacity>
         </Box>
 
         <Box style={styles.gridContainer} opacity={isFetching ? 0.5 : 1}>
-          <Box
-            flexDir="row"
-            bg="team.neutralLight"
-            roundedTop="lg"
-            overflow="hidden"
-          >
-            {["일", "월", "화", "수", "목", "금", "토"].map((d, i) => (
+          <Box flexDir="row" bg="team.neutralLight" roundedTop="lg" overflow="hidden">
+            {['일', '월', '화', '수', '목', '금', '토'].map((d, i) => (
               <Box key={d} flex={1} py="sm" align="center">
                 <Typography
                   variant="caption"
                   weight="bold"
-                  color={i === 0 || i === 6 ? "brand.mint" : "brand.subtitle"}
+                  color={i === 0 || i === 6 ? 'brand.mint' : 'brand.subtitle'}
                 >
                   {d}
                 </Typography>
@@ -237,9 +193,7 @@ export default function ScheduleScreen() {
               const todayDate = new Date();
               todayDate.setHours(0, 0, 0, 0);
               const isFuture = cellDate > todayDate;
-              const attendanceId = cell.matchId
-                ? attendanceMap.get(cell.matchId)
-                : null;
+              const attendanceId = cell.matchId ? attendanceMap.get(cell.matchId) : null;
 
               return (
                 <TouchableOpacity
@@ -256,7 +210,7 @@ export default function ScheduleScreen() {
                     if (isFuture) {
                       if (cell.matchId) {
                         router.push({
-                          pathname: "/ticket-alarm/[matchId]",
+                          pathname: '/ticket-alarm/[matchId]',
                           params: {
                             matchId: cell.matchId,
                             ...(from ? { from } : {}),
@@ -288,9 +242,7 @@ export default function ScheduleScreen() {
                         <Box flexDir="row" align="center">
                           <Typography
                             variant="caption"
-                            color={
-                              cell.isToday ? "brand.mint" : "text.secondary"
-                            }
+                            color={cell.isToday ? 'brand.mint' : 'text.secondary'}
                           >
                             {cell.day}
                           </Typography>
@@ -307,11 +259,7 @@ export default function ScheduleScreen() {
                                 style={styles.alarmIcon}
                               />
                             ) : null}
-                            <Typography
-                              variant="caption"
-                              weight="bold"
-                              color="brand.mint"
-                            >
+                            <Typography variant="caption" weight="bold" color="brand.mint">
                               {cell.location}
                             </Typography>
                           </Box>
@@ -322,22 +270,16 @@ export default function ScheduleScreen() {
                           <Box
                             bg={
                               cell.opponentCode
-                                ? (`team.${findTeamMeta(cell.opponentCode)?.colorToken || "fallback"}` as ThemeColorPath)
-                                : "team.neutralLight"
+                                ? (`team.${findTeamMeta(cell.opponentCode)?.colorToken || 'fallback'}` as ThemeColorPath)
+                                : 'team.neutralLight'
                             }
                             rounded="full"
                             p="xs"
                             mb="xxs"
                           >
-                            <Typography style={styles.matchBadgeText}>
-                              🏟️
-                            </Typography>
+                            <Typography style={styles.matchBadgeText}>🏟️</Typography>
                           </Box>
-                          <Typography
-                            variant="caption"
-                            style={styles.matchTimeText}
-                            weight="bold"
-                          >
+                          <Typography variant="caption" style={styles.matchTimeText} weight="bold">
                             {cell.timeText}
                           </Typography>
                         </Box>
@@ -352,10 +294,7 @@ export default function ScheduleScreen() {
 
         {year !== today.year || month !== today.month ? (
           <TouchableOpacity
-            style={[
-              styles.todayBtn,
-              { borderColor: activeTeam?.color || theme.colors.brand.mint },
-            ]}
+            style={[styles.todayBtn, { borderColor: activeTeam?.color || theme.colors.brand.mint }]}
             onPress={goToday}
             activeOpacity={0.7}
           >
@@ -364,12 +303,7 @@ export default function ScheduleScreen() {
               size={18}
               color={activeTeam?.color || theme.colors.brand.mint}
             />
-            <Typography
-              variant="caption"
-              weight="bold"
-              color={activeTeamColorPath}
-              ml="xs"
-            >
+            <Typography variant="caption" weight="bold" color={activeTeamColorPath} ml="xs">
               오늘로 돌아가기
             </Typography>
           </TouchableOpacity>
@@ -390,11 +324,11 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingHorizontal: theme.spacing.SCREEN,
     paddingVertical: theme.spacing.md,
-    alignItems: "center",
+    alignItems: 'center',
     zIndex: 10,
   },
   calendarCell: {
-    width: "14.285%",
+    width: '14.285%',
     height: LOCAL_LAYOUT.calendarCellHeight,
     borderRightWidth: StyleSheet.hairlineWidth,
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -412,13 +346,13 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   dropdownContainer: {
-    width: "100%",
-    alignItems: "center",
+    width: '100%',
+    alignItems: 'center',
     marginBottom: theme.spacing.xl,
     zIndex: 10,
   },
   dropdownMenu: {
-    position: "absolute",
+    position: 'absolute',
     top: LOCAL_LAYOUT.dropdownTop,
     width: LOCAL_LAYOUT.dropdownWidth,
     padding: theme.spacing.md,
@@ -435,7 +369,7 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.border.light,
   },
   gridContainer: {
-    width: "100%",
+    width: '100%',
   },
   arrowBtn: {
     padding: theme.spacing.md,
@@ -448,9 +382,9 @@ const styles = StyleSheet.create({
   },
   todayBtn: {
     marginTop: theme.spacing.xxl,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: theme.spacing.md,
     paddingHorizontal: theme.spacing.xxl,
     borderRadius: theme.radius.full,
@@ -459,9 +393,9 @@ const styles = StyleSheet.create({
     ...theme.shadow.card,
   },
   attendanceStamp: {
-    position: "absolute",
-    top: "15%",
-    left: "15%",
+    position: 'absolute',
+    top: '15%',
+    left: '15%',
     opacity: 0.8,
     zIndex: 1,
   },

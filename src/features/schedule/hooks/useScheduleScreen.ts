@@ -1,19 +1,14 @@
-import { useAuth } from "@/context/AuthContext";
-import { useMatchSchedule } from "@/src/features/match";
-import { useInfiniteMyAttendances } from "@/src/features/match-attendance";
-import { useTicketAlarms } from "@/src/features/ticket-alarm";
-import { useCalendarGrid } from "@/src/shared/hooks/useCalendarGrid";
-import { LeagueType } from "@/src/shared/types/match";
-import { ThemeColorPath } from "@/src/shared/types/theme";
-import {
-  getCurrentDay,
-  getCurrentMonth,
-  getCurrentYear,
-  getRelativeMonth,
-} from "@/src/utils/date";
-import { findTeamMeta, isValidTeamCode } from "@/src/utils/team";
-import { router, useLocalSearchParams } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useAuth } from '@/context/AuthContext';
+import { useMatchSchedule } from '@/src/features/match';
+import { useInfiniteMyAttendances } from '@/src/features/match-attendance';
+import { useTicketAlarms } from '@/src/features/ticket-alarm';
+import { useCalendarGrid } from '@/src/shared/hooks/useCalendarGrid';
+import { LeagueType } from '@/src/shared/types/match';
+import { ThemeColorPath } from '@/src/shared/types/theme';
+import { getCurrentDay, getCurrentMonth, getCurrentYear, getRelativeMonth } from '@/src/utils/date';
+import { findTeamMeta, isValidTeamCode } from '@/src/utils/team';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 
 /**
  * useScheduleScreen Facade Hook
@@ -30,7 +25,7 @@ const PAGINATION_CONFIG = {
 
 export const useScheduleScreen = () => {
   const { myTeam } = useAuth();
-  const activeTeamCode = myTeam && isValidTeamCode(myTeam) ? myTeam : "KIA";
+  const activeTeamCode = myTeam && isValidTeamCode(myTeam) ? myTeam : 'KIA';
 
   // 1. [SSOT] URL 파라미터 기반 상태 관리
   const params = useLocalSearchParams<{
@@ -48,18 +43,15 @@ export const useScheduleScreen = () => {
     () => (params.month ? parseInt(params.month) : getCurrentMonth()),
     [params.month],
   );
-  const leagueType = (params.leagueType as LeagueType) || "REGULAR";
+  const leagueType = (params.leagueType as LeagueType) || 'REGULAR';
   const from = params.from;
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // 2. [PERF] 구단 데이터 메모이제이션
-  const activeTeam = useMemo(
-    () => findTeamMeta(activeTeamCode),
-    [activeTeamCode],
-  );
+  const activeTeam = useMemo(() => findTeamMeta(activeTeamCode), [activeTeamCode]);
   const activeTeamColorPath = useMemo(
-    () => `team.${activeTeam?.colorToken || "fallback"}` as ThemeColorPath,
+    () => `team.${activeTeam?.colorToken || 'fallback'}` as ThemeColorPath,
     [activeTeam?.colorToken],
   );
 
@@ -107,23 +99,12 @@ export const useScheduleScreen = () => {
   }, [ticketAlarmsRes]);
 
   // 5. 캘린더 그리드 생성
-  const days = useCalendarGrid(
-    year,
-    month,
-    schedule || [],
-    today,
-    undefined,
-    attendanceMatchIds,
-  );
+  const days = useCalendarGrid(year, month, schedule || [], today, undefined, attendanceMatchIds);
 
   // 6. 상태 변경 핸들러 (URL 기반)
   const handleMoveMonth = useCallback(
     (offset: number) => {
-      const { year: nextYear, month: nextMonth } = getRelativeMonth(
-        year,
-        month,
-        offset,
-      );
+      const { year: nextYear, month: nextMonth } = getRelativeMonth(year, month, offset);
       router.setParams({
         year: nextYear.toString(),
         month: nextMonth.toString(),

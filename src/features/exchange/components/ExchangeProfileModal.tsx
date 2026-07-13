@@ -3,18 +3,11 @@
  *
  * "내 활동 관리" 바텀 모달 (내가 등록한 물건 / 종료된 교환 내역)
  */
-import { useTheme } from "@/hooks/useTheme";
-import { theme } from "@/src/styles/theme";
-import { Href, useRouter } from "expo-router";
-import React from "react";
-import {
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { useTheme } from '@/hooks/useTheme';
+import { theme } from '@/src/styles/theme';
+import { Href, useRouter } from 'expo-router';
+import React from 'react';
+import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 /** 모달 전용 레이아웃 상수 */
 const MODAL_LAYOUT = {
@@ -45,12 +38,7 @@ export const ExchangeProfileModal = React.memo(
     };
 
     return (
-      <Modal
-        visible={visible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={onClose}
-      >
+      <Modal visible={visible} transparent={true} animationType="slide" onRequestClose={onClose}>
         <Pressable style={styles.modalOverlay} onPress={onClose}>
           <Pressable style={styles.modalContent} onPress={() => {}}>
             <View style={styles.modalHeader}>
@@ -60,18 +48,18 @@ export const ExchangeProfileModal = React.memo(
 
             <TouchableOpacity
               style={styles.modalMenuButton}
-              onPress={() => handleNavigate("/exchange/my-items")}
+              onPress={() => handleNavigate('/exchange/my-items')}
             >
               <Text style={styles.modalMenuButtonText}>내가 등록한 물건</Text>
-              <Text style={styles.menuArrow}>{">"}</Text>
+              <Text style={styles.menuArrow}>{'>'}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.modalMenuButton}
-              onPress={() => handleNavigate("/exchange/history")}
+              onPress={() => handleNavigate('/exchange/history')}
             >
               <Text style={styles.modalMenuButtonText}>종료된 교환 내역</Text>
-              <Text style={styles.menuArrow}>{">"}</Text>
+              <Text style={styles.menuArrow}>{'>'}</Text>
             </TouchableOpacity>
           </Pressable>
         </Pressable>
@@ -80,13 +68,13 @@ export const ExchangeProfileModal = React.memo(
   },
 );
 
-ExchangeProfileModal.displayName = "ExchangeProfileModal";
+ExchangeProfileModal.displayName = 'ExchangeProfileModal';
 
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: theme.colors.overlay,
-    justifyContent: "flex-end",
+    justifyContent: 'flex-end',
   },
   modalContent: {
     backgroundColor: theme.colors.background,
@@ -96,7 +84,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.SCREEN,
   },
   modalHeader: {
-    alignItems: "center",
+    alignItems: 'center',
     paddingVertical: theme.spacing.COMPONENT,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border.light,
@@ -118,9 +106,9 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.COMPONENT,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border.light,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   modalMenuButtonText: {
     fontSize: theme.typography.size.BODY,

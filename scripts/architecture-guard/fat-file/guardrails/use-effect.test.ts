@@ -1,14 +1,14 @@
 // Feature: fat-file-refactoring, Property 12: useEffect 순증가 없음 및 동기화 이펙트 판별
-import { strict as assert } from "node:assert";
-import { test } from "node:test";
-import type { SourceFile } from "../types.ts";
-import { checkUseEffect } from "./use-effect.ts";
+import { strict as assert } from 'node:assert';
+import { test } from 'node:test';
+import type { SourceFile } from '../types.ts';
+import { checkUseEffect } from './use-effect.ts';
 
-test("Property 12: useEffect 순증가 없음 및 동기화 이펙트 판별", () => {
+test('Property 12: useEffect 순증가 없음 및 동기화 이펙트 판별', () => {
   const originalFile: SourceFile = {
-    absolutePath: "/path.tsx",
-    relativePath: "path.tsx",
-    extension: ".tsx",
+    absolutePath: '/path.tsx',
+    relativePath: 'path.tsx',
+    extension: '.tsx',
     content: `
       useEffect(() => {
         // ...
@@ -17,9 +17,9 @@ test("Property 12: useEffect 순증가 없음 및 동기화 이펙트 판별", (
   };
 
   const newFile1: SourceFile = {
-    absolutePath: "/path1.tsx",
-    relativePath: "path1.tsx",
-    extension: ".tsx",
+    absolutePath: '/path1.tsx',
+    relativePath: 'path1.tsx',
+    extension: '.tsx',
     content: `
       useEffect(() => {
         // ...
@@ -28,9 +28,9 @@ test("Property 12: useEffect 순증가 없음 및 동기화 이펙트 판별", (
   };
 
   const newFile2: SourceFile = {
-    absolutePath: "/path2.tsx",
-    relativePath: "path2.tsx",
-    extension: ".tsx",
+    absolutePath: '/path2.tsx',
+    relativePath: 'path2.tsx',
+    extension: '.tsx',
     content: `
       useEffect(() => {
         // ...

@@ -1,2 +1,2 @@
 // 🚀 Public Hooks
-export { useTicketAlarmCount, useTicketAlarms } from "./hooks/useTicketAlarm";
+export { useTicketAlarmCount, useTicketAlarms } from './hooks/useTicketAlarm';

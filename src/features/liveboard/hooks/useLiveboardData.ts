@@ -1,9 +1,9 @@
 // src/features/liveboard/hooks/useLiveboardData.ts
-import { fetchMatchRoom } from "@/src/features/match";
+import { fetchMatchRoom } from '@/src/features/match';
 
-import { useQuery } from "@tanstack/react-query";
-import { LiveboardMapper } from "../mapper";
-import { LiveboardData } from "../types";
+import { useQuery } from '@tanstack/react-query';
+import { LiveboardMapper } from '../mapper';
+import { LiveboardData } from '../types';
 
 /**
  * 🛰️ useLiveboardData: 특정 경기의 실시간 중계 데이터를 조회하는 Hook
@@ -15,15 +15,13 @@ import { LiveboardData } from "../types";
  */
 export const useLiveboardData = (matchId: number) => {
   return useQuery<LiveboardData>({
-    queryKey: ["liveboard", "data", matchId],
+    queryKey: ['liveboard', 'data', matchId],
     queryFn: async (): Promise<LiveboardData> => {
       try {
         const room = await fetchMatchRoom(matchId);
 
         if (!room) {
-          throw new Error(
-            `[useLiveboardData] Room not found for ID: ${matchId}`,
-          );
+          throw new Error(`[useLiveboardData] Room not found for ID: ${matchId}`);
         }
 
         return LiveboardMapper.toLiveboardData(room);

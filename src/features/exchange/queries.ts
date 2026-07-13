@@ -1,6 +1,6 @@
-import { useAuth } from "@/src/hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
-import { checkHasActiveItemAPI } from "./api";
+import { useAuth } from '@/src/hooks/useAuth';
+import { useQuery } from '@tanstack/react-query';
+import { checkHasActiveItemAPI } from './api';
 
 /**
  * 현재 사용자의 활성 아이템 존재 여부를 확인하는 훅
@@ -13,10 +13,10 @@ export const useCheckActiveItem = () => {
   const { isLoggedIn } = useAuth();
 
   return useQuery({
-    queryKey: ["activeItemCheck"],
+    queryKey: ['activeItemCheck'],
     queryFn: async () => {
       const response = await checkHasActiveItemAPI();
-      if (response.resultType === "SUCCESS") {
+      if (response.resultType === 'SUCCESS') {
         return response.data;
       }
       return false;

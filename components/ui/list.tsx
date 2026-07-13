@@ -1,5 +1,5 @@
-import { theme } from "@/src/styles/theme";
-import React from "react";
+import { theme } from '@/src/styles/theme';
+import React from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
   ViewStyle,
-} from "react-native";
+} from 'react-native';
 
 /**
  * 리스트 아이템 속성
@@ -80,7 +80,7 @@ export const List = <T,>({
   refreshing = false,
   onRefresh,
   onEndReached,
-  emptyMessage = "데이터가 없어요.",
+  emptyMessage = '데이터가 없어요.',
   style,
   contentContainerStyle,
   showSeparator = true,
@@ -93,21 +93,12 @@ export const List = <T,>({
   const renderSeparator = () => {
     if (!showSeparator) return null;
 
-    return (
-      <View
-        style={[
-          styles.separator,
-          { backgroundColor: theme.colors.border.medium },
-        ]}
-      />
-    );
+    return <View style={[styles.separator, { backgroundColor: theme.colors.border.medium }]} />;
   };
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
-      <Text style={[styles.emptyText, { color: theme.colors.text.primary }]}>
-        {emptyMessage}
-      </Text>
+      <Text style={[styles.emptyText, { color: theme.colors.text.primary }]}>{emptyMessage}</Text>
     </View>
   );
 
@@ -116,9 +107,7 @@ export const List = <T,>({
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color={theme.colors.primary} />
-          <Text
-            style={[styles.loadingText, { color: theme.colors.text.primary }]}
-          >
+          <Text style={[styles.loadingText, { color: theme.colors.text.primary }]}>
             더 불러오는 중...
           </Text>
         </View>
@@ -129,33 +118,17 @@ export const List = <T,>({
 
   if (loading && data.length === 0) {
     return (
-      <View
-        style={[
-          styles.container,
-          { backgroundColor: theme.colors.surface },
-          style,
-        ]}
-      >
+      <View style={[styles.container, { backgroundColor: theme.colors.surface }, style]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
-          <Text
-            style={[styles.loadingText, { color: theme.colors.text.primary }]}
-          >
-            로딩 중...
-          </Text>
+          <Text style={[styles.loadingText, { color: theme.colors.text.primary }]}>로딩 중...</Text>
         </View>
       </View>
     );
   }
 
   return (
-    <View
-      style={[
-        styles.container,
-        { backgroundColor: theme.colors.background },
-        style,
-      ]}
-    >
+    <View style={[styles.container, { backgroundColor: theme.colors.background }, style]}>
       <FlatList
         data={data}
         renderItem={renderItem}
@@ -201,11 +174,7 @@ export const List = <T,>({
  *
  * 리스트 개별 아이템을 표시
  */
-export const ListItem: React.FC<ListItemProps> = ({
-  content,
-  onPress,
-  style,
-}) => {
+export const ListItem: React.FC<ListItemProps> = ({ content, onPress, style }) => {
   return (
     <TouchableOpacity
       style={[styles.item, { backgroundColor: theme.colors.surface }, style]}
@@ -231,8 +200,8 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingVertical: 60,
   },
   emptyContent: {
@@ -240,12 +209,12 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
   },
   loadingContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingVertical: 20,
     gap: 8,
   },

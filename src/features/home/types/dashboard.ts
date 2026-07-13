@@ -1,6 +1,6 @@
 // src/features/home/types/dashboard.ts
-import { IconSymbolName } from "@/components/ui/icon-symbol";
-import { LineupRowDto } from "@/src/shared/types/lineup";
+import { IconSymbolName } from '@/components/ui/icon-symbol';
+import { LineupRowDto } from '@/src/shared/types/lineup';
 
 /**
  * 미니 통계(카드) 데이터 모델
@@ -8,12 +8,12 @@ import { LineupRowDto } from "@/src/shared/types/lineup";
  * Why: 홈 화면 상단의 핵심 요약 정보(직관 횟수, 알람 등)를 카드 형태로 렌더링하기 위함.
  */
 export interface MiniStatDto {
-  key: "visits" | "alarms" | "remainingGames";
+  key: 'visits' | 'alarms' | 'remainingGames';
   valueText: string;
   label: string;
   /** 표시할 아이콘 이름 — IconSymbolName으로 제한하여 타입 안전성 확보 */
   iconName: IconSymbolName;
-  tone: "pink" | "yellow" | "green";
+  tone: 'pink' | 'yellow' | 'green';
 }
 
 /**

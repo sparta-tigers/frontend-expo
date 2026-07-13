@@ -1,21 +1,17 @@
-import { useAuth } from "@/context/AuthContext";
-import { Logger } from "@/src/utils/logger";
-import { getAccessToken } from "@/src/utils/tokenStore";
-import { Client } from "@stomp/stompjs";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Platform } from "react-native";
-import SockJS from "sockjs-client";
+import { useAuth } from '@/context/AuthContext';
+import { Logger } from '@/src/utils/logger';
+import { getAccessToken } from '@/src/utils/tokenStore';
+import { Client } from '@stomp/stompjs';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Platform } from 'react-native';
+import SockJS from 'sockjs-client';
 
-const chatLogger = Logger.category("CHAT");
+const chatLogger = Logger.category('CHAT');
 
 /**
  * WebSocket 연결 상태 (State-Driven)
  */
-export type ConnectionState =
-  | "CONNECTING"
-  | "CONNECTED"
-  | "DISCONNECTED"
-  | "ERROR";
+export type ConnectionState = 'CONNECTING' | 'CONNECTED' | 'DISCONNECTED' | 'ERROR';
 
 /**
  * WebSocket 훅 반환값
@@ -35,7 +31,7 @@ interface UseWebSocketReturn {
  * - "directroom" → ChatDomainType.EXCHANGE
  * - "location" → ChatDomainType.LOCATION
  */
-type ChatDomain = "liveboard" | "directroom" | "location";
+type ChatDomain = 'liveboard' | 'directroom' | 'location';
 
 /**
  * Polyfill 방어 코드
@@ -44,7 +40,7 @@ type ChatDomain = "liveboard" | "directroom" | "location";
 const checkPolyfills = (): boolean => {
   if (!globalThis.TextEncoder) {
     chatLogger.warn(
-      "TextEncoder polyfill missing. WebSocket connection may fail. " +
+      'TextEncoder polyfill missing. WebSocket connection may fail. ' +
         "Ensure 'fast-text-encoding' is imported in app/_layout.tsx",
     );
     return false;
@@ -64,23 +60,17 @@ const getWebSocketURL = (url?: string): string => {
 
   // [VibeSec/S06] 프로덕션 환경에서 WS URL이 없으면 조용한 실패 대신 명시적 에러 발생
   if (!__DEV__ && !envUrl) {
-    throw new Error(
-      "프로덕션 환경에서는 EXPO_PUBLIC_WS_BASE_URL 환경 변수가 필수입니다.",
-    );
+    throw new Error('프로덕션 환경에서는 EXPO_PUBLIC_WS_BASE_URL 환경 변수가 필수입니다.');
   }
 
-  const defaultUrl = "http://localhost:8080/ws";
+  const defaultUrl = 'http://localhost:8080/ws';
   const resolved = url || envUrl || defaultUrl;
 
   // 개발 환경 + 안드로이드 에뮬레이터 + (환경변수가 없거나 localhost인 경우) → 10.0.2.2로 치환
-  if (__DEV__ && Platform.OS === "android") {
+  if (__DEV__ && Platform.OS === 'android') {
     // 환경 변수조차 설정되지 않았을 때만 에뮬레이터 전용 IP로 폴백
-    if (
-      !envUrl ||
-      envUrl.includes("localhost") ||
-      envUrl.includes("127.0.0.1")
-    ) {
-      return resolved.replace(/localhost|127\.0\.0\.1/, "10.0.2.2");
+    if (!envUrl || envUrl.includes('localhost') || envUrl.includes('127.0.0.1')) {
+      return resolved.replace(/localhost|127\.0\.0\.1/, '10.0.2.2');
     }
   }
 
@@ -96,10 +86,10 @@ const getWebSocketURL = (url?: string): string => {
  */
 export function useWebSocket(
   roomId?: string | number,
-  chatDomain: ChatDomain = "directroom",
+  chatDomain: ChatDomain = 'directroom',
   url?: string,
 ): UseWebSocketReturn {
-  const [status, setStatus] = useState<ConnectionState>("DISCONNECTED");
+  const [status, setStatus] = useState<ConnectionState>('DISCONNECTED');
   const [client, setClient] = useState<Client | null>(null);
   const clientRef = useRef<Client | null>(null);
   const connectingRef = useRef(false);
@@ -110,48 +100,44 @@ export function useWebSocket(
    */
   const connect = useCallback(async () => {
     // [SAFETY] directroom 도메인인데 roomId가 없으면 연결 시도 금지
-    if (
-      chatDomain === "directroom" &&
-      (!roomId || roomId === "undefined" || roomId === "null")
-    ) {
-      chatLogger.warn("roomId가 유효하지 않아 연결을 중단합니다", { roomId });
-      setStatus("ERROR");
+    if (chatDomain === 'directroom' && (!roomId || roomId === 'undefined' || roomId === 'null')) {
+      chatLogger.warn('roomId가 유효하지 않아 연결을 중단합니다', { roomId });
+      setStatus('ERROR');
       return;
     }
 
     // Polyfill 확인
     if (!checkPolyfills()) {
-      setStatus("ERROR");
+      setStatus('ERROR');
       return;
     }
 
     // 중복 연결 방어
     if (connectingRef.current || clientRef.current?.connected || !isLoggedIn) {
       if (!isLoggedIn && __DEV__) {
-        chatLogger.debug("미로그인 상태 - WebSocket 연결 시도를 스킵합니다.");
+        chatLogger.debug('미로그인 상태 - WebSocket 연결 시도를 스킵합니다.');
       }
       return;
     }
 
     connectingRef.current = true;
-    setStatus("CONNECTING");
+    setStatus('CONNECTING');
 
     try {
       const accessToken = await getAccessToken();
       const resolvedUrl = getWebSocketURL(url);
 
-      const useSockJS =
-        resolvedUrl.startsWith("http://") || resolvedUrl.startsWith("https://");
+      const useSockJS = resolvedUrl.startsWith('http://') || resolvedUrl.startsWith('https://');
 
       const stompClient = new Client({
         ...(useSockJS
           ? { webSocketFactory: () => new SockJS(resolvedUrl) }
           : { brokerURL: resolvedUrl }),
         connectHeaders: {
-          Authorization: `Bearer ${accessToken || ""}`,
+          Authorization: `Bearer ${accessToken || ''}`,
           ChatDomain: chatDomain,
           // [DEBUG] roomId를 헤더에 포함하여 서버 로그에서 추적 가능하게 함
-          RoomId: String(roomId || ""),
+          RoomId: String(roomId || ''),
         },
         reconnectDelay: 5000,
         heartbeatIncoming: 4000,
@@ -161,25 +147,25 @@ export function useWebSocket(
       stompClient.onConnect = () => {
         chatLogger.debug(`STOMP CONNECTED`, { chatDomain, roomId });
         connectingRef.current = false;
-        setStatus("CONNECTED");
+        setStatus('CONNECTED');
       };
 
       stompClient.onStompError = (frame) => {
-        chatLogger.error("STOMP Error 발생", frame);
+        chatLogger.error('STOMP Error 발생', frame);
         connectingRef.current = false;
-        setStatus("ERROR");
+        setStatus('ERROR');
       };
 
       stompClient.onWebSocketError = (event) => {
-        chatLogger.error("WebSocket transport error", event);
+        chatLogger.error('WebSocket transport error', event);
         connectingRef.current = false;
-        setStatus("ERROR");
+        setStatus('ERROR');
       };
 
       stompClient.onDisconnect = () => {
-        chatLogger.debug("STOMP DISCONNECTED");
+        chatLogger.debug('STOMP DISCONNECTED');
         connectingRef.current = false;
-        setStatus("DISCONNECTED");
+        setStatus('DISCONNECTED');
       };
 
       clientRef.current = stompClient;
@@ -187,20 +173,18 @@ export function useWebSocket(
 
       stompClient.activate();
     } catch (error) {
-      chatLogger.error("connection error", error);
+      chatLogger.error('connection error', error);
       connectingRef.current = false;
-      setStatus("ERROR");
+      setStatus('ERROR');
     }
   }, [chatDomain, roomId, url, isLoggedIn]);
 
   const disconnect = useCallback(() => {
     if (clientRef.current?.connected) {
-      clientRef.current
-        .deactivate()
-        .catch((err) => chatLogger.warn("deactivate failed", err));
+      clientRef.current.deactivate().catch((err) => chatLogger.warn('deactivate failed', err));
     }
     connectingRef.current = false;
-    setStatus("DISCONNECTED");
+    setStatus('DISCONNECTED');
     setClient(null);
   }, []);
 
@@ -208,10 +192,10 @@ export function useWebSocket(
     if (clientRef.current?.connected) {
       clientRef.current.publish({
         destination,
-        body: typeof body === "string" ? body : JSON.stringify(body),
+        body: typeof body === 'string' ? body : JSON.stringify(body),
       });
     } else {
-      chatLogger.warn("not connected. Cannot send message.");
+      chatLogger.warn('not connected. Cannot send message.');
     }
   }, []);
 
@@ -226,12 +210,12 @@ export function useWebSocket(
       if (clientRef.current?.connected) {
         clientRef.current
           .deactivate()
-          .catch((err) => chatLogger.warn("cleanup deactivate failed", err));
+          .catch((err) => chatLogger.warn('cleanup deactivate failed', err));
       }
       clientRef.current = null;
       connectingRef.current = false;
       setClient(null);
-      setStatus("DISCONNECTED");
+      setStatus('DISCONNECTED');
     };
   }, [connect]);
 
