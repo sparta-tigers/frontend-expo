@@ -326,7 +326,6 @@ const styles = StyleSheet.create({
   },
   pressableArea: {
     flex: 1,
-    justifyContent: 'center', // 컨텐츠를 중앙에 정렬하여 불필요한 스크롤 방지
   },
   gradientBody: {
     flex: 1,
