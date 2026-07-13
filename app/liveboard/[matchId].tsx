@@ -135,7 +135,9 @@ export default function LiveboardDetailScreen() {
             accessibilityElementsHidden={activeTab !== 'chat'}
             importantForAccessibility={activeTab !== 'chat' ? 'no-hide-descendants' : 'auto'}
           >
-            {visitedTabs.includes('chat') && <ChatPanel matchId={matchId} />}
+            {visitedTabs.includes('chat') && (
+              <ChatPanel matchId={matchId} isVisible={activeTab === 'chat'} />
+            )}
           </Box>
 
           <Box
@@ -156,7 +158,9 @@ export default function LiveboardDetailScreen() {
             accessibilityElementsHidden={activeTab !== 'lineup'}
             importantForAccessibility={activeTab !== 'lineup' ? 'no-hide-descendants' : 'auto'}
           >
-            {visitedTabs.includes('lineup') && match && <LineupPanel match={match} />}
+            {visitedTabs.includes('lineup') && match && (
+              <LineupPanel match={match} isVisible={activeTab === 'lineup'} />
+            )}
           </Box>
 
           <Box
@@ -164,7 +168,9 @@ export default function LiveboardDetailScreen() {
             accessibilityElementsHidden={activeTab !== 'weather'}
             importantForAccessibility={activeTab !== 'weather' ? 'no-hide-descendants' : 'auto'}
           >
-            {visitedTabs.includes('weather') && <WeatherPanel matchId={matchId} />}
+            {visitedTabs.includes('weather') && (
+              <WeatherPanel matchId={matchId} isVisible={activeTab === 'weather'} />
+            )}
           </Box>
         </Animated.View>
       </Box>

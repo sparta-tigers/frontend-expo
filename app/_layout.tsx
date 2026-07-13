@@ -14,7 +14,7 @@ import { useCallback, useEffect, useRef, useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ActivityIndicator, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { useNotificationListeners } from '@/src/hooks/useNotificationListeners';
 import Constants, { AppOwnership } from 'expo-constants';
@@ -141,20 +141,27 @@ function RootLayoutInner() {
     );
   }
 
+  const dynamicBg = {
+    backgroundColor: inAuthGroup ? theme.colors.transparent : colors.background,
+  };
+
   return (
     <ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
       <SafeAreaProvider>
-        <Box flex={1} bg="background">
+        <SafeAreaView
+          style={[styles.safeArea, dynamicBg]}
+          edges={inAuthGroup ? ['left', 'right'] : ['top', 'left', 'right']}
+        >
           {!netInfo.isConnected ? <OfflineBanner /> : null}
 
           {/* 전역 헤더 */}
           <GlobalHeader />
 
           {/* 하위 라우팅 화면 */}
-          <Box flex={1} bg="background">
+          <Box flex={1} style={dynamicBg}>
             <Stack screenOptions={stackScreenOptions} />
           </Box>
-        </Box>
+        </SafeAreaView>
         <Toast />
         <ConfirmModal />
       </SafeAreaProvider>
@@ -164,6 +171,9 @@ function RootLayoutInner() {
 
 const styles = StyleSheet.create({
   gestureContainer: {
+    flex: 1,
+  },
+  safeArea: {
     flex: 1,
   },
 });
