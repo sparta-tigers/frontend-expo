@@ -107,7 +107,7 @@ interface AuthContextType {
   signup: (userData: AuthSignupRequest) => Promise<boolean>;
   signout: () => Promise<void>;
   loadToken: () => Promise<void>;
-  updateMyTeam: (teamName: string) => Promise<void>;
+  updateMyTeam: (teamName: string) => Promise<boolean>;
   updateUser: (partialUser: Partial<SimpleToken>) => void;
 }
 
@@ -451,7 +451,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
    * @param teamName - 변경할 팀 명칭
    */
   const updateMyTeam = useCallback(
-    async (teamName: string): Promise<void> => {
+    async (teamName: string): Promise<boolean> => {
       const previousTeam = myTeam;
       try {
         // 1. 로그인 상태라면 백엔드와 동기화 시도
@@ -459,6 +459,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const backendCode = isValidTeamCode(teamName) ? TEAM_DATA[teamName]?.backendCode : null;
           if (!backendCode) {
             Logger.warn(`[AuthContext] backendCode 누락 - 동기화 스킵: ${teamName}`);
+            setMyTeamId(null);
           } else {
             let teamExists = false;
             try {
@@ -498,7 +499,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         // 2. UI 및 로컬 스토리지 업데이트
         setMyTeam(teamName);
-        await AsyncStorage.setItem(getMyTeamKey(user?.userId), teamName);
+        if (teamName === 'DEFAULT' || !isValidTeamCode(teamName)) {
+          setMyTeamId(null);
+          await AsyncStorage.removeItem(getMyTeamKey(user?.userId));
+        } else {
+          await AsyncStorage.setItem(getMyTeamKey(user?.userId), teamName);
+        }
 
         // 3. 쿼리 무효화 (안전장치)
         await queryClient.invalidateQueries({
@@ -509,10 +515,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (__DEV__) {
           authLogger.debug(`✅ [AuthContext] 응원팀 변경 및 데이터 동기화 완료: ${teamName}`);
         }
+        return true;
       } catch (error) {
         Logger.error('[AuthContext] 응원팀 변경 실패:', error);
         setMyTeam(previousTeam);
         showToast('팀 정보를 저장하는 중 문제가 생겼어요. 다시 시도해주세요.', undefined, 'error');
+        return false;
       }
     },
     [isLoggedIn, myTeam, queryClient, user, showToast],

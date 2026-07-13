@@ -14,7 +14,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, Stack } from 'expo-router';
 import { AttendanceEmptyState } from '@/src/features/match-attendance/components';
 import { useState } from 'react';
 import {
@@ -222,15 +222,15 @@ export default function AttendanceFormScreen() {
 
   return (
     <SafeLayout style={styles.safeLayout}>
+      <Stack.Screen
+        options={{ headerShown: true, title: '직관 일기', headerShadowVisible: false }}
+      />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.flex1}
       >
         <ScrollView contentContainerStyle={styles.container}>
           <Box mb="xl">
-            <Typography variant="h2" weight="bold" color="text.primary" mb="xs">
-              직관 일기 작성
-            </Typography>
             <Typography variant="caption" color="text.secondary">
               오늘의 분위기와 소중한 기억을 남겨보세요.
             </Typography>

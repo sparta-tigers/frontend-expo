@@ -5,7 +5,7 @@ import { useTicketAlarmMutation } from '@/src/features/ticket-alarm/hooks/useTic
 import { theme } from '@/src/styles/theme';
 import { Logger } from '@/src/utils/logger';
 import Slider from '@react-native-community/slider';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, Stack } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { animateLayout } from '@/src/utils/motion';
@@ -91,11 +91,11 @@ export default function TicketAlarmFormScreen() {
 
   return (
     <SafeLayout style={styles.safeLayout}>
+      <Stack.Screen
+        options={{ headerShown: true, title: '예매 알림 설정', headerShadowVisible: false }}
+      />
       <ScrollView contentContainerStyle={styles.container}>
         <Box mb="xxl">
-          <Typography variant="h2" weight="bold" color="text.primary" mb="xs">
-            예매 알림 설정
-          </Typography>
           <Typography variant="body2" color="text.secondary">
             경기 예매 시작 전 잊지 않도록 알림을 보내드릴게요.
           </Typography>

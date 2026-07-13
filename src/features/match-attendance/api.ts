@@ -51,9 +51,6 @@ export async function attendanceCreateAPI(
   formData: FormData,
 ): Promise<ApiResponse<MatchAttendance>> {
   return apiClient.post('/api/attendances', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
     transformRequest: (data) => data, // RN FormData 보존
   });
 }
@@ -66,9 +63,6 @@ export async function attendanceUpdateAPI(
   formData: FormData,
 ): Promise<ApiResponse<MatchAttendance>> {
   return apiClient.patch(`/api/attendances/${attendanceId}`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
     transformRequest: (data) => data,
   });
 }
@@ -87,9 +81,6 @@ export async function attendanceOcrAPI(
   formData: FormData,
 ): Promise<ApiResponse<TicketOcrResponseDto>> {
   return apiClient.post('/api/attendances/ticket', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
     transformRequest: (data) => data,
   });
 }

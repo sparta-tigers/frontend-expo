@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity, Modal } from 'react-native';
-import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut, ZoomIn, ZoomOut } from 'react-native-reanimated';
 import { useConfirmStore } from '@/src/store/useConfirmStore';
 import { Box } from './box';
 import { Typography } from './typography';
@@ -19,8 +19,8 @@ export function ConfirmModal() {
         style={styles.overlay}
       >
         <Animated.View
-          entering={SlideInDown.springify().damping(15).stiffness(200)}
-          exiting={SlideOutDown}
+          entering={ZoomIn.duration(200)}
+          exiting={ZoomOut.duration(200)}
           style={styles.modalContainer}
         >
           <Box style={styles.content}>
