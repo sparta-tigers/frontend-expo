@@ -15,7 +15,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ActivityIndicator, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useNotificationListeners } from '@/src/hooks/useNotificationListeners';
 import Constants, { AppOwnership } from 'expo-constants';
@@ -138,10 +138,7 @@ function RootLayoutInner() {
   return (
     <ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
       <SafeAreaProvider>
-        <SafeAreaView
-          style={[styles.safeArea, dynamicStyles.dynamicBg]}
-          edges={inAuthGroup ? ['left', 'right'] : ['top', 'left', 'right']}
-        >
+        <Box flex={1} style={dynamicStyles.dynamicBg}>
           {!netInfo.isConnected ? <OfflineBanner /> : null}
 
           {/* 1. 고정 헤더 (전역) - auth 그룹에서는 숨김 처리 */}
@@ -158,7 +155,7 @@ function RootLayoutInner() {
               }}
             />
           </Box>
-        </SafeAreaView>
+        </Box>
         <Toast />
         <ConfirmModal />
       </SafeAreaProvider>
@@ -168,9 +165,6 @@ function RootLayoutInner() {
 
 const styles = StyleSheet.create({
   gestureContainer: {
-    flex: 1,
-  },
-  safeArea: {
     flex: 1,
   },
 });

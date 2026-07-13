@@ -5,11 +5,13 @@ import { Box } from './box';
 import { Typography } from './typography';
 import { IconSymbol } from './icon-symbol';
 import { theme } from '@/src/styles/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export function GlobalHeader() {
   const router = useRouter();
   const segments = useSegments();
   const pathname = usePathname();
+  const insets = useSafeAreaInsets();
 
   const inAuthGroup = segments[0] === '(auth)';
 
@@ -22,7 +24,14 @@ export function GlobalHeader() {
   const showBackButton = !isTopLevel;
 
   return (
-    <Box flexDir="row" align="center" justify="space-between" px="xl" py="lg">
+    <Box
+      flexDir="row"
+      align="center"
+      justify="space-between"
+      px="xl"
+      py="lg"
+      style={{ paddingTop: insets.top + theme.spacing.md }}
+    >
       <Box width={48} align="flex-start">
         {showBackButton ? (
           <TouchableOpacity
