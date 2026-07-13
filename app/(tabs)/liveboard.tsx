@@ -14,6 +14,7 @@ import { theme } from "@/src/styles/theme";
 import { getTeamBgStyle } from "@/src/utils/team";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import Head from "expo-router/head";
 import { ActivityIndicator, ScrollView, TouchableOpacity } from "react-native";
 
 /**
@@ -38,7 +39,11 @@ export default function LiveboardScreen() {
   } = useLiveboard();
 
   return (
-    <SafeLayout style={styles.safeLayout} edges={["top", "left", "right"]}>
+    <SafeLayout edges={["top", "left", "right"]} style={styles.safeLayout}>
+      <Head>
+        <title>라이브보드 | 스파르타타이거즈</title>
+        <meta name="description" content="오늘의 경기 진행 상황, 채팅, 라인업, 구장 날씨를 실시간으로 확인하세요." />
+      </Head>
       {/* 주간 캘린더 네비게이션 */}
       <Box flexDir="row" align="center" justify="center" gap="xxl" mb="md">
         <TouchableOpacity

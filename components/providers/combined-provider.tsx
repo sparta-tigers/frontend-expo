@@ -3,6 +3,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { asyncStoragePersister } from "@/src/core/persistence";
 import { Logger } from "@/src/utils/logger";
 import { initializeTokenCache } from "@/src/utils/tokenStore";
+import { ApiError } from "@/src/core/errors";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { focusManager, QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
@@ -24,8 +25,16 @@ export function CombinedProvider({ children }: { children: ReactNode }) {
           queries: {
             staleTime: 1000 * 60 * 5, // 5분
             gcTime: 1000 * 60 * 60 * 24, // 24시간 (영속성 데이터 유효 기간)
-            retry: 1,
+            retry: (failureCount, error) => {
+              // 4xx 에러는 재시도하지 않음
+              if (error instanceof ApiError && error.status && error.status < 500) return false;
+              return failureCount < 2;
+            },
+            retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
             refetchOnWindowFocus: true,
+          },
+          mutations: {
+            onError: (error) => Logger.error("Mutation failed", error, { domain: "API" }),
           },
         },
       }),

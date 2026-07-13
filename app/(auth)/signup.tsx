@@ -2,6 +2,7 @@ import { Box, Button, Input, SafeLayout, Typography } from "@/components/ui";
 import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
+import { getUserMessage } from "@/src/core/errors";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, StyleSheet } from "react-native";
@@ -68,11 +69,8 @@ export default function SignupScreen() {
         Alert.alert("실패", "회원가입에 실패했습니다");
       }
     } catch (error) {
-      Logger.error(
-        "회원가입 에러:",
-        error instanceof Error ? error.message : String(error),
-      );
-      Alert.alert("오류", "회원가입 중 오류가 발생했습니다");
+      Logger.error("회원가입 에러:", error);
+      Alert.alert("회원가입 실패", getUserMessage(error));
     }
   };
 
@@ -100,29 +98,26 @@ export default function SignupScreen() {
               value={email}
               onChangeText={setEmail}
               placeholder="이메일"
+              accessibilityLabel="이메일 입력"
               keyboardType="email-address"
               fullWidth
-              accessibilityLabel="이메일 입력"
-              accessibilityHint="회원가입에 사용할 이메일을 입력하세요"
             />
 
             <Input
               value={nickname}
               onChangeText={setNickname}
               placeholder="닉네임"
-              fullWidth
               accessibilityLabel="닉네임 입력"
-              accessibilityHint="회원가입에 사용할 닉네임을 입력하세요"
+              fullWidth
             />
 
             <Input
               value={password}
               onChangeText={setPassword}
               placeholder="비밀번호"
+              accessibilityLabel="비밀번호 입력"
               secureTextEntry
               fullWidth
-              accessibilityLabel="비밀번호 입력"
-              accessibilityHint="계정의 비밀번호를 입력하세요"
             />
 
             <Button
@@ -131,8 +126,6 @@ export default function SignupScreen() {
               disabled={isLoading}
               fullWidth
               style={styles.signupButton}
-              accessibilityRole="button"
-              accessibilityLabel="회원가입"
             >
               회원가입
             </Button>
@@ -141,8 +134,6 @@ export default function SignupScreen() {
               onPress={() => router.push("/(auth)/signin")}
               variant="ghost"
               fullWidth
-              accessibilityRole="button"
-              accessibilityLabel="로그인 페이지로 이동"
             >
               이미 계정이 있나요? 로그인하기
             </Button>

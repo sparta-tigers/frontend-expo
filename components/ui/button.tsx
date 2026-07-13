@@ -33,6 +33,13 @@ interface ButtonProps {
   style?: StyleProp<ViewStyle>;
   /** 텍스트 스타일 */
   textStyle?: StyleProp<TextStyle>;
+  /** 
+   * 접근성 라벨 
+   * @note 문자열이 아닌 복잡한 children(예: 아이콘 + 텍스트)을 사용할 경우 반드시 명시적으로 주입해야 합니다.
+   */
+  accessibilityLabel?: string;
+  /** 접근성 힌트 */
+  accessibilityHint?: string;
 }
 
 /**
@@ -53,6 +60,8 @@ export const Button: React.FC<ButtonProps> = ({
   fullWidth = false,
   style,
   textStyle,
+  accessibilityLabel,
+  accessibilityHint,
 }) => {
   // 🚨 앙드레 카파시: Props 인터페이스는 외부 호환성을 위해 유지함.
 
@@ -61,13 +70,13 @@ export const Button: React.FC<ButtonProps> = ({
   const getSizeStyle = () => {
     switch (size) {
       case "sm":
-        return { height: 36, paddingHorizontal: theme.spacing.md };
+        return { minHeight: 48, paddingHorizontal: theme.spacing.md };
       case "md":
-        return { height: theme.layout.touch.minTargetSize, paddingHorizontal: theme.spacing.lg };
+        return { minHeight: 48, paddingHorizontal: theme.spacing.lg };
       case "lg":
-        return { height: 52, paddingHorizontal: theme.spacing.xxl };
+        return { minHeight: 56, paddingHorizontal: theme.spacing.xxl };
       default:
-        return { height: theme.layout.touch.minTargetSize, paddingHorizontal: theme.spacing.lg };
+        return { minHeight: 48, paddingHorizontal: theme.spacing.lg };
     }
   };
 
@@ -138,6 +147,9 @@ export const Button: React.FC<ButtonProps> = ({
       onPress={onPress}
       disabled={disabled || loading}
       activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel || (typeof children === "string" ? children : undefined)}
+      accessibilityHint={accessibilityHint}
     >
       <View style={styles.content}>
         {loading && (

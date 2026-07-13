@@ -3,6 +3,7 @@ import { IconSymbol, type IconSymbolName } from "@/components/ui/icon-symbol";
 import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
+import { getUserMessage } from "@/src/core/errors";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { type Href, useRouter } from "expo-router";
@@ -96,17 +97,13 @@ export default function SigninScreen() {
       const success = await signin({ email, password });
       if (success) {
         Alert.alert("성공", "로그인되었습니다");
-        // 🚨 앙드레 카파시: 안전한 리디렉션 사용
         safeRedirect("/(tabs)");
       } else {
         Alert.alert("실패", "로그인에 실패했습니다");
       }
     } catch (error) {
-      Logger.error(
-        "로그인 에러:",
-        error instanceof Error ? error.message : String(error),
-      );
-      Alert.alert("오류", "로그인 중 오류가 발생했습니다");
+      Logger.error("로그인 에러:", error);
+      Alert.alert("로그인 실패", getUserMessage(error));
     }
   };
 

@@ -3,6 +3,7 @@ import React from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Platform,
   ListRenderItem,
   StyleSheet,
   Text,
@@ -53,6 +54,14 @@ interface ListProps<T> {
   showSeparator?: boolean;
   /** 빈 상태 컴포넌트 (선택) */
   ListEmptyComponent?: React.ReactElement | null;
+  /** 최적화: 아이템 고정 높이 (선택) */
+  itemHeight?: number;
+  /** 최적화: 초기 렌더링 갯수 */
+  initialNumToRender?: number;
+  /** 최적화: 렌더링 윈도우 크기 */
+  windowSize?: number;
+  /** 최적화: 렌더링 배치 사이즈 */
+  maxToRenderPerBatch?: number;
 }
 
 /**
@@ -76,6 +85,10 @@ export const List = <T,>({
   contentContainerStyle,
   showSeparator = true,
   ListEmptyComponent,
+  itemHeight,
+  initialNumToRender = 10,
+  windowSize = 5,
+  maxToRenderPerBatch = 10,
 }: ListProps<T>) => {
   const renderSeparator = () => {
     if (!showSeparator) return null;
@@ -155,6 +168,25 @@ export const List = <T,>({
         showsVerticalScrollIndicator={false}
         refreshing={refreshing}
         onRefresh={onRefresh}
+        initialNumToRender={initialNumToRender}
+        windowSize={windowSize}
+        maxToRenderPerBatch={maxToRenderPerBatch}
+        removeClippedSubviews={Platform.OS === 'android'}
+        getItemLayout={
+          itemHeight
+            ? showSeparator
+              ? (_, index) => ({
+                  length: itemHeight + 1,
+                  offset: (itemHeight + 1) * index,
+                  index,
+                })
+              : (_, index) => ({
+                  length: itemHeight,
+                  offset: itemHeight * index,
+                  index,
+                })
+            : undefined
+        }
         contentContainerStyle={[
           data.length === 0 ? styles.emptyContent : undefined,
           contentContainerStyle,
