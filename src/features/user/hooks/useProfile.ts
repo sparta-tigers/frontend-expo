@@ -207,6 +207,12 @@ export function useProfile() {
                     Logger.error('즐겨찾기 삭제 캐시 무효화 실패 (서버 삭제는 성공):', err);
                   });
                 showToast(`${team.teamName}을 즐겨찾기에서 삭제했어요.`, undefined, 'success');
+              } else {
+                showToast(
+                  `${team.teamName}은(는) 삭제되었으나 로컬 상태 초기화에 실패했어요.`,
+                  undefined,
+                  'info',
+                );
               }
             } else {
               showToast('즐겨찾기에서 삭제하지 못했어요.', undefined, 'error');
