@@ -130,6 +130,7 @@ export default function LiveboardDetailScreen() {
                   translateX: slideAnim.interpolate({
                     inputRange: TABS.map((_, i) => i),
                     outputRange: TABS.map((_, i) => -width * i),
+                    extrapolate: "clamp",
                   }),
                 },
               ],
