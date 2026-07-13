@@ -103,7 +103,7 @@ export default function ExchangeScreen() {
     <SafeLayout style={styles.container}>
       {/* 1. 지도 영역 */}
       <MapView
-          ref={mapRef as React.LegacyRef<globalThis.React.Component<unknown, unknown, unknown>>}
+        mapRef={mapRef}
           style={styles.map}
           initialRegion={defaultRegion}
           onMapReady={() => setIsMapReady(true)}
