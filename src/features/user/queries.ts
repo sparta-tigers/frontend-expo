@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import { favoriteTeamGetAPI } from './favorite-team-api';
+import { useAuth } from '@/context/AuthContext';
 
 /**
  * 즐겨찾기 팀 관련 쿼리 키
@@ -18,6 +19,8 @@ export const favoriteTeamKeys = {
  * 레거시(useEffect + useState) 방식을 완전히 대체함.
  */
 export const useFavoriteTeam = () => {
+  const { isLoggedIn } = useAuth();
+
   return useQuery({
     queryKey: favoriteTeamKeys.mine(),
     queryFn: async () => {
@@ -42,5 +45,6 @@ export const useFavoriteTeam = () => {
     },
     // 사용자 경험을 위해 기본적으로 팀 정보가 자주 바뀌지 않으므로 캐시 시간 최적화
     staleTime: 1000 * 60 * 5, // 5분
+    enabled: isLoggedIn, // 로그아웃 상태에서 백그라운드 재요청 방지
   });
 };

@@ -12,6 +12,7 @@ import { itemsGetListAPI } from '@/src/features/exchange/api';
 import { Item } from '@/src/features/exchange/types';
 import { Logger } from '@/src/utils/logger';
 import { exchangeKeys } from '@/src/features/exchange/keys';
+import { useAuth } from '@/context/AuthContext';
 
 const mapLogger = Logger.category('MAP');
 
@@ -51,6 +52,7 @@ const deltaToRadius = (latDelta: number): number => latDelta * 111;
  * 아이템 목록 관리 훅
  */
 export function useExchangeItems(): UseExchangeItemsReturn {
+  const { isLoggedIn } = useAuth();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useState<{
     lat: number;
@@ -95,7 +97,7 @@ export function useExchangeItems(): UseExchangeItemsReturn {
       if (!searchParams) return [];
       return loadItems(searchParams.lat, searchParams.lng, searchParams.radiusKm);
     },
-    enabled: !!searchParams,
+    enabled: !!searchParams && isLoggedIn,
     staleTime: 1000 * 60 * 5, // 5분 캐싱
   });
 
