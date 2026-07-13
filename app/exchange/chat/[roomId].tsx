@@ -64,7 +64,7 @@ export default function ChatRoomScreen() {
 
       // 🛡️ Fail-safe: 개별 무효화 실패가 전체 UI 흐름(성공 알람)을 방해하지 않도록 보장
       await Promise.allSettled(invalidations);
-      Alert.alert("성공", "거래 상태가 업데이트되었습니다.");
+      Alert.alert("성공", "거래 상태를 변경했어요.");
     },
   });
 
@@ -127,7 +127,7 @@ export default function ChatRoomScreen() {
   if (isRoomIdInvalid) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>채팅방 연결 오류: ID 없음</Text>
+        <Text style={styles.errorText}>채팅방을 연결하지 못했어요: ID 없음</Text>
       </View>
     );
   }
@@ -235,11 +235,11 @@ export default function ChatRoomScreen() {
           onChangeText={setMessageText}
           placeholder={
             exchangeItem?.exchangeStatus === "PENDING"
-              ? "아직 수락 대기 중인 교환 요청입니다"
+              ? "아직 수락 대기 중인 교환 요청이에요"
               : exchangeItem?.exchangeStatus === "REJECTED"
-                ? "거절된 교환 요청입니다"
+                ? "거절된 교환 요청이에요"
                 : isInputDisabled
-                  ? "종료된 교환입니다"
+                  ? "종료된 교환이에요"
                   : "메시지를 입력하세요"
           }
           placeholderTextColor={theme.colors.text.tertiary}

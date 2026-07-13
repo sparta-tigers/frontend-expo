@@ -29,16 +29,16 @@ export default function NotificationScreen() {
   const handleDeleteAlarm = useCallback((alarm: TicketAlarm) => {
     Alert.alert(
       "티켓 알림 삭제",
-      `${alarm.stadiumName} - ${formatToKoreanDateTime(alarm.matchTime, false)} 알림을 삭제하시겠습니까?`,
+      `${alarm.stadiumName} - ${formatToKoreanDateTime(alarm.matchTime, false)} 알림을 삭제할까요?`,
       [
-        { text: "취소", style: "cancel" },
+        { text: "닫기", style: "cancel" },
         {
           text: "삭제",
           style: "destructive",
           onPress: async () => {
             try {
               await deleteAlarm(alarm.alarmId);
-              Alert.alert("성공", "티켓 알림이 삭제되었습니다.");
+              Alert.alert("성공", "티켓 알림을 삭제했어요.");
             } catch (error) {
               Logger.error("티켓 알림 삭제 실패", error);
             }
@@ -66,7 +66,7 @@ export default function NotificationScreen() {
             예매 알림 관리
           </Typography>
           <Typography variant="body2" color="text.secondary" mt="xs">
-            설정한 예매 알림 내역입니다.
+            설정한 예매 알림 내역을 모아보았어요.
           </Typography>
         </Box>
 
@@ -85,7 +85,7 @@ export default function NotificationScreen() {
                 color="text.secondary"
                 mb="xs"
               >
-                등록된 알림이 없습니다.
+                아직 등록된 알림이 없어요.
               </Typography>
               <Typography variant="body2" color="text.tertiary" center>
                 경기 일정에서 원하는 경기를 선택해 알림을 추가해보세요.

@@ -32,19 +32,19 @@ export default function ExchangeRequestsScreen() {
 
   const onAccept = useCallback(
     async (id: number) => {
-      Alert.alert("교환 승낙", "이 교환 요청을 승낙하시겠습니까?", [
-        { text: "취소", style: "cancel" },
+      Alert.alert("교환 수락", "이 교환 요청을 수락할까요?", [
+        { text: "닫기", style: "cancel" },
         {
-          text: "승낙",
+          text: "수락",
           onPress: async () => {
             try {
               await handleAccept(id);
               Alert.alert(
                 "성공",
-                "교환 요청을 승낙했습니다. 채팅방에서 대화를 시작하세요!",
+                "교환 요청을 수락했어요. 채팅방에서 대화를 시작하세요!",
               );
             } catch {
-              Alert.alert("실패", "수락 처리 중 오류가 발생했습니다.");
+              Alert.alert("알림", "수락하지 못했어요.");
             }
           },
         },
@@ -55,16 +55,16 @@ export default function ExchangeRequestsScreen() {
 
   const onReject = useCallback(
     async (id: number) => {
-      Alert.alert("교환 거절", "이 교환 요청을 거절하시겠습니까?", [
-        { text: "취소", style: "cancel" },
+      Alert.alert("교환 거절", "이 교환 요청을 거절할까요?", [
+        { text: "닫기", style: "cancel" },
         {
           text: "거절",
           onPress: async () => {
             try {
               await handleReject(id);
-              Alert.alert("성공", "교환 요청을 거절했습니다.");
+              Alert.alert("성공", "교환 요청을 거절했어요.");
             } catch {
-              Alert.alert("실패", "거절 처리 중 오류가 발생했습니다.");
+              Alert.alert("알림", "거절하지 못했어요.");
             }
           },
           style: "destructive",
@@ -102,7 +102,7 @@ export default function ExchangeRequestsScreen() {
             {item.exchangeStatus === ExchangeRequestStatus.PENDING
               ? "대기 중"
               : item.exchangeStatus === ExchangeRequestStatus.ACCEPTED
-                ? "승낙됨"
+                ? "수락됨"
                 : item.exchangeStatus === ExchangeRequestStatus.REJECTED
                   ? "거절됨"
                   : "완료됨"}
@@ -128,7 +128,7 @@ export default function ExchangeRequestsScreen() {
           <Box flexDir="row" gap="md">
             <Box flex={1}>
               <Button onPress={() => onAccept(item.exchangeRequestId)}>
-                승낙
+                수락
               </Button>
             </Box>
             <Box flex={1}>
@@ -229,10 +229,10 @@ export default function ExchangeRequestsScreen() {
             <Box flex={1} justify="center" align="center" p="lg">
               <Typography center color="text.secondary" mb="lg">
                 {error
-                  ? `에러: ${error}`
+                  ? `문제가 생겼어요: ${error}`
                   : activeTab === "receiver"
-                    ? "받은 교환 요청이 없습니다."
-                    : "보낸 교환 요청이 없습니다."}
+                    ? "아직 받은 교환 요청이 없어요."
+                    : "아직 보낸 교환 요청이 없어요."}
               </Typography>
               {(requests.length === 0 || error) && !loading ? (
                 <Button onPress={() => fetchRequests()}>다시 시도</Button>

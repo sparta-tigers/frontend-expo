@@ -21,7 +21,7 @@ export function OfflineBanner() {
       ]}
     >
       <Text style={[styles.text, { color: colors.background }]}>
-        인터넷 연결이 끊겼습니다. 네트워크 상태를 확인해주세요.
+        인터넷 연결이 끊겼어요. 네트워크 상태를 확인해주세요.
       </Text>
     </View>
   );

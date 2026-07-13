@@ -118,8 +118,8 @@ export function useExchangeMap(
       Alert.alert(
         "알림",
         locationError
-          ? "위치 권한이 거부되었습니다.\n설정에서 권한을 허용해주세요."
-          : "현재 위치를 확인하는 중입니다.\n잠시 후 다시 시도해주세요.",
+          ? "위치 권한이 거부되었어요.\n설정에서 권한을 허용해주세요."
+          : "현재 위치를 확인하고 있어요.\n잠시 후 다시 시도해주세요.",
       );
     }
   }, [userLocation, locationError]);

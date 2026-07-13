@@ -61,7 +61,7 @@ export function LineupPanel({ match }: { match: MatchDetail }) {
 
   if (fetchState === "ERROR") {
     const errorMessage = !isLoggedIn
-      ? "로그인이 필요합니다"
+      ? "로그인이 필요해요"
       : "라인업을 불러오지 못했어요";
 
     return (

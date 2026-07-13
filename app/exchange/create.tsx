@@ -89,7 +89,7 @@ export default function CreateItemScreen() {
       return createExchangeItem(requestFormData);
     },
     onSuccess: async () => {
-      Alert.alert("성공", "아이템이 등록되었습니다.");
+      Alert.alert("성공", "아이템을 등록했어요.");
       await queryClient.invalidateQueries({ queryKey: exchangeKeys.items() });
       if (router.canGoBack()) {
         router.back();
@@ -98,12 +98,12 @@ export default function CreateItemScreen() {
       }
     },
     onError: (error: Error & { response?: { status?: number } }) => {
-      let errorMessage = "게시글 등록 중 문제가 발생했습니다.";
+      let errorMessage = "게시글을 등록하지 못했어요.";
       const status = error?.response?.status;
 
       if (status === 409) {
         errorMessage =
-          "이미 등록된 아이템이 있습니다. 하나의 계정당 하나의 아이템만 등록 가능합니다.";
+          "이미 등록한 아이템이 있어요. 계정당 하나의 아이템만 등록할 수 있어요.";
         Logger.warn("아이템 중복 등록 시도 차단 (409)");
       } else {
         Logger.error(
@@ -112,7 +112,7 @@ export default function CreateItemScreen() {
         );
       }
 
-      Alert.alert("등록 실패", errorMessage);
+      Alert.alert("알림", errorMessage);
     },
   });
 
@@ -143,7 +143,7 @@ export default function CreateItemScreen() {
       const { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status !== "granted") {
-        Alert.alert("권한 필요", "위치 정보를 사용하려면 권한이 필요합니다.");
+        Alert.alert("권한 필요", "위치 정보를 사용하려면 권한을 허용해주세요.");
         setLocationLoading(false);
         return;
       }
@@ -170,8 +170,8 @@ export default function CreateItemScreen() {
     } catch (error) {
       Logger.error("위치 정보 가져오기 실패:", error);
       Alert.alert(
-        "위치 정보 오류",
-        "위치 정보를 가져올 수 없습니다. 기본 위치(서울)를 사용합니다.",
+        "알림",
+        "위치 정보를 가져올 수 없어 기본 위치(서울)로 설정할게요.",
       );
       const defaultLocation: LocationDto = {
         latitude: 37.5665,
@@ -199,7 +199,7 @@ export default function CreateItemScreen() {
     if (hasActiveItem === true) {
       Alert.alert(
         "접근 제한",
-        "이미 등록된 아이템이 있어 작성 페이지를 이용할 수 없습니다.",
+        "이미 등록한 아이템이 있어서 지금은 새로 작성할 수 없어요.",
         [{ text: "확인", onPress: () => router.back() }],
       );
     }
@@ -207,7 +207,7 @@ export default function CreateItemScreen() {
 
   const handleImagePicker = async () => {
     if (selectedImages.length >= 5) {
-      Alert.alert("알림", "이미지는 최대 5장까지 선택 가능합니다.");
+      Alert.alert("알림", "이미지는 최대 5장까지 선택할 수 있어요.");
       return;
     }
     try {
@@ -226,7 +226,7 @@ export default function CreateItemScreen() {
         if (oversized.length > 0) {
           Alert.alert(
             "알림",
-            "이미지 파일은 각 10MB 이하만 업로드 가능합니다.",
+            "이미지 파일은 각 10MB 이하만 업로드할 수 있어요.",
           );
           return;
         }
@@ -235,7 +235,7 @@ export default function CreateItemScreen() {
         setSelectedImages(updatedImages);
       }
     } catch {
-      Alert.alert("오류", "이미지 선택에 실패했습니다.");
+      Alert.alert("알림", "이미지를 선택하지 못했어요.");
     }
   };
 

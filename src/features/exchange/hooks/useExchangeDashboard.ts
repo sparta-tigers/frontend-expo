@@ -62,8 +62,8 @@ export function useExchangeDashboard() {
     initializeLocation().catch(() => {
       // mapLogger.error는 initializeLocation 내부에서 이미 수행됨
       Alert.alert(
-        "위치 정보 오류",
-        "현재 위치를 가져올 수 없습니다. 기본 위치로 표시됩니다.",
+        "알림",
+        "현재 위치를 확인하지 못해 기본 위치로 보여드릴게요.",
       );
     });
   }, [initializeLocation]);
@@ -78,7 +78,7 @@ export function useExchangeDashboard() {
         // fetchInitialItems 내부에서 로깅 수행됨
         Alert.alert(
           "데이터 로딩 실패",
-          "주변 아이템 목록을 불러오는데 실패했습니다.",
+          "주변 아이템 목록을 불러오지 못했어요.",
         );
       });
     }
@@ -162,7 +162,7 @@ export function useExchangeDashboard() {
     if (hasActiveItem === true) {
       Alert.alert(
         "등록 제한",
-        "이미 등록된 아이템이 있습니다. 하나의 계정당 하나의 아이템만 등록 가능합니다.",
+        "이미 등록한 물건이 있어요. 계정당 하나만 등록할 수 있어요.",
       );
       return;
     }

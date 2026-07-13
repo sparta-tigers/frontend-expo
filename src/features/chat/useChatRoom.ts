@@ -206,7 +206,7 @@ export function useChatRoom(
 
   const handleSendMessage = useCallback(() => {
     if (!client || !isConnected) {
-      Alert.alert("연결 오류", "서버와 연결이 불안정합니다.");
+      Alert.alert("알림", "서버와 연결이 불안정해요.");
       return;
     }
     if (!user?.userId || !messageText.trim()) return;
@@ -249,7 +249,7 @@ export function useChatRoom(
         },
       );
       setMessageText(prevText);
-      Alert.alert("전송 실패", "메시지 전송에 실패했습니다.");
+      Alert.alert("알림", "메시지를 보내지 못했어요.");
     }
   }, [
     client,
@@ -345,8 +345,8 @@ export function useChatRoom(
       Alert.alert(
         "확인",
         newStatus === "COMPLETE"
-          ? "교환을 확정하시겠습니까?"
-          : "교환을 취소하시겠습니까?",
+          ? "교환을 확정할까요?"
+          : "교환을 취소할까요?",
         [
           { text: "취소", style: "cancel" },
           {
@@ -361,7 +361,7 @@ export function useChatRoom(
               } catch (error) {
                 Logger.error("[ChatRoom] Status change failed:", error);
                 // 🚨 Fail-fast: 사용자에게 명확한 피드백 유지
-                Alert.alert("오류", "거래 상태 변경 중 문제가 발생했습니다.");
+                Alert.alert("알림", "거래 상태를 변경하지 못했어요.");
               } finally {
                 setIsProcessing(false); // ✅ 로딩 종료
               }

@@ -43,15 +43,15 @@ export default function AttendanceDetailScreen() {
       <SafeLayout style={styles.safeLayout}>
         <AttendanceEmptyState
           title="유효하지 않은 기록 ID"
-          description="기록 정보를 불러올 수 없습니다."
+          description="기록 정보를 불러오지 못했어요. 다시 시도해주세요."
         />
       </SafeLayout>
     );
   }
 
   const handleDelete = () => {
-    Alert.alert("삭제 확인", "이 직관 기록을 정말 삭제하시겠습니까?", [
-      { text: "취소", style: "cancel" },
+    Alert.alert("삭제 확인", "이 직관 기록을 정말 삭제할까요?", [
+      { text: "닫기", style: "cancel" },
       {
         text: "삭제",
         style: "destructive",
@@ -60,7 +60,7 @@ export default function AttendanceDetailScreen() {
             await deleteMutation.mutateAsync(Number(id));
             router.replace("/(tabs)/history");
           } catch {
-            Alert.alert("오류", "삭제 중 문제가 발생했습니다.");
+            Alert.alert("알림", "삭제하지 못했어요.");
           }
         },
       },
@@ -84,8 +84,8 @@ export default function AttendanceDetailScreen() {
     return (
       <SafeLayout style={styles.safeLayout}>
         <AttendanceEmptyState
-          title="기록을 찾을 수 없습니다"
-          description="해당 기록이 삭제되었거나 존재하지 않습니다."
+          title="기록을 찾지 못했어요"
+          description="이미 삭제된 기록이거나 올바른 기록이 아니에요."
         />
       </SafeLayout>
     );
@@ -261,7 +261,7 @@ export default function AttendanceDetailScreen() {
               color="text.primary"
               style={styles.memoText}
             >
-              {attendance.contents || "작성된 내용이 없습니다."}
+              {attendance.contents || "아직 작성된 내용이 없어요."}
             </Typography>
           </Box>
         </Box>

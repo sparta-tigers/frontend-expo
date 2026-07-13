@@ -25,7 +25,7 @@ export const useMatchSchedule = (
   return useQuery({
     queryKey: matchKeys.list({ teamId, year, month, leagueType }),
     queryFn: async () => {
-      if (!teamId) throw new Error("팀 정보가 없습니다.");
+      if (!teamId) throw new Error("팀 정보가 없어요.");
       const response = await fetchMatchSchedule(
         teamId,
         year,
@@ -39,7 +39,7 @@ export const useMatchSchedule = (
       }
 
       throw new Error(
-        response.message || "경기 일정을 불러오는데 실패했습니다.",
+        response.message || "경기 일정을 불러오지 못했어요.",
       );
     },
     staleTime: 1000 * 60 * 5,

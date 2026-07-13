@@ -59,10 +59,10 @@ export default function LiveboardDetailScreen() {
       <SafeLayout style={styles.container} edges={["left", "right"]}>
         <Box flex={1} justify="center" align="center" px="xl">
           <Typography color="error" variant="h3" weight="bold" center>
-            잘못된 접근입니다.
+            잘못된 접근이에요.
           </Typography>
           <Typography color="text.secondary" mt="sm" center>
-            유효하지 않은 경기 식별자(ID)입니다.
+            유효하지 않은 경기 식별자(ID)예요.
           </Typography>
         </Box>
       </SafeLayout>
@@ -75,10 +75,10 @@ export default function LiveboardDetailScreen() {
       <SafeLayout style={styles.container} edges={["left", "right"]}>
         <Box flex={1} justify="center" align="center" px="xl">
           <Typography color="error" variant="h3" weight="bold">
-            경기 정보 오류
+            경기 정보를 불러오지 못했어요
           </Typography>
           <Typography color="text.secondary" mt="sm" center>
-            매치 데이터를 불러오는 중 에러가 발생했습니다.
+            매치 데이터를 불러오는 중 문제가 생겼어요.
           </Typography>
         </Box>
       </SafeLayout>

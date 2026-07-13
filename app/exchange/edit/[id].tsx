@@ -183,7 +183,7 @@ export default function EditItemScreen() {
         queryClient.invalidateQueries({ queryKey: exchangeKeys.items() }),
       ]);
 
-      Alert.alert("수정 완료", "아이템이 성공적으로 수정되었습니다.", [
+      Alert.alert("수정 완료", "아이템을 수정했어요.", [
         {
           text: "확인",
           onPress: () => router.back(),
@@ -192,25 +192,25 @@ export default function EditItemScreen() {
     },
     onError: (error) => {
       Logger.error("아이템 수정 실패:", error);
-      Alert.alert("오류", "아이템 수정에 실패했습니다.");
+      Alert.alert("알림", "아이템을 수정하지 못했어요.");
     },
   });
 
   // 아이템 수정 핸들러
   const handleUpdateItem = useCallback(() => {
     if (!item || !user?.accessToken) {
-      Alert.alert("오류", "로그인이 필요하거나 아이템 정보가 없습니다.");
+      Alert.alert("알림", "먼저 로그인하시거나, 올바른 아이템인지 확인해주세요.");
       return;
     }
 
     // 본인 아이템인지 확인 - 강화된 권한 검증
     if (!user?.userId || !item?.userId) {
-      Alert.alert("오류", "사용자 정보가 없습니다. 다시 로그인해주세요.");
+      Alert.alert("알림", "사용자 정보를 찾지 못했어요. 다시 로그인해주세요.");
       return;
     }
 
     if (item.userId !== user.userId) {
-      Alert.alert("오류", "본인의 아이템만 수정할 수 있습니다.");
+      Alert.alert("알림", "본인의 아이템만 수정할 수 있어요.");
       Logger.debug("[권한 오류] 아이템 소유자 불일치:", {
         itemUserId: item.userId,
         currentUserId: user.userId,
@@ -222,18 +222,18 @@ export default function EditItemScreen() {
 
     // 유효성 검사
     if (!title.trim()) {
-      Alert.alert("오류", "제목을 입력해주세요.");
+      Alert.alert("알림", "제목을 입력해주세요.");
       return;
     }
 
     if (!description.trim()) {
-      Alert.alert("오류", "설명을 입력해주세요.");
+      Alert.alert("알림", "설명을 입력해주세요.");
       return;
     }
 
-    Alert.alert("아이템 수정", "이 아이템을 수정하시겠습니까?", [
+    Alert.alert("아이템 수정", "이 아이템을 수정할까요?", [
       {
-        text: "취소",
+        text: "닫기",
         style: "cancel",
       },
       {
@@ -269,7 +269,7 @@ export default function EditItemScreen() {
       <SafeLayout edges={["top", "bottom"]} style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
-            아이템 정보를 불러올 수 없습니다.
+            아이템 정보를 불러오지 못했어요.
           </Text>
           <Button
             onPress={() => {

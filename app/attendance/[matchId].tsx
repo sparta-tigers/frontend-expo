@@ -92,7 +92,7 @@ export default function AttendanceFormScreen() {
         <Box flex={1} justify="center" align="center">
           <ActivityIndicator size="large" color={theme.colors.brand.mint} />
           <Typography variant="caption" color="text.secondary" mt="md">
-            기록을 확인하고 있습니다...
+            기록을 확인하고 있어요...
           </Typography>
         </Box>
       </SafeLayout>
@@ -105,7 +105,7 @@ export default function AttendanceFormScreen() {
       <SafeLayout style={styles.safeLayout}>
         <AttendanceEmptyState
           title="유효하지 않은 경기 ID"
-          description="경기 정보를 불러올 수 없습니다."
+          description="경기 정보를 불러오지 못했어요. 다시 시도해주세요."
         />
       </SafeLayout>
     );
@@ -209,13 +209,13 @@ export default function AttendanceFormScreen() {
         .invalidateQueries({ queryKey: attendanceKeys.byMatch(matchIdNumber) })
         .catch((err) => logger.error("Invalidate failed", err));
 
-      Alert.alert("성공", "직관 기록이 저장되었습니다.", [
+      Alert.alert("성공", "직관 기록을 저장했어요.", [
         { text: "확인", onPress: () => router.replace("/(tabs)/history") },
       ]);
     } catch (error) {
       // 🚨 [Phase 37] 관측성 확보: 운영 환경 디버깅을 위해 에러 로깅 추가 (UX용 Alert는 유지)
       logger.error("save failed", error);
-      Alert.alert("오류", "기록 저장 중 문제가 발생했습니다.");
+      Alert.alert("알림", "기록을 저장하지 못했어요.");
     } finally {
       setIsSubmitting(false);
     }

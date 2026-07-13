@@ -16,7 +16,7 @@ export class AppError extends Error {
 export class NetworkError extends AppError {
   constructor(cause?: unknown) {
     super(
-      "네트워크 요청에 실패했습니다.",
+      "네트워크 요청을 처리하지 못했어요.",
       "NETWORK_ERROR",
       undefined,
       undefined,
@@ -57,7 +57,7 @@ const USER_MESSAGES: Record<string, string> = {
   FORBIDDEN: "접근 권한이 없어요.",
   VALIDATION_ERROR: "입력 내용을 다시 확인해 주세요.",
   RATE_LIMITED: "요청이 너무 많아요. 잠시 후 다시 시도해 주세요.",
-  UNKNOWN_ERROR: "알 수 없는 오류가 발생했어요. 잠시 후 다시 시도해 주세요.",
+  UNKNOWN_ERROR: "알 수 없는 문제가 생겼어요. 잠시 후 다시 시도해주세요.",
 };
 
 export function getUserMessage(error: unknown): string {

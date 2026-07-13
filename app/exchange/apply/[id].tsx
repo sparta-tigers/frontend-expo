@@ -151,7 +151,7 @@ export default function ApplyExchangeScreen() {
 
     // 1. 로그인 상태 체크
     if (user === null) {
-      Alert.alert("인증 오류", "로그인 후 이용해주세요.", [
+      Alert.alert("알림", "로그인 후 이용해주세요.", [
         { text: "확인", onPress: () => router.back() },
       ]);
       return;
@@ -160,7 +160,7 @@ export default function ApplyExchangeScreen() {
     // 2. ID 유효성 체크 (Early Return)
     if (!isTargetItemIdValid) {
       Logger.error("[ExchangeApply] 유효하지 않은 아이템 ID:", id);
-      Alert.alert("오류", "유효하지 않은 요청입니다.", [
+      Alert.alert("알림", "올바르지 않은 요청이에요.", [
         { text: "확인", onPress: () => router.back() },
       ]);
     }
@@ -179,7 +179,7 @@ export default function ApplyExchangeScreen() {
         targetItem?.data?.user?.userId ?? targetItem?.data?.userId;
 
       if (!receiverId) {
-        throw new Error("상대방 정보를 가져올 수 없습니다.");
+        throw new Error("상대방 정보를 확인하지 못했어요.");
       }
 
       if (!have.trim()) {
@@ -199,7 +199,7 @@ export default function ApplyExchangeScreen() {
         throw new Error(
           typeof response.error === "string"
             ? response.error
-            : "교환 신청에 실패했습니다.",
+            : "교환을 신청하지 못했어요.",
         );
       }
       return response.data;
@@ -213,20 +213,20 @@ export default function ApplyExchangeScreen() {
       ]);
 
       if (roomId) {
-        Alert.alert("성공", "교환 제안이 전달되었습니다!");
+        Alert.alert("성공", "교환 제안을 전달했어요!");
         router.replace(`/exchange/chat/${roomId}`);
       } else {
         Alert.alert(
           "성공",
-          "교환 제안이 전달되었습니다. 상대가 수락하면 채팅이 시작됩니다.",
+          "교환 제안을 전달했어요. 상대가 수락하면 채팅이 시작돼요.",
         );
         router.back();
       }
     },
     onError: (error) => {
       const msg =
-        error instanceof Error ? error.message : "교환 신청에 실패했습니다.";
-      Alert.alert("오류", msg);
+        error instanceof Error ? error.message : "교환을 신청하지 못했어요.";
+      Alert.alert("알림", msg);
       Logger.error("교환 신청 실패:", error);
     },
   });
@@ -296,7 +296,7 @@ export default function ApplyExchangeScreen() {
               내가 제안하는 물건
             </Typography>
             <Typography variant="body2" style={styles.subtitle}>
-              교환하고 싶은 내 물건을 설명해주세요. 상대방에게 전달됩니다.
+              교환하고 싶은 내 물건을 설명해주세요. 상대방에게 전달돼요.
             </Typography>
           </Box>
 

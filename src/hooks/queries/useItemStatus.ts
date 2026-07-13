@@ -42,7 +42,7 @@ export const useUpdateItemStatus = (itemId: number) => {
       if (context?.previousItem) {
         queryClient.setQueryData(["item", itemId], context.previousItem);
       }
-      Alert.alert("오류", "상태 변경에 실패했습니다.");
+      Alert.alert("알림", "상태를 변경하지 못했어요.");
     },
     onSettled: () => {
       // [Zero Magic] 성공/실패 여부와 상관없이 최종적으로 서버 데이터와 캐시를 동기화함.

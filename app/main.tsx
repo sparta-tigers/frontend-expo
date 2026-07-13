@@ -18,7 +18,7 @@ const MainScreen: React.FC = () => {
         스파르타 타이거즈
       </Typography>
       <Typography variant="body1" center color="text.secondary">
-        Expo 앱에 오신 것을 환영합니다!
+        Expo 앱에 오신 것을 환영해요!
       </Typography>
     </Box>
   );
