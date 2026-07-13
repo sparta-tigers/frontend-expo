@@ -185,6 +185,9 @@ function RootLayoutInner() {
                 gestureEnabled: true,
                 animation: 'slide_from_right',
                 fullScreenGestureEnabled: true,
+                headerStyle: { backgroundColor: theme.colors.background },
+                headerTintColor: theme.colors.text.primary,
+                headerTitleStyle: { fontWeight: 'bold' },
               }}
             />
           </Box>
