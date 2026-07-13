@@ -142,7 +142,7 @@ function RootLayoutInner() {
   }
 
   const dynamicBg = {
-    backgroundColor: inAuthGroup ? theme.colors.transparent : colors.background,
+    backgroundColor: inAuthGroup ? colors.transparent : colors.background,
   };
 
   return (
