@@ -71,10 +71,16 @@ export default function SigninScreen() {
   }, []);
 
   const safeRedirect = (href: Href) => {
+    if (redirectTimeoutRef.current) {
+      clearTimeout(redirectTimeoutRef.current);
+      redirectTimeoutRef.current = null;
+    }
+
     if (!navigationReady.current) {
       redirectTimeoutRef.current = setTimeout(() => {
         Logger.debug('[Signin] 지연된 리디렉션 실행:', href);
         router.replace(href);
+        redirectTimeoutRef.current = null;
       }, 200);
       return;
     }
