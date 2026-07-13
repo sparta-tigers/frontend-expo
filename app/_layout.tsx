@@ -5,15 +5,15 @@ import { ErrorBoundaryFallback } from '@/src/components/shared/ErrorBoundaryFall
 import { OfflineBanner } from '@/src/components/shared/OfflineBanner';
 import { Logger } from '@/src/utils/logger';
 
-import { Box, Typography, Toast, ConfirmModal } from '@/components/ui';
-import { IconSymbol } from '@/components/ui/icon-symbol';
+import { Box, Toast, ConfirmModal } from '@/components/ui';
+import { GlobalHeader } from '@/components/ui/global-header';
 import { theme } from '@/src/styles/theme';
 import { useNetInfo } from '@react-native-community/netinfo';
 import * as Notifications from 'expo-notifications';
 import { Href, router, Stack, useSegments } from 'expo-router';
 import { useCallback, useEffect, useRef } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
@@ -76,10 +76,10 @@ function RootLayoutInner() {
   const segments = useSegments();
   const netInfo = useNetInfo();
 
+  const inAuthGroup = segments[0] === '(auth)';
+
   const navigationReady = useRef(false);
   const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const inAuthGroup = segments[0] === '(auth)';
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -129,56 +129,24 @@ function RootLayoutInner() {
     );
   }
 
+  const dynamicBg = {
+    backgroundColor: inAuthGroup ? theme.colors.transparent : colors.background,
+  };
+
   return (
     <ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
       <SafeAreaProvider>
         <SafeAreaView
-          style={[styles.safeArea, { backgroundColor: colors.background }]}
-          edges={['top', 'left', 'right']}
+          style={[styles.safeArea, dynamicBg]}
+          edges={inAuthGroup ? ['left', 'right'] : ['top', 'left', 'right']}
         >
           {!netInfo.isConnected ? <OfflineBanner /> : null}
 
-          {/* 1. 고정 헤더 (전역) - (tabs) 그룹에서만 노출하여 중첩 방지 */}
-          {segments[0] === '(tabs)' ? (
-            <Box flexDir="row" align="center" justify="space-between" px="xl" py="lg">
-              <Box width={48} align="flex-start">
-                {router.canGoBack() ? (
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    style={styles.headerIconBtn}
-                    onPress={() => router.back()}
-                  >
-                    <IconSymbol
-                      size={theme.layout.header.backIconSize}
-                      name="chevron.left"
-                      color={theme.colors.team.neutralDark}
-                    />
-                  </TouchableOpacity>
-                ) : null}
-              </Box>
-
-              <Typography variant="h3" weight="black" color="brand.mint" style={styles.headerTitle}>
-                YAGUNIV
-              </Typography>
-
-              <Box width={48} align="flex-end">
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  style={styles.headerIconBtn}
-                  onPress={() => router.push('/profile')}
-                >
-                  <IconSymbol
-                    name="person.fill"
-                    size={theme.layout.header.profileIconSize}
-                    color={theme.colors.team.neutralDark}
-                  />
-                </TouchableOpacity>
-              </Box>
-            </Box>
-          ) : null}
+          {/* 1. 고정 헤더 (전역) - auth 그룹에서는 숨김 처리 */}
+          <GlobalHeader />
 
           {/* 2. 하위 라우팅 화면 */}
-          <Box flex={1} bg="background">
+          <Box flex={1} style={dynamicBg}>
             <Stack
               screenOptions={{
                 headerShown: false,
@@ -205,12 +173,5 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-  },
-  headerIconBtn: {
-    padding: theme.spacing.xs,
-  },
-  headerTitle: {
-    fontSize: theme.layout.header.titleFontSize,
-    letterSpacing: 1,
   },
 });

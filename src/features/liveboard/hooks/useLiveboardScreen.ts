@@ -90,6 +90,12 @@ export const useLiveboardScreen = () => {
 
   // 4. UI 상태 관리 (Tabs)
   const [activeTab, setActiveTab] = useState<TabKey>('chat');
+  const [visitedTabs, setVisitedTabs] = useState<TabKey[]>(['chat']);
+
+  const handleSetTab = (tab: TabKey) => {
+    setActiveTab(tab);
+    setVisitedTabs((prev) => (prev.includes(tab) ? prev : [...prev, tab]));
+  };
 
   // 5. 통합 로딩/에러 상태
   const isInitialLoading = isMatchLoading && !match;
@@ -99,7 +105,8 @@ export const useLiveboardScreen = () => {
     match,
     liveData,
     activeTab,
-    setActiveTab,
+    visitedTabs,
+    setActiveTab: handleSetTab,
     isLoading: {
       match: isMatchLoading,
       live: isLiveLoading,

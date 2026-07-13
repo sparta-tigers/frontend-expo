@@ -130,6 +130,16 @@ export const theme = {
         'rgba(165, 222, 222, 0.39)',
       ],
     },
+    social: {
+      kakao: {
+        background: '#FEE500',
+        text: '#000000',
+      },
+      apple: {
+        background: '#FFFFFF',
+        text: '#000000',
+      },
+    },
     /**
      * 도메인(야구/팀) 전용 컬러
      *
