@@ -57,13 +57,10 @@ export default function ProfileScreen() {
     }
   };
 
-  // 로그인되지 않은 상태 (게스트 모드)
-  if (!user?.accessToken) {
-    return (
-      <SafeLayout>
-        <Stack.Screen
-          options={{ headerShown: true, title: '프로필', headerShadowVisible: false }}
-        />
+  return (
+    <SafeLayout>
+      <Stack.Screen options={{ headerShown: true, title: '프로필', headerShadowVisible: false }} />
+      {!user?.accessToken ? (
         <Box flex={1} bg="surface">
           <ScrollView
             style={styles.scrollView}
@@ -109,120 +106,121 @@ export default function ProfileScreen() {
             </Box>
           </ScrollView>
         </Box>
-      </SafeLayout>
-    );
-  }
-
-  // 로그인된 상태
-  return (
-    <SafeLayout>
-      <Stack.Screen options={{ headerShown: true, title: '프로필', headerShadowVisible: false }} />
-      <Box flex={1} bg="surface">
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* 사용자 정보 */}
-          <Box bg="background" p="lg" rounded="xl" mb="lg" style={theme.shadow.card}>
-            <Box flexDir="row" align="center">
-              <Box
-                bg="brand.mintLight"
-                rounded="full"
-                align="center"
-                justify="center"
-                mr="md"
-                width={LOCAL_LAYOUT.userAvatarSize}
-                height={LOCAL_LAYOUT.userAvatarSize}
-              >
-                <Typography variant="h3" color="brand.mint" weight="bold">
-                  {user?.nickname?.charAt(0).toUpperCase() ?? 'U'}
-                </Typography>
-              </Box>
-              <Box flex={1}>
-                <Typography variant="h3" weight="bold" mb="xxs">
-                  {user?.nickname ?? user?.email ?? ''}
-                </Typography>
+      ) : (
+        <>
+          <Box flex={1} bg="surface">
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {/* 사용자 정보 */}
+              <Box bg="background" p="lg" rounded="xl" mb="lg" style={theme.shadow.card}>
                 <Box flexDir="row" align="center">
-                  <Box width={8} height={8} bg="success" rounded="full" mr="xs" />
-                  <Typography variant="caption" color="text.secondary">
-                    활성 상태
-                  </Typography>
+                  <Box
+                    bg="brand.mintLight"
+                    rounded="full"
+                    align="center"
+                    justify="center"
+                    mr="md"
+                    width={LOCAL_LAYOUT.userAvatarSize}
+                    height={LOCAL_LAYOUT.userAvatarSize}
+                  >
+                    <Typography variant="h3" color="brand.mint" weight="bold">
+                      {user?.nickname?.charAt(0).toUpperCase() ?? 'U'}
+                    </Typography>
+                  </Box>
+                  <Box flex={1}>
+                    <Typography variant="h3" weight="bold" mb="xxs">
+                      {user?.nickname ?? user?.email ?? ''}
+                    </Typography>
+                    <Box flexDir="row" align="center">
+                      <Box width={8} height={8} bg="success" rounded="full" mr="xs" />
+                      <Typography variant="caption" color="text.secondary">
+                        활성 상태
+                      </Typography>
+                    </Box>
+                  </Box>
                 </Box>
               </Box>
-            </Box>
-          </Box>
 
-          {/* 메뉴 그룹 - 교환 관리 */}
-          <MenuSection title="교환 관리">
-            <MenuItem label="내 티켓 목록" onPress={handleNavExchange} />
-            <MenuDivider />
-            <MenuItem label="티켓 등록하기" onPress={handleNavCreate} />
-            <MenuDivider />
-            <MenuItem label="채팅방 목록" onPress={handleNavChat} />
-          </MenuSection>
-
-          {/* 메뉴 그룹 - 계정 관리 */}
-          <MenuSection title="계정 관리">
-            <MenuItem label="프로필 수정" onPress={handleEditProfile} disabled={loading} />
-            <MenuDivider />
-            <MenuItem label="회원 탈퇴" onPress={handleDeleteAccount} disabled={loading} isError />
-          </MenuSection>
-
-          {/* 즐겨찾기 팀 */}
-          <MenuSection title="즐겨찾기 팀">
-            <MenuItem label="팀 추가하기" onPress={onAddFavoriteTeam} />
-            {favoriteTeam ? (
-              <>
+              {/* 메뉴 그룹 - 교환 관리 */}
+              <MenuSection title="교환 관리">
+                <MenuItem label="내 티켓 목록" onPress={handleNavExchange} />
                 <MenuDivider />
-                <Box
-                  flexDir="row"
-                  align="center"
-                  justify="space-between"
-                  px="lg"
-                  py="md"
-                  bg="brand.mintAlpha10"
-                >
-                  <Typography weight="semibold" color="brand.mint">
-                    {favoriteTeam.teamName}
-                  </Typography>
-                  <TouchableOpacity onPress={onDeleteFavoriteTeam} style={styles.deleteButton}>
-                    <Typography variant="caption" color="error" weight="bold">
-                      삭제
-                    </Typography>
-                  </TouchableOpacity>
-                </Box>
-              </>
-            ) : null}
-          </MenuSection>
+                <MenuItem label="티켓 등록하기" onPress={handleNavCreate} />
+                <MenuDivider />
+                <MenuItem label="채팅방 목록" onPress={handleNavChat} />
+              </MenuSection>
 
-          {/* 설정 */}
-          <MenuSection title="설정">
-            <MenuItem label="알림 설정" onPress={handleNoOp} />
-            <MenuDivider />
-            <MenuItem label="테마 설정" onPress={handleNoOp} />
-          </MenuSection>
+              {/* 메뉴 그룹 - 계정 관리 */}
+              <MenuSection title="계정 관리">
+                <MenuItem label="프로필 수정" onPress={handleEditProfile} disabled={loading} />
+                <MenuDivider />
+                <MenuItem
+                  label="회원 탈퇴"
+                  onPress={handleDeleteAccount}
+                  disabled={loading}
+                  isError
+                />
+              </MenuSection>
 
-          {/* 로그아웃 버튼 */}
-          <Box mt="md" mb="xl">
-            <Button variant="ghost" style={styles.logoutButton} onPress={handleLogout}>
-              로그아웃
-            </Button>
+              {/* 즐겨찾기 팀 */}
+              <MenuSection title="즐겨찾기 팀">
+                <MenuItem label="팀 추가하기" onPress={onAddFavoriteTeam} />
+                {favoriteTeam ? (
+                  <>
+                    <MenuDivider />
+                    <Box
+                      flexDir="row"
+                      align="center"
+                      justify="space-between"
+                      px="lg"
+                      py="md"
+                      bg="brand.mintAlpha10"
+                    >
+                      <Typography weight="semibold" color="brand.mint">
+                        {favoriteTeam.teamName}
+                      </Typography>
+                      <TouchableOpacity onPress={onDeleteFavoriteTeam} style={styles.deleteButton}>
+                        <Typography variant="caption" color="error" weight="bold">
+                          삭제
+                        </Typography>
+                      </TouchableOpacity>
+                    </Box>
+                  </>
+                ) : null}
+              </MenuSection>
+
+              {/* 설정 */}
+              <MenuSection title="설정">
+                <MenuItem label="알림 설정" onPress={handleNoOp} />
+                <MenuDivider />
+                <MenuItem label="테마 설정" onPress={handleNoOp} />
+              </MenuSection>
+
+              {/* 로그아웃 버튼 */}
+              <Box mt="md" mb="xl">
+                <Button variant="ghost" style={styles.logoutButton} onPress={handleLogout}>
+                  로그아웃
+                </Button>
+              </Box>
+            </ScrollView>
           </Box>
-        </ScrollView>
-      </Box>
 
-      {/* 즐겨찾기 팀 선택 바텀 시트 */}
-      <TeamSelectSheet modalRef={bottomSheetModalRef} onSelectTeam={onSelectTeam} />
+          {/* 즐겨찾기 팀 선택 바텀 시트 */}
+          <TeamSelectSheet modalRef={bottomSheetModalRef} onSelectTeam={onSelectTeam} />
 
-      {/* 닉네임 수정 모달 */}
-      <NicknameEditModal
-        visible={isEditModalVisible}
-        initialNickname={user?.nickname ?? ''}
-        loading={loading}
-        onClose={() => setIsEditModalVisible(false)}
-        onSave={handleSaveNickname}
-      />
+          {/* 닉네임 수정 모달 */}
+          <NicknameEditModal
+            visible={isEditModalVisible}
+            initialNickname={user?.nickname ?? ''}
+            loading={loading}
+            onClose={() => setIsEditModalVisible(false)}
+            onSave={handleSaveNickname}
+          />
+        </>
+      )}
     </SafeLayout>
   );
 }
