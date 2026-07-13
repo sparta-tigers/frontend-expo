@@ -32,8 +32,7 @@ export function TeamSelectSheet({
   onSelectTeam,
 }: TeamSelectSheetProps) {
   const snapPoints = LOCAL_LAYOUT.bottomSheetSnapPoints as unknown as (
-    | string
-    | number
+    string | number
   )[];
 
   const renderBackdrop = React.useCallback(

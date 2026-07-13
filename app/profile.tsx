@@ -36,10 +36,22 @@ export default function ProfileScreen() {
     handleDeleteFavoriteTeam,
   } = useProfile();
 
-  const handleNavSignIn = React.useCallback(() => router.push("/(auth)/signin"), []);
-  const handleNavSignUp = React.useCallback(() => router.push("/(auth)/signup"), []);
-  const handleNavExchange = React.useCallback(() => router.push("/(tabs)/exchange"), []);
-  const handleNavCreate = React.useCallback(() => router.push("/exchange/create"), []);
+  const handleNavSignIn = React.useCallback(
+    () => router.push("/(auth)/signin"),
+    [],
+  );
+  const handleNavSignUp = React.useCallback(
+    () => router.push("/(auth)/signup"),
+    [],
+  );
+  const handleNavExchange = React.useCallback(
+    () => router.push("/(tabs)/exchange"),
+    [],
+  );
+  const handleNavCreate = React.useCallback(
+    () => router.push("/exchange/create"),
+    [],
+  );
   const handleNavChat = React.useCallback(() => router.push("/chat/chat"), []);
   const handleNoOp = React.useCallback(() => {}, []);
 
@@ -76,7 +88,9 @@ export default function ProfileScreen() {
             borderBottomWidth={1}
             borderColor="border.medium"
           >
-            <Typography variant="h3" weight="bold">프로필</Typography>
+            <Typography variant="h3" weight="bold">
+              프로필
+            </Typography>
           </Box>
 
           <ScrollView
@@ -84,7 +98,14 @@ export default function ProfileScreen() {
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            <Box bg="background" p="xl" rounded="xl" align="center" mb="xxl" style={theme.shadow.card}>
+            <Box
+              bg="background"
+              p="xl"
+              rounded="xl"
+              align="center"
+              mb="xxl"
+              style={theme.shadow.card}
+            >
               <Box
                 bg="brand.mintLight"
                 rounded="full"
@@ -102,18 +123,15 @@ export default function ProfileScreen() {
                 게스트 모드
               </Typography>
               <Typography variant="body2" color="text.secondary" center mb="lg">
-                로그인하면 나만의 야구 일정과{'\n'}다양한 기능을 이용할 수 있어요
+                로그인하면 나만의 야구 일정과{"\n"}다양한 기능을 이용할 수
+                있어요
               </Typography>
 
               <Box gap="md" width="100%">
                 <Button onPress={handleNavSignIn} size="lg">
                   로그인
                 </Button>
-                <Button
-                  variant="outline"
-                  onPress={handleNavSignUp}
-                  size="lg"
-                >
+                <Button variant="outline" onPress={handleNavSignUp} size="lg">
                   회원가입
                 </Button>
               </Box>
@@ -135,7 +153,9 @@ export default function ProfileScreen() {
           borderBottomWidth={1}
           borderColor="border.medium"
         >
-          <Typography variant="h3" weight="bold">프로필</Typography>
+          <Typography variant="h3" weight="bold">
+            프로필
+          </Typography>
         </Box>
 
         <ScrollView
@@ -144,7 +164,13 @@ export default function ProfileScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* 사용자 정보 */}
-          <Box bg="background" p="lg" rounded="xl" mb="lg" style={theme.shadow.card}>
+          <Box
+            bg="background"
+            p="lg"
+            rounded="xl"
+            mb="lg"
+            style={theme.shadow.card}
+          >
             <Box flexDir="row" align="center">
               <Box
                 bg="brand.mintLight"
@@ -164,7 +190,13 @@ export default function ProfileScreen() {
                   {user?.nickname ?? user?.email ?? ""}
                 </Typography>
                 <Box flexDir="row" align="center">
-                  <Box width={8} height={8} bg="success" rounded="full" mr="xs" />
+                  <Box
+                    width={8}
+                    height={8}
+                    bg="success"
+                    rounded="full"
+                    mr="xs"
+                  />
                   <Typography variant="caption" color="text.secondary">
                     활성 상태
                   </Typography>
@@ -175,20 +207,11 @@ export default function ProfileScreen() {
 
           {/* 메뉴 그룹 - 교환 관리 */}
           <MenuSection title="교환 관리">
-            <MenuItem
-              label="내 티켓 목록"
-              onPress={handleNavExchange}
-            />
+            <MenuItem label="내 티켓 목록" onPress={handleNavExchange} />
             <MenuDivider />
-            <MenuItem
-              label="티켓 등록하기"
-              onPress={handleNavCreate}
-            />
+            <MenuItem label="티켓 등록하기" onPress={handleNavCreate} />
             <MenuDivider />
-            <MenuItem
-              label="채팅방 목록"
-              onPress={handleNavChat}
-            />
+            <MenuItem label="채팅방 목록" onPress={handleNavChat} />
           </MenuSection>
 
           {/* 메뉴 그룹 - 계정 관리 */}
@@ -210,7 +233,7 @@ export default function ProfileScreen() {
           {/* 즐겨찾기 팀 */}
           <MenuSection title="즐겨찾기 팀">
             <MenuItem label="팀 추가하기" onPress={onAddFavoriteTeam} />
-            {favoriteTeam && (
+            {favoriteTeam ? (
               <>
                 <MenuDivider />
                 <Box
@@ -234,7 +257,7 @@ export default function ProfileScreen() {
                   </TouchableOpacity>
                 </Box>
               </>
-            )}
+            ) : null}
           </MenuSection>
 
           {/* 설정 */}

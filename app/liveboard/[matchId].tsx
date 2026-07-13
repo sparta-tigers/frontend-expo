@@ -13,7 +13,13 @@ import {
 import { styles } from "@/src/features/liveboard/styles/matchId.styles";
 import { theme } from "@/src/styles/theme";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Animated, TouchableOpacity, useWindowDimensions, StyleSheet } from "react-native";
+import {
+  ActivityIndicator,
+  Animated,
+  TouchableOpacity,
+  useWindowDimensions,
+  StyleSheet,
+} from "react-native";
 
 /**
  * 라이브보드 상세 화면

@@ -213,13 +213,19 @@ const RankingRow = React.memo(function RankingRow({
           >
             {meta.name}
           </Typography>
-          {isMyTeam && (
-            <Box bg="brand.mint" px="xs" py="xxs" rounded="sm" style={styles.myBadge}>
+          {isMyTeam ? (
+            <Box
+              bg="brand.mint"
+              px="xs"
+              py="xxs"
+              rounded="sm"
+              style={styles.myBadge}
+            >
               <Typography variant="caption" weight="bold" color="card">
                 MY
               </Typography>
             </Box>
-          )}
+          ) : null}
         </Box>
 
         {/* Regular Stats (Flex 1) */}

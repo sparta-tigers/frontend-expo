@@ -73,10 +73,21 @@ export function NicknameEditModal({
               style={styles.container}
             >
               <Box style={styles.content}>
-                <Typography variant="h3" weight="bold" color="text.primary" mb="xs" center>
+                <Typography
+                  variant="h3"
+                  weight="bold"
+                  color="text.primary"
+                  mb="xs"
+                  center
+                >
                   프로필 수정
                 </Typography>
-                <Typography variant="body2" color="text.secondary" mb="xl" center>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  mb="xl"
+                  center
+                >
                   새로운 닉네임을 입력하세요
                 </Typography>
 
@@ -89,11 +100,11 @@ export function NicknameEditModal({
                     fullWidth
                     style={styles.input}
                   />
-                  {!!errorText && (
+                  {!!errorText ? (
                     <Typography variant="caption" color="error" mt="xs" ml="xs">
                       {errorText}
                     </Typography>
-                  )}
+                  ) : null}
                 </Box>
 
                 <Box flexDir="row" justify="space-between" gap="md">
@@ -147,4 +158,3 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
-

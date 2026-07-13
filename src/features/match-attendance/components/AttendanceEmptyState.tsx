@@ -33,12 +33,14 @@ export function AttendanceEmptyState({
 
   return (
     <Box flex={1} justify="center" align="center" p="SCREEN">
-      <Ionicons
-        name={icon}
-        size={64}
-        color={iconColor || theme.colors.error}
-      />
-      <Typography variant="h3" color="text.primary" weight="bold" center mt="md">
+      <Ionicons name={icon} size={64} color={iconColor || theme.colors.error} />
+      <Typography
+        variant="h3"
+        color="text.primary"
+        weight="bold"
+        center
+        mt="md"
+      >
         {title}
       </Typography>
       <Typography variant="body2" color="text.secondary" center mt="sm">

@@ -5,13 +5,13 @@ import * as Location from "expo-location";
 import { router } from "expo-router";
 import React from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
@@ -221,10 +221,13 @@ export default function CreateItemScreen() {
       if (!result.canceled && result.assets) {
         const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
         const oversized = result.assets.filter(
-          (a) => a.fileSize != null && a.fileSize > MAX_FILE_SIZE_BYTES
+          (a) => a.fileSize != null && a.fileSize > MAX_FILE_SIZE_BYTES,
         );
         if (oversized.length > 0) {
-          Alert.alert("알림", "이미지 파일은 각 10MB 이하만 업로드 가능합니다.");
+          Alert.alert(
+            "알림",
+            "이미지 파일은 각 10MB 이하만 업로드 가능합니다.",
+          );
           return;
         }
         const newImages = result.assets.map((asset) => asset.uri || "");
@@ -296,7 +299,7 @@ export default function CreateItemScreen() {
           contentContainerStyle={styles.imageScrollContent}
         >
           <Box flexDir="row" p="lg" gap="sm">
-            {selectedImages.length < 5 && (
+            {selectedImages.length < 5 ? (
               <TouchableOpacity
                 style={styles.imageAddButton}
                 onPress={handleImagePicker}
@@ -308,7 +311,7 @@ export default function CreateItemScreen() {
                   {selectedImages.length}/5
                 </Typography>
               </TouchableOpacity>
-            )}
+            ) : null}
 
             {selectedImages.map((imageUri, index) => (
               <Box key={index} style={styles.imageItemWrapper}>
@@ -355,9 +358,9 @@ export default function CreateItemScreen() {
             <Typography variant="body2" color="text.secondary" flex={1}>
               {currentLocation.address}
             </Typography>
-            {locationLoading && (
+            {locationLoading ? (
               <ActivityIndicator size="small" color={theme.colors.primary} />
-            )}
+            ) : null}
           </Box>
         </Box>
 
@@ -448,7 +451,10 @@ export default function CreateItemScreen() {
           <TextInput
             placeholder="내용을 입력하세요."
             multiline
-            style={[styles.contentInput, errors.content ? styles.inputError : null]}
+            style={[
+              styles.contentInput,
+              errors.content ? styles.inputError : null,
+            ]}
             value={formData.content}
             onChangeText={(text) => {
               setFormData({ ...formData, content: text });

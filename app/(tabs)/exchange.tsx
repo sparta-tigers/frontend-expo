@@ -33,13 +33,13 @@ const MapMarkers = React.memo(
     onMarkerPress: (id: number) => void;
   }) => (
     <>
-      {currentLocation && (
+      {currentLocation ? (
         <Marker
           coordinate={currentLocation}
           title="내 위치"
           pinColor={theme.colors.primary}
         />
-      )}
+      ) : null}
       {items.map((item) =>
         item.latitude != null &&
         item.longitude != null &&
@@ -100,11 +100,16 @@ export default function ExchangeScreen() {
     [navigateToItemDetail],
   );
 
+  const keyExtractor = useCallback((item: Item) => item.id.toString(), []);
+
   return (
     <SafeLayout style={styles.container}>
       <Head>
         <title>교환 | 스파르타타이거즈</title>
-        <meta name="description" content="내 주변에서 진행되는 직관 티켓 및 굿즈 교환을 확인하세요." />
+        <meta
+          name="description"
+          content="내 주변에서 진행되는 직관 티켓 및 굿즈 교환을 확인하세요."
+        />
       </Head>
       {/* 1. 지도 영역 */}
       <MapView
@@ -168,7 +173,7 @@ export default function ExchangeScreen() {
               ref={listRef}
               data={filteredItems}
               renderItem={renderItem}
-              keyExtractor={(item) => item.id.toString()}
+              keyExtractor={keyExtractor}
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}

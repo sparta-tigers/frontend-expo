@@ -1,9 +1,6 @@
 // src/features/liveboard/components/ChatPanel.tsx
 import { Box } from "@/components/ui/box";
 import { Typography } from "@/components/ui/typography";
-import {
-  useChatPanel,
-} from "@/src/features/liveboard/hooks/useChatPanel";
 import { styles } from "@/src/features/liveboard/styles/matchId.styles";
 import { theme } from "@/src/styles/theme";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -14,8 +11,10 @@ import {
   TextInput,
   TouchableOpacity,
 } from "react-native";
+import { useCallback, memo } from "react";
+import { ChatBubbleMessage, useChatPanel } from "@/src/features/liveboard/hooks/useChatPanel";
 
-function ChatBubble({
+const ChatBubble = memo(function ChatBubble({
   author,
   text,
   time,
@@ -33,11 +32,11 @@ function ChatBubble({
       justify={mine ? "flex-end" : "flex-start"}
       style={styles.bubbleRow}
     >
-      {mine && (
+      {mine ? (
         <Typography style={styles.bubbleTime} weight="regular">
           {time}
         </Typography>
-      )}
+      ) : null}
       <Box style={styles.bubbleColumn} align={mine ? "flex-end" : "flex-start"}>
         <Typography style={styles.bubbleAuthor} weight="regular">
           {author}
@@ -53,14 +52,14 @@ function ChatBubble({
           </Typography>
         </Box>
       </Box>
-      {!mine && (
+      {!mine ? (
         <Typography style={styles.bubbleTime} weight="regular">
           {time}
         </Typography>
-      )}
+      ) : null}
     </Box>
   );
-}
+});
 
 /**
  * ChatPanel
@@ -76,6 +75,13 @@ const LOCAL_LAYOUT = {
 export function ChatPanel({ matchId }: { matchId: string }) {
   const { messages, draft, setDraft, isConnected, scrollRef, handleSend } =
     useChatPanel(matchId);
+
+  const keyExtractor = useCallback((item: ChatBubbleMessage) => item.key, []);
+  
+  const renderItem = useCallback(({ item }: { item: ChatBubbleMessage }) => {
+    const { key, author, text, time, mine } = item;
+    return <ChatBubble key={key} author={author} text={text} time={time} mine={mine} />;
+  }, []);
 
   return (
     <KeyboardAvoidingView
@@ -94,11 +100,8 @@ export function ChatPanel({ matchId }: { matchId: string }) {
           contentContainerStyle={styles.chatContent}
           showsVerticalScrollIndicator={false}
           data={messages}
-          keyExtractor={(item) => item.key}
-          renderItem={({ item }) => {
-            const { key, ...rest } = item;
-            return <ChatBubble key={key} {...rest} />;
-          }}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
           ListEmptyComponent={
             <Box flex={1} align="center" justify="center" py="xxxl">
               <Typography variant="body1" color="text.tertiary" weight="medium">

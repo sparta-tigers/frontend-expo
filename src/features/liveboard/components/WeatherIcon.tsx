@@ -10,12 +10,7 @@ import { RainType, SkyStatus } from "@/src/features/liveboard/types";
  * 매핑 테이블을 단순하게 유지한다. 추후 아이콘이 세분화되면 키를 추가하기만 하면 됨.
  */
 export type WeatherIconKey =
-  | "sunny"
-  | "cloudyPartly"
-  | "cloudy"
-  | "rain"
-  | "snow"
-  | "rainSnow";
+  "sunny" | "cloudyPartly" | "cloudy" | "rain" | "snow" | "rainSnow";
 
 /**
  * 날씨 아이콘 매핑 테이블 (단일 교체 지점)

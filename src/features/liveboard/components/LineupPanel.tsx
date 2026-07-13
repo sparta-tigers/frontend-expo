@@ -74,7 +74,7 @@ export function LineupPanel({ match }: { match: MatchDetail }) {
         <Typography variant="body1" color="text.secondary" weight="medium">
           {errorMessage}
         </Typography>
-        {isLoggedIn && (
+        {isLoggedIn ? (
           <TouchableOpacity
             style={styles.retryBtn}
             onPress={handleRetry}
@@ -85,7 +85,7 @@ export function LineupPanel({ match }: { match: MatchDetail }) {
               다시 시도
             </Typography>
           </TouchableOpacity>
-        )}
+        ) : null}
       </Box>
     );
   }

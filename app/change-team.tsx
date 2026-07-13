@@ -111,7 +111,7 @@ export default function ChangeTeamScreen() {
                 >
                   {team.name}
                 </Typography>
-                {isSelected && (
+                {isSelected ? (
                   <Box
                     rounded="sm"
                     px="xs"
@@ -127,7 +127,7 @@ export default function ChangeTeamScreen() {
                       선택됨
                     </Typography>
                   </Box>
-                )}
+                ) : null}
               </TouchableOpacity>
             );
           })}

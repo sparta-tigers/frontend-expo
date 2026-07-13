@@ -95,8 +95,14 @@ export default function RankingScreen() {
     [router, selectedDate],
   );
 
-  const handleSwitchToDay = React.useCallback(() => switchMode("day"), [switchMode]);
-  const handleSwitchToYear = React.useCallback(() => switchMode("year"), [switchMode]);
+  const handleSwitchToDay = React.useCallback(
+    () => switchMode("day"),
+    [switchMode],
+  );
+  const handleSwitchToYear = React.useCallback(
+    () => switchMode("year"),
+    [switchMode],
+  );
   const handleShiftPrev = React.useCallback(() => shiftDate(-1), [shiftDate]);
   const handleShiftNext = React.useCallback(() => shiftDate(1), [shiftDate]);
   const handleGoBack = React.useCallback(() => router.back(), [router]);
@@ -177,7 +183,7 @@ export default function RankingScreen() {
 
           {/* Dynamic Title based on View Mode */}
           <Box flexDir="row" align="center" mt="xs">
-            {viewMode === "day" && (
+            {viewMode === "day" ? (
               <TouchableOpacity
                 onPress={handleShiftPrev}
                 style={styles.navArrow}
@@ -188,7 +194,7 @@ export default function RankingScreen() {
                   color={theme.colors.brand.subtitle}
                 />
               </TouchableOpacity>
-            )}
+            ) : null}
 
             <Typography variant="h2" weight="bold" color="text.primary" mx="sm">
               {viewMode === "year"
@@ -196,7 +202,7 @@ export default function RankingScreen() {
                 : `${selectedDate.slice(4, 6)}월 ${selectedDate.slice(6, 8)}일 순위`}
             </Typography>
 
-            {viewMode === "day" && (
+            {viewMode === "day" ? (
               <TouchableOpacity
                 onPress={handleShiftNext}
                 style={styles.navArrow}
@@ -207,7 +213,7 @@ export default function RankingScreen() {
                   color={theme.colors.brand.subtitle}
                 />
               </TouchableOpacity>
-            )}
+            ) : null}
           </Box>
         </Box>
       </Box>
@@ -429,13 +435,13 @@ const RankingRow = React.memo(
           >
             {meta.name}
           </Typography>
-          {isMyTeam && (
+          {isMyTeam ? (
             <Box ml="xs" bg="brand.mint" px="xs" rounded="sm">
               <Typography variant="caption" color="card" weight="bold">
                 MY
               </Typography>
             </Box>
-          )}
+          ) : null}
         </Box>
         <Box flex={1} align="center">
           <Typography variant="caption" color="text.secondary">

@@ -279,7 +279,7 @@ export default function ApplyExchangeScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* 교환 대상 아이템 표시 */}
-          {targetItem?.data && (
+          {targetItem?.data ? (
             <Box style={styles.targetItemBox}>
               <Typography variant="body2" style={styles.targetItemLabel}>
                 교환 요청 대상 아이템
@@ -288,7 +288,7 @@ export default function ApplyExchangeScreen() {
                 {targetItem.data.title}
               </Typography>
             </Box>
-          )}
+          ) : null}
 
           {/* 헤더 안내 */}
           <Box style={styles.header}>

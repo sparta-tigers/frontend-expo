@@ -18,6 +18,8 @@ import {
   Dimensions,
   FlatList,
   Image,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -228,6 +230,29 @@ export default function ItemDetailScreen() {
     typeof myUserId !== "undefined" &&
     Number(itemUserObjId) === Number(myUserId);
 
+  const handleMomentumScrollEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const { width } = event.nativeEvent.layoutMeasurement;
+    const index = Math.round(event.nativeEvent.contentOffset.x / width);
+    setCurrentImageIndex(index);
+  }, []);
+
+  const imageKeyExtractor = useCallback((_: unknown, index: number) => `image-${index}`, []);
+
+  const renderImageItem = useCallback(({ item: imageUrl, index }: { item: string; index: number }) => (
+    <TouchableOpacity
+      style={[styles.imageContainer, { width: SCREEN_WIDTH }]}
+      onPress={() => {
+        setImageViewerIndex(index);
+        setIsImageViewerVisible(true);
+      }}
+    >
+      <Image
+        source={{ uri: getImageUrl(imageUrl) }}
+        style={styles.image}
+      />
+    </TouchableOpacity>
+  ), []);
+
   const renderImageCarousel = useCallback(() => {
     const images = item?.data?.imageUrls ?? item?.data?.images ?? [];
 
@@ -249,34 +274,17 @@ export default function ItemDetailScreen() {
 
     return (
       <Box style={styles.imageCarousel}>
-        <FlatList
+        <FlatList<string>
           data={images}
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
-          keyExtractor={(_, index) => `image-${index}`}
-          onMomentumScrollEnd={(event) => {
-            const { width } = event.nativeEvent.layoutMeasurement;
-            const index = Math.round(event.nativeEvent.contentOffset.x / width);
-            setCurrentImageIndex(index);
-          }}
-          renderItem={({ item: imageUrl, index }) => (
-            <TouchableOpacity
-              style={[styles.imageContainer, { width: SCREEN_WIDTH }]}
-              onPress={() => {
-                setImageViewerIndex(index);
-                setIsImageViewerVisible(true);
-              }}
-            >
-              <Image
-                source={{ uri: getImageUrl(imageUrl as string) }}
-                style={styles.image}
-              />
-            </TouchableOpacity>
-          )}
+          keyExtractor={imageKeyExtractor}
+          onMomentumScrollEnd={handleMomentumScrollEnd}
+          renderItem={renderImageItem}
         />
 
-        {images.length > 1 && (
+        {images.length > 1 ? (
           <Box style={styles.indicatorContainer}>
             {images.map((_: string, index: number) => (
               <Box
@@ -290,7 +298,7 @@ export default function ItemDetailScreen() {
               />
             ))}
           </Box>
-        )}
+        ) : null}
 
         <ImageViewing
           images={formattedImages}
@@ -301,7 +309,7 @@ export default function ItemDetailScreen() {
         />
       </Box>
     );
-  }, [item, currentImageIndex, imageViewerIndex, isImageViewerVisible]);
+  }, [item, currentImageIndex, imageViewerIndex, isImageViewerVisible, handleMomentumScrollEnd, imageKeyExtractor, renderImageItem]);
 
   const handleExchangeRequest = useCallback(() => {
     if (!user?.accessToken) {
@@ -429,7 +437,7 @@ export default function ItemDetailScreen() {
             아이템 상세
           </Typography>
           <Box style={styles.headerRightContainer}>
-            {isOwner && (
+            {isOwner ? (
               <>
                 <TouchableOpacity
                   onPress={() => router.push(`/exchange/edit/${id}` as Href)}
@@ -448,7 +456,7 @@ export default function ItemDetailScreen() {
                   </Typography>
                 </TouchableOpacity>
               </>
-            )}
+            ) : null}
           </Box>
         </Box>
 
@@ -500,7 +508,7 @@ export default function ItemDetailScreen() {
               </Typography>
             </Box>
 
-            {isOwner && (
+            {isOwner ? (
               <Box style={styles.buttonRow}>
                 <Box style={styles.statusSection}>
                   <Box style={styles.statusInfoRow}>
@@ -563,7 +571,7 @@ export default function ItemDetailScreen() {
                   </Box>
                 </Box>
               </Box>
-            )}
+            ) : null}
           </Box>
         </ScrollView>
 

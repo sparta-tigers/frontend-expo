@@ -146,7 +146,7 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                           : `${cell.day}일 경기 없음`
                     }
                   >
-                    {!isEmpty && (
+                    {!isEmpty ? (
                       <>
                         <Box
                           flexDir="row"
@@ -154,7 +154,7 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                           justify="space-between"
                           width="100%"
                         >
-                          {cell.hasAttendance && (
+                          {cell.hasAttendance ? (
                             <Box style={styles.attendanceStamp}>
                               <Ionicons
                                 name="checkmark-done-circle"
@@ -162,7 +162,7 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                                 color={theme.colors.brand.mintAlpha10}
                               />
                             </Box>
-                          )}
+                          ) : null}
                           <Typography
                             variant="caption"
                             weight={cell.isToday ? "bold" : "medium"}
@@ -231,7 +231,7 @@ export const ScheduleSection = React.memo(function ScheduleSection({
                           <Box height={theme.spacing.md} />
                         )}
                       </>
-                    )}
+                    ) : null}
                   </TouchableOpacity>
                 );
               })}

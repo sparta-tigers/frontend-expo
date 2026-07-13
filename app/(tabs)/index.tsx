@@ -23,7 +23,10 @@ export default function HomeScreen() {
     <SafeLayout style={styles.safeLayout} edges={["top", "left", "right"]}>
       <Head>
         <title>홈 | 스파르타타이거즈</title>
-        <meta name="description" content="나의 응원팀 순위와 오늘의 라인업, 이번 달 경기 일정을 한눈에 확인하세요." />
+        <meta
+          name="description"
+          content="나의 응원팀 순위와 오늘의 라인업, 이번 달 경기 일정을 한눈에 확인하세요."
+        />
       </Head>
       <ScrollView
         style={styles.scroll}

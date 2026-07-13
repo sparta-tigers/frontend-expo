@@ -93,7 +93,7 @@ export default function TabLayout() {
                 name="arrow.left.arrow.right"
                 color={color}
               />
-              {hasNewExchangeRequest && (
+              {hasNewExchangeRequest ? (
                 <Box
                   position="absolute"
                   right={theme.layout.tabBar.badgeOffset}
@@ -103,7 +103,7 @@ export default function TabLayout() {
                   rounded="sm"
                   bg="error"
                 />
-              )}
+              ) : null}
             </Box>
           ),
         }}

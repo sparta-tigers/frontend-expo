@@ -1,5 +1,5 @@
 // src/features/liveboard/components/TextBroadcastPanel.tsx
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import {
   FlatList,
   ScrollView,
@@ -56,6 +56,10 @@ export const TextBroadcastPanel = memo(
       filteredBroadcast,
     } = useTextBroadcast(inningTexts);
 
+    const keyExtractor = useCallback((item: BroadcastItem) => item.id, []);
+    
+    const renderItem = useCallback(({ item }: { item: BroadcastItem }) => <TextBroadcastItem item={item} />, []);
+
     if (!isVisible) return null;
 
     return (
@@ -92,8 +96,8 @@ export const TextBroadcastPanel = memo(
         {/* 중계 리스트 (FlatList optimized) */}
         <FlatList
           data={filteredBroadcast}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <TextBroadcastItem item={item} />}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
           contentContainerStyle={styles.broadcastList}
           initialNumToRender={10}
           maxToRenderPerBatch={10}

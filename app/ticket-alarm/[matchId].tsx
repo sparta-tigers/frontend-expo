@@ -152,7 +152,12 @@ export default function TicketAlarmFormScreen() {
               {errorText}
             </Typography>
           ) : (
-            <Typography variant="caption" color="text.secondary" mt="xs" ml="xs">
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              mt="xs"
+              ml="xs"
+            >
               선예매 멤버십이 있다면 기록해두세요.
             </Typography>
           )}
@@ -189,4 +194,3 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
   },
 });
-

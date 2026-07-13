@@ -141,7 +141,7 @@ export const MyTeamSection = memo(
           >
             MY TEAM
           </Typography>
-          {onPressChangeTeam && (
+          {onPressChangeTeam ? (
             <TouchableOpacity
               activeOpacity={0.75}
               onPress={onPressChangeTeam}
@@ -158,7 +158,7 @@ export const MyTeamSection = memo(
                 응원팀 변경
               </Typography>
             </TouchableOpacity>
-          )}
+          ) : null}
         </Box>
 
         {/* 메인 활동 카드 */}

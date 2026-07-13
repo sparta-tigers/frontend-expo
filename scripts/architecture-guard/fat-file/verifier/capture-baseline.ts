@@ -1,6 +1,5 @@
-/* eslint-disable no-console */
 // Feature: fat-file-refactoring
-import { writeFileSync } from "node:fs";
+import { writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { runTsc } from "./tsc-diff.ts";
 

@@ -270,7 +270,7 @@ export default function AttendanceFormScreen() {
               사진 (최대 5장)
             </Typography>
             <Box flexDir="row" style={localStyles.imageWrap}>
-              {images.length < 5 && (
+              {images.length < 5 ? (
                 <TouchableOpacity
                   style={[styles.imagePickerButton, localStyles.noMargin]}
                   onPress={pickImage}
@@ -280,15 +280,11 @@ export default function AttendanceFormScreen() {
                     size={32}
                     color={theme.colors.text.secondary}
                   />
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    mt="xs"
-                  >
+                  <Typography variant="caption" color="text.secondary" mt="xs">
                     {images.length}/5
                   </Typography>
                 </TouchableOpacity>
-              )}
+              ) : null}
 
               {images.map((uri, index) => (
                 <Box key={uri} position="relative">

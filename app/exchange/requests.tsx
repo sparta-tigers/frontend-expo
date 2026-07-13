@@ -41,7 +41,7 @@ export default function ExchangeRequestsScreen() {
               await handleAccept(id);
               Alert.alert(
                 "성공",
-                "교환 요청을 승낙했습니다. 채팅방에서 대화를 시작하세요!"
+                "교환 요청을 승낙했습니다. 채팅방에서 대화를 시작하세요!",
               );
             } catch {
               Alert.alert("실패", "수락 처리 중 오류가 발생했습니다.");
@@ -110,11 +110,11 @@ export default function ExchangeRequestsScreen() {
         </Box>
 
         <Box mb="lg">
-          {activeTab === "receiver" && (
+          {activeTab === "receiver" ? (
             <Typography variant="body2" color="text.secondary" mb="xxs">
               요청자: {item.sender.userNickname}
             </Typography>
-          )}
+          ) : null}
           <Typography variant="body2" color="text.secondary" mb="xxs">
             카테고리: {item.category === "TICKET" ? "티켓" : "굿즈"}
           </Typography>
@@ -124,35 +124,34 @@ export default function ExchangeRequestsScreen() {
         </Box>
 
         {item.exchangeStatus === ExchangeRequestStatus.PENDING &&
-          activeTab === "receiver" && (
-            <Box flexDir="row" gap="md">
-              <Box flex={1}>
-                <Button onPress={() => onAccept(item.exchangeRequestId)}>
-                  승낙
-                </Button>
-              </Box>
-              <Box flex={1}>
-                <Button
-                  variant="outline"
-                  onPress={() => onReject(item.exchangeRequestId)}
-                >
-                  거절
-                </Button>
-              </Box>
+        activeTab === "receiver" ? (
+          <Box flexDir="row" gap="md">
+            <Box flex={1}>
+              <Button onPress={() => onAccept(item.exchangeRequestId)}>
+                승낙
+              </Button>
             </Box>
-          )}
+            <Box flex={1}>
+              <Button
+                variant="outline"
+                onPress={() => onReject(item.exchangeRequestId)}
+              >
+                거절
+              </Button>
+            </Box>
+          </Box>
+        ) : null}
 
-        {item.exchangeStatus === ExchangeRequestStatus.ACCEPTED && item.directRoomId && (
+        {item.exchangeStatus === ExchangeRequestStatus.ACCEPTED &&
+        item.directRoomId ? (
           <Box mt="md">
             <Button
-              onPress={() =>
-                router.push(`/exchange/chat/${item.directRoomId}`)
-              }
+              onPress={() => router.push(`/exchange/chat/${item.directRoomId}`)}
             >
               채팅방으로 이동
             </Button>
           </Box>
-        )}
+        ) : null}
       </Box>
     ),
     [activeTab, onAccept, onReject, router],
@@ -235,9 +234,9 @@ export default function ExchangeRequestsScreen() {
                     ? "받은 교환 요청이 없습니다."
                     : "보낸 교환 요청이 없습니다."}
               </Typography>
-              {(requests.length === 0 || error) && !loading && (
+              {(requests.length === 0 || error) && !loading ? (
                 <Button onPress={() => fetchRequests()}>다시 시도</Button>
-              )}
+              ) : null}
             </Box>
           }
         />

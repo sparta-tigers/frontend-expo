@@ -204,7 +204,7 @@ export default function AttendanceDetailScreen() {
           </Box>
 
           {/* Result Banner */}
-          {result && (
+          {result ? (
             <Box
               bg="brand.mintAlpha10"
               p="md"
@@ -217,7 +217,7 @@ export default function AttendanceDetailScreen() {
                 {result.emoji} {result.text}
               </Typography>
             </Box>
-          )}
+          ) : null}
 
           <Box flexDir="row" align="center" justify="center">
             <MaterialCommunityIcons
@@ -232,13 +232,9 @@ export default function AttendanceDetailScreen() {
         </Box>
 
         {/* Gallery */}
-        {attendance.images && attendance.images.length > 0 && (
+        {attendance.images && attendance.images.length > 0 ? (
           <Box mb="SCREEN" px="SCREEN">
-            <Typography
-              variant="label"
-              color="text.secondary"
-              mb="sm"
-            >
+            <Typography variant="label" color="text.secondary" mb="sm">
               GALLERY
             </Typography>
             <Box style={{ gap: theme.spacing.sm }}>
@@ -252,7 +248,7 @@ export default function AttendanceDetailScreen() {
               ))}
             </Box>
           </Box>
-        )}
+        ) : null}
 
         {/* Memo */}
         <Box px="SCREEN" mb="SCREEN">

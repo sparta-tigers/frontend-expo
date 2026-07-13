@@ -9,11 +9,12 @@ import { calculateMatchResult } from "@/src/utils/match";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import Head from "expo-router/head";
+import { useCallback } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    StyleSheet,
-    TouchableOpacity,
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
 } from "react-native";
 
 /**
@@ -41,20 +42,16 @@ export default function HistoryScreen() {
     await refetch();
   };
 
-  const getMatchResult = (item: MatchAttendance) => {
-    return calculateMatchResult(
+  const renderAttendanceItem = useCallback(({ item }: { item: MatchAttendance }) => {
+    const matchDate = new Date(item.matchTime);
+    const dateString = `${matchDate.getFullYear()}.${String(matchDate.getMonth() + 1).padStart(2, "0")}.${String(matchDate.getDate()).padStart(2, "0")}`;
+    const result = calculateMatchResult(
       item.homeScore,
       item.awayScore,
       item.homeTeamCode,
       item.awayTeamCode,
       favoriteTeam?.teamCode,
     );
-  };
-
-  const renderAttendanceItem = ({ item }: { item: MatchAttendance }) => {
-    const matchDate = new Date(item.matchTime);
-    const dateString = `${matchDate.getFullYear()}.${String(matchDate.getMonth() + 1).padStart(2, "0")}.${String(matchDate.getDate()).padStart(2, "0")}`;
-    const result = getMatchResult(item);
 
     return (
       <TouchableOpacity
@@ -123,7 +120,9 @@ export default function HistoryScreen() {
         </Box>
       </TouchableOpacity>
     );
-  };
+  }, [favoriteTeam?.teamCode]);
+
+  const keyExtractor = useCallback((item: MatchAttendance) => item.id.toString(), []);
 
   const headElement = (
     <Head>
@@ -155,7 +154,7 @@ export default function HistoryScreen() {
           <FlatList
             data={attendances}
             renderItem={renderAttendanceItem}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={keyExtractor}
             contentContainerStyle={styles.listContainer}
             showsVerticalScrollIndicator={false}
             onRefresh={onRefresh}

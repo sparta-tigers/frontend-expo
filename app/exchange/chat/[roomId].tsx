@@ -1,6 +1,6 @@
 // app/exchange/chat/[roomId].tsx
 import { styles } from "@/src/features/chat/chatRoom.styles";
-import { useChatRoom } from "@/src/features/chat/useChatRoom";
+import { ChatMessage, useChatRoom } from "@/src/features/chat/useChatRoom";
 import { itemsUpdateStatusAPI } from "@/src/features/exchange/api";
 import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
@@ -95,6 +95,35 @@ export default function ChatRoomScreen() {
     onStatusChange: handleUpdateStatus, // 💉 의존성 주입
   });
 
+  const keyExtractor = useCallback((item: ChatMessage) => String(item.id), []);
+
+  const renderItem = useCallback(({ item }: { item: ChatMessage }) => (
+    <View
+      style={[
+        styles.messageBubble,
+        item.isMine ? styles.myBubble : styles.otherBubble,
+      ]}
+    >
+      {!item.isMine ? (
+        <Text style={styles.senderName}>{item.senderName}</Text>
+      ) : null}
+      <Text
+        style={[
+          styles.messageText,
+          item.isMine ? styles.messageTextMine : styles.messageTextOther,
+        ]}
+      >
+        {item.content}
+      </Text>
+    </View>
+  ), []);
+
+  const handleEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      void fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
   if (isRoomIdInvalid) {
     return (
       <View style={styles.errorContainer}>
@@ -128,7 +157,7 @@ export default function ChatRoomScreen() {
                   : "교환 취소"}
             </Text>
 
-            {exchangeItem.status === "REGISTERED" && (
+            {exchangeItem.status === "REGISTERED" ? (
               <View style={styles.statusButtons}>
                 {exchangeItem.ownerId === user?.userId ? (
                   <>
@@ -169,7 +198,7 @@ export default function ChatRoomScreen() {
                   </View>
                 )}
               </View>
-            )}
+            ) : null}
           </View>
         ) : null}
       </View>
@@ -188,37 +217,13 @@ export default function ChatRoomScreen() {
         </Text>
       </View>
 
-      {/* 메시지 목록 */}
       <FlatList
         inverted={true}
         data={flattenedMessages}
-        keyExtractor={(item) => String(item.id)}
+        keyExtractor={keyExtractor}
         contentContainerStyle={styles.messageListContent}
-        renderItem={({ item }) => (
-          <View
-            style={[
-              styles.messageBubble,
-              item.isMine ? styles.myBubble : styles.otherBubble,
-            ]}
-          >
-            {!item.isMine && (
-              <Text style={styles.senderName}>{item.senderName}</Text>
-            )}
-            <Text
-              style={[
-                styles.messageText,
-                item.isMine ? styles.messageTextMine : styles.messageTextOther,
-              ]}
-            >
-              {item.content}
-            </Text>
-          </View>
-        )}
-        onEndReached={() => {
-          if (hasNextPage && !isFetchingNextPage) {
-            void fetchNextPage();
-          }
-        }}
+        renderItem={renderItem}
+        onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
         removeClippedSubviews={true}
       />
