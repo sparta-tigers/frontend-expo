@@ -6,6 +6,7 @@ import { OfflineBanner } from '@/src/components/shared/OfflineBanner';
 import { Logger } from '@/src/utils/logger';
 
 import { Box, Toast, ConfirmModal } from '@/components/ui';
+import { GlobalHeader } from '@/components/ui/global-header';
 import { theme } from '@/src/styles/theme';
 import { useNetInfo } from '@react-native-community/netinfo';
 import * as Notifications from 'expo-notifications';
@@ -150,6 +151,9 @@ function RootLayoutInner() {
       <SafeAreaProvider>
         <Box flex={1} style={dynamicBgStyle}>
           {!netInfo.isConnected ? <OfflineBanner /> : null}
+
+          {/* 전역 헤더 */}
+          <GlobalHeader />
 
           {/* 하위 라우팅 화면 */}
           <Box flex={1} style={dynamicBgStyle}>
