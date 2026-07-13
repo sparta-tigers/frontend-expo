@@ -180,7 +180,6 @@ export function useChatRoom(
           if (prevContent.some((msg) => msg.id === newMessage.id)) return oldData;
 
           const cleanList = prevContent.filter((msg) => {
-            if (msg.id < 0 && msg.id === newMessage.id) return false;
             if (
               msg.id < 0 &&
               newMessage.id > 0 &&
