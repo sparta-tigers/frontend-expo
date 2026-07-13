@@ -161,14 +161,14 @@ export function filterUpcomingForeCast(
 ): ForeCastDto[] {
   if (!foreCast || foreCast.length === 0) return [];
   const nowMs = now.getTime();
+  
   return foreCast
-    .filter((item) => {
-      if (!item.castTime) return false;
-      const t = new Date(item.castTime).getTime();
-      return !Number.isNaN(t) && t > nowMs;
-    })
-    .sort(
-      (a, b) => new Date(a.castTime).getTime() - new Date(b.castTime).getTime(),
-    )
+    .map((item) => ({
+      item,
+      time: item.castTime ? new Date(item.castTime).getTime() : NaN,
+    }))
+    .filter(({ time }) => !Number.isNaN(time) && time > nowMs)
+    .sort((a, b) => a.time - b.time)
+    .map(({ item }) => item)
     .slice(0, limit);
 }

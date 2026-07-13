@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { exchangeKeys } from "@/src/features/exchange/keys";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { router } from "expo-router";
@@ -84,7 +85,7 @@ export default function CreateItemScreen() {
     },
     onSuccess: async () => {
       Alert.alert("성공", "아이템이 등록되었습니다.");
-      await queryClient.invalidateQueries({ queryKey: ["items"] });
+      await queryClient.invalidateQueries({ queryKey: exchangeKeys.items() });
       router.replace("/(tabs)/exchange");
     },
     onError: (error: Error & { response?: { status?: number } }) => {

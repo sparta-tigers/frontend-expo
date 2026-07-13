@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { exchangeKeys } from "@/src/features/exchange/keys";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
@@ -167,7 +168,7 @@ export default function ApplyExchangeScreen() {
 
   // 교환 대상 아이템 조회 (receiverId 추출용)
   const { data: targetItem, isLoading: isItemLoading } = useQuery({
-    queryKey: ["item", id],
+    queryKey: exchangeKeys.item(id),
     queryFn: () => itemsGetDetailAPI(targetItemId),
     enabled: isTargetItemIdValid && !isAuthLoading && user !== null,
   });
@@ -207,7 +208,7 @@ export default function ApplyExchangeScreen() {
       const roomId = data?.directRoomId ?? data?.roomId;
 
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["item", id] }),
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.item(id) }),
         queryClient.invalidateQueries({ queryKey: ["exchangeRequests"] }),
       ]);
 

@@ -176,14 +176,10 @@ export function useChatRoom(
             };
           }
           const prevContent = oldData.pages[0].content;
-          // 🛡️ 중복 제거 로직 강화:
-          // 1. 낙관적 메시지(음수 ID)끼리의 중복 제거
-          // 2. 서버 에코 수신 시, 동일 내용/작성자의 낙관적 메시지 교체
-          const cleanList = prevContent.filter((msg) => {
-            // 동일한 낙관적 ID 제거
-            if (msg.id < 0 && msg.id === newMessage.id) return false;
+          // 0. 완전 중복 여부를 미리 확인하여 불필요한 filter 할당 방지
+          if (prevContent.some((msg) => msg.id === newMessage.id)) return oldData;
 
-            // 서버 확정 메시지(양수) 수신 시, 매칭되는 내 낙관적 메시지 제거
+          const cleanList = prevContent.filter((msg) => {
             if (
               msg.id < 0 &&
               newMessage.id > 0 &&
@@ -196,7 +192,6 @@ export function useChatRoom(
             return true;
           });
 
-          if (cleanList.some((msg) => msg.id === newMessage.id)) return oldData;
           const nextPages = [...oldData.pages];
           nextPages[0] = {
             ...nextPages[0],

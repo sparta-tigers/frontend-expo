@@ -2,7 +2,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { useWebSocket } from "@/src/hooks/useWebSocket";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, ScrollView } from "react-native";
+import { Alert, FlatList } from "react-native";
 
 let messageCounter = 0;
 
@@ -57,7 +57,7 @@ interface UseChatPanelReturn {
   draft: string;
   setDraft: (v: string) => void;
   isConnected: boolean;
-  scrollRef: React.RefObject<ScrollView | null>;
+  scrollRef: React.RefObject<FlatList<ChatBubbleMessage> | null>;
   handleSend: () => void;
 }
 
@@ -79,7 +79,7 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
 
   const [messages, setMessages] = useState<ChatBubbleMessage[]>([]);
   const [draft, setDraft] = useState("");
-  const scrollRef = useRef<ScrollView | null>(null);
+  const scrollRef = useRef<FlatList<ChatBubbleMessage> | null>(null);
 
   // 구독: 새 메시지 수신 시 목록에 추가 + optimistic 대체
   useEffect(() => {
@@ -93,6 +93,7 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
           const bubble = toBubbleMessage(parsed, user?.userId);
 
           setMessages((prev) => {
+            const parsedTime = new Date(parsed.sentAt).getTime();
             const withoutOptimistic = bubble.mine
               ? prev.filter(
                   (m) =>
@@ -103,7 +104,7 @@ export function useChatPanel(matchId: string): UseChatPanelReturn {
                           (m.senderId === bubble.senderId &&
                             m.text === bubble.text &&
                             Math.abs(
-                              new Date(parsed.sentAt).getTime() -
+                              parsedTime -
                                 (m.localTimestamp ?? 0),
                             ) < 10000))
                       ) // 30초 -> 10초로 단축

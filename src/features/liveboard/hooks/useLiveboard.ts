@@ -179,12 +179,17 @@ export function useLiveboard(): UseLiveboardReturn {
     queryFn: async () => {
       // Promise.allSettled를 사용하여 일부 날짜 조회 실패가
       // 전체 주간 달력 로드 실패로 이어지지 않도록 격리(Isolate).
-      const results = await Promise.allSettled(
-        weekAnydayKeys.map(async (key) => ({
-          key,
-          rooms: await fetchMatchRooms(key),
-        })),
-      );
+      const results = [];
+      for (let i = 0; i < weekAnydayKeys.length; i += 3) {
+        const chunk = weekAnydayKeys.slice(i, i + 3);
+        const chunkResults = await Promise.allSettled(
+          chunk.map(async (key) => ({
+            key,
+            rooms: await fetchMatchRooms(key),
+          }))
+        );
+        results.push(...chunkResults);
+      }
       return Object.fromEntries(
         results.flatMap((result) =>
           result.status === "fulfilled"

@@ -5,6 +5,7 @@ import { itemsUpdateStatusAPI } from "@/src/features/exchange/api";
 import { useAuth } from "@/src/hooks/useAuth";
 import { theme } from "@/src/styles/theme";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { exchangeKeys } from "@/src/features/exchange/keys";
 import { useLocalSearchParams } from "expo-router";
 import { useCallback } from "react";
 import {
@@ -53,15 +54,13 @@ export default function ChatRoomScreen() {
           queryKey: ["exchangeItem", roomIdNumber],
           exact: true,
         }),
-        queryClient.invalidateQueries({ queryKey: ["items"] }),
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.items() }),
         queryClient.invalidateQueries({ queryKey: ["myExchanges"] }),
       ];
 
-      if (user?.userId) {
-        invalidations.push(
-          queryClient.invalidateQueries({ queryKey: ["myItems", user.userId] }),
-        );
-      }
+      invalidations.push(
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.myItems() }),
+      );
 
       // 🛡️ Fail-safe: 개별 무효화 실패가 전체 UI 흐름(성공 알람)을 방해하지 않도록 보장
       await Promise.allSettled(invalidations);

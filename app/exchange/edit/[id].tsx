@@ -8,6 +8,7 @@ import { SPACING, theme } from "@/src/styles/theme";
 import { Logger } from "@/src/utils/logger";
 import { getImageUrl } from "@/src/utils/url";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { exchangeKeys } from "@/src/features/exchange/keys";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
@@ -143,7 +144,7 @@ export default function EditItemScreen() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["item", id],
+    queryKey: exchangeKeys.item(id as string),
     queryFn: () => itemsGetDetailAPI(Number(id)),
     enabled: !!id,
   });
@@ -176,8 +177,8 @@ export default function EditItemScreen() {
       itemsUpdateAPI(Number(id), request),
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["item", id] }),
-        queryClient.invalidateQueries({ queryKey: ["items"] }),
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.item(id as string) }),
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.items() }),
       ]);
 
       Alert.alert("수정 완료", "아이템이 성공적으로 수정되었습니다.", [

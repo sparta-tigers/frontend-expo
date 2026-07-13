@@ -23,6 +23,7 @@ export function useExchangeDashboard() {
   const mapRef = useRef<MapViewType>(null);
   const bottomSheetRef = useRef<BottomSheet>(null);
   const listRef = useRef<BottomSheetFlatListMethods>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // --- UI 상태 ---
   const [isProfileModalVisible, setProfileModalVisible] = useState(false);
@@ -94,10 +95,18 @@ export function useExchangeDashboard() {
    * 🎯 handleMarkerPress (Zero Magic: No useEffect Chains)
    * Why: 마커 클릭 시 발생하는 UI 변화를 이벤트 핸들러 내부에서 명시적으로 제어.
    */
+
+
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    };
+  }, []);
+
   const handleMarkerPress = useCallback(
     (itemId: number) => {
-      const item = filteredItems.find((i) => i.id === itemId);
       const index = filteredItems.findIndex((i) => i.id === itemId);
+      const item = index !== -1 ? filteredItems[index] : undefined;
 
       if (item && item.latitude != null && item.longitude != null) {
         // 1. 지도 이동
@@ -117,7 +126,8 @@ export function useExchangeDashboard() {
         bottomSheetRef.current?.snapToIndex(1);
 
         // 3. 리스트 스크롤 (레이아웃 렌더링 대기를 위해 약간의 지연 허용)
-        setTimeout(() => {
+        if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+        scrollTimeoutRef.current = setTimeout(() => {
           listRef.current?.scrollToIndex({
             index,
             animated: true,

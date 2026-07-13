@@ -2,7 +2,6 @@
 import { Box } from "@/components/ui/box";
 import { Typography } from "@/components/ui/typography";
 import {
-  ChatBubbleMessage,
   useChatPanel,
 } from "@/src/features/liveboard/hooks/useChatPanel";
 import { styles } from "@/src/features/liveboard/styles/matchId.styles";
@@ -11,7 +10,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import {
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
+  FlatList,
   TextInput,
   TouchableOpacity,
 } from "react-native";
@@ -89,24 +88,25 @@ export function ChatPanel({ matchId }: { matchId: string }) {
       }
     >
       <Box flex={1}>
-        <ScrollView
+        <FlatList
           ref={scrollRef}
           style={styles.chatScroll}
           contentContainerStyle={styles.chatContent}
           showsVerticalScrollIndicator={false}
-        >
-          {messages.length === 0 ? (
+          data={messages}
+          keyExtractor={(item) => item.key}
+          renderItem={({ item }) => {
+            const { key, ...rest } = item;
+            return <ChatBubble key={key} {...rest} />;
+          }}
+          ListEmptyComponent={
             <Box flex={1} align="center" justify="center" py="xxxl">
               <Typography variant="body1" color="text.tertiary" weight="medium">
                 {isConnected ? "첫 메시지를 남겨보세요" : "채팅 연결 중..."}
               </Typography>
             </Box>
-          ) : (
-            messages.map(({ key, ...rest }: ChatBubbleMessage) => (
-              <ChatBubble key={key} {...rest} />
-            ))
-          )}
-        </ScrollView>
+          }
+        />
 
         <Box style={styles.chatInputWrap}>
           <Box style={styles.chatInput} flexDir="row" align="center">

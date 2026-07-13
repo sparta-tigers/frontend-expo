@@ -23,16 +23,13 @@ export const LiveboardMapper = {
     const players = live?.players || [];
 
     // 수비수/타자 분리 매핑
-    const defenders = players
-      .filter((p) => {
-        const role = p.role.toLowerCase();
-        return (
-          !role.includes("batter") &&
-          !role.includes("runner") &&
-          role !== "supervision"
-        );
-      })
-      .map((p) => ({ name: p.name, role: p.role, x: 0, y: 0 }));
+    const defenders = players.reduce<{name: string, role: string, x: number, y: number}[]>((acc, p) => {
+      const role = p.role.toLowerCase();
+      if (!role.includes("batter") && !role.includes("runner") && role !== "supervision") {
+        acc.push({ name: p.name, role: p.role, x: 0, y: 0 });
+      }
+      return acc;
+    }, []);
 
     // 공격 팀 선수 추출 (Zero Magic: 다양한 role 명칭 대응)
     const batter = players.find((p) => p.role.toLowerCase().includes("batter"));
@@ -143,35 +140,34 @@ export const LiveboardMapper = {
       const inning = mapping[key] as number;
 
       // 🚨 Zero Magic: 매퍼 계층에서 모든 문자열 정제 및 타입 판별 완료
-      result[inning] = rawTexts
-        .map((text) => text.trim())
-        .filter((text) => {
-          if (text.length === 0) return false;
-          if (text.startsWith("---")) return false;
-          // 대시(-), 등호(=), 언더바(_)로만 이루어진 노이즈 행 필터링
-          return text.replace(/[-=_]/g, "").length > 0;
-        })
-        .map((text, index) => {
-          const cleanedText = text.replace(/^-\s*/, "").trim();
-          let type: BroadcastType = "PLAY_RESULT";
+      result[inning] = rawTexts.reduce<BroadcastItem[]>((acc, rawText) => {
+        const text = rawText.trim();
+        if (text.length === 0 || text.startsWith("---") || text.replace(/[-=_]/g, "").length === 0) {
+          return acc;
+        }
 
-          if (cleanedText.includes("타자")) {
-            type = "BATTER_INFO";
-          } else if (text.startsWith("-")) {
-            type = "PITCH_LOG";
-          } else if (
-            cleanedText.includes("회") &&
-            (cleanedText.includes("초") || cleanedText.includes("말"))
-          ) {
-            type = "INNING_INFO";
-          }
+        const cleanedText = text.replace(/^-\s*/, "").trim();
+        let type: BroadcastType = "PLAY_RESULT";
 
-          return {
-            id: `${inning}-${index}`,
-            type,
-            text: cleanedText,
-          };
+        if (cleanedText.includes("타자")) {
+          type = "BATTER_INFO";
+        } else if (text.startsWith("-")) {
+          type = "PITCH_LOG";
+        } else if (
+          cleanedText.includes("회") &&
+          (cleanedText.includes("초") || cleanedText.includes("말"))
+        ) {
+          type = "INNING_INFO";
+        }
+
+        acc.push({
+          id: `${inning}-${acc.length}`,
+          type,
+          text: cleanedText,
         });
+
+        return acc;
+      }, []);
     });
 
     return result;

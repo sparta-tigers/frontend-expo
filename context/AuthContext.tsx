@@ -8,6 +8,8 @@ import {
   useContext,
   useEffect,
   useState,
+  useMemo,
+  useCallback,
 } from "react";
 import { Alert } from "react-native";
 
@@ -173,7 +175,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
    * TokenStore에서 토큰 로드
    * 앱 시작 시 저장된 인증 정보 복원
    */
-  const loadToken = async (): Promise<void> => {
+  const loadToken = useCallback(async (): Promise<void> => {
     try {
       setIsLoading(true);
 
@@ -277,7 +279,37 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  const getFcmToken = useCallback(async (): Promise<string | null> => {
+    if (!Device.isDevice) {
+      Logger.warn("FCM 토큰은 실제 기기에서만 발급됩니다.");
+      return null;
+    }
+
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== "granted") {
+      Logger.warn("푸시 알림 권한이 거부되었습니다.");
+      return null;
+    }
+
+    const token = await Notifications.getDevicePushTokenAsync();
+
+    if (token.type !== "android") {
+      Logger.warn("FCM 토큰 등록은 Android 디바이스에서만 수행됩니다.");
+      return null;
+    }
+
+    return token.data;
+  }, []);
 
   /**
    * 로그인 함수
@@ -286,7 +318,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
    * @param credentials - 로그인 정보 (이메일, 비밀번호)
    * @returns 로그인 성공 여부
    */
-  const signin = async (credentials: AuthSigninRequest): Promise<boolean> => {
+  const signin = useCallback(async (credentials: AuthSigninRequest): Promise<boolean> => {
     try {
       setIsLoading(true);
 
@@ -365,7 +397,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [getFcmToken]);
 
   /**
    * 회원가입 함수
@@ -374,7 +406,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
    * @param userData - 회원가입 정보 (이메일, 닉네임, 비밀번호)
    * @returns 회원가입 성공 여부
    */
-  const signup = async (userData: AuthSignupRequest): Promise<boolean> => {
+  const signup = useCallback(async (userData: AuthSignupRequest): Promise<boolean> => {
     try {
       setIsLoading(true);
       const response = await authSignupAPI(userData);
@@ -410,13 +442,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [signin]);
 
   /**
    * 로그아웃 함수
    * 서버에 로그아웃 통보 후 로컬 토큰 삭제
    */
-  const signout = async (): Promise<void> => {
+  const signout = useCallback(async (): Promise<void> => {
     try {
       const currentRefreshToken = await getRefreshToken();
       if (currentRefreshToken) {
@@ -434,7 +466,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       setMyTeam(null);
       setMyTeamId(null);
     }
-  };
+  }, [queryClient]);
 
   /**
    * 응원팀 업데이트 함수
@@ -444,7 +476,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
    *
    * @param teamName - 변경할 팀 명칭
    */
-  const updateMyTeam = async (teamName: string): Promise<void> => {
+  const updateMyTeam = useCallback(async (teamName: string): Promise<void> => {
     const previousTeam = myTeam;
     try {
       // 1. 로그인 상태라면 백엔드와 동기화 시도
@@ -524,7 +556,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         "팀 정보를 저장하는 중 오류가 발생했습니다. 다시 시도해주세요.",
       );
     }
-  };
+  }, [isLoggedIn, myTeam, queryClient, user]);
 
   /**
    * 사용자 정보 부분 업데이트 함수
@@ -532,7 +564,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
    *
    * @param partialUser - 업데이트할 사용자 정보 조각
    */
-  const updateUser = (partialUser: Partial<SimpleToken>): void => {
+  const updateUser = useCallback((partialUser: Partial<SimpleToken>): void => {
     setUser((prev) => {
       if (!prev) return null;
       return {
@@ -547,37 +579,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         partialUser,
       );
     }
-  };
-
-  const getFcmToken = async (): Promise<string | null> => {
-    if (!Device.isDevice) {
-      Logger.warn("FCM 토큰은 실제 기기에서만 발급됩니다.");
-      return null;
-    }
-
-    const { status: existingStatus } =
-      await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-
-    if (existingStatus !== "granted") {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-
-    if (finalStatus !== "granted") {
-      Logger.warn("푸시 알림 권한이 거부되었습니다.");
-      return null;
-    }
-
-    const token = await Notifications.getDevicePushTokenAsync();
-
-    if (token.type !== "android") {
-      Logger.warn("FCM 토큰 등록은 Android 디바이스에서만 수행됩니다.");
-      return null;
-    }
-
-    return token.data;
-  };
+  }, []);
 
   // 컴포넌트 마운트 시 토큰 로드
   useEffect(() => {
@@ -587,9 +589,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       );
     }, 0);
     return () => clearTimeout(timerId);
-  }, []);
+  }, [loadToken]);
 
-  const contextValue: AuthContextType = {
+  const contextValue = useMemo<AuthContextType>(() => ({
     user,
     isLoading,
     isLoggedIn,
@@ -601,7 +603,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     loadToken,
     updateMyTeam,
     updateUser,
-  };
+  }), [user, isLoading, isLoggedIn, myTeam, myTeamId, signin, signup, signout, loadToken, updateMyTeam, updateUser]);
 
   return (
     <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
