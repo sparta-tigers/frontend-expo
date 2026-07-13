@@ -3,6 +3,7 @@ import React from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Platform,
   ListRenderItem,
   StyleSheet,
   Text,
@@ -167,7 +168,7 @@ export const List = <T,>({
         initialNumToRender={initialNumToRender}
         windowSize={windowSize}
         maxToRenderPerBatch={10}
-        removeClippedSubviews={true}
+        removeClippedSubviews={Platform.OS === 'android'}
         getItemLayout={
           itemHeight
             ? (_, index) => ({
