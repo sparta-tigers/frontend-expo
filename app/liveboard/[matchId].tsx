@@ -128,8 +128,8 @@ export default function LiveboardDetailScreen() {
               transform: [
                 {
                   translateX: slideAnim.interpolate({
-                    inputRange: [0, 1, 2, 3],
-                    outputRange: [0, -width, -width * 2, -width * 3],
+                    inputRange: TABS.map((_, i) => i),
+                    outputRange: TABS.map((_, i) => -width * i),
                   }),
                 },
               ],
