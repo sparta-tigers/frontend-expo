@@ -155,7 +155,7 @@ function RootLayoutInner() {
           {!netInfo.isConnected ? <OfflineBanner /> : null}
 
           {/* 전역 헤더 */}
-          <GlobalHeader />
+          <GlobalHeader withTopInset={inAuthGroup} />
 
           {/* 하위 라우팅 화면 */}
           <Box flex={1} style={dynamicBg}>

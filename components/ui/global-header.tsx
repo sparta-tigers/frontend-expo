@@ -7,7 +7,7 @@ import { IconSymbol } from './icon-symbol';
 import { theme } from '@/src/styles/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export function GlobalHeader() {
+export function GlobalHeader({ withTopInset = false }: { withTopInset?: boolean }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -19,7 +19,7 @@ export function GlobalHeader() {
       px="xl"
       py="lg"
       style={{
-        paddingTop: insets.top + theme.spacing.md,
+        paddingTop: (withTopInset ? insets.top : 0) + theme.spacing.md,
       }}
     >
       <Box width={48} align="flex-start">

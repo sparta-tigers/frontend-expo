@@ -39,7 +39,7 @@ function WeatherStatusBanner({ status }: { status: WeatherApiStatus }) {
  *
  * Why: 라이브보드 룸의 "구장날씨" 탭 콘텐츠. 로직은 useWeatherPanel에 위임.
  */
-export function WeatherPanel({ matchId }: { matchId: string }) {
+export function WeatherPanel({ matchId, isVisible }: { matchId: string; isVisible?: boolean }) {
   const { fetchState, stadiumName, weatherStatus, nowCast, foreCast, isLoggedIn, handleRetry } =
     useWeatherPanel(matchId);
 
