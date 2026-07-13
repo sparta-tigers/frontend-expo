@@ -231,37 +231,37 @@ export default function RankingScreen() {
               borderColor="team.neutralLight"
               bg="background"
             >
-              <Box width={40} align="center">
+              <Box width={36} align="center">
                 <Typography variant="caption" color="text.secondary">
                   순위
                 </Typography>
               </Box>
-              <Box flex={2}>
-                <Typography variant="caption" color="text.secondary" ml="xl">
+              <Box flex={1} pl="sm">
+                <Typography variant="caption" color="text.secondary">
                   팀명
                 </Typography>
               </Box>
-              <Box flex={1} align="center">
+              <Box width={40} align="center">
                 <Typography variant="caption" color="text.secondary">
-                  경기수
+                  경기
                 </Typography>
               </Box>
-              <Box flex={1} align="center">
+              <Box width={30} align="center">
                 <Typography variant="caption" color="text.secondary">
                   승
                 </Typography>
               </Box>
-              <Box flex={1} align="center">
+              <Box width={30} align="center">
                 <Typography variant="caption" color="text.secondary">
                   패
                 </Typography>
               </Box>
-              <Box flex={1} align="center">
+              <Box width={30} align="center">
                 <Typography variant="caption" color="text.secondary">
                   무
                 </Typography>
               </Box>
-              <Box flex={1.5} align="center">
+              <Box width={48} align="center">
                 <Typography variant="caption" color="text.secondary">
                   승률
                 </Typography>
@@ -352,61 +352,68 @@ const RankingRow = React.memo(({ row, isMyTeam }: { row: RankingUIModel; isMyTea
       align="center"
       my="xs"
       rounded="md"
+      px="xxs"
       style={isMyTeam ? styles.myTeamRow : styles.normalRow}
     >
-      <Box width={40} align="center">
-        <Typography variant="h3" weight="bold" color={isMyTeam ? 'brand.mint' : 'text.secondary'}>
+      <Box width={36} align="center">
+        <Typography
+          variant="body1"
+          weight="bold"
+          color={isMyTeam ? 'brand.mint' : 'text.secondary'}
+        >
           {row.rank}
         </Typography>
       </Box>
-      <Box flex={2} flexDir="row" align="center">
+      <Box flex={1} flexDir="row" align="center" pl="xs">
         <Box
-          width={32}
-          height={32}
+          width={28}
+          height={28}
           rounded="full"
           bg="team.neutralLight"
           align="center"
           justify="center"
-          mr="sm"
+          mr="xs"
         >
-          <Typography style={styles.teamIconText}>{meta.mascotEmoji}</Typography>
+          <Typography style={styles.mascotEmojiText}>{meta.mascotEmoji}</Typography>
         </Box>
         <Typography
           variant="body2"
           weight={isMyTeam ? 'bold' : 'medium'}
           color={isMyTeam ? 'brand.mint' : 'text.primary'}
+          numberOfLines={1}
+          style={styles.teamNameText}
         >
           {meta.name}
         </Typography>
         {isMyTeam ? (
-          <Box ml="xs" bg="brand.mint" px="xs" rounded="sm">
-            <Typography variant="caption" color="card" weight="bold">
+          <Box ml="xs" bg="brand.mint" px="xs" py="xxs" rounded="sm">
+            <Typography variant="caption" color="card" weight="bold" style={styles.myBadgeText}>
               MY
             </Typography>
           </Box>
         ) : null}
       </Box>
-      <Box flex={1} align="center">
+      <Box width={40} align="center">
         <Typography variant="caption" color="text.secondary">
           {row.matchCount}
         </Typography>
       </Box>
-      <Box flex={1} align="center">
+      <Box width={30} align="center">
         <Typography variant="caption" color="text.secondary">
           {row.winCount}
         </Typography>
       </Box>
-      <Box flex={1} align="center">
+      <Box width={30} align="center">
         <Typography variant="caption" color="text.secondary">
           {row.loseCount}
         </Typography>
       </Box>
-      <Box flex={1} align="center">
+      <Box width={30} align="center">
         <Typography variant="caption" color="text.secondary">
           {row.drawCount}
         </Typography>
       </Box>
-      <Box flex={1.5} align="center">
+      <Box width={48} align="center">
         <Typography variant="caption" weight="bold" color="text.primary">
           {row.winRate.toFixed(3)}
         </Typography>
@@ -441,8 +448,14 @@ const styles = StyleSheet.create({
   mascotEmoji: {
     fontSize: theme.typography.size.TITLE,
   },
-  teamIconText: {
-    fontSize: theme.typography.size.md,
+  mascotEmojiText: {
+    fontSize: 16,
+  },
+  teamNameText: {
+    flexShrink: 1,
+  },
+  myBadgeText: {
+    fontSize: 10,
   },
   navArrow: {
     padding: 4,
