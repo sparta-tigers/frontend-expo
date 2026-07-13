@@ -127,7 +127,7 @@ function RootLayoutInner() {
       animation: 'slide_from_right' as const,
       fullScreenGestureEnabled: true,
       headerStyle: { backgroundColor: colors.background },
-      headerTintColor: colors.text?.primary || colors.primary,
+      headerTintColor: colors.text || colors.primary,
       headerTitleStyle: { fontWeight: 'bold' as const },
     }),
     [colors],
@@ -142,7 +142,7 @@ function RootLayoutInner() {
   }
 
   const dynamicBg = {
-    backgroundColor: inAuthGroup ? colors.transparent : colors.background,
+    backgroundColor: inAuthGroup ? 'transparent' : colors.background,
   };
 
   return (
