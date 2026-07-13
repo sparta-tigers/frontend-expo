@@ -238,7 +238,7 @@ export default function ItemDetailScreen() {
 
   const imageKeyExtractor = useCallback((_: unknown, index: number) => `image-${index}`, []);
 
-  const renderImageItem = useCallback(({ item: imageUrl, index }: { item: unknown; index: number }) => (
+  const renderImageItem = useCallback(({ item: imageUrl, index }: { item: string; index: number }) => (
     <TouchableOpacity
       style={[styles.imageContainer, { width: SCREEN_WIDTH }]}
       onPress={() => {
@@ -247,7 +247,7 @@ export default function ItemDetailScreen() {
       }}
     >
       <Image
-        source={{ uri: getImageUrl(imageUrl as string) }}
+        source={{ uri: getImageUrl(imageUrl) }}
         style={styles.image}
       />
     </TouchableOpacity>
@@ -274,7 +274,7 @@ export default function ItemDetailScreen() {
 
     return (
       <Box style={styles.imageCarousel}>
-        <FlatList
+        <FlatList<string>
           data={images}
           horizontal
           pagingEnabled

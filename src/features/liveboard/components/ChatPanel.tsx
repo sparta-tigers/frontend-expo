@@ -11,10 +11,10 @@ import {
   TextInput,
   TouchableOpacity,
 } from "react-native";
-import { useCallback } from "react";
+import { useCallback, memo } from "react";
 import { ChatBubbleMessage, useChatPanel } from "@/src/features/liveboard/hooks/useChatPanel";
 
-function ChatBubble({
+const ChatBubble = memo(function ChatBubble({
   author,
   text,
   time,
@@ -59,7 +59,7 @@ function ChatBubble({
       ) : null}
     </Box>
   );
-}
+});
 
 /**
  * ChatPanel
@@ -80,7 +80,7 @@ export function ChatPanel({ matchId }: { matchId: string }) {
   
   const renderItem = useCallback(({ item }: { item: ChatBubbleMessage }) => {
     const { key, author, text, time, mine } = item;
-    return <ChatBubble key={key} author={author} text={text} time={time} mine={mine || false} />;
+    return <ChatBubble key={key} author={author} text={text} time={time} mine={mine} />;
   }, []);
 
   return (
