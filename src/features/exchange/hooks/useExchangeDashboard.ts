@@ -23,6 +23,7 @@ export function useExchangeDashboard() {
   const mapRef = useRef<MapViewType>(null);
   const bottomSheetRef = useRef<BottomSheet>(null);
   const listRef = useRef<BottomSheetFlatListMethods>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // --- UI 상태 ---
   const [isProfileModalVisible, setProfileModalVisible] = useState(false);
@@ -94,7 +95,7 @@ export function useExchangeDashboard() {
    * 🎯 handleMarkerPress (Zero Magic: No useEffect Chains)
    * Why: 마커 클릭 시 발생하는 UI 변화를 이벤트 핸들러 내부에서 명시적으로 제어.
    */
-  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
 
   useEffect(() => {
     return () => {

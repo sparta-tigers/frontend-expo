@@ -112,7 +112,7 @@ export default function MyItemsScreen() {
         <Box flex={1} justify="center" align="center">
           <Typography color="text.secondary">불러오는 중...</Typography>
         </Box>
-      ) : isError ? (
+      ) : isError && myItems.length === 0 ? (
         <Box flex={1} justify="center" align="center">
           <Typography color="text.secondary" mb="md">
             정보를 불러오지 못했어요. 다시 시도해주세요.

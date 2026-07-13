@@ -111,7 +111,7 @@ export default function ExchangeHistoryScreen() {
     );
   }
 
-  if (isError) {
+  if (isError && history.length === 0) {
     return (
       <SafeLayout style={styles.safeLayout}>
         <Box flex={1} justify="center" align="center">
