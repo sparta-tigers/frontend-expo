@@ -138,44 +138,42 @@ function RootLayoutInner() {
         >
           {!netInfo.isConnected ? <OfflineBanner /> : null}
 
-          {/* 1. 고정 헤더 (전역) - (tabs) 그룹에서만 노출하여 중첩 방지 */}
-          {segments[0] === '(tabs)' ? (
-            <Box flexDir="row" align="center" justify="space-between" px="xl" py="lg">
-              <Box width={48} align="flex-start">
-                {router.canGoBack() ? (
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    style={styles.headerIconBtn}
-                    onPress={() => router.back()}
-                  >
-                    <IconSymbol
-                      size={theme.layout.header.backIconSize}
-                      name="chevron.left"
-                      color={theme.colors.team.neutralDark}
-                    />
-                  </TouchableOpacity>
-                ) : null}
-              </Box>
-
-              <Typography variant="h3" weight="black" color="brand.mint" style={styles.headerTitle}>
-                YAGUNIV
-              </Typography>
-
-              <Box width={48} align="flex-end">
+          {/* 1. 고정 헤더 (전역) */}
+          <Box flexDir="row" align="center" justify="space-between" px="xl" py="lg">
+            <Box width={48} align="flex-start">
+              {router.canGoBack() ? (
                 <TouchableOpacity
                   activeOpacity={0.7}
                   style={styles.headerIconBtn}
-                  onPress={() => router.push('/profile')}
+                  onPress={() => router.back()}
                 >
                   <IconSymbol
-                    name="person.fill"
-                    size={theme.layout.header.profileIconSize}
+                    size={theme.layout.header.backIconSize}
+                    name="chevron.left"
                     color={theme.colors.team.neutralDark}
                   />
                 </TouchableOpacity>
-              </Box>
+              ) : null}
             </Box>
-          ) : null}
+
+            <Typography variant="h3" weight="black" color="brand.mint" style={styles.headerTitle}>
+              YAGUNIV
+            </Typography>
+
+            <Box width={48} align="flex-end">
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={styles.headerIconBtn}
+                onPress={() => router.push('/profile')}
+              >
+                <IconSymbol
+                  name="person.fill"
+                  size={theme.layout.header.profileIconSize}
+                  color={theme.colors.team.neutralDark}
+                />
+              </TouchableOpacity>
+            </Box>
+          </Box>
 
           {/* 2. 하위 라우팅 화면 */}
           <Box flex={1} bg="background">
