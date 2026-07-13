@@ -23,3 +23,4 @@ export { ConfirmModal } from './confirm-modal';
 export { ThemedText } from '../themed-text';
 export { ThemedView } from '../themed-view';
 export { IconSymbol } from './icon-symbol';
+export * from './global-header';
