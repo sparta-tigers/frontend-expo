@@ -129,12 +129,18 @@ function RootLayoutInner() {
     );
   }
 
+  const dynamicStyles = StyleSheet.create({
+    dynamicBg: {
+      backgroundColor: inAuthGroup ? theme.colors.transparent : colors.background,
+    },
+  });
+
   return (
     <ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
       <SafeAreaProvider>
         <SafeAreaView
-          style={[styles.safeArea, { backgroundColor: colors.background }]}
-          edges={['top', 'left', 'right']}
+          style={[styles.safeArea, dynamicStyles.dynamicBg]}
+          edges={inAuthGroup ? ['left', 'right'] : ['top', 'left', 'right']}
         >
           {!netInfo.isConnected ? <OfflineBanner /> : null}
 
@@ -178,7 +184,7 @@ function RootLayoutInner() {
           )}
 
           {/* 2. 하위 라우팅 화면 */}
-          <Box flex={1} bg="background">
+          <Box flex={1} style={dynamicStyles.dynamicBg}>
             <Stack
               screenOptions={{
                 headerShown: false,

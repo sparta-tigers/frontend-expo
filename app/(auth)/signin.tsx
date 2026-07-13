@@ -122,219 +122,232 @@ export default function SigninScreen() {
   }));
 
   return (
-    <SafeLayout style={styles.safeLayout} edges={['left', 'right', 'bottom']}>
-      <KeyboardAwareScrollView
-        contentContainerStyle={styles.scrollContent}
-        enableOnAndroid={true}
-        keyboardShouldPersistTaps="handled"
-        extraScrollHeight={theme.spacing.xl}
-        bounces={false}
-        showsVerticalScrollIndicator={false}
-      >
-        <Pressable style={styles.pressableArea} onPress={Keyboard.dismiss}>
-          <LinearGradient
-            colors={theme.colors.brand.loginGradientStops}
-            locations={[0, 0.55, 1]}
-            style={styles.gradientBody}
-          >
-            <Animated.View entering={FadeInUp.delay(100).duration(800).springify()}>
-              <Box width="100%" align="center" justify="center" mb="xl">
-                <Image source={loginLogo} style={styles.logo} contentFit="contain" />
-              </Box>
-            </Animated.View>
-
-            <Box width="100%" align="center" gap="md" style={styles.formContainer}>
-              {/* 소셜 로그인 (Primary Action) */}
-              <Animated.View
-                entering={FadeInUp.delay(200).duration(800).springify()}
-                style={styles.fullWidth}
-              >
-                <TouchableOpacity
-                  activeOpacity={0.85}
-                  style={[styles.socialButtonFull, styles.kakaoButton]}
-                  disabled={isLoading}
-                  onPress={() =>
-                    showToast('준비 중', '카카오 로그인은 아직 준비하고 있어요.', 'info')
-                  }
-                  accessibilityRole="button"
-                  accessibilityLabel="카카오 로그인"
-                >
-                  <Box flexDir="row" align="center" justify="center" gap="sm">
-                    <Image source={kakaoIcon} style={styles.socialIconSmall} contentFit="contain" />
-                    <Typography variant="body1" weight="bold" style={styles.kakaoText}>
-                      카카오로 시작하기
-                    </Typography>
-                  </Box>
-                </TouchableOpacity>
-              </Animated.View>
-
-              <Animated.View
-                entering={FadeInUp.delay(300).duration(800).springify()}
-                style={styles.fullWidth}
-              >
-                <TouchableOpacity
-                  activeOpacity={0.85}
-                  style={[styles.socialButtonFull, styles.appleButton]}
-                  disabled={isLoading}
-                  onPress={() =>
-                    showToast('준비 중', 'Apple 로그인은 아직 준비하고 있어요.', 'info')
-                  }
-                  accessibilityRole="button"
-                  accessibilityLabel="애플 로그인"
-                >
-                  <Box flexDir="row" align="center" justify="center" gap="sm">
-                    <Image source={appleIcon} style={styles.socialIconSmall} contentFit="contain" />
-                    <Typography variant="body1" weight="bold" style={styles.appleText}>
-                      Apple로 시작하기
-                    </Typography>
-                  </Box>
-                </TouchableOpacity>
-              </Animated.View>
-
-              {/* 구분선 */}
-              <Animated.View
-                entering={FadeInUp.delay(400).duration(800).springify()}
-                style={styles.fullWidth}
-              >
-                <Box
-                  width="100%"
-                  height={LOCAL_LAYOUT.socialDividerHeight}
-                  align="center"
-                  justify="center"
-                  mt="sm"
-                  mb="sm"
-                  flexDir="row"
-                  gap="md"
-                >
-                  <Box
-                    flex={1}
-                    height={LOCAL_LAYOUT.dividerLineHeight}
-                    bg="background"
-                    style={styles.dividerLine}
-                  />
-                  <Typography variant="body2" color="brand.subtitle">
-                    또는 이메일로 로그인
-                  </Typography>
-                  <Box
-                    flex={1}
-                    height={LOCAL_LAYOUT.dividerLineHeight}
-                    bg="background"
-                    style={styles.dividerLine}
-                  />
+    <LinearGradient
+      colors={theme.colors.brand.loginGradientStops}
+      locations={[0, 0.55, 1]}
+      style={styles.gradientRoot}
+    >
+      <SafeLayout style={styles.safeLayout} edges={['top', 'left', 'right', 'bottom']}>
+        <KeyboardAwareScrollView
+          contentContainerStyle={styles.scrollContent}
+          enableOnAndroid={true}
+          keyboardShouldPersistTaps="handled"
+          extraScrollHeight={theme.spacing.xl}
+          bounces={false}
+          showsVerticalScrollIndicator={false}
+        >
+          <Pressable style={styles.pressableArea} onPress={Keyboard.dismiss}>
+            <Box style={styles.gradientBody}>
+              <Animated.View entering={FadeInUp.delay(100).duration(800).springify()}>
+                <Box width="100%" align="center" justify="center" mb="xl">
+                  <Image source={loginLogo} style={styles.logo} contentFit="contain" />
                 </Box>
               </Animated.View>
 
-              {/* 이메일/비밀번호 입력 폼 */}
-              <Animated.View
-                entering={FadeInUp.delay(500).duration(800).springify()}
-                style={styles.inputWrapper}
-              >
-                <Animated.View style={[styles.inputBorder, emailAnimatedStyle]}>
-                  <TextInput
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="이메일"
-                    placeholderTextColor={theme.colors.brand.subtitle}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    style={styles.input}
-                    editable={!isLoading}
-                    returnKeyType="next"
-                    onFocus={() => {
-                      emailFocus.value = 1;
-                    }}
-                    onBlur={() => {
-                      emailFocus.value = 0;
-                    }}
-                    accessibilityLabel="이메일 입력"
-                    accessibilityHint="로그인에 사용할 이메일을 입력하세요"
-                  />
-                </Animated.View>
-              </Animated.View>
-
-              <Animated.View
-                entering={FadeInUp.delay(600).duration(800).springify()}
-                style={styles.inputWrapper}
-              >
-                <Animated.View style={[styles.inputBorder, passwordAnimatedStyle]}>
-                  <TextInput
-                    value={password}
-                    onChangeText={setPassword}
-                    placeholder="비밀번호"
-                    placeholderTextColor={theme.colors.brand.subtitle}
-                    secureTextEntry
-                    style={styles.input}
-                    editable={!isLoading}
-                    returnKeyType="done"
-                    onSubmitEditing={handleSignin}
-                    onFocus={() => {
-                      passwordFocus.value = 1;
-                    }}
-                    onBlur={() => {
-                      passwordFocus.value = 0;
-                    }}
-                    accessibilityLabel="비밀번호 입력"
-                    accessibilityHint="계정의 비밀번호를 입력하세요"
-                  />
-                </Animated.View>
-              </Animated.View>
-
-              {/* 이메일 로그인 버튼 */}
-              <Animated.View
-                entering={FadeInUp.delay(700).duration(800).springify()}
-                style={styles.buttonWrapper}
-              >
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={handleSignin}
-                  disabled={isLoading}
-                  style={styles.loginButton}
-                  accessibilityRole="button"
-                  accessibilityLabel="이메일로 로그인"
-                  accessibilityState={{ disabled: isLoading }}
+              <Box width="100%" align="center" gap="md" style={styles.formContainer}>
+                {/* 소셜 로그인 (Primary Action) */}
+                <Animated.View
+                  entering={FadeInUp.delay(200).duration(800).springify()}
+                  style={styles.fullWidth}
                 >
-                  <Typography variant="body1" weight="bold" color="background" center>
-                    로그인
-                  </Typography>
-                </TouchableOpacity>
-              </Animated.View>
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    style={[styles.socialButtonFull, styles.kakaoButton]}
+                    disabled={isLoading}
+                    onPress={() =>
+                      showToast('준비 중', '카카오 로그인은 아직 준비하고 있어요.', 'info')
+                    }
+                    accessibilityRole="button"
+                    accessibilityLabel="카카오 로그인"
+                  >
+                    <Box flexDir="row" align="center" justify="center" gap="sm">
+                      <Image
+                        source={kakaoIcon}
+                        style={styles.socialIconSmall}
+                        contentFit="contain"
+                      />
+                      <Typography variant="body1" weight="bold" style={styles.kakaoText}>
+                        카카오로 시작하기
+                      </Typography>
+                    </Box>
+                  </TouchableOpacity>
+                </Animated.View>
 
-              {/* 회원가입 버튼 */}
-              <Animated.View
-                entering={FadeInUp.delay(800).duration(800).springify()}
-                style={styles.buttonWrapper}
-              >
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => router.push('/(auth)/signup')}
-                  disabled={isLoading}
-                  style={styles.registerButton}
-                  accessibilityRole="button"
-                  accessibilityLabel="회원가입 페이지로 이동"
-                  accessibilityState={{ disabled: isLoading }}
+                <Animated.View
+                  entering={FadeInUp.delay(300).duration(800).springify()}
+                  style={styles.fullWidth}
                 >
-                  <Typography variant="body2" weight="medium" color="brand.subtitle" center>
-                    회원가입
-                  </Typography>
-                </TouchableOpacity>
-              </Animated.View>
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    style={[styles.socialButtonFull, styles.appleButton]}
+                    disabled={isLoading}
+                    onPress={() =>
+                      showToast('준비 중', 'Apple 로그인은 아직 준비하고 있어요.', 'info')
+                    }
+                    accessibilityRole="button"
+                    accessibilityLabel="애플 로그인"
+                  >
+                    <Box flexDir="row" align="center" justify="center" gap="sm">
+                      <Image
+                        source={appleIcon}
+                        style={styles.socialIconSmall}
+                        contentFit="contain"
+                      />
+                      <Typography variant="body1" weight="bold" style={styles.appleText}>
+                        Apple로 시작하기
+                      </Typography>
+                    </Box>
+                  </TouchableOpacity>
+                </Animated.View>
+
+                {/* 구분선 */}
+                <Animated.View
+                  entering={FadeInUp.delay(400).duration(800).springify()}
+                  style={styles.fullWidth}
+                >
+                  <Box
+                    width="100%"
+                    height={LOCAL_LAYOUT.socialDividerHeight}
+                    align="center"
+                    justify="center"
+                    mt="sm"
+                    mb="sm"
+                    flexDir="row"
+                    gap="md"
+                  >
+                    <Box
+                      flex={1}
+                      height={LOCAL_LAYOUT.dividerLineHeight}
+                      bg="background"
+                      style={styles.dividerLine}
+                    />
+                    <Typography variant="body2" color="brand.subtitle">
+                      또는 이메일로 로그인
+                    </Typography>
+                    <Box
+                      flex={1}
+                      height={LOCAL_LAYOUT.dividerLineHeight}
+                      bg="background"
+                      style={styles.dividerLine}
+                    />
+                  </Box>
+                </Animated.View>
+
+                {/* 이메일/비밀번호 입력 폼 */}
+                <Animated.View
+                  entering={FadeInUp.delay(500).duration(800).springify()}
+                  style={styles.inputWrapper}
+                >
+                  <Animated.View style={[styles.inputBorder, emailAnimatedStyle]}>
+                    <TextInput
+                      value={email}
+                      onChangeText={setEmail}
+                      placeholder="이메일"
+                      placeholderTextColor={theme.colors.brand.subtitle}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      style={styles.input}
+                      editable={!isLoading}
+                      returnKeyType="next"
+                      onFocus={() => {
+                        emailFocus.value = 1;
+                      }}
+                      onBlur={() => {
+                        emailFocus.value = 0;
+                      }}
+                      accessibilityLabel="이메일 입력"
+                      accessibilityHint="로그인에 사용할 이메일을 입력하세요"
+                    />
+                  </Animated.View>
+                </Animated.View>
+
+                <Animated.View
+                  entering={FadeInUp.delay(600).duration(800).springify()}
+                  style={styles.inputWrapper}
+                >
+                  <Animated.View style={[styles.inputBorder, passwordAnimatedStyle]}>
+                    <TextInput
+                      value={password}
+                      onChangeText={setPassword}
+                      placeholder="비밀번호"
+                      placeholderTextColor={theme.colors.brand.subtitle}
+                      secureTextEntry
+                      style={styles.input}
+                      editable={!isLoading}
+                      returnKeyType="done"
+                      onSubmitEditing={handleSignin}
+                      onFocus={() => {
+                        passwordFocus.value = 1;
+                      }}
+                      onBlur={() => {
+                        passwordFocus.value = 0;
+                      }}
+                      accessibilityLabel="비밀번호 입력"
+                      accessibilityHint="계정의 비밀번호를 입력하세요"
+                    />
+                  </Animated.View>
+                </Animated.View>
+
+                {/* 이메일 로그인 버튼 */}
+                <Animated.View
+                  entering={FadeInUp.delay(700).duration(800).springify()}
+                  style={styles.buttonWrapper}
+                >
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={handleSignin}
+                    disabled={isLoading}
+                    style={styles.loginButton}
+                    accessibilityRole="button"
+                    accessibilityLabel="이메일로 로그인"
+                    accessibilityState={{ disabled: isLoading }}
+                  >
+                    <Typography variant="body1" weight="bold" color="background" center>
+                      로그인
+                    </Typography>
+                  </TouchableOpacity>
+                </Animated.View>
+
+                {/* 회원가입 버튼 */}
+                <Animated.View
+                  entering={FadeInUp.delay(800).duration(800).springify()}
+                  style={styles.buttonWrapper}
+                >
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => router.push('/(auth)/signup')}
+                    disabled={isLoading}
+                    style={styles.registerButton}
+                    accessibilityRole="button"
+                    accessibilityLabel="회원가입 페이지로 이동"
+                    accessibilityState={{ disabled: isLoading }}
+                  >
+                    <Typography variant="body2" weight="medium" color="brand.subtitle" center>
+                      회원가입
+                    </Typography>
+                  </TouchableOpacity>
+                </Animated.View>
+              </Box>
             </Box>
-          </LinearGradient>
-        </Pressable>
-      </KeyboardAwareScrollView>
-    </SafeLayout>
+          </Pressable>
+        </KeyboardAwareScrollView>
+      </SafeLayout>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradientRoot: {
+    flex: 1,
+  },
   safeLayout: {
     flex: 1,
-    backgroundColor: theme.colors.brand.background,
+    backgroundColor: theme.colors.transparent,
   },
   scrollContent: {
     flexGrow: 1,
-    backgroundColor: theme.colors.brand.background,
+    backgroundColor: theme.colors.transparent,
   },
   pressableArea: {
     flex: 1,
