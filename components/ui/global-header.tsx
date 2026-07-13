@@ -15,9 +15,9 @@ export function GlobalHeader() {
 
   const inAuthGroup = segments[0] === '(auth)';
 
-  if (inAuthGroup) {
-    return null;
-  }
+  // null 대신 높이와 opacity로 제어하여 Reanimated 뷰 계층 안정성 확보
+  const headerHeight = inAuthGroup ? 0 : undefined;
+  const opacity = inAuthGroup ? 0 : 1;
 
   const topLevelPaths = ['/', '/liveboard', '/exchange', '/history', '/notification'];
   const isTopLevel = topLevelPaths.includes(pathname);
@@ -30,7 +30,14 @@ export function GlobalHeader() {
       justify="space-between"
       px="xl"
       py="lg"
-      style={{ paddingTop: insets.top + theme.spacing.md }}
+      style={[
+        styles.headerContainer,
+        {
+          paddingTop: insets.top + theme.spacing.md,
+          height: headerHeight,
+          opacity,
+        },
+      ]}
     >
       <Box width={48} align="flex-start">
         {showBackButton ? (
@@ -76,6 +83,9 @@ export function GlobalHeader() {
 }
 
 const styles = StyleSheet.create({
+  headerContainer: {
+    overflow: 'hidden',
+  },
   headerTitle: {
     letterSpacing: -0.5,
   },
