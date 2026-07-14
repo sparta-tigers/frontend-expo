@@ -1,5 +1,11 @@
 import { useEffect } from 'react';
-import { useSharedValue, withRepeat, withTiming, Easing } from 'react-native-reanimated';
+import {
+  useSharedValue,
+  withRepeat,
+  withTiming,
+  Easing,
+  cancelAnimation,
+} from 'react-native-reanimated';
 
 export function usePulseOpacity(min = 0.3, max = 0.7, duration = 1000) {
   const opacity = useSharedValue(min);
@@ -10,6 +16,8 @@ export function usePulseOpacity(min = 0.3, max = 0.7, duration = 1000) {
       -1,
       true,
     );
+
+    return () => cancelAnimation(opacity);
   }, [opacity, max, duration]);
 
   return opacity;
