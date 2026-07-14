@@ -238,7 +238,7 @@ export default function CreateItemScreen() {
   };
 
   return (
-    <SafeLayout edges={['top', 'bottom']} style={styles.container}>
+    <SafeLayout style={styles.container}>
       <Box
         flexDir="row"
         justify="space-between"

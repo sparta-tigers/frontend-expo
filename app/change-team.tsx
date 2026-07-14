@@ -55,7 +55,7 @@ export default function ChangeTeamScreen() {
     <SafeLayout style={styles.container} edges={['top', 'left', 'right']}>
       <Stack.Screen
         options={{
-          headerShown: true,
+          headerShown: false,
           title: '응원팀 변경',
           headerShadowVisible: false,
         }}

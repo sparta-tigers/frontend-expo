@@ -261,7 +261,7 @@ export default function EditItemScreen() {
   // 로딩 상태
   if (isLoading) {
     return (
-      <SafeLayout edges={['top', 'bottom']} style={styles.container}>
+      <SafeLayout style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={styles.loadingText}>아이템 정보를 불러오는 중...</Text>
@@ -273,7 +273,7 @@ export default function EditItemScreen() {
   // 에러 상태
   if (error || !item) {
     return (
-      <SafeLayout edges={['top', 'bottom']} style={styles.container}>
+      <SafeLayout style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>아이템 정보를 불러오지 못했어요.</Text>
           <Button

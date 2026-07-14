@@ -5,11 +5,15 @@
  */
 import { useTheme } from '@/hooks/useTheme';
 import { theme } from '@/src/styles/theme';
+import {
+  BottomSheetBackdrop,
+  BottomSheetBackdropProps,
+  BottomSheetModal,
+} from '@gorhom/bottom-sheet';
 import { Href, useRouter } from 'expo-router';
-import React from 'react';
-import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-/** 모달 전용 레이아웃 상수 */
 const MODAL_LAYOUT = {
   handleWidth: 40,
   handleHeight: 4,
@@ -26,44 +30,66 @@ export const ExchangeProfileModal = React.memo(
     const router = useRouter();
     useTheme();
 
-    /**
-     * 모달을 닫고 지정 경로로 이동
-     *
-     * Why: 모달이 닫히기 전에 네비게이션이 발생하면 애니메이션 충돌이 생길 수 있으므로
-     * onClose()를 먼저 호출한 뒤 push한다.
-     */
+    const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+
+    useEffect(() => {
+      if (visible) {
+        bottomSheetModalRef.current?.present();
+      } else {
+        bottomSheetModalRef.current?.dismiss();
+      }
+    }, [visible]);
+
     const handleNavigate = (path: Href) => {
       onClose();
+      bottomSheetModalRef.current?.dismiss();
       router.push(path);
     };
 
+    const renderBackdrop = React.useCallback(
+      (props: BottomSheetBackdropProps) => (
+        <BottomSheetBackdrop
+          {...props}
+          disappearsOnIndex={-1}
+          appearsOnIndex={0}
+          onPress={onClose}
+        />
+      ),
+      [onClose],
+    );
+
     return (
-      <Modal visible={visible} transparent={true} animationType="slide" onRequestClose={onClose}>
-        <Pressable style={styles.modalOverlay} onPress={onClose}>
-          <Pressable style={styles.modalContent} onPress={() => {}}>
-            <View style={styles.modalHeader}>
-              <View style={styles.modalHandle} />
-              <Text style={styles.modalTitle}>내 활동 관리</Text>
-            </View>
+      <BottomSheetModal
+        ref={bottomSheetModalRef}
+        index={0}
+        snapPoints={['30%']}
+        backdropComponent={renderBackdrop}
+        onDismiss={onClose}
+        handleIndicatorStyle={styles.modalHandle}
+        backgroundStyle={styles.modalContent}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>내 활동 관리</Text>
+          </View>
 
-            <TouchableOpacity
-              style={styles.modalMenuButton}
-              onPress={() => handleNavigate('/exchange/my-items')}
-            >
-              <Text style={styles.modalMenuButtonText}>내가 등록한 물건</Text>
-              <Text style={styles.menuArrow}>{'>'}</Text>
-            </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.modalMenuButton}
+            onPress={() => handleNavigate('/exchange/my-items')}
+          >
+            <Text style={styles.modalMenuButtonText}>내가 등록한 물건</Text>
+            <Text style={styles.menuArrow}>{'>'}</Text>
+          </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.modalMenuButton}
-              onPress={() => handleNavigate('/exchange/history')}
-            >
-              <Text style={styles.modalMenuButtonText}>종료된 교환 내역</Text>
-              <Text style={styles.menuArrow}>{'>'}</Text>
-            </TouchableOpacity>
-          </Pressable>
-        </Pressable>
-      </Modal>
+          <TouchableOpacity
+            style={styles.modalMenuButton}
+            onPress={() => handleNavigate('/exchange/history')}
+          >
+            <Text style={styles.modalMenuButtonText}>종료된 교환 내역</Text>
+            <Text style={styles.menuArrow}>{'>'}</Text>
+          </TouchableOpacity>
+        </View>
+      </BottomSheetModal>
     );
   },
 );
@@ -71,17 +97,14 @@ export const ExchangeProfileModal = React.memo(
 ExchangeProfileModal.displayName = 'ExchangeProfileModal';
 
 const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: theme.colors.overlay,
-    justifyContent: 'flex-end',
-  },
   modalContent: {
     backgroundColor: theme.colors.background,
     borderTopLeftRadius: theme.radius.lg,
     borderTopRightRadius: theme.radius.lg,
-    paddingBottom: theme.spacing.xxl,
+  },
+  modalContainer: {
     paddingHorizontal: theme.spacing.SCREEN,
+    paddingBottom: theme.spacing.xxl,
   },
   modalHeader: {
     alignItems: 'center',
@@ -95,7 +118,6 @@ const styles = StyleSheet.create({
     height: MODAL_LAYOUT.handleHeight,
     backgroundColor: theme.colors.text.tertiary,
     borderRadius: MODAL_LAYOUT.handleRadius,
-    marginBottom: theme.spacing.COMPONENT,
   },
   modalTitle: {
     fontSize: theme.typography.size.SECTION_TITLE,
