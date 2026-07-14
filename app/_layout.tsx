@@ -114,13 +114,9 @@ function RootLayoutInner() {
 
           {/* 하위 라우팅 화면 */}
           <Box flex={1} style={dynamicBg}>
-            {!user && !inAuthGroup && !isLoading ? (
-              <Redirect href="/(auth)/signin" />
-            ) : user && inAuthGroup && !isLoading ? (
-              <Redirect href="/(tabs)" />
-            ) : (
-              <Stack screenOptions={stackScreenOptions} />
-            )}
+            {!user && !inAuthGroup && !isLoading && <Redirect href="/(auth)/signin" />}
+            {user && inAuthGroup && !isLoading && <Redirect href="/(tabs)" />}
+            <Stack screenOptions={stackScreenOptions} />
           </Box>
         </View>
         <Toast />
