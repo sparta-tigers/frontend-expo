@@ -277,7 +277,7 @@ axiosInstance.interceptors.response.use(
         (body?.message as string) ?? error.message,
         error.response.status,
         (body?.code as string) ?? 'UNKNOWN_ERROR',
-        body?.details,
+        body?.details ?? body?.data,
       ),
     );
   },
