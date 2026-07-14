@@ -60,13 +60,15 @@ if (Constants.appOwnership !== AppOwnership.Expo) {
 export default function RootLayout() {
   useNotificationListeners();
   return (
-    <GestureHandlerRootView style={styles.gestureContainer}>
-      <BottomSheetModalProvider>
-        <CombinedProvider>
-          <RootLayoutInner />
-        </CombinedProvider>
-      </BottomSheetModalProvider>
-    </GestureHandlerRootView>
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={styles.gestureContainer}>
+        <BottomSheetModalProvider>
+          <CombinedProvider>
+            <RootLayoutInner />
+          </CombinedProvider>
+        </BottomSheetModalProvider>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }
 
@@ -108,28 +110,26 @@ function RootLayoutInner() {
 
   return (
     <ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
-      <SafeAreaProvider>
-        <View style={[styles.safeArea, dynamicBg]}>
-          {/* 전역 헤더 */}
-          <GlobalHeader withTopInset={true} />
+      <View style={[styles.safeArea, dynamicBg]}>
+        {/* 전역 헤더 */}
+        <GlobalHeader withTopInset={true} />
 
-          <OfflineBanner isConnected={netInfo.isConnected ?? true} />
+        <OfflineBanner isConnected={netInfo.isConnected ?? true} />
 
-          {/* 하위 라우팅 화면 */}
-          <Box flex={1} style={dynamicBg}>
-            <Stack screenOptions={stackScreenOptions}>
-              <Stack.Protected guard={!!user}>
-                <Stack.Screen name="(tabs)" />
-              </Stack.Protected>
-              <Stack.Protected guard={!user}>
-                <Stack.Screen name="(auth)" />
-              </Stack.Protected>
-            </Stack>
-          </Box>
-        </View>
-        <Toast />
-        <ConfirmModal />
-      </SafeAreaProvider>
+        {/* 하위 라우팅 화면 */}
+        <Box flex={1} style={dynamicBg}>
+          <Stack screenOptions={stackScreenOptions}>
+            <Stack.Protected guard={!!user}>
+              <Stack.Screen name="(tabs)" />
+            </Stack.Protected>
+            <Stack.Protected guard={!user}>
+              <Stack.Screen name="(auth)" />
+            </Stack.Protected>
+          </Stack>
+        </Box>
+      </View>
+      <Toast />
+      <ConfirmModal />
     </ErrorBoundary>
   );
 }
