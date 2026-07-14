@@ -121,20 +121,6 @@ function RootLayoutInner() {
               <Stack.Protected guard={!isLoading && !user}>
                 <Stack.Screen name="(auth)" />
               </Stack.Protected>
-
-              {/* 추가 화면들: Stack.Screen에 포함 */}
-              <Stack.Screen name="attendance" />
-              <Stack.Screen name="change-team" />
-              <Stack.Screen name="chat" />
-              <Stack.Screen name="exchange" />
-              <Stack.Screen name="liveboard" />
-              <Stack.Screen name="main" />
-              <Stack.Screen name="modal" />
-              <Stack.Screen name="profile" />
-              <Stack.Screen name="ranking" />
-              <Stack.Screen name="schedule" />
-              <Stack.Screen name="ticket-alarm" />
-              <Stack.Screen name="+not-found" />
             </Stack>
           </Box>
         </View>
