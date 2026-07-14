@@ -1,15 +1,9 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, Modal } from 'react-native';
-import Animated, { FadeIn, FadeOut, ZoomIn, ZoomOut } from 'react-native-reanimated';
+import { StyleSheet, TouchableOpacity, Modal, View } from 'react-native';
 import { useConfirmStore } from '@/src/store/useConfirmStore';
 import { Box } from './box';
 import { Typography } from './typography';
 import { theme } from '@/src/styles/theme';
-
-const overlayEntering = FadeIn.duration(200);
-const overlayExiting = FadeOut.duration(200);
-const modalEntering = ZoomIn.duration(200);
-const modalExiting = ZoomOut.duration(200);
 
 export function ConfirmModal() {
   const { isVisible, title, message, buttons, hideConfirm } = useConfirmStore();
@@ -17,13 +11,9 @@ export function ConfirmModal() {
   if (!isVisible) return null;
 
   return (
-    <Modal transparent visible={isVisible} animationType="none" onRequestClose={hideConfirm}>
-      <Animated.View entering={overlayEntering} exiting={overlayExiting} style={styles.overlay}>
-        <Animated.View
-          entering={modalEntering}
-          exiting={modalExiting}
-          style={styles.modalContainer}
-        >
+    <Modal transparent visible={isVisible} animationType="fade" onRequestClose={hideConfirm}>
+      <View style={styles.overlay}>
+        <View style={styles.modalContainer}>
           <Box style={styles.content}>
             <Typography variant="h3" weight="bold" color="text.primary" center>
               {title}
@@ -63,8 +53,8 @@ export function ConfirmModal() {
               );
             })}
           </Box>
-        </Animated.View>
-      </Animated.View>
+        </View>
+      </View>
     </Modal>
   );
 }

@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet } from 'react-native';
-import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
+import { StyleSheet, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useToastStore } from '@/src/store/useToastStore';
 import { Box } from './box';
@@ -8,21 +7,47 @@ import { Typography } from './typography';
 import { IconSymbol, IconSymbolName } from './icon-symbol';
 import { theme } from '@/src/styles/theme';
 
-const toastEntering = FadeInUp.springify().damping(15).stiffness(200);
-
 export function Toast() {
   const { isVisible, title, message, type, hideToast } = useToastStore();
   const insets = useSafeAreaInsets();
 
+  const translateY = React.useRef(new Animated.Value(-20)).current;
+  const opacity = React.useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     if (isVisible) {
+      Animated.parallel([
+        Animated.spring(translateY, {
+          toValue: 0,
+          friction: 8,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+
       const timer = setTimeout(() => {
-        hideToast();
+        Animated.parallel([
+          Animated.timing(opacity, {
+            toValue: 0,
+            duration: 200,
+            useNativeDriver: true,
+          }),
+        ]).start(() => {
+          hideToast();
+        });
       }, 3000);
       return () => clearTimeout(timer);
+    } else {
+      translateY.setValue(-20);
+      opacity.setValue(0);
     }
     return undefined;
-  }, [isVisible, hideToast]);
+  }, [isVisible, hideToast, opacity, translateY]);
 
   if (!isVisible) return null;
 
@@ -40,9 +65,15 @@ export function Toast() {
 
   return (
     <Animated.View
-      entering={toastEntering}
-      exiting={FadeOutUp}
-      style={[styles.container, { top: insets.top + 10, backgroundColor: bg }]}
+      style={[
+        styles.container,
+        {
+          top: insets.top + 10,
+          backgroundColor: bg,
+          opacity: opacity,
+          transform: [{ translateY: translateY }],
+        },
+      ]}
     >
       <Box flexDir="row" align="center" style={styles.content}>
         <IconSymbol name={iconName} size={24} color={iconColor} />
