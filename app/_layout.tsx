@@ -71,7 +71,7 @@ export default function RootLayout() {
  * 내부 레이아웃 컴포넌트
  */
 function RootLayoutInner() {
-  const { user, isLoading, isInitializing } = useAuth();
+  const { user, isInitializing } = useAuth();
   const { colors } = useTheme();
   const segments = useSegments();
   const netInfo = useNetInfo();
@@ -115,10 +115,10 @@ function RootLayoutInner() {
           {/* 하위 라우팅 화면 */}
           <Box flex={1} style={dynamicBg}>
             <Stack screenOptions={stackScreenOptions}>
-              <Stack.Protected guard={!isLoading && !!user}>
+              <Stack.Protected guard={!!user}>
                 <Stack.Screen name="(tabs)" />
               </Stack.Protected>
-              <Stack.Protected guard={!isLoading && !user}>
+              <Stack.Protected guard={!user}>
                 <Stack.Screen name="(auth)" />
               </Stack.Protected>
             </Stack>

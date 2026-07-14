@@ -1,14 +1,9 @@
 import { Box } from '@/components/ui';
 import { theme } from '@/src/styles/theme';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withTiming,
-  Easing,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import { usePulseOpacity } from '@/src/features/home/hooks/usePulseOpacity';
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -29,16 +24,7 @@ const LOCAL_LAYOUT = {
  * 사용자에게 데이터 로딩 중임을 시각적으로 부드럽게 전달함.
  */
 export const ScheduleSkeleton = () => {
-  const opacity = useSharedValue(0.3);
-
-  useEffect(() => {
-    // 부드러운 펄스 애니메이션 적용
-    opacity.value = withRepeat(
-      withTiming(0.7, { duration: 800, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      true,
-    );
-  }, [opacity]);
+  const opacity = usePulseOpacity(0.3, 0.7, 800);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,

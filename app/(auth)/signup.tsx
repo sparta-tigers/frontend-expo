@@ -6,7 +6,7 @@ import { getUserMessage } from '@/src/core/errors';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useToastStore } from '@/src/store/useToastStore';
 
 // ========================================================
@@ -82,8 +82,7 @@ export default function SignupScreen() {
         style={styles.keyboardContainer}
         contentContainerStyle={styles.contentContainer}
         keyboardShouldPersistTaps="handled"
-        enableOnAndroid={true}
-        extraScrollHeight={20}
+        bottomOffset={20}
       >
         <Box bg="card" p="xl" rounded="lg" style={styles.card}>
           <Typography variant="h2" weight="bold" color="text.primary" center mb="xl">

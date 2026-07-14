@@ -20,7 +20,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useToastStore } from '@/src/store/useToastStore';
 import { useConfirmStore } from '@/src/store/useConfirmStore';
 
@@ -298,8 +298,7 @@ export default function EditItemScreen() {
         contentContainerStyle={styles.scrollViewContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-        enableOnAndroid={true}
-        extraScrollHeight={20}
+        bottomOffset={20}
       >
         {/* 아이템 이미지 */}
         {item.imageUrl ? (

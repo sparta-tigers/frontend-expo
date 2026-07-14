@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 import { AppState, AppStateStatus, StyleSheet } from 'react-native';
+import Animated, { useSharedValue, withTiming, useAnimatedStyle } from 'react-native-reanimated';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { Box } from '@/components/ui';
@@ -43,6 +44,19 @@ export default function TabLayout() {
 
   const hasNewExchangeRequest = (receiveResponse?.data?.totalElements ?? 0) > 0;
 
+  const badgeOpacity = useSharedValue(hasNewExchangeRequest ? 1 : 0);
+  const badgeScale = useSharedValue(hasNewExchangeRequest ? 1 : 0);
+
+  useEffect(() => {
+    badgeOpacity.value = withTiming(hasNewExchangeRequest ? 1 : 0, { duration: 200 });
+    badgeScale.value = withTiming(hasNewExchangeRequest ? 1 : 0, { duration: 200 });
+  }, [hasNewExchangeRequest, badgeOpacity, badgeScale]);
+
+  const badgeAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: badgeOpacity.value,
+    transform: [{ scale: badgeScale.value }],
+  }));
+
   const TAB_ICON_SIZE = 28;
 
   return (
@@ -82,19 +96,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <Box>
               <IconSymbol size={TAB_ICON_SIZE} name="arrow.left.arrow.right" color={color} />
-              <Box
-                position="absolute"
-                right={theme.layout.tabBar.badgeOffset}
-                top={theme.layout.tabBar.badgeOffset}
-                width={theme.layout.tabBar.badgeSize}
-                height={theme.layout.tabBar.badgeSize}
-                rounded="sm"
-                bg="error"
-                style={[
-                  styles.badge,
-                  hasNewExchangeRequest ? styles.badgeVisible : styles.badgeHidden,
-                ]}
-              />
+              <Animated.View style={[styles.badge, badgeAnimatedStyle]} />
             </Box>
           ),
         }}
@@ -123,15 +125,13 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   badge: {
-    // Other properties are handled by Box primitive
-  },
-  badgeVisible: {
-    opacity: 1,
-    transform: [{ scale: 1 }],
-  },
-  badgeHidden: {
-    opacity: 0,
-    transform: [{ scale: 0 }],
+    position: 'absolute',
+    right: theme.layout.tabBar.badgeOffset,
+    top: theme.layout.tabBar.badgeOffset,
+    width: theme.layout.tabBar.badgeSize,
+    height: theme.layout.tabBar.badgeSize,
+    borderRadius: theme.radius.sm,
+    backgroundColor: theme.colors.error,
   },
 });
 
