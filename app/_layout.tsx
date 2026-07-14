@@ -10,7 +10,7 @@ import { Box, Toast, ConfirmModal } from '@/components/ui';
 import { GlobalHeader } from '@/components/ui/global-header';
 import { useNetInfo } from '@react-native-community/netinfo';
 import * as Notifications from 'expo-notifications';
-import { Stack, useSegments, Redirect } from 'expo-router';
+import { Stack, useSegments } from 'expo-router';
 import { useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
@@ -114,9 +114,28 @@ function RootLayoutInner() {
 
           {/* 하위 라우팅 화면 */}
           <Box flex={1} style={dynamicBg}>
-            {!user && !inAuthGroup && !isLoading && <Redirect href="/(auth)/signin" />}
-            {user && inAuthGroup && !isLoading && <Redirect href="/(tabs)" />}
-            <Stack screenOptions={stackScreenOptions} />
+            <Stack screenOptions={stackScreenOptions}>
+              <Stack.Protected guard={!isLoading && !!user}>
+                <Stack.Screen name="(tabs)" />
+              </Stack.Protected>
+              <Stack.Protected guard={!isLoading && !user}>
+                <Stack.Screen name="(auth)" />
+              </Stack.Protected>
+
+              {/* 추가 화면들: Stack.Screen에 포함 */}
+              <Stack.Screen name="attendance" />
+              <Stack.Screen name="change-team" />
+              <Stack.Screen name="chat" />
+              <Stack.Screen name="exchange" />
+              <Stack.Screen name="liveboard" />
+              <Stack.Screen name="main" />
+              <Stack.Screen name="modal" />
+              <Stack.Screen name="profile" />
+              <Stack.Screen name="ranking" />
+              <Stack.Screen name="schedule" />
+              <Stack.Screen name="ticket-alarm" />
+              <Stack.Screen name="+not-found" />
+            </Stack>
           </Box>
         </View>
         <Toast />
