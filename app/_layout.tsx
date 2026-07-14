@@ -1,6 +1,7 @@
 import { CombinedProvider } from '@/components/providers/combined-provider';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
+import { theme } from '@/src/styles/theme';
 import { ErrorBoundaryFallback } from '@/src/components/shared/ErrorBoundaryFallback';
 import { OfflineBanner } from '@/src/components/shared/OfflineBanner';
 import { Logger } from '@/src/utils/logger';
@@ -12,9 +13,9 @@ import * as Notifications from 'expo-notifications';
 import { Href, router, Stack, useSegments } from 'expo-router';
 import { useCallback, useEffect, useRef, useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { ActivityIndicator, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useNotificationListeners } from '@/src/hooks/useNotificationListeners';
 import Constants, { AppOwnership } from 'expo-constants';
@@ -127,7 +128,7 @@ function RootLayoutInner() {
       animation: 'slide_from_right' as const,
       fullScreenGestureEnabled: true,
       headerStyle: { backgroundColor: colors.background },
-      headerTintColor: colors.text?.primary || colors.primary,
+      headerTintColor: theme.colors.text.primary || theme.colors.primary,
       headerTitleStyle: { fontWeight: 'bold' as const },
     }),
     [colors],
@@ -148,20 +149,17 @@ function RootLayoutInner() {
   return (
     <ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
       <SafeAreaProvider>
-        <SafeAreaView
-          style={[styles.safeArea, dynamicBg]}
-          edges={inAuthGroup ? ['left', 'right'] : ['top', 'left', 'right']}
-        >
+        <View style={[styles.safeArea, dynamicBg]}>
           {!netInfo.isConnected ? <OfflineBanner /> : null}
 
           {/* 전역 헤더 */}
-          <GlobalHeader withTopInset={inAuthGroup} />
+          <GlobalHeader withTopInset={true} />
 
           {/* 하위 라우팅 화면 */}
           <Box flex={1} style={dynamicBg}>
             <Stack screenOptions={stackScreenOptions} />
           </Box>
-        </SafeAreaView>
+        </View>
         <Toast />
         <ConfirmModal />
       </SafeAreaProvider>

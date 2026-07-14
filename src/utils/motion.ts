@@ -1,13 +1,5 @@
 // theme imported removed because it's unused
 import * as Haptics from 'expo-haptics';
-import { LayoutAnimation, Platform, UIManager } from 'react-native';
-
-// Android 환경에서 LayoutAnimation 활성화 (필수)
-if (Platform.OS === 'android') {
-  if (UIManager.setLayoutAnimationEnabledExperimental) {
-    UIManager.setLayoutAnimationEnabledExperimental(true);
-  }
-}
 
 /**
  * 전역 LayoutAnimation 유틸리티 (UI/UX Pro Max)
@@ -15,8 +7,10 @@ if (Platform.OS === 'android') {
  * 컴포넌트 내부에서 하드코딩된 LayoutAnimation을 중앙에서 관리합니다.
  */
 export const animateLayout = () => {
-  // 기본 easeInEaseOut 사용. 필요시 theme.motion.duration을 조합한 Custom Config 사용 가능.
-  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  // 🚨 [Fabric 대응] New Architecture (Fabric) 환경에서
+  // LayoutAnimation.configureNext는 react-native-screens 전환 시
+  // "Unable to find viewState for tag X" 크래시를 유발하므로 비활성화합니다.
+  // 참고: https://github.com/react/react-native/issues/49077
 };
 
 /**

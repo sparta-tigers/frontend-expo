@@ -7,12 +7,13 @@ import React from 'react';
 import {
   ActivityIndicator,
   Image,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   TextInput,
   TouchableOpacity,
 } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 import { Box, Typography } from '@/components/ui';
 
@@ -259,148 +260,151 @@ export default function CreateItemScreen() {
         </TouchableOpacity>
       </Box>
 
-      <KeyboardAwareScrollView
-        style={styles.scrollView}
-        keyboardShouldPersistTaps="handled"
-        extraScrollHeight={24}
-        enableOnAndroid
-        enableAutomaticScroll
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.imageScrollContent}
+          style={styles.scrollView}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <Box flexDir="row" p="lg" gap="sm">
-            {selectedImages.length < 5 ? (
-              <TouchableOpacity style={styles.imageAddButton} onPress={handleImagePicker}>
-                <Typography variant="h1" color="text.tertiary">
-                  📷
-                </Typography>
-                <Typography variant="caption" color="text.tertiary">
-                  {selectedImages.length}/5
-                </Typography>
-              </TouchableOpacity>
-            ) : null}
-
-            {selectedImages.map((imageUri, index) => (
-              <Box key={index} style={styles.imageItemWrapper}>
-                <Image source={{ uri: imageUri }} style={styles.imageThumbnail} />
-                <TouchableOpacity style={styles.deleteButton} onPress={() => removeImage(index)}>
-                  <Typography variant="caption" weight="bold" color="background">
-                    ×
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.imageScrollContent}
+          >
+            <Box flexDir="row" p="lg" gap="sm">
+              {selectedImages.length < 5 ? (
+                <TouchableOpacity style={styles.imageAddButton} onPress={handleImagePicker}>
+                  <Typography variant="h1" color="text.tertiary">
+                    📷
+                  </Typography>
+                  <Typography variant="caption" color="text.tertiary">
+                    {selectedImages.length}/5
                   </Typography>
                 </TouchableOpacity>
-              </Box>
-            ))}
-          </Box>
-        </ScrollView>
+              ) : null}
 
-        <Box px="lg" py="md" borderBottomWidth={1} borderColor="border.medium">
-          <Box flexDir="row" justify="space-between" align="center" mb="sm">
-            <Typography variant="body1" weight="bold" color="text.primary">
-              📍 위치 정보
-            </Typography>
-            <TouchableOpacity onPress={getCurrentLocation} disabled={locationLoading}>
-              <Typography variant="caption" color="primary">
-                {locationLoading ? '로딩 중...' : '🔄 새로고침'}
+              {selectedImages.map((imageUri, index) => (
+                <Box key={index} style={styles.imageItemWrapper}>
+                  <Image source={{ uri: imageUri }} style={styles.imageThumbnail} />
+                  <TouchableOpacity style={styles.deleteButton} onPress={() => removeImage(index)}>
+                    <Typography variant="caption" weight="bold" color="background">
+                      ×
+                    </Typography>
+                  </TouchableOpacity>
+                </Box>
+              ))}
+            </Box>
+          </ScrollView>
+
+          <Box px="lg" py="md" borderBottomWidth={1} borderColor="border.medium">
+            <Box flexDir="row" justify="space-between" align="center" mb="sm">
+              <Typography variant="body1" weight="bold" color="text.primary">
+                📍 위치 정보
               </Typography>
-            </TouchableOpacity>
-          </Box>
-
-          <Box flexDir="row" align="center" p="sm" bg="surface" rounded="md">
-            <Typography variant="body1" mr="sm">
-              📍
-            </Typography>
-            <Typography variant="body2" color="text.secondary" flex={1}>
-              {currentLocation.address}
-            </Typography>
-            {locationLoading ? (
-              <ActivityIndicator size="small" color={theme.colors.primary} />
-            ) : null}
-          </Box>
-        </Box>
-
-        <Box px="lg">
-          <Box py="md" borderBottomWidth={1} borderColor="border.medium">
-            <Typography variant="body1" weight="bold" color="text.primary" mb="sm">
-              카테고리
-            </Typography>
-            <Box flexDir="row" gap="sm">
-              <TouchableOpacity
-                style={[
-                  styles.categoryButton,
-                  formData.itemCategory === 'TICKET' && styles.categoryButtonActive,
-                ]}
-                onPress={() => setFormData({ ...formData, itemCategory: 'TICKET' })}
-              >
-                <Typography
-                  weight={formData.itemCategory === 'TICKET' ? 'bold' : 'medium'}
-                  color={formData.itemCategory === 'TICKET' ? 'background' : 'text.secondary'}
-                >
-                  티켓
-                </Typography>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.categoryButton,
-                  formData.itemCategory === 'GOODS' && styles.categoryButtonActive,
-                ]}
-                onPress={() => setFormData({ ...formData, itemCategory: 'GOODS' })}
-              >
-                <Typography
-                  weight={formData.itemCategory === 'GOODS' ? 'bold' : 'medium'}
-                  color={formData.itemCategory === 'GOODS' ? 'background' : 'text.secondary'}
-                >
-                  굿즈
+              <TouchableOpacity onPress={getCurrentLocation} disabled={locationLoading}>
+                <Typography variant="caption" color="primary">
+                  {locationLoading ? '로딩 중...' : '🔄 새로고침'}
                 </Typography>
               </TouchableOpacity>
             </Box>
+
+            <Box flexDir="row" align="center" p="sm" bg="surface" rounded="md">
+              <Typography variant="body1" mr="sm">
+                📍
+              </Typography>
+              <Typography variant="body2" color="text.secondary" flex={1}>
+                {currentLocation.address}
+              </Typography>
+              {locationLoading ? (
+                <ActivityIndicator size="small" color={theme.colors.primary} />
+              ) : null}
+            </Box>
           </Box>
 
-          <TextInput
-            placeholder="제목"
-            style={[styles.titleInput, errors.title ? styles.inputError : null]}
-            value={formData.title}
-            onChangeText={(text) => {
-              setFormData({ ...formData, title: text });
-              if (text.trim()) setErrors((prev) => ({ ...prev, title: '' }));
-            }}
-            placeholderTextColor={theme.colors.text.tertiary}
-          />
-          {errors.title && (
-            <Typography variant="caption" color="error" style={styles.errorText} mb="md">
-              {errors.title}
-            </Typography>
-          )}
+          <Box px="lg">
+            <Box py="md" borderBottomWidth={1} borderColor="border.medium">
+              <Typography variant="body1" weight="bold" color="text.primary" mb="sm">
+                카테고리
+              </Typography>
+              <Box flexDir="row" gap="sm">
+                <TouchableOpacity
+                  style={[
+                    styles.categoryButton,
+                    formData.itemCategory === 'TICKET' && styles.categoryButtonActive,
+                  ]}
+                  onPress={() => setFormData({ ...formData, itemCategory: 'TICKET' })}
+                >
+                  <Typography
+                    weight={formData.itemCategory === 'TICKET' ? 'bold' : 'medium'}
+                    color={formData.itemCategory === 'TICKET' ? 'background' : 'text.secondary'}
+                  >
+                    티켓
+                  </Typography>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.categoryButton,
+                    formData.itemCategory === 'GOODS' && styles.categoryButtonActive,
+                  ]}
+                  onPress={() => setFormData({ ...formData, itemCategory: 'GOODS' })}
+                >
+                  <Typography
+                    weight={formData.itemCategory === 'GOODS' ? 'bold' : 'medium'}
+                    color={formData.itemCategory === 'GOODS' ? 'background' : 'text.secondary'}
+                  >
+                    굿즈
+                  </Typography>
+                </TouchableOpacity>
+              </Box>
+            </Box>
 
-          <TextInput
-            placeholder="희망 아이템 (선택)"
-            style={styles.desiredItemInput}
-            value={formData.desiredItem}
-            onChangeText={(text) => setFormData({ ...formData, desiredItem: text })}
-            placeholderTextColor={theme.colors.text.tertiary}
-          />
+            <TextInput
+              placeholder="제목"
+              style={[styles.titleInput, errors.title ? styles.inputError : null]}
+              value={formData.title}
+              onChangeText={(text) => {
+                setFormData({ ...formData, title: text });
+                if (text.trim()) setErrors((prev) => ({ ...prev, title: '' }));
+              }}
+              placeholderTextColor={theme.colors.text.tertiary}
+            />
+            {errors.title && (
+              <Typography variant="caption" color="error" style={styles.errorText} mb="md">
+                {errors.title}
+              </Typography>
+            )}
 
-          <TextInput
-            placeholder="내용을 입력하세요."
-            multiline
-            style={[styles.contentInput, errors.content ? styles.inputError : null]}
-            value={formData.content}
-            onChangeText={(text) => {
-              setFormData({ ...formData, content: text });
-              if (text.trim()) setErrors((prev) => ({ ...prev, content: '' }));
-            }}
-            placeholderTextColor={theme.colors.text.tertiary}
-          />
-          {errors.content ? (
-            <Typography variant="caption" color="error" mt="xs" mb="md">
-              {errors.content}
-            </Typography>
-          ) : null}
-        </Box>
-      </KeyboardAwareScrollView>
+            <TextInput
+              placeholder="희망 아이템 (선택)"
+              style={styles.desiredItemInput}
+              value={formData.desiredItem}
+              onChangeText={(text) => setFormData({ ...formData, desiredItem: text })}
+              placeholderTextColor={theme.colors.text.tertiary}
+            />
+
+            <TextInput
+              placeholder="내용을 입력하세요."
+              multiline
+              style={[styles.contentInput, errors.content ? styles.inputError : null]}
+              value={formData.content}
+              onChangeText={(text) => {
+                setFormData({ ...formData, content: text });
+                if (text.trim()) setErrors((prev) => ({ ...prev, content: '' }));
+              }}
+              placeholderTextColor={theme.colors.text.tertiary}
+            />
+            {errors.content ? (
+              <Typography variant="caption" color="error" mt="xs" mb="md">
+                {errors.content}
+              </Typography>
+            ) : null}
+          </Box>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeLayout>
   );
 }
@@ -409,6 +413,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  keyboardContainer: {
+    flex: 1,
   },
   scrollView: {
     flex: 1,

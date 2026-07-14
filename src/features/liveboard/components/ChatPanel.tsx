@@ -70,7 +70,7 @@ const LOCAL_LAYOUT = {
   keyboardVerticalOffsetAndroid: 0,
 };
 
-export function ChatPanel({ matchId, isVisible }: { matchId: string; isVisible?: boolean }) {
+export function ChatPanel({ matchId }: { matchId: string }) {
   const { messages, draft, setDraft, isConnected, scrollRef, handleSend } = useChatPanel(matchId);
 
   const keyExtractor = useCallback((item: ChatBubbleMessage) => item.key, []);

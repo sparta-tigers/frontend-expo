@@ -5,8 +5,7 @@ import { Logger } from '@/src/utils/logger';
 import { getUserMessage } from '@/src/core/errors';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
 import { useToastStore } from '@/src/store/useToastStore';
 
 // ========================================================
@@ -78,60 +77,64 @@ export default function SignupScreen() {
 
   return (
     <SafeLayout style={styles.safeLayout}>
-      <KeyboardAwareScrollView
-        contentContainerStyle={styles.contentContainer}
-        enableOnAndroid={true}
-        keyboardShouldPersistTaps="handled"
-        extraScrollHeight={theme.spacing.xl}
+      <KeyboardAvoidingView
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        <Box bg="card" p="xl" rounded="lg" style={styles.card}>
-          <Typography variant="h2" weight="bold" color="text.primary" center mb="xl">
-            회원가입
-          </Typography>
-
-          <Box gap="md">
-            <Input
-              value={email}
-              onChangeText={setEmail}
-              placeholder="이메일"
-              accessibilityLabel="이메일 입력"
-              keyboardType="email-address"
-              fullWidth
-            />
-
-            <Input
-              value={nickname}
-              onChangeText={setNickname}
-              placeholder="닉네임"
-              accessibilityLabel="닉네임 입력"
-              fullWidth
-            />
-
-            <Input
-              value={password}
-              onChangeText={setPassword}
-              placeholder="비밀번호"
-              accessibilityLabel="비밀번호 입력"
-              secureTextEntry
-              fullWidth
-            />
-
-            <Button
-              onPress={handleSignup}
-              loading={isLoading}
-              disabled={isLoading}
-              fullWidth
-              style={styles.signupButton}
-            >
+        <ScrollView
+          contentContainerStyle={styles.contentContainer}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Box bg="card" p="xl" rounded="lg" style={styles.card}>
+            <Typography variant="h2" weight="bold" color="text.primary" center mb="xl">
               회원가입
-            </Button>
+            </Typography>
 
-            <Button onPress={() => router.push('/(auth)/signin')} variant="ghost" fullWidth>
-              이미 계정이 있나요? 로그인하기
-            </Button>
+            <Box gap="md">
+              <Input
+                value={email}
+                onChangeText={setEmail}
+                placeholder="이메일"
+                accessibilityLabel="이메일 입력"
+                keyboardType="email-address"
+                fullWidth
+              />
+
+              <Input
+                value={nickname}
+                onChangeText={setNickname}
+                placeholder="닉네임"
+                accessibilityLabel="닉네임 입력"
+                fullWidth
+              />
+
+              <Input
+                value={password}
+                onChangeText={setPassword}
+                placeholder="비밀번호"
+                accessibilityLabel="비밀번호 입력"
+                secureTextEntry
+                fullWidth
+              />
+
+              <Button
+                onPress={handleSignup}
+                loading={isLoading}
+                disabled={isLoading}
+                fullWidth
+                style={styles.signupButton}
+              >
+                회원가입
+              </Button>
+
+              <Button onPress={() => router.push('/(auth)/signin')} variant="ghost" fullWidth>
+                이미 계정이 있나요? 로그인하기
+              </Button>
+            </Box>
           </Box>
-        </Box>
-      </KeyboardAwareScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeLayout>
   );
 }
@@ -139,6 +142,9 @@ export default function SignupScreen() {
 const styles = StyleSheet.create({
   safeLayout: {
     backgroundColor: theme.colors.background,
+  },
+  keyboardContainer: {
+    flex: 1,
   },
   contentContainer: {
     flex: 1,

@@ -2,8 +2,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { exchangeKeys } from '@/src/features/exchange/keys';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Box, Typography } from '@/components/ui';
@@ -31,6 +37,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  keyboardContainer: {
+    flex: 1,
   },
   content: {
     paddingHorizontal: theme.spacing.SCREEN,
@@ -260,52 +269,55 @@ export default function ApplyExchangeScreen() {
         }}
       />
       <SafeLayout edges={['top', 'bottom']} style={styles.container}>
-        <KeyboardAwareScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.content}
-          keyboardShouldPersistTaps="handled"
-          extraScrollHeight={80}
-          enableOnAndroid
-          enableAutomaticScroll
-          showsVerticalScrollIndicator={false}
+        <KeyboardAvoidingView
+          style={styles.keyboardContainer}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
-          {/* 교환 대상 아이템 표시 */}
-          {targetItem?.data ? (
-            <Box style={styles.targetItemBox}>
-              <Typography variant="body2" style={styles.targetItemLabel}>
-                교환 요청 대상 아이템
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.content}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* 교환 대상 아이템 표시 */}
+            {targetItem?.data ? (
+              <Box style={styles.targetItemBox}>
+                <Typography variant="body2" style={styles.targetItemLabel}>
+                  교환 요청 대상 아이템
+                </Typography>
+                <Typography variant="h3" style={styles.targetItemTitle}>
+                  {targetItem.data.title}
+                </Typography>
+              </Box>
+            ) : null}
+
+            {/* 헤더 안내 */}
+            <Box style={styles.header}>
+              <Typography variant="h2" style={styles.title}>
+                내가 제안하는 물건
               </Typography>
-              <Typography variant="h3" style={styles.targetItemTitle}>
-                {targetItem.data.title}
+              <Typography variant="body2" style={styles.subtitle}>
+                교환하고 싶은 내 물건을 설명해주세요. 상대방에게 전달돼요.
               </Typography>
             </Box>
-          ) : null}
 
-          {/* 헤더 안내 */}
-          <Box style={styles.header}>
-            <Typography variant="h2" style={styles.title}>
-              내가 제안하는 물건
-            </Typography>
-            <Typography variant="body2" style={styles.subtitle}>
-              교환하고 싶은 내 물건을 설명해주세요. 상대방에게 전달돼요.
-            </Typography>
-          </Box>
-
-          {/* have 입력 폼 (필수) */}
-          <Box style={styles.inputContainer}>
-            <Typography variant="body1" style={styles.inputLabel}>
-              교환 물건 설명 <Typography style={styles.requiredMark}>*</Typography>
-            </Typography>
-            <Input
-              placeholder="예: BTS 콘서트 포토카드 세트, 상태 최상 / 스타필드 팝업 굿즈"
-              value={have}
-              onChangeText={setHave}
-              multiline
-              numberOfLines={6}
-              style={styles.haveInput}
-            />
-          </Box>
-        </KeyboardAwareScrollView>
+            {/* have 입력 폼 (필수) */}
+            <Box style={styles.inputContainer}>
+              <Typography variant="body1" style={styles.inputLabel}>
+                교환 물건 설명 <Typography style={styles.requiredMark}>*</Typography>
+              </Typography>
+              <Input
+                placeholder="예: BTS 콘서트 포토카드 세트, 상태 최상 / 스타필드 팝업 굿즈"
+                value={have}
+                onChangeText={setHave}
+                multiline
+                numberOfLines={6}
+                style={styles.haveInput}
+              />
+            </Box>
+          </ScrollView>
+        </KeyboardAvoidingView>
 
         {/* 하단 고정 제출 영역 */}
         <Box
