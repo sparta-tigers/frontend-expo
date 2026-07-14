@@ -68,7 +68,6 @@ export default function ExchangeScreen() {
     mapRef,
     bottomSheetRef,
     listRef,
-    profileModalRef,
     itemsState,
     filteredItems,
     selectedCategory,
@@ -191,7 +190,7 @@ export default function ExchangeScreen() {
       />
 
       <ExchangeProfileModal
-        modalRef={profileModalRef}
+        visible={isProfileModalVisible}
         onClose={() => setProfileModalVisible(false)}
       />
     </SafeLayout>

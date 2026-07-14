@@ -1,5 +1,5 @@
 // src/features/exchange/hooks/useExchangeDashboard.ts
-import BottomSheet, { BottomSheetFlatListMethods, BottomSheetModal } from '@gorhom/bottom-sheet';
+import BottomSheet, { BottomSheetFlatListMethods } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useToastStore } from '@/src/store/useToastStore';
@@ -25,8 +25,6 @@ export function useExchangeDashboard() {
   // --- UI 상태 ---
   const [isProfileModalVisible, setProfileModalVisible] = useState(false);
   const showToast = useToastStore((state) => state.showToast);
-
-  const profileModalRef = useRef<BottomSheetModal>(null);
 
   // --- 기존 훅 연동 ---
   const {
@@ -171,7 +169,6 @@ export function useExchangeDashboard() {
 
   const handleOpenProfileModal = useCallback(() => {
     setProfileModalVisible(true);
-    profileModalRef.current?.present();
   }, []);
 
   return {
@@ -179,7 +176,6 @@ export function useExchangeDashboard() {
     mapRef,
     bottomSheetRef,
     listRef,
-    profileModalRef,
 
     // State
     itemsState,
