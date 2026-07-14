@@ -1,6 +1,7 @@
 import { CombinedProvider } from '@/components/providers/combined-provider';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/hooks/useTheme';
+import { theme } from '@/src/styles/theme';
 import { ErrorBoundaryFallback } from '@/src/components/shared/ErrorBoundaryFallback';
 import { OfflineBanner } from '@/src/components/shared/OfflineBanner';
 import { Logger } from '@/src/utils/logger';
@@ -127,7 +128,7 @@ function RootLayoutInner() {
       animation: 'slide_from_right' as const,
       fullScreenGestureEnabled: true,
       headerStyle: { backgroundColor: colors.background },
-      headerTintColor: colors.text || colors.primary,
+      headerTintColor: theme.colors.text.primary || theme.colors.primary,
       headerTitleStyle: { fontWeight: 'bold' as const },
     }),
     [colors],
@@ -142,7 +143,7 @@ function RootLayoutInner() {
   }
 
   const dynamicBg = {
-    backgroundColor: inAuthGroup ? 'transparent' : colors.background,
+    backgroundColor: inAuthGroup ? theme.colors.transparent : colors.background,
   };
 
   return (
