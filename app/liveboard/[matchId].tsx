@@ -9,14 +9,9 @@ import { WeatherPanel } from '@/src/features/liveboard/components/WeatherPanel';
 import { TABS, useLiveboardScreen } from '@/src/features/liveboard/hooks/useLiveboardScreen';
 import { styles } from '@/src/features/liveboard/styles/matchId.styles';
 import { theme } from '@/src/styles/theme';
-import { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Animated,
-  TouchableOpacity,
-  useWindowDimensions,
-  StyleSheet,
-} from 'react-native';
+import { useEffect } from 'react';
+import { ActivityIndicator, TouchableOpacity, useWindowDimensions, StyleSheet } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
 /**
  * 라이브보드 상세 화면
@@ -40,16 +35,20 @@ export default function LiveboardDetailScreen() {
 
   const { width } = useWindowDimensions();
   const tabIndex = TABS.findIndex((t) => t.key === activeTab);
-  const [slideAnim] = useState(() => new Animated.Value(tabIndex));
+  const slideAnim = useSharedValue(tabIndex);
 
   useEffect(() => {
-    Animated.spring(slideAnim, {
-      toValue: tabIndex,
-      useNativeDriver: true,
-      tension: 50,
-      friction: 8,
-    }).start();
+    slideAnim.value = withSpring(tabIndex, {
+      stiffness: 50,
+      damping: 8,
+    });
   }, [tabIndex, slideAnim]);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: slideAnim.value * -width }],
+    };
+  });
 
   // 🚨 Step 1: matchId 유효성 검사 (Fail-fast)
   if (!isValidMatchId) {
@@ -114,21 +113,7 @@ export default function LiveboardDetailScreen() {
 
       <Box flex={1} overflow="hidden">
         <Animated.View
-          style={[
-            localStyles.animatedContainer,
-            {
-              width: width * TABS.length,
-              transform: [
-                {
-                  translateX: slideAnim.interpolate({
-                    inputRange: TABS.map((_, i) => i),
-                    outputRange: TABS.map((_, i) => -width * i),
-                    extrapolate: 'clamp',
-                  }),
-                },
-              ],
-            },
-          ]}
+          style={[localStyles.animatedContainer, { width: width * TABS.length }, animatedStyle]}
         >
           <Box
             style={[localStyles.tabPanel, { width }]}
