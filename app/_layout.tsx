@@ -150,10 +150,10 @@ function RootLayoutInner() {
     <ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
       <SafeAreaProvider>
         <View style={[styles.safeArea, dynamicBg]}>
-          {!netInfo.isConnected ? <OfflineBanner /> : null}
-
           {/* 전역 헤더 */}
           <GlobalHeader withTopInset={true} />
+
+          {!netInfo.isConnected ? <OfflineBanner /> : null}
 
           {/* 하위 라우팅 화면 */}
           <Box flex={1} style={dynamicBg}>
