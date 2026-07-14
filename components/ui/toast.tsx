@@ -47,7 +47,7 @@ export function Toast() {
       opacity.setValue(0);
     }
     return undefined;
-  }, [isVisible, hideToast, opacity, translateY]);
+  }, [isVisible, hideToast, opacity, translateY, title, message, type]);
 
   if (!isVisible) return null;
 
