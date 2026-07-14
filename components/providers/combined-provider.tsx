@@ -9,6 +9,7 @@ import { focusManager, QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { ReactNode, useEffect, useState } from 'react';
 import { AppState, AppStateStatus, Platform } from 'react-native';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 /**
  * 결합된 Provider 컴포넌트
@@ -73,7 +74,9 @@ export function CombinedProvider({ children }: { children: ReactNode }) {
     >
       <AuthProvider>
         <ThemeProvider>
-          <BottomSheetModalProvider>{children}</BottomSheetModalProvider>
+          <KeyboardProvider>
+            <BottomSheetModalProvider>{children}</BottomSheetModalProvider>
+          </KeyboardProvider>
         </ThemeProvider>
       </AuthProvider>
     </PersistQueryClientProvider>
