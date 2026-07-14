@@ -1,7 +1,14 @@
 import { Box } from '@/components/ui';
 import { theme } from '@/src/styles/theme';
 import React, { useEffect } from 'react';
-import { Animated, Easing, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 
 // ========================================================
 // 화면 전용 레이아웃 상수 (LOCAL_LAYOUT)
@@ -22,30 +29,20 @@ const LOCAL_LAYOUT = {
  * 사용자에게 데이터 로딩 중임을 시각적으로 부드럽게 전달함.
  */
 export const ScheduleSkeleton = () => {
-  const [opacity] = React.useState(() => new Animated.Value(0.3));
+  const opacity = useSharedValue(0.3);
 
   useEffect(() => {
     // 부드러운 펄스 애니메이션 적용
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: 0.7,
-          duration: 800,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 0.3,
-          duration: 800,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ]),
+    opacity.value = withRepeat(
+      withTiming(0.7, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true,
     );
-    animation.start();
-
-    return () => animation.stop();
   }, [opacity]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
 
   return (
     <Box mt="xxxxl" pb="xxl" px="SCREEN_DASHBOARD">
@@ -56,7 +53,7 @@ export const ScheduleSkeleton = () => {
         justify="center"
         mb="md"
       >
-        <Animated.View style={[styles.titleSkeleton, { opacity }]} />
+        <Animated.View style={[styles.titleSkeleton, animatedStyle]} />
       </Box>
 
       <Box width={LOCAL_LAYOUT.wrapWidth} alignSelf="center">
@@ -70,7 +67,7 @@ export const ScheduleSkeleton = () => {
         >
           {Array.from({ length: 7 }).map((_, i) => (
             <Box key={i} flex={1} align="center" justify="center">
-              <Animated.View style={[styles.headerDaySkeleton, { opacity }]} />
+              <Animated.View style={[styles.headerDaySkeleton, animatedStyle]} />
             </Box>
           ))}
         </Box>
@@ -88,14 +85,14 @@ export const ScheduleSkeleton = () => {
           {Array.from({ length: 35 }).map((_, i) => (
             <View key={i} style={styles.cell}>
               <Box flexDir="row" justify="space-between" width="100%">
-                <Animated.View style={[styles.dayNumSkeleton, { opacity }]} />
+                <Animated.View style={[styles.dayNumSkeleton, animatedStyle]} />
               </Box>
 
               {/* 경기 있을 자리에 배포되는 배지 스켈레톤 */}
-              <Animated.View style={[styles.badgeSkeleton, { opacity }]} />
+              <Animated.View style={[styles.badgeSkeleton, animatedStyle]} />
 
               {/* 시간 정보 스켈레톤 */}
-              <Animated.View style={[styles.timeSkeleton, { opacity }]} />
+              <Animated.View style={[styles.timeSkeleton, animatedStyle]} />
             </View>
           ))}
         </Box>
