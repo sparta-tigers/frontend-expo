@@ -29,6 +29,8 @@ export function useExchangeDashboard() {
   const [isProfileModalVisible, setProfileModalVisible] = useState(false);
   const showToast = useToastStore((state) => state.showToast);
 
+  const profileModalRef = useRef<BottomSheetModal>(null);
+
   // --- 기존 훅 연동 ---
   const {
     itemsState,
@@ -169,11 +171,17 @@ export function useExchangeDashboard() {
     router.push('/exchange/requests');
   }, [router]);
 
+  const handleOpenProfileModal = useCallback(() => {
+    setProfileModalVisible(true);
+    profileModalRef.current?.present();
+  }, []);
+
   return {
     // Refs
     mapRef,
     bottomSheetRef,
     listRef,
+    profileModalRef,
 
     // State
     itemsState,
@@ -189,6 +197,7 @@ export function useExchangeDashboard() {
     // Setters / Actions
     setSelectedCategory,
     setProfileModalVisible,
+    handleOpenProfileModal,
     setIsMapReady,
     handleRegionChangeComplete,
     moveToCurrentLocation,

@@ -11,7 +11,7 @@ import {
   BottomSheetModal,
 } from '@gorhom/bottom-sheet';
 import { Href, useRouter } from 'expo-router';
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const MODAL_LAYOUT = {
@@ -21,28 +21,18 @@ const MODAL_LAYOUT = {
 } as const;
 
 interface ExchangeProfileModalProps {
-  visible: boolean;
+  modalRef: React.RefObject<BottomSheetModal | null>;
   onClose: () => void;
 }
 
 export const ExchangeProfileModal = React.memo(
-  ({ visible, onClose }: ExchangeProfileModalProps) => {
+  ({ modalRef, onClose }: ExchangeProfileModalProps) => {
     const router = useRouter();
     useTheme();
 
-    const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-
-    useEffect(() => {
-      if (visible) {
-        bottomSheetModalRef.current?.present();
-      } else {
-        bottomSheetModalRef.current?.dismiss();
-      }
-    }, [visible]);
-
     const handleNavigate = (path: Href) => {
       onClose();
-      bottomSheetModalRef.current?.dismiss();
+      modalRef.current?.dismiss();
       router.push(path);
     };
 
@@ -60,7 +50,7 @@ export const ExchangeProfileModal = React.memo(
 
     return (
       <BottomSheetModal
-        ref={bottomSheetModalRef}
+        ref={modalRef}
         index={0}
         snapPoints={['30%']}
         backdropComponent={renderBackdrop}

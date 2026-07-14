@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollView: {
-    flex: 1,
+    flexGrow: 1,
   },
   submitButtonDisabled: {
     opacity: 0.6,
