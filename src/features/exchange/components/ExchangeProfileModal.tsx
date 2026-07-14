@@ -48,11 +48,13 @@ export const ExchangeProfileModal = React.memo(
       [onClose],
     );
 
+    const snapPoints = React.useMemo(() => ['30%'], []);
+
     return (
       <BottomSheetModal
         ref={modalRef}
         index={0}
-        snapPoints={['30%']}
+        snapPoints={snapPoints}
         backdropComponent={renderBackdrop}
         onDismiss={onClose}
         handleIndicatorStyle={styles.modalHandle}

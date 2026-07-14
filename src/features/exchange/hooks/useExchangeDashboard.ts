@@ -2,7 +2,6 @@
 import BottomSheet, { BottomSheetFlatListMethods } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import MapViewType from 'react-native-maps';
 import { useToastStore } from '@/src/store/useToastStore';
 
 import { useExchangeItems } from '@/src/features/exchange/hooks/useExchangeItems';
@@ -19,8 +18,6 @@ import { Logger } from '@/src/utils/logger';
 export function useExchangeDashboard() {
   const router = useRouter();
 
-  // --- Refs (명령형 제어용) ---
-  const mapRef = useRef<MapViewType>(null);
   const bottomSheetRef = useRef<BottomSheet>(null);
   const listRef = useRef<BottomSheetFlatListMethods>(null);
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -45,6 +42,7 @@ export function useExchangeDashboard() {
   } = useExchangeItems();
 
   const {
+    mapRef,
     mapRegion,
     isMapMoved,
     currentLocation,
@@ -129,7 +127,7 @@ export function useExchangeDashboard() {
         router.push(`/exchange/${itemId}`);
       }
     },
-    [filteredItems, router],
+    [filteredItems, router, mapRef],
   );
 
   const handleSearchCurrentLocation = useCallback(async () => {
