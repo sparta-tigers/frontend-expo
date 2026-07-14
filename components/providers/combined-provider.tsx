@@ -4,7 +4,6 @@ import { asyncStoragePersister } from '@/src/core/persistence';
 import { Logger } from '@/src/utils/logger';
 import { initializeTokenCache } from '@/src/utils/tokenStore';
 import { ApiError } from '@/src/core/errors';
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { focusManager, QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { ReactNode, useEffect, useState } from 'react';
@@ -74,9 +73,7 @@ export function CombinedProvider({ children }: { children: ReactNode }) {
     >
       <AuthProvider>
         <ThemeProvider>
-          <KeyboardProvider>
-            <BottomSheetModalProvider>{children}</BottomSheetModalProvider>
-          </KeyboardProvider>
+          <KeyboardProvider>{children}</KeyboardProvider>
         </ThemeProvider>
       </AuthProvider>
     </PersistQueryClientProvider>

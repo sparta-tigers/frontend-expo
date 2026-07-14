@@ -1,5 +1,5 @@
 // src/features/exchange/hooks/useExchangeDashboard.ts
-import BottomSheet, { BottomSheetFlatListMethods } from '@gorhom/bottom-sheet';
+import BottomSheet, { BottomSheetFlatListMethods, BottomSheetModal } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useToastStore } from '@/src/store/useToastStore';

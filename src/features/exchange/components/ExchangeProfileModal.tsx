@@ -57,6 +57,11 @@ export const ExchangeProfileModal = React.memo(
         snapPoints={snapPoints}
         backdropComponent={renderBackdrop}
         onDismiss={onClose}
+        onChange={(index) => {
+          if (index === -1) {
+            onClose();
+          }
+        }}
         handleIndicatorStyle={styles.modalHandle}
         backgroundStyle={styles.modalContent}
       >

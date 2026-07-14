@@ -15,6 +15,7 @@ import { useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useNotificationListeners } from '@/src/hooks/useNotificationListeners';
@@ -60,9 +61,11 @@ export default function RootLayout() {
   useNotificationListeners();
   return (
     <GestureHandlerRootView style={styles.gestureContainer}>
-      <CombinedProvider>
-        <RootLayoutInner />
-      </CombinedProvider>
+      <BottomSheetModalProvider>
+        <CombinedProvider>
+          <RootLayoutInner />
+        </CombinedProvider>
+      </BottomSheetModalProvider>
     </GestureHandlerRootView>
   );
 }
