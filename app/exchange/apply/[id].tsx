@@ -257,7 +257,7 @@ export default function ApplyExchangeScreen() {
           headerShown: false,
         }}
       />
-      <SafeLayout edges={['top', 'bottom']} style={styles.container}>
+      <SafeLayout style={styles.container}>
         <KeyboardAwareScrollView
           style={styles.keyboardContainer}
           contentContainerStyle={styles.scrollViewContent}
