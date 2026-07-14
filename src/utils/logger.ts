@@ -191,7 +191,16 @@ export const Logger = {
       // Probing 실패 시 무시
     }
 
-    Logger.error(`🌐 [NETWORK] ${message}`, error, { domain: 'API', context });
+    if (
+      context.status &&
+      typeof context.status === 'number' &&
+      context.status >= 400 &&
+      context.status < 500
+    ) {
+      Logger.warn(`🌐 [NETWORK] ${message}`, error, { domain: 'API', context });
+    } else {
+      Logger.error(`🌐 [NETWORK] ${message}`, error, { domain: 'API', context });
+    }
   },
 
   /**

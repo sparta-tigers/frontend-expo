@@ -1,7 +1,6 @@
 import { Box, Button, Input, SafeLayout, Typography } from '@/components/ui';
 import { useAuth } from '@/src/hooks/useAuth';
 import { theme } from '@/src/styles/theme';
-import { Logger } from '@/src/utils/logger';
 import { getUserMessage } from '@/src/core/errors';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -71,7 +70,6 @@ export default function SignupScreen() {
         showToast('회원가입하지 못했어요', undefined, 'error');
       }
     } catch (error) {
-      Logger.error('회원가입 에러:', error);
       showToast('회원가입 에러', getUserMessage(error), 'error');
     }
   };

@@ -367,7 +367,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           throw new AppError(response.error?.message || '로그인 실패', 'AUTH_FAILED');
         }
       } catch (error) {
-        Logger.error('로그인 에러:', error);
         throw error;
       } finally {
         setIsAuthenticating(false);
@@ -413,7 +412,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           throw new AppError(response.error?.message || '회원가입 실패', 'AUTH_FAILED');
         }
       } catch (error) {
-        Logger.error('회원가입 에러:', error);
         throw error;
       } finally {
         setIsAuthenticating(false);
