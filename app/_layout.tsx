@@ -10,8 +10,8 @@ import { Box, Toast, ConfirmModal } from '@/components/ui';
 import { GlobalHeader } from '@/components/ui/global-header';
 import { useNetInfo } from '@react-native-community/netinfo';
 import * as Notifications from 'expo-notifications';
-import { Href, router, Stack, useSegments } from 'expo-router';
-import { useCallback, useEffect, useRef, useMemo } from 'react';
+import { Stack, useSegments } from 'expo-router';
+import { useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -78,49 +78,6 @@ function RootLayoutInner() {
 
   const inAuthGroup = segments[0] === '(auth)';
 
-  const navigationReady = useRef(false);
-  const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      navigationReady.current = true;
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-      if (redirectTimeoutRef.current) {
-        clearTimeout(redirectTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  const safeRedirect = useCallback((href: Href) => {
-    if (redirectTimeoutRef.current) {
-      clearTimeout(redirectTimeoutRef.current);
-      redirectTimeoutRef.current = null;
-    }
-
-    if (!navigationReady.current) {
-      redirectTimeoutRef.current = setTimeout(() => {
-        router.replace(href);
-        redirectTimeoutRef.current = null;
-      }, 200);
-      return;
-    }
-
-    router.replace(href);
-  }, []);
-
-  useEffect(() => {
-    if (!user && !inAuthGroup && !isLoading) {
-      safeRedirect('/(auth)/signin');
-    }
-
-    if (user && inAuthGroup && !isLoading) {
-      safeRedirect('/(tabs)');
-    }
-  }, [user, inAuthGroup, isLoading, safeRedirect]);
-
   const stackScreenOptions = useMemo(
     () => ({
       headerShown: false,
@@ -150,14 +107,21 @@ function RootLayoutInner() {
     <ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
       <SafeAreaProvider>
         <View style={[styles.safeArea, dynamicBg]}>
-          {!netInfo.isConnected ? <OfflineBanner /> : null}
-
           {/* 전역 헤더 */}
           <GlobalHeader withTopInset={true} />
 
+          <OfflineBanner isConnected={netInfo.isConnected ?? true} />
+
           {/* 하위 라우팅 화면 */}
           <Box flex={1} style={dynamicBg}>
-            <Stack screenOptions={stackScreenOptions} />
+            <Stack screenOptions={stackScreenOptions}>
+              <Stack.Protected guard={!isLoading && !!user}>
+                <Stack.Screen name="(tabs)" />
+              </Stack.Protected>
+              <Stack.Protected guard={!isLoading && !user}>
+                <Stack.Screen name="(auth)" />
+              </Stack.Protected>
+            </Stack>
           </Box>
         </View>
         <Toast />

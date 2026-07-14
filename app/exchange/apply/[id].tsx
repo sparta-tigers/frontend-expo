@@ -2,14 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { exchangeKeys } from '@/src/features/exchange/keys';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
+import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Box, Typography } from '@/components/ui';
@@ -98,10 +92,6 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   bottomContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     paddingTop: theme.spacing.md,
     paddingHorizontal: theme.spacing.xl,
     borderTopWidth: 1,
@@ -124,8 +114,8 @@ const styles = StyleSheet.create({
   applyButtonDisabled: {
     backgroundColor: theme.colors.text.tertiary,
   },
-  scrollView: {
-    flex: 1,
+  scrollViewContent: {
+    flexGrow: 1,
   },
 });
 
@@ -269,17 +259,15 @@ export default function ApplyExchangeScreen() {
         }}
       />
       <SafeLayout edges={['top', 'bottom']} style={styles.container}>
-        <KeyboardAvoidingView
+        <KeyboardAwareScrollView
           style={styles.keyboardContainer}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+          contentContainerStyle={styles.scrollViewContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          enableOnAndroid={true}
+          extraScrollHeight={20}
         >
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.content}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
+          <Box style={styles.content}>
             {/* 교환 대상 아이템 표시 */}
             {targetItem?.data ? (
               <Box style={styles.targetItemBox}>
@@ -316,28 +304,33 @@ export default function ApplyExchangeScreen() {
                 style={styles.haveInput}
               />
             </Box>
-          </ScrollView>
-        </KeyboardAvoidingView>
+          </Box>
 
-        {/* 하단 고정 제출 영역 */}
-        <Box
-          style={[
-            styles.bottomContainer,
-            {
-              paddingBottom: Math.max(insets.bottom, theme.spacing.xl),
-            },
-          ]}
-        >
-          <TouchableOpacity
-            style={[styles.applyButton, (!have.trim() || isPending) && styles.applyButtonDisabled]}
-            onPress={handleSubmit}
-            disabled={!have.trim() || isPending}
+          <Box flex={1} />
+
+          {/* 하단 고정 제출 영역이었으나 이제 스크롤 하단에 위치 */}
+          <Box
+            style={[
+              styles.bottomContainer,
+              {
+                paddingBottom: Math.max(insets.bottom, theme.spacing.xl),
+              },
+            ]}
           >
-            <Typography style={styles.submitButtonText}>
-              {isPending ? '신청 중...' : '제안 보내기'}
-            </Typography>
-          </TouchableOpacity>
-        </Box>
+            <TouchableOpacity
+              style={[
+                styles.applyButton,
+                (!have.trim() || isPending) && styles.applyButtonDisabled,
+              ]}
+              onPress={handleSubmit}
+              disabled={!have.trim() || isPending}
+            >
+              <Typography style={styles.submitButtonText}>
+                {isPending ? '신청 중...' : '제안 보내기'}
+              </Typography>
+            </TouchableOpacity>
+          </Box>
+        </KeyboardAwareScrollView>
       </SafeLayout>
     </>
   );

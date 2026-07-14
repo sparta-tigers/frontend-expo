@@ -1,5 +1,12 @@
-import React, { useEffect } from 'react';
-import { StyleSheet, Animated } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  runOnJS,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useToastStore } from '@/src/store/useToastStore';
 import { Box } from './box';
@@ -11,45 +18,41 @@ export function Toast() {
   const { isVisible, title, message, type, hideToast } = useToastStore();
   const insets = useSafeAreaInsets();
 
-  const translateY = React.useRef(new Animated.Value(-20)).current;
-  const opacity = React.useRef(new Animated.Value(0)).current;
+  const [isRendered, setIsRendered] = useState(false);
+  const translateY = useSharedValue(-20);
+  const opacity = useSharedValue(0);
 
   useEffect(() => {
-    if (isVisible) {
-      Animated.parallel([
-        Animated.spring(translateY, {
-          toValue: 0,
-          friction: 8,
-          tension: 40,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start();
+    let timer: ReturnType<typeof setTimeout>;
 
-      const timer = setTimeout(() => {
-        Animated.parallel([
-          Animated.timing(opacity, {
-            toValue: 0,
-            duration: 200,
-            useNativeDriver: true,
-          }),
-        ]).start(() => {
-          hideToast();
-        });
+    if (isVisible) {
+      setIsRendered(true);
+      translateY.value = withSpring(0, { damping: 12, stiffness: 90 });
+      opacity.value = withTiming(1, { duration: 200 });
+
+      timer = setTimeout(() => {
+        hideToast();
       }, 3000);
-      return () => clearTimeout(timer);
     } else {
-      translateY.setValue(-20);
-      opacity.setValue(0);
+      translateY.value = withTiming(-20, { duration: 200 });
+      opacity.value = withTiming(0, { duration: 200 }, (finished) => {
+        if (finished) {
+          runOnJS(setIsRendered)(false);
+        }
+      });
     }
-    return undefined;
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, [isVisible, hideToast, opacity, translateY]);
 
-  if (!isVisible) return null;
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  if (!isVisible && !isRendered) return null;
 
   let iconName: IconSymbolName = 'info.circle.fill';
   let iconColor: string = theme.colors.info;
@@ -70,9 +73,8 @@ export function Toast() {
         {
           top: insets.top + 10,
           backgroundColor: bg,
-          opacity: opacity,
-          transform: [{ translateY: translateY }],
         },
+        animatedStyle,
       ]}
     >
       <Box flexDir="row" align="center" style={styles.content}>

@@ -1,7 +1,14 @@
 import { Box } from '@/components/ui';
 import { theme } from '@/src/styles/theme';
 import React from 'react';
-import { Animated, Easing, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 
 /**
  * 순위 요약 섹션 스켈레톤 UI
@@ -10,36 +17,25 @@ import { Animated, Easing, StyleSheet } from 'react-native';
  * 레이아웃 시프트(Layout Shift)를 방지하고 시각적 연속성을 제공함.
  */
 export const RankingSkeleton = () => {
-  const [animatedValue] = React.useState(() => new Animated.Value(0.3));
+  const animatedValue = useSharedValue(0.3);
 
   React.useEffect(() => {
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(animatedValue, {
-          toValue: 0.7,
-          duration: 1000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(animatedValue, {
-          toValue: 0.3,
-          duration: 1000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ]),
+    animatedValue.value = withRepeat(
+      withTiming(0.7, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true,
     );
-
-    animation.start();
-
-    return () => animation.stop();
   }, [animatedValue]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: animatedValue.value,
+  }));
 
   return (
     <Box mt="xxxxl" px="xxxl">
       {/* Title Skeleton */}
       <Box align="center" mb="md">
-        <Animated.View style={[styles.titleSkeleton, { opacity: animatedValue }]} />
+        <Animated.View style={[styles.titleSkeleton, animatedStyle]} />
       </Box>
 
       {/* Row Skeletons */}
@@ -47,12 +43,12 @@ export const RankingSkeleton = () => {
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <Box key={i} flexDir="row" align="center" gap="sm">
             <Box width={theme.spacing.xxl} align="center">
-              <Animated.View style={[styles.rankSkeleton, { opacity: animatedValue }]} />
+              <Animated.View style={[styles.rankSkeleton, animatedStyle]} />
             </Box>
             <Animated.View
               style={[
                 styles.pillSkeleton,
-                { opacity: animatedValue },
+                animatedStyle,
                 i === 4 && styles.myTeamHighlight, // 4번째를 가상의 내 팀으로 표시하여 레이아웃 유지
               ]}
             />

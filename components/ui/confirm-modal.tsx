@@ -8,8 +8,6 @@ import { theme } from '@/src/styles/theme';
 export function ConfirmModal() {
   const { isVisible, title, message, buttons, hideConfirm } = useConfirmStore();
 
-  if (!isVisible) return null;
-
   return (
     <Modal transparent visible={isVisible} animationType="fade" onRequestClose={hideConfirm}>
       <View style={styles.overlay}>

@@ -2,7 +2,7 @@ import { Tabs } from 'expo-router';
 import { useEffect } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
-import { AppState, AppStateStatus } from 'react-native';
+import { AppState, AppStateStatus, StyleSheet } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { Box } from '@/components/ui';
@@ -82,17 +82,19 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <Box>
               <IconSymbol size={TAB_ICON_SIZE} name="arrow.left.arrow.right" color={color} />
-              {hasNewExchangeRequest ? (
-                <Box
-                  position="absolute"
-                  right={theme.layout.tabBar.badgeOffset}
-                  top={theme.layout.tabBar.badgeOffset}
-                  width={theme.layout.tabBar.badgeSize}
-                  height={theme.layout.tabBar.badgeSize}
-                  rounded="sm"
-                  bg="error"
-                />
-              ) : null}
+              <Box
+                position="absolute"
+                right={theme.layout.tabBar.badgeOffset}
+                top={theme.layout.tabBar.badgeOffset}
+                width={theme.layout.tabBar.badgeSize}
+                height={theme.layout.tabBar.badgeSize}
+                rounded="sm"
+                bg="error"
+                style={[
+                  styles.badge,
+                  hasNewExchangeRequest ? styles.badgeVisible : styles.badgeHidden,
+                ]}
+              />
             </Box>
           ),
         }}
@@ -118,5 +120,19 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  badge: {
+    // Other properties are handled by Box primitive
+  },
+  badgeVisible: {
+    opacity: 1,
+    transform: [{ scale: 1 }],
+  },
+  badgeHidden: {
+    opacity: 0,
+    transform: [{ scale: 0 }],
+  },
+});
 
 // 🚨 앙드레 카파시: 모든 스타일을 Box 프리미티브로 이전함.
