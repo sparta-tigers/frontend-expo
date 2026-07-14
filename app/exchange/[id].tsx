@@ -343,6 +343,7 @@ export default function ItemDetailScreen() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: exchangeKeys.item(id) }),
         queryClient.invalidateQueries({ queryKey: exchangeKeys.items() }),
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.myItems() }),
       ]);
     },
     onError: () => {
@@ -370,7 +371,10 @@ export default function ItemDetailScreen() {
   const { mutate: deleteItem } = useMutation({
     mutationFn: () => itemsDeleteAPI(Number(id)),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: exchangeKeys.items() });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.items() }),
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.myItems() }),
+      ]);
       if (router.canGoBack()) {
         router.back();
       } else {

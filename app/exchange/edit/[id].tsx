@@ -187,6 +187,7 @@ export default function EditItemScreen() {
           queryKey: exchangeKeys.item(id as string),
         }),
         queryClient.invalidateQueries({ queryKey: exchangeKeys.items() }),
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.myItems() }),
       ]);
 
       showConfirm('수정 완료', '아이템을 수정했어요.', [

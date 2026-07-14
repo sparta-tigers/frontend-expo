@@ -93,7 +93,11 @@ export default function CreateItemScreen() {
     },
     onSuccess: async () => {
       showToast('아이템을 등록했어요.', undefined, 'success');
-      await queryClient.invalidateQueries({ queryKey: exchangeKeys.items() });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.items() }),
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.myItems() }),
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.activeCheck() }),
+      ]);
       if (router.canGoBack()) {
         router.back();
       } else {
