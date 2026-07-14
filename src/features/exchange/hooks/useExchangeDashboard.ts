@@ -2,7 +2,6 @@
 import BottomSheet, { BottomSheetFlatListMethods } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import MapViewType from 'react-native-maps';
 import { useToastStore } from '@/src/store/useToastStore';
 
 import { useExchangeItems } from '@/src/features/exchange/hooks/useExchangeItems';
@@ -19,8 +18,6 @@ import { Logger } from '@/src/utils/logger';
 export function useExchangeDashboard() {
   const router = useRouter();
 
-  // --- Refs (명령형 제어용) ---
-  const mapRef = useRef<MapViewType>(null);
   const bottomSheetRef = useRef<BottomSheet>(null);
   const listRef = useRef<BottomSheetFlatListMethods>(null);
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -43,15 +40,16 @@ export function useExchangeDashboard() {
   } = useExchangeItems();
 
   const {
+    mapRef,
     mapRegion,
     isMapMoved,
     currentLocation,
     userLocation,
+    locationError,
     defaultRegion,
     setIsMapMoved,
     handleRegionChangeComplete,
     moveToCurrentLocation,
-    initializeLocation,
     setIsMapReady,
   } = useExchangeMap(isInitialFetched);
 
@@ -59,11 +57,10 @@ export function useExchangeDashboard() {
 
   // --- 초기화 로직 ---
   useEffect(() => {
-    initializeLocation().catch(() => {
-      // mapLogger.error는 initializeLocation 내부에서 이미 수행됨
+    if (locationError) {
       showToast('현재 위치를 확인하지 못해 기본 위치로 보여드릴게요.', undefined, 'info');
-    });
-  }, [initializeLocation, showToast]);
+    }
+  }, [locationError, showToast]);
 
   useEffect(() => {
     if (!isInitialFetched && userLocation) {
@@ -128,7 +125,7 @@ export function useExchangeDashboard() {
         router.push(`/exchange/${itemId}`);
       }
     },
-    [filteredItems, router],
+    [filteredItems, router, mapRef],
   );
 
   const handleSearchCurrentLocation = useCallback(async () => {
@@ -170,6 +167,10 @@ export function useExchangeDashboard() {
     router.push('/exchange/requests');
   }, [router]);
 
+  const handleOpenProfileModal = useCallback(() => {
+    setProfileModalVisible(true);
+  }, []);
+
   return {
     // Refs
     mapRef,
@@ -190,6 +191,7 @@ export function useExchangeDashboard() {
     // Setters / Actions
     setSelectedCategory,
     setProfileModalVisible,
+    handleOpenProfileModal,
     setIsMapReady,
     handleRegionChangeComplete,
     moveToCurrentLocation,

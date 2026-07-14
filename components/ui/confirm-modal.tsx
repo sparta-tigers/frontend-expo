@@ -7,6 +7,13 @@ import { theme } from '@/src/styles/theme';
 
 export function ConfirmModal() {
   const { isVisible, title, message, buttons, hideConfirm } = useConfirmStore();
+  const [isHandling, setIsHandling] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isVisible) {
+      setIsHandling(false);
+    }
+  }, [isVisible]);
 
   return (
     <Modal transparent visible={isVisible} animationType="fade" onRequestClose={hideConfirm}>
@@ -32,6 +39,8 @@ export function ConfirmModal() {
                   activeOpacity={0.7}
                   style={[styles.button, index > 0 && styles.buttonBorderLeft]}
                   onPress={() => {
+                    if (isHandling) return;
+                    setIsHandling(true);
                     hideConfirm();
                     if (btn.onPress) {
                       setTimeout(btn.onPress, 100);

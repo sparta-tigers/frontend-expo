@@ -12,7 +12,7 @@ import {
   TextInput,
   TouchableOpacity,
 } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 import { Box, Typography } from '@/components/ui';
 
@@ -93,7 +93,11 @@ export default function CreateItemScreen() {
     },
     onSuccess: async () => {
       showToast('아이템을 등록했어요.', undefined, 'success');
-      await queryClient.invalidateQueries({ queryKey: exchangeKeys.items() });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.items() }),
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.myItems() }),
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.activeCheck() }),
+      ]);
       if (router.canGoBack()) {
         router.back();
       } else {
@@ -234,7 +238,7 @@ export default function CreateItemScreen() {
   };
 
   return (
-    <SafeLayout edges={['top', 'bottom']} style={styles.container}>
+    <SafeLayout style={styles.container}>
       <Box
         flexDir="row"
         justify="space-between"
@@ -264,8 +268,7 @@ export default function CreateItemScreen() {
         contentContainerStyle={styles.scrollView}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-        enableOnAndroid={true}
-        extraScrollHeight={20}
+        bottomOffset={20}
       >
         <ScrollView
           horizontal
@@ -414,7 +417,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollView: {
-    flex: 1,
+    flexGrow: 1,
   },
   submitButtonDisabled: {
     opacity: 0.6,

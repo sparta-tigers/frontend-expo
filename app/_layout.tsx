@@ -15,6 +15,7 @@ import { useMemo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useNotificationListeners } from '@/src/hooks/useNotificationListeners';
@@ -59,11 +60,15 @@ if (Constants.appOwnership !== AppOwnership.Expo) {
 export default function RootLayout() {
   useNotificationListeners();
   return (
-    <GestureHandlerRootView style={styles.gestureContainer}>
-      <CombinedProvider>
-        <RootLayoutInner />
-      </CombinedProvider>
-    </GestureHandlerRootView>
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={styles.gestureContainer}>
+        <BottomSheetModalProvider>
+          <CombinedProvider>
+            <RootLayoutInner />
+          </CombinedProvider>
+        </BottomSheetModalProvider>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }
 
@@ -71,7 +76,7 @@ export default function RootLayout() {
  * 내부 레이아웃 컴포넌트
  */
 function RootLayoutInner() {
-  const { user, isLoading, isInitializing } = useAuth();
+  const { user, isInitializing } = useAuth();
   const { colors } = useTheme();
   const segments = useSegments();
   const netInfo = useNetInfo();
@@ -105,28 +110,26 @@ function RootLayoutInner() {
 
   return (
     <ErrorBoundary FallbackComponent={ErrorBoundaryFallback}>
-      <SafeAreaProvider>
-        <View style={[styles.safeArea, dynamicBg]}>
-          {/* 전역 헤더 */}
-          <GlobalHeader withTopInset={true} />
+      <View style={[styles.safeArea, dynamicBg]}>
+        {/* 전역 헤더 */}
+        <GlobalHeader withTopInset={true} />
 
-          <OfflineBanner isConnected={netInfo.isConnected ?? true} />
+        <OfflineBanner isConnected={netInfo.isConnected ?? true} />
 
-          {/* 하위 라우팅 화면 */}
-          <Box flex={1} style={dynamicBg}>
-            <Stack screenOptions={stackScreenOptions}>
-              <Stack.Protected guard={!isLoading && !!user}>
-                <Stack.Screen name="(tabs)" />
-              </Stack.Protected>
-              <Stack.Protected guard={!isLoading && !user}>
-                <Stack.Screen name="(auth)" />
-              </Stack.Protected>
-            </Stack>
-          </Box>
-        </View>
-        <Toast />
-        <ConfirmModal />
-      </SafeAreaProvider>
+        {/* 하위 라우팅 화면 */}
+        <Box flex={1} style={dynamicBg}>
+          <Stack screenOptions={stackScreenOptions}>
+            <Stack.Protected guard={!!user}>
+              <Stack.Screen name="(tabs)" />
+            </Stack.Protected>
+            <Stack.Protected guard={!user}>
+              <Stack.Screen name="(auth)" />
+            </Stack.Protected>
+          </Stack>
+        </Box>
+      </View>
+      <Toast />
+      <ConfirmModal />
     </ErrorBoundary>
   );
 }

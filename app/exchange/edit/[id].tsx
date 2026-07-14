@@ -20,7 +20,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useToastStore } from '@/src/store/useToastStore';
 import { useConfirmStore } from '@/src/store/useConfirmStore';
 
@@ -187,6 +187,7 @@ export default function EditItemScreen() {
           queryKey: exchangeKeys.item(id as string),
         }),
         queryClient.invalidateQueries({ queryKey: exchangeKeys.items() }),
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.myItems() }),
       ]);
 
       showConfirm('수정 완료', '아이템을 수정했어요.', [
@@ -260,7 +261,7 @@ export default function EditItemScreen() {
   // 로딩 상태
   if (isLoading) {
     return (
-      <SafeLayout edges={['top', 'bottom']} style={styles.container}>
+      <SafeLayout style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
           <Text style={styles.loadingText}>아이템 정보를 불러오는 중...</Text>
@@ -272,7 +273,7 @@ export default function EditItemScreen() {
   // 에러 상태
   if (error || !item) {
     return (
-      <SafeLayout edges={['top', 'bottom']} style={styles.container}>
+      <SafeLayout style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>아이템 정보를 불러오지 못했어요.</Text>
           <Button
@@ -298,8 +299,7 @@ export default function EditItemScreen() {
         contentContainerStyle={styles.scrollViewContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-        enableOnAndroid={true}
-        extraScrollHeight={20}
+        bottomOffset={20}
       >
         {/* 아이템 이미지 */}
         {item.imageUrl ? (

@@ -1,7 +1,7 @@
+// src/features/exchange/components/ExchangeProfileModal.tsx
 /**
- * 교환 화면 프로필 모달 컴포넌트
- *
- * "내 활동 관리" 바텀 모달 (내가 등록한 물건 / 종료된 교환 내역)
+ * @file ExchangeProfileModal.tsx
+ * @description 내 활동 관리 프로필 모달 (React Native 기본 Modal 사용)
  */
 import { useTheme } from '@/hooks/useTheme';
 import { theme } from '@/src/styles/theme';
@@ -9,7 +9,6 @@ import { Href, useRouter } from 'expo-router';
 import React from 'react';
 import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-/** 모달 전용 레이아웃 상수 */
 const MODAL_LAYOUT = {
   handleWidth: 40,
   handleHeight: 4,
@@ -26,12 +25,6 @@ export const ExchangeProfileModal = React.memo(
     const router = useRouter();
     useTheme();
 
-    /**
-     * 모달을 닫고 지정 경로로 이동
-     *
-     * Why: 모달이 닫히기 전에 네비게이션이 발생하면 애니메이션 충돌이 생길 수 있으므로
-     * onClose()를 먼저 호출한 뒤 push한다.
-     */
     const handleNavigate = (path: Href) => {
       onClose();
       router.push(path);
@@ -80,15 +73,12 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
     borderTopLeftRadius: theme.radius.lg,
     borderTopRightRadius: theme.radius.lg,
-    paddingBottom: theme.spacing.xxl,
     paddingHorizontal: theme.spacing.SCREEN,
+    paddingBottom: theme.spacing.xxl,
   },
   modalHeader: {
     alignItems: 'center',
-    paddingVertical: theme.spacing.COMPONENT,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
-    marginBottom: theme.spacing.COMPONENT,
+    paddingVertical: theme.spacing.lg,
   },
   modalHandle: {
     width: MODAL_LAYOUT.handleWidth,
@@ -99,24 +89,23 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: theme.typography.size.SECTION_TITLE,
-    fontWeight: theme.typography.weight.bold,
+    fontWeight: theme.typography.weight.BOLD,
     color: theme.colors.text.primary,
   },
   modalMenuButton: {
-    paddingVertical: theme.spacing.COMPONENT,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.light,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border.light,
   },
   modalMenuButtonText: {
     fontSize: theme.typography.size.BODY,
     color: theme.colors.text.primary,
-    fontWeight: theme.typography.weight.medium,
   },
   menuArrow: {
+    fontSize: theme.typography.size.BODY,
     color: theme.colors.text.tertiary,
-    fontSize: theme.typography.size.md,
   },
 });

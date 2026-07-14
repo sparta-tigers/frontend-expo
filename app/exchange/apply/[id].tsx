@@ -3,8 +3,7 @@ import { exchangeKeys } from '@/src/features/exchange/keys';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 import { Box, Typography } from '@/components/ui';
 import { Input } from '@/components/ui/input';
@@ -130,7 +129,7 @@ export default function ApplyExchangeScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const insets = useSafeAreaInsets();
+
   const { user, isLoading: isAuthLoading } = useAuth();
 
   const targetItemId = Number(id);
@@ -258,14 +257,13 @@ export default function ApplyExchangeScreen() {
           headerShown: false,
         }}
       />
-      <SafeLayout edges={['top', 'bottom']} style={styles.container}>
+      <SafeLayout style={styles.container}>
         <KeyboardAwareScrollView
           style={styles.keyboardContainer}
           contentContainerStyle={styles.scrollViewContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          enableOnAndroid={true}
-          extraScrollHeight={20}
+          bottomOffset={20}
         >
           <Box style={styles.content}>
             {/* 교환 대상 아이템 표시 */}
@@ -313,7 +311,7 @@ export default function ApplyExchangeScreen() {
             style={[
               styles.bottomContainer,
               {
-                paddingBottom: Math.max(insets.bottom, theme.spacing.xl),
+                paddingBottom: theme.spacing.xl,
               },
             ]}
           >

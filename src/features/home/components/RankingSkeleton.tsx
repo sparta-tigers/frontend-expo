@@ -2,13 +2,9 @@ import { Box } from '@/components/ui';
 import { theme } from '@/src/styles/theme';
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withTiming,
-  Easing,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+
+import { usePulseOpacity } from '@/src/features/home/hooks/usePulseOpacity';
 
 /**
  * 순위 요약 섹션 스켈레톤 UI
@@ -17,18 +13,10 @@ import Animated, {
  * 레이아웃 시프트(Layout Shift)를 방지하고 시각적 연속성을 제공함.
  */
 export const RankingSkeleton = () => {
-  const animatedValue = useSharedValue(0.3);
-
-  React.useEffect(() => {
-    animatedValue.value = withRepeat(
-      withTiming(0.7, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      true,
-    );
-  }, [animatedValue]);
+  const opacity = usePulseOpacity(0.3, 0.7, 1000);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    opacity: animatedValue.value,
+    opacity: opacity.value,
   }));
 
   return (

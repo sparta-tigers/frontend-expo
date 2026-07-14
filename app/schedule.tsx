@@ -205,21 +205,27 @@ export default function ScheduleScreen() {
                   activeOpacity={0.7}
                   disabled={isEmpty || !cell.hasGame}
                   onPress={() => {
-                    if (isFuture) {
+                    if (from === 'notification') {
                       if (cell.matchId) {
                         router.push({
                           pathname: '/ticket-alarm/[matchId]',
-                          params: {
-                            matchId: cell.matchId,
-                            ...(from ? { from } : {}),
-                          },
+                          params: { matchId: cell.matchId, from },
                         });
                       }
                     } else {
-                      if (attendanceId) {
-                        router.push(`/attendance/detail/${attendanceId}`);
-                      } else if (cell.matchId) {
-                        router.push(`/attendance/${cell.matchId}`);
+                      if (isFuture) {
+                        if (cell.matchId) {
+                          router.push({
+                            pathname: '/ticket-alarm/[matchId]',
+                            params: { matchId: cell.matchId },
+                          });
+                        }
+                      } else {
+                        if (attendanceId) {
+                          router.push(`/attendance/detail/${attendanceId}`);
+                        } else if (cell.matchId) {
+                          router.push(`/attendance/${cell.matchId}`);
+                        }
                       }
                     }
                   }}

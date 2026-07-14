@@ -59,7 +59,7 @@ export default function ProfileScreen() {
 
   return (
     <SafeLayout>
-      <Stack.Screen options={{ headerShown: true, title: '프로필', headerShadowVisible: false }} />
+      <Stack.Screen options={{ headerShown: false, title: '프로필', headerShadowVisible: false }} />
       {!user?.accessToken ? (
         <Box flex={1} bg="surface">
           <ScrollView

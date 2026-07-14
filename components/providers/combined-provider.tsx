@@ -4,11 +4,11 @@ import { asyncStoragePersister } from '@/src/core/persistence';
 import { Logger } from '@/src/utils/logger';
 import { initializeTokenCache } from '@/src/utils/tokenStore';
 import { ApiError } from '@/src/core/errors';
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { focusManager, QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { ReactNode, useEffect, useState } from 'react';
 import { AppState, AppStateStatus, Platform } from 'react-native';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 /**
  * 결합된 Provider 컴포넌트
@@ -73,7 +73,7 @@ export function CombinedProvider({ children }: { children: ReactNode }) {
     >
       <AuthProvider>
         <ThemeProvider>
-          <BottomSheetModalProvider>{children}</BottomSheetModalProvider>
+          <KeyboardProvider>{children}</KeyboardProvider>
         </ThemeProvider>
       </AuthProvider>
     </PersistQueryClientProvider>

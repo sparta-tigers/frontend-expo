@@ -343,6 +343,7 @@ export default function ItemDetailScreen() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: exchangeKeys.item(id) }),
         queryClient.invalidateQueries({ queryKey: exchangeKeys.items() }),
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.myItems() }),
       ]);
     },
     onError: () => {
@@ -370,7 +371,11 @@ export default function ItemDetailScreen() {
   const { mutate: deleteItem } = useMutation({
     mutationFn: () => itemsDeleteAPI(Number(id)),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: exchangeKeys.items() });
+      showToast('게시글이 삭제되었습니다.', undefined, 'success');
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.items() }),
+        queryClient.invalidateQueries({ queryKey: exchangeKeys.myItems() }),
+      ]);
       if (router.canGoBack()) {
         router.back();
       } else {
@@ -434,7 +439,7 @@ export default function ItemDetailScreen() {
     <>
       <Stack.Screen options={{ headerShown: false, gestureEnabled: true }} />
 
-      <SafeLayout edges={['top', 'bottom']} style={styles.container}>
+      <SafeLayout style={styles.container}>
         <Box style={styles.customHeader}>
           <Typography variant="body1" weight="bold" center style={styles.headerTitle}>
             아이템 상세

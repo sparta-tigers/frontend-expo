@@ -8,7 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { type Href, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Keyboard, Pressable, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useToastStore } from '@/src/store/useToastStore';
 import * as Haptics from 'expo-haptics';
 
@@ -101,7 +101,6 @@ export default function SigninScreen() {
         showToast('로그인 실패', '이메일 또는 비밀번호를 확인해주세요.', 'error');
       }
     } catch (error) {
-      Logger.error('로그인 에러:', error);
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       showToast('로그인 실패', getUserMessage(error), 'error');
     }
@@ -130,8 +129,7 @@ export default function SigninScreen() {
           keyboardShouldPersistTaps="handled"
           bounces={false}
           showsVerticalScrollIndicator={false}
-          enableOnAndroid={true}
-          extraScrollHeight={20}
+          bottomOffset={20}
         >
           <Pressable style={styles.pressableArea} onPress={Keyboard.dismiss}>
             <Box style={styles.gradientBody}>

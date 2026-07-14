@@ -46,11 +46,20 @@ const USER_MESSAGES: Record<string, string> = {
   FORBIDDEN: '접근 권한이 없어요.',
   VALIDATION_ERROR: '입력 내용을 다시 확인해 주세요.',
   RATE_LIMITED: '요청이 너무 많아요. 잠시 후 다시 시도해 주세요.',
+  E400: '입력 내용을 다시 확인해 주세요.',
   UNKNOWN_ERROR: '알 수 없는 문제가 생겼어요. 잠시 후 다시 시도해주세요.',
 };
 
 export function getUserMessage(error: unknown): string {
   if (isAppError(error)) {
+    // E400(Validation Error)의 경우 백엔드에서 전달된 상세 메시지(reason)를 노출
+    if (error.code === 'E400' && Array.isArray(error.details) && error.details.length > 0) {
+      const firstError = error.details[0];
+      if (firstError && typeof firstError === 'object' && 'reason' in firstError) {
+        return String(firstError.reason);
+      }
+    }
+
     return USER_MESSAGES[error.code] ?? USER_MESSAGES.UNKNOWN_ERROR;
   }
   return USER_MESSAGES.UNKNOWN_ERROR;

@@ -78,6 +78,7 @@ export default function ExchangeScreen() {
     isProfileModalVisible,
     setSelectedCategory,
     setProfileModalVisible,
+    handleOpenProfileModal,
     setIsMapReady,
     handleRegionChangeComplete,
     moveToCurrentLocation,
@@ -182,7 +183,7 @@ export default function ExchangeScreen() {
         isProfileModalVisible={isProfileModalVisible}
         isMapMoved={isMapMoved}
         onMoveToLocation={moveToCurrentLocation}
-        onOpenProfile={() => setProfileModalVisible(true)}
+        onOpenProfile={handleOpenProfileModal}
         onNavigateToCreate={navigateToCreate}
         onNavigateToRequests={navigateToRequests}
         onSearchCurrentLocation={handleSearchCurrentLocation}

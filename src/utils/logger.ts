@@ -109,6 +109,11 @@ export const Logger = {
   error: (message: string, error?: unknown, options: LogOptions = { domain: 'APP' }) => {
     if (!shouldLog('error', options.domain)) return;
 
+    // 🚨 이미 네트워크 계층(client.ts 인터셉터)에서 로깅된 ApiError는 중복 출력 방지
+    if (error && typeof error === 'object' && (error as Error).name === 'ApiError') {
+      return;
+    }
+
     const prefix = `🚨 [${options.domain || 'APP'}] ${message}`;
 
     // 🚨 [Senior Architect Constraint] AxiosError 전용 포맷팅 및 안전한 출력
@@ -191,7 +196,16 @@ export const Logger = {
       // Probing 실패 시 무시
     }
 
-    Logger.error(`🌐 [NETWORK] ${message}`, error, { domain: 'API', context });
+    if (
+      context.status &&
+      typeof context.status === 'number' &&
+      context.status >= 400 &&
+      context.status < 500
+    ) {
+      Logger.warn(`🌐 [NETWORK] ${message}`, error, { domain: 'API', context });
+    } else {
+      Logger.error(`🌐 [NETWORK] ${message}`, error, { domain: 'API', context });
+    }
   },
 
   /**

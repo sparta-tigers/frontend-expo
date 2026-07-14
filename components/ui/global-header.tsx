@@ -17,9 +17,9 @@ export function GlobalHeader({ withTopInset = false }: { withTopInset?: boolean 
       align="center"
       justify="space-between"
       px="xl"
-      py="lg"
+      pb="sm"
       style={{
-        paddingTop: (withTopInset ? insets.top : 0) + theme.spacing.md,
+        paddingTop: (withTopInset ? insets.top : 0) + theme.spacing.xs,
       }}
     >
       <Box width={48} align="flex-start">

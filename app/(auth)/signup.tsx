@@ -1,12 +1,11 @@
 import { Box, Button, Input, SafeLayout, Typography } from '@/components/ui';
 import { useAuth } from '@/src/hooks/useAuth';
 import { theme } from '@/src/styles/theme';
-import { Logger } from '@/src/utils/logger';
 import { getUserMessage } from '@/src/core/errors';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useToastStore } from '@/src/store/useToastStore';
 
 // ========================================================
@@ -71,7 +70,6 @@ export default function SignupScreen() {
         showToast('회원가입하지 못했어요', undefined, 'error');
       }
     } catch (error) {
-      Logger.error('회원가입 에러:', error);
       showToast('회원가입 에러', getUserMessage(error), 'error');
     }
   };
@@ -82,8 +80,7 @@ export default function SignupScreen() {
         style={styles.keyboardContainer}
         contentContainerStyle={styles.contentContainer}
         keyboardShouldPersistTaps="handled"
-        enableOnAndroid={true}
-        extraScrollHeight={20}
+        bottomOffset={20}
       >
         <Box bg="card" p="xl" rounded="lg" style={styles.card}>
           <Typography variant="h2" weight="bold" color="text.primary" center mb="xl">
