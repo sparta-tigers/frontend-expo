@@ -47,11 +47,11 @@ export function useExchangeDashboard() {
     isMapMoved,
     currentLocation,
     userLocation,
+    locationError,
     defaultRegion,
     setIsMapMoved,
     handleRegionChangeComplete,
     moveToCurrentLocation,
-    initializeLocation,
     setIsMapReady,
   } = useExchangeMap(isInitialFetched);
 
@@ -59,11 +59,10 @@ export function useExchangeDashboard() {
 
   // --- 초기화 로직 ---
   useEffect(() => {
-    initializeLocation().catch(() => {
-      // mapLogger.error는 initializeLocation 내부에서 이미 수행됨
+    if (locationError) {
       showToast('현재 위치를 확인하지 못해 기본 위치로 보여드릴게요.', undefined, 'info');
-    });
-  }, [initializeLocation, showToast]);
+    }
+  }, [locationError, showToast]);
 
   useEffect(() => {
     if (!isInitialFetched && userLocation) {

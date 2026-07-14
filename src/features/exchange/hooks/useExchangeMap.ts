@@ -6,13 +6,9 @@
  */
 import { useLocationTracker } from '@/src/hooks/useLocationTracker';
 import { useLocationStore } from '@/src/store/useLocationStore';
-import { Logger } from '@/src/utils/logger';
-import * as Location from 'expo-location';
-import React, { useCallback, useRef, useState } from 'react';
-import MapView from 'react-native-maps';
 import { useToastStore } from '@/src/store/useToastStore';
-
-const mapLogger = Logger.category('MAP');
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import MapView from 'react-native-maps';
 
 /** 지도 영역 정보 */
 interface MapRegion {
@@ -53,7 +49,6 @@ export interface UseExchangeMapReturn {
   setIsMapMoved: (moved: boolean) => void;
   handleRegionChangeComplete: (region: MapRegion) => void;
   moveToCurrentLocation: () => void;
-  initializeLocation: () => Promise<void>;
   setIsMapReady: (ready: boolean) => void;
 }
 
@@ -123,43 +118,24 @@ export function useExchangeMap(isInitialFetched: boolean): UseExchangeMapReturn 
   }, [userLocation, locationError, showToast]);
 
   /**
-   * 컴포넌트 마운트 시 초기 위치 설정
-   *
-   * expo-location의 getCurrentPositionAsync로 좌표를 가져오고
-   * 지도를 해당 위치로 이동시킨다.
+   * 유저 위치가 전역 스토어에 업데이트되면 (useLocationTracker에 의해)
+   * 처음 한 번만 지도를 해당 위치로 이동시키고 currentLocation을 설정한다.
    */
-  const initializeLocation = useCallback(async () => {
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        return;
-      }
-
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-
-      const { latitude, longitude } = location.coords;
-      const coords: Coordinates = { latitude, longitude };
-
-      setCurrentLocation(coords);
-
+  useEffect(() => {
+    if (userLocation && !currentLocation && isMapReady) {
+      setCurrentLocation(userLocation);
       if (mapRef.current) {
         mapRef.current.animateToRegion(
           {
-            ...coords,
+            ...userLocation,
             latitudeDelta: DEFAULT_REGION.latitudeDelta,
             longitudeDelta: DEFAULT_REGION.longitudeDelta,
           },
           MAP_INITIAL_ANIMATE_DURATION,
         );
       }
-    } catch (error) {
-      mapLogger.error('초기 위치 가져오기 실패', error);
-      // 🚨 [Senior Architect] 초기 위치 설정 실패는 Critical 에러로 간주하여 전파
-      throw error;
     }
-  }, []);
+  }, [userLocation, currentLocation, isMapReady]);
 
   return {
     mapRef,
@@ -173,7 +149,6 @@ export function useExchangeMap(isInitialFetched: boolean): UseExchangeMapReturn 
     setIsMapMoved,
     handleRegionChangeComplete,
     moveToCurrentLocation,
-    initializeLocation,
     setIsMapReady,
   };
 }
