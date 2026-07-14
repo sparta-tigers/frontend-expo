@@ -7,8 +7,17 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { type Href, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Keyboard, Pressable, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useToastStore } from '@/src/store/useToastStore';
 import * as Haptics from 'expo-haptics';
 
@@ -124,189 +133,191 @@ export default function SigninScreen() {
       style={styles.gradientRoot}
     >
       <SafeLayout style={styles.safeLayout} edges={['top', 'left', 'right', 'bottom']}>
-        <KeyboardAwareScrollView
-          contentContainerStyle={styles.scrollContent}
-          enableOnAndroid={true}
-          keyboardShouldPersistTaps="handled"
-          extraScrollHeight={theme.spacing.xl}
-          bounces={false}
-          showsVerticalScrollIndicator={false}
+        <KeyboardAvoidingView
+          style={styles.keyboardContainer}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
-          <Pressable style={styles.pressableArea} onPress={Keyboard.dismiss}>
-            <Box style={styles.gradientBody}>
-              <View>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            bounces={false}
+            showsVerticalScrollIndicator={false}
+          >
+            <Pressable style={styles.pressableArea} onPress={Keyboard.dismiss}>
+              <Box style={styles.gradientBody}>
                 <Box width="100%" align="center" justify="center" mb="xl">
                   <Image source={loginLogo} style={styles.logo} contentFit="contain" />
                 </Box>
-              </View>
 
-              <Box width="100%" align="center" gap="md" style={styles.formContainer}>
-                {/* 소셜 로그인 (Primary Action) */}
-                <View style={styles.fullWidth}>
-                  <TouchableOpacity
-                    activeOpacity={0.85}
-                    style={[styles.socialButtonFull, styles.kakaoButton]}
-                    disabled={isLoading}
-                    onPress={() =>
-                      showToast('준비 중', '카카오 로그인은 아직 준비하고 있어요.', 'info')
-                    }
-                    accessibilityRole="button"
-                    accessibilityLabel="카카오 로그인"
-                  >
-                    <Box flexDir="row" align="center" justify="center" gap="sm">
-                      <Image
-                        source={kakaoIcon}
-                        style={styles.socialIconSmall}
-                        contentFit="contain"
-                      />
-                      <Typography variant="body1" weight="bold" style={styles.kakaoText}>
-                        카카오로 시작하기
-                      </Typography>
-                    </Box>
-                  </TouchableOpacity>
-                </View>
-
-                <View style={styles.fullWidth}>
-                  <TouchableOpacity
-                    activeOpacity={0.85}
-                    style={[styles.socialButtonFull, styles.appleButton]}
-                    disabled={isLoading}
-                    onPress={() =>
-                      showToast('준비 중', 'Apple 로그인은 아직 준비하고 있어요.', 'info')
-                    }
-                    accessibilityRole="button"
-                    accessibilityLabel="애플 로그인"
-                  >
-                    <Box flexDir="row" align="center" justify="center" gap="sm">
-                      <Image
-                        source={appleIcon}
-                        style={styles.socialIconSmall}
-                        contentFit="contain"
-                      />
-                      <Typography variant="body1" weight="bold" style={styles.appleText}>
-                        Apple로 시작하기
-                      </Typography>
-                    </Box>
-                  </TouchableOpacity>
-                </View>
-
-                {/* 구분선 */}
-                <View style={styles.fullWidth}>
-                  <Box
-                    width="100%"
-                    height={LOCAL_LAYOUT.socialDividerHeight}
-                    align="center"
-                    justify="center"
-                    mt="sm"
-                    mb="sm"
-                    flexDir="row"
-                    gap="md"
-                  >
-                    <Box
-                      flex={1}
-                      height={LOCAL_LAYOUT.dividerLineHeight}
-                      bg="background"
-                      style={styles.dividerLine}
-                    />
-                    <Typography variant="body2" color="brand.subtitle">
-                      또는 이메일로 로그인
-                    </Typography>
-                    <Box
-                      flex={1}
-                      height={LOCAL_LAYOUT.dividerLineHeight}
-                      bg="background"
-                      style={styles.dividerLine}
-                    />
-                  </Box>
-                </View>
-
-                {/* 이메일/비밀번호 입력 폼 */}
-                <View style={styles.inputWrapper}>
-                  <View style={[styles.inputBorder, emailBorderStyle]}>
-                    <TextInput
-                      value={email}
-                      onChangeText={setEmail}
-                      placeholder="이메일"
-                      placeholderTextColor={theme.colors.brand.subtitle}
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      style={styles.input}
-                      editable={!isLoading}
-                      returnKeyType="next"
-                      onFocus={() => {
-                        setEmailFocus(true);
-                      }}
-                      onBlur={() => {
-                        setEmailFocus(false);
-                      }}
-                      accessibilityLabel="이메일 입력"
-                      accessibilityHint="로그인에 사용할 이메일을 입력하세요"
-                    />
+                <Box width="100%" align="center" gap="md" style={styles.formContainer}>
+                  {/* 소셜 로그인 (Primary Action) */}
+                  <View style={styles.fullWidth}>
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      style={[styles.socialButtonFull, styles.kakaoButton]}
+                      disabled={isLoading}
+                      onPress={() =>
+                        showToast('준비 중', '카카오 로그인은 아직 준비하고 있어요.', 'info')
+                      }
+                      accessibilityRole="button"
+                      accessibilityLabel="카카오 로그인"
+                    >
+                      <Box flexDir="row" align="center" justify="center" gap="sm">
+                        <Image
+                          source={kakaoIcon}
+                          style={styles.socialIconSmall}
+                          contentFit="contain"
+                        />
+                        <Typography variant="body1" weight="bold" style={styles.kakaoText}>
+                          카카오로 시작하기
+                        </Typography>
+                      </Box>
+                    </TouchableOpacity>
                   </View>
-                </View>
 
-                <View style={styles.inputWrapper}>
-                  <View style={[styles.inputBorder, passwordBorderStyle]}>
-                    <TextInput
-                      value={password}
-                      onChangeText={setPassword}
-                      placeholder="비밀번호"
-                      placeholderTextColor={theme.colors.brand.subtitle}
-                      secureTextEntry
-                      style={styles.input}
-                      editable={!isLoading}
-                      returnKeyType="done"
-                      onSubmitEditing={handleSignin}
-                      onFocus={() => {
-                        setPasswordFocus(true);
-                      }}
-                      onBlur={() => {
-                        setPasswordFocus(false);
-                      }}
-                      accessibilityLabel="비밀번호 입력"
-                      accessibilityHint="계정의 비밀번호를 입력하세요"
-                    />
+                  <View style={styles.fullWidth}>
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      style={[styles.socialButtonFull, styles.appleButton]}
+                      disabled={isLoading}
+                      onPress={() =>
+                        showToast('준비 중', 'Apple 로그인은 아직 준비하고 있어요.', 'info')
+                      }
+                      accessibilityRole="button"
+                      accessibilityLabel="애플 로그인"
+                    >
+                      <Box flexDir="row" align="center" justify="center" gap="sm">
+                        <Image
+                          source={appleIcon}
+                          style={styles.socialIconSmall}
+                          contentFit="contain"
+                        />
+                        <Typography variant="body1" weight="bold" style={styles.appleText}>
+                          Apple로 시작하기
+                        </Typography>
+                      </Box>
+                    </TouchableOpacity>
                   </View>
-                </View>
 
-                {/* 이메일 로그인 버튼 */}
-                <View style={styles.buttonWrapper}>
-                  <TouchableOpacity
-                    activeOpacity={0.8}
-                    onPress={handleSignin}
-                    disabled={isLoading}
-                    style={styles.loginButton}
-                    accessibilityRole="button"
-                    accessibilityLabel="이메일로 로그인"
-                    accessibilityState={{ disabled: isLoading }}
-                  >
-                    <Typography variant="body1" weight="bold" color="background" center>
-                      로그인
-                    </Typography>
-                  </TouchableOpacity>
-                </View>
+                  {/* 구분선 */}
+                  <View style={styles.fullWidth}>
+                    <Box
+                      width="100%"
+                      height={LOCAL_LAYOUT.socialDividerHeight}
+                      align="center"
+                      justify="center"
+                      mt="sm"
+                      mb="sm"
+                      flexDir="row"
+                      gap="md"
+                    >
+                      <Box
+                        flex={1}
+                        height={LOCAL_LAYOUT.dividerLineHeight}
+                        bg="background"
+                        style={styles.dividerLine}
+                      />
+                      <Typography variant="body2" color="brand.subtitle">
+                        또는 이메일로 로그인
+                      </Typography>
+                      <Box
+                        flex={1}
+                        height={LOCAL_LAYOUT.dividerLineHeight}
+                        bg="background"
+                        style={styles.dividerLine}
+                      />
+                    </Box>
+                  </View>
 
-                {/* 회원가입 버튼 */}
-                <View style={styles.buttonWrapper}>
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    onPress={() => router.push('/(auth)/signup')}
-                    disabled={isLoading}
-                    style={styles.registerButton}
-                    accessibilityRole="button"
-                    accessibilityLabel="회원가입 페이지로 이동"
-                    accessibilityState={{ disabled: isLoading }}
-                  >
-                    <Typography variant="body2" weight="medium" color="brand.subtitle" center>
-                      회원가입
-                    </Typography>
-                  </TouchableOpacity>
-                </View>
+                  {/* 이메일/비밀번호 입력 폼 */}
+                  <View style={styles.inputWrapper}>
+                    <View style={[styles.inputBorder, emailBorderStyle]}>
+                      <TextInput
+                        value={email}
+                        onChangeText={setEmail}
+                        placeholder="이메일"
+                        placeholderTextColor={theme.colors.brand.subtitle}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        style={styles.input}
+                        editable={!isLoading}
+                        returnKeyType="next"
+                        onFocus={() => {
+                          setEmailFocus(true);
+                        }}
+                        onBlur={() => {
+                          setEmailFocus(false);
+                        }}
+                        accessibilityLabel="이메일 입력"
+                        accessibilityHint="로그인에 사용할 이메일을 입력하세요"
+                      />
+                    </View>
+                  </View>
+
+                  <View style={styles.inputWrapper}>
+                    <View style={[styles.inputBorder, passwordBorderStyle]}>
+                      <TextInput
+                        value={password}
+                        onChangeText={setPassword}
+                        placeholder="비밀번호"
+                        placeholderTextColor={theme.colors.brand.subtitle}
+                        secureTextEntry
+                        style={styles.input}
+                        editable={!isLoading}
+                        returnKeyType="done"
+                        onSubmitEditing={handleSignin}
+                        onFocus={() => {
+                          setPasswordFocus(true);
+                        }}
+                        onBlur={() => {
+                          setPasswordFocus(false);
+                        }}
+                        accessibilityLabel="비밀번호 입력"
+                        accessibilityHint="계정의 비밀번호를 입력하세요"
+                      />
+                    </View>
+                  </View>
+
+                  {/* 이메일 로그인 버튼 */}
+                  <View style={styles.buttonWrapper}>
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={handleSignin}
+                      disabled={isLoading}
+                      style={styles.loginButton}
+                      accessibilityRole="button"
+                      accessibilityLabel="이메일로 로그인"
+                      accessibilityState={{ disabled: isLoading }}
+                    >
+                      <Typography variant="body1" weight="bold" color="background" center>
+                        로그인
+                      </Typography>
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* 회원가입 버튼 */}
+                  <View style={styles.buttonWrapper}>
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={() => router.push('/(auth)/signup')}
+                      disabled={isLoading}
+                      style={styles.registerButton}
+                      accessibilityRole="button"
+                      accessibilityLabel="회원가입 페이지로 이동"
+                      accessibilityState={{ disabled: isLoading }}
+                    >
+                      <Typography variant="body2" weight="medium" color="brand.subtitle" center>
+                        회원가입
+                      </Typography>
+                    </TouchableOpacity>
+                  </View>
+                </Box>
               </Box>
-            </Box>
-          </Pressable>
-        </KeyboardAwareScrollView>
+            </Pressable>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </SafeLayout>
     </LinearGradient>
   );
@@ -319,6 +330,9 @@ const styles = StyleSheet.create({
   safeLayout: {
     flex: 1,
     backgroundColor: theme.colors.transparent,
+  },
+  keyboardContainer: {
+    flex: 1,
   },
   scrollContent: {
     flexGrow: 1,

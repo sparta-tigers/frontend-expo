@@ -14,13 +14,15 @@ import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useToastStore } from '@/src/store/useToastStore';
 import { useConfirmStore } from '@/src/store/useConfirmStore';
 
@@ -28,6 +30,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+  },
+  keyboardContainer: {
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,
@@ -287,99 +292,106 @@ export default function EditItemScreen() {
 
   return (
     <SafeLayout style={styles.container}>
-      <KeyboardAwareScrollView
-        style={styles.container}
-        enableOnAndroid={true}
-        keyboardShouldPersistTaps="handled"
-        extraScrollHeight={20}
+      <KeyboardAvoidingView
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        {/* 아이템 이미지 */}
-        {item.imageUrl ? (
-          <Card style={styles.imageCard}>
-            <Image
-              source={{ uri: getImageUrl(item.imageUrl) }}
-              style={styles.itemImage}
-              resizeMode="cover"
-            />
-          </Card>
-        ) : null}
+        <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
+          {/* 아이템 이미지 */}
+          {item.imageUrl ? (
+            <Card style={styles.imageCard}>
+              <Image
+                source={{ uri: getImageUrl(item.imageUrl) }}
+                style={styles.itemImage}
+                resizeMode="cover"
+              />
+            </Card>
+          ) : null}
 
-        {/* 수정 폼 */}
-        <Card style={styles.formCard}>
-          <Text style={styles.sectionTitle}>아이템 정보 수정</Text>
+          {/* 수정 폼 */}
+          <Card style={styles.formCard}>
+            <Text style={styles.sectionTitle}>아이템 정보 수정</Text>
 
-          {/* 제목 입력 */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>제목</Text>
-            <TextInput
-              style={styles.input}
-              value={title}
-              onChangeText={setTitle}
-              placeholder="아이템 제목을 입력하세요"
-              placeholderTextColor={theme.colors.text.tertiary}
-              multiline
-            />
-          </View>
-
-          {/* 카테고리 선택 */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>카테고리</Text>
-            <View style={styles.categoryContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.categoryButton,
-                  category === 'TICKET' && styles.categoryButtonActive,
-                ]}
-                onPress={() => setCategory('TICKET')}
-              >
-                <Text
-                  style={[styles.categoryText, category === 'TICKET' && styles.categoryTextActive]}
-                >
-                  경기 티켓
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.categoryButton, category === 'GOODS' && styles.categoryButtonActive]}
-                onPress={() => setCategory('GOODS')}
-              >
-                <Text
-                  style={[styles.categoryText, category === 'GOODS' && styles.categoryTextActive]}
-                >
-                  굿즈/상품
-                </Text>
-              </TouchableOpacity>
+            {/* 제목 입력 */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>제목</Text>
+              <TextInput
+                style={styles.input}
+                value={title}
+                onChangeText={setTitle}
+                placeholder="아이템 제목을 입력하세요"
+                placeholderTextColor={theme.colors.text.tertiary}
+                multiline
+              />
             </View>
-          </View>
 
-          {/* 설명 입력 */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>설명</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={description}
-              onChangeText={setDescription}
-              placeholder="아이템 상세 설명을 입력하세요"
-              placeholderTextColor={theme.colors.text.tertiary}
-              multiline
-              numberOfLines={6}
-              textAlignVertical="top"
-            />
-          </View>
-        </Card>
+            {/* 카테고리 선택 */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>카테고리</Text>
+              <View style={styles.categoryContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.categoryButton,
+                    category === 'TICKET' && styles.categoryButtonActive,
+                  ]}
+                  onPress={() => setCategory('TICKET')}
+                >
+                  <Text
+                    style={[
+                      styles.categoryText,
+                      category === 'TICKET' && styles.categoryTextActive,
+                    ]}
+                  >
+                    경기 티켓
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.categoryButton,
+                    category === 'GOODS' && styles.categoryButtonActive,
+                  ]}
+                  onPress={() => setCategory('GOODS')}
+                >
+                  <Text
+                    style={[styles.categoryText, category === 'GOODS' && styles.categoryTextActive]}
+                  >
+                    굿즈/상품
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
 
-        {/* 액션 버튼 */}
-        <View style={styles.actionContainer}>
-          <Button
-            variant="primary"
-            onPress={handleUpdateItem}
-            loading={updateItemMutation.isPending}
-            style={styles.saveButton}
-            fullWidth
-          >
-            아이템 수정
-          </Button>
-        </View>
-      </KeyboardAwareScrollView>
+            {/* 설명 입력 */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>설명</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={description}
+                onChangeText={setDescription}
+                placeholder="아이템 상세 설명을 입력하세요"
+                placeholderTextColor={theme.colors.text.tertiary}
+                multiline
+                numberOfLines={6}
+                textAlignVertical="top"
+              />
+            </View>
+          </Card>
+
+          {/* 액션 버튼 */}
+          <View style={styles.actionContainer}>
+            <Button
+              variant="primary"
+              onPress={handleUpdateItem}
+              loading={updateItemMutation.isPending}
+              style={styles.saveButton}
+              fullWidth
+            >
+              아이템 수정
+            </Button>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeLayout>
   );
 }
